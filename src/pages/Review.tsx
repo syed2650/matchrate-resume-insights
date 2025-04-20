@@ -3,8 +3,8 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
-import { FileText, Upload, FilePdf } from "lucide-react";
-import jsPDF from "jspdf";
+import { FileText, Upload } from "lucide-react";
+import { jsPDF } from "jspdf";
 
 const Review = () => {
   const [resume, setResume] = useState("");
