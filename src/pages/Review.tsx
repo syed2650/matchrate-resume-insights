@@ -178,7 +178,7 @@ const Review = () => {
                   onClick={generatePDF}
                   className="flex items-center"
                 >
-                  <FilePdf className="mr-2 h-4 w-4" />
+                  <FileText className="mr-2 h-4 w-4" />
                   Download PDF
                 </Button>
               </div>
