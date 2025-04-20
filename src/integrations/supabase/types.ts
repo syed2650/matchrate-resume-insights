@@ -9,7 +9,65 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      metrics: {
+        Row: {
+          created_at: string
+          feedback_given: boolean
+          id: string
+          submission_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          feedback_given?: boolean
+          id?: string
+          submission_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          feedback_given?: boolean
+          id?: string
+          submission_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "metrics_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      submissions: {
+        Row: {
+          created_at: string
+          feedback_comment: string | null
+          feedback_results: Json
+          helpful: boolean | null
+          id: string
+          job_description: string
+          resume_text: string
+        }
+        Insert: {
+          created_at?: string
+          feedback_comment?: string | null
+          feedback_results: Json
+          helpful?: boolean | null
+          id?: string
+          job_description: string
+          resume_text: string
+        }
+        Update: {
+          created_at?: string
+          feedback_comment?: string | null
+          feedback_results?: Json
+          helpful?: boolean | null
+          id?: string
+          job_description?: string
+          resume_text?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
