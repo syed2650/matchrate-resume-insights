@@ -5,6 +5,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { FileText, Upload } from "lucide-react";
 import { jsPDF } from "jspdf";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const Review = () => {
   const [resume, setResume] = useState("");
@@ -13,30 +15,34 @@ const Review = () => {
   const [feedback, setFeedback] = useState<null | any>(null);
   const [helpfulFeedback, setHelpfulFeedback] = useState<null | boolean>(null);
   const docRef = useRef<jsPDF | null>(null);
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate feedback for MVP
-    setTimeout(() => {
-      setFeedback({
-        score: 75,
-        missingKeywords: ["product strategy", "data analysis", "stakeholder management"],
-        sectionFeedback: {
-          summary: "Your summary lacks quantifiable achievements. Add metrics.",
-          experience: "Good structure, but needs more emphasis on product impact.",
-          skills: "Missing key PM tools and methodologies.",
-        },
-        weakBullets: [
-          "Led team meetings → Facilitated cross-functional team meetings resulting in 30% faster product iterations",
-        ],
-        toneSuggestions: "Use more active voice and focus on outcomes rather than tasks.",
-        wouldInterview: "Maybe - needs improvements in quantifying impact",
+    try {
+      // Call the Supabase Edge Function to analyze the resume
+      const { data, error } = await supabase.functions.invoke('analyze-resume', {
+        body: { resume, jobDescription },
       });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      setFeedback(data);
+    } catch (error) {
+      console.error('Error analyzing resume:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to analyze resume",
+        variant: "destructive",
+      });
+    } finally {
       setIsLoading(false);
       setHelpfulFeedback(null);
-    }, 2000);
+    }
   };
 
   const generatePDF = () => {
@@ -278,4 +284,3 @@ const ResultSection = ({ title, content }: { title: string; content: React.React
 );
 
 export default Review;
-
