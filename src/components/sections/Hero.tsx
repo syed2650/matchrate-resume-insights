@@ -13,7 +13,7 @@ const Hero = () => {
           Get{" "}
           <AnimatedTextCycle
             words={[
-              "brutally honest",
+              "brutallyhonest",
               "insightful",
               "actionable",
               "expert",
@@ -26,22 +26,15 @@ const Hero = () => {
           resume feedback for PM roles
         </h1>
         <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-12">
-          Upload your resume and job description. Get detailed, actionable feedback to improve your chances.
+          Upload your resume and job description. Get detailed, actionable feedback that helps you stand out in the competitive PM job market.
         </p>
-        <div className="flex gap-4 justify-center">
+        <div className="flex justify-center">
           <Button 
             size="lg"
             className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-6 text-lg rounded-lg"
             onClick={() => navigate("/review")}
           >
             Try Resume Review
-          </Button>
-          <Button
-            size="lg"
-            variant="outline"
-            className="border-gray-300 text-gray-700 px-8 py-6 text-lg rounded-lg"
-          >
-            Learn more
           </Button>
         </div>
       </div>
