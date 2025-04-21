@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import AnimatedTextCycle from "@/components/ui/animated-text-cycle";
@@ -10,42 +9,42 @@ const Index = () => {
 
   const features = [
     {
-      title: "Push to deploy",
-      description: "Morbi viverra dui mi arcu sed. Tellus semper adipiscing suspendisse semper morbi. Odio urna massa nunc massa.",
+      title: "Upload & Instant Analysis",
+      description: "Simply upload your resume and job description. Our AI instantly analyzes the match and provides detailed, actionable feedback.",
       icon: <div className="w-12 h-12 rounded-lg bg-indigo-600 flex items-center justify-center"><Check className="w-6 h-6 text-white" /></div>
     },
     {
-      title: "SSL certificates",
-      description: "Sit quis amet rutrum tellus ullamcorper ultricies libero dolor eget. Sem sodales gravida quam turpis enim lacus amet.",
+      title: "Section-by-Section Review",
+      description: "Get comprehensive feedback on each section of your resume, identifying strengths and areas for improvement tailored to PM roles.",
       icon: <div className="w-12 h-12 rounded-lg bg-indigo-600 flex items-center justify-center"><Check className="w-6 h-6 text-white" /></div>
     },
     {
-      title: "Simple queues",
-      description: "Quisque est vel vulputate cursus. Risus proin diam nunc commodo. Lobortis auctor congue commodo diam neque.",
+      title: "Keyword Analysis",
+      description: "Identify missing keywords and skills that matter most for the specific PM role you're targeting, improving your resume's relevance score.",
       icon: <div className="w-12 h-12 rounded-lg bg-indigo-600 flex items-center justify-center"><Check className="w-6 h-6 text-white" /></div>
     },
     {
-      title: "Advanced security",
-      description: "Arcu egestas dolor vel iaculis in ipsum mauris. Tincidunt mattis aliquet hac quis. Id hac maecenas ac donec pharetra eget.",
+      title: "Professional Insights",
+      description: "Receive clear, honest feedback on your resume's impact, including a final verdict on whether it would pass initial screening.",
       icon: <div className="w-12 h-12 rounded-lg bg-indigo-600 flex items-center justify-center"><Check className="w-6 h-6 text-white" /></div>
     }
   ];
 
   const testimonials = [
     {
-      text: "Integer id nunc sit semper purus. Bibendum at lacus ut arcu blandit montes vitae auctor libero. Has condimentum dignissim nibh vulputate ut nunc. Amet nibh orci mi venenatis blandit vel et proin. Non hendrerit in vel ac diam.",
-      author: "Brenna Goyette",
-      handle: "@brennagoyette"
+      text: "The section-by-section analysis helped me understand exactly what was missing from my PM resume. After implementing the suggestions, I got more interview calls within weeks.",
+      author: "Sarah Chen",
+      handle: "@sarahchen_pm"
     },
     {
-      text: "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.",
-      author: "John Doe",
-      handle: "@johndoe"
+      text: "The keyword analysis feature is a game-changer. It helped me align my experience perfectly with the job requirements. Honest, actionable feedback that actually helps.",
+      author: "Michael Ross",
+      handle: "@mross_product"
     },
     {
-      text: "Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.",
-      author: "Jane Smith",
-      handle: "@janesmith"
+      text: "As someone transitioning into product management, this tool was invaluable. It helped me highlight transferable skills and frame my experience in a PM context.",
+      author: "Priya Sharma",
+      handle: "@priyapm"
     }
   ];
 
@@ -53,32 +52,33 @@ const Index = () => {
     {
       name: "Personal",
       price: "29",
-      description: "The perfect plan if you're just getting started with our product.",
+      description: "Perfect for job seekers actively applying to PM roles.",
       features: [
-        "25 products",
-        "Up to 10,000 subscribers",
-        "Audience segmentation",
-        "Advanced analytics",
-        "Email support",
-        "Marketing automations"
+        "Resume analysis with AI feedback",
+        "Keyword matching & suggestions",
+        "Section-by-section review",
+        "Export to PDF",
+        "Basic score history",
+        "Email support"
       ]
     },
     {
-      name: "Team",
+      name: "Premium",
       price: "99",
-      description: "A plan that scales with your rapidly growing business.",
+      description: "For serious candidates targeting top tech companies.",
       features: [
+        "Everything in Personal, plus:",
+        "Expert human review",
+        "Premium formatting suggestions",
+        "Unlimited revisions",
         "Priority support",
-        "Single sign-on",
-        "Enterprise integrations",
-        "Custom reporting tools"
+        "Interview preparation tips"
       ]
     }
   ];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
-      {/* Header - with purple gradient background */}
       <header className="py-6 bg-gradient-to-br from-purple-50 to-purple-100">
         <div className="container mx-auto px-4 md:px-8 flex justify-between items-center">
           <div className="font-bold text-2xl text-gray-900">Matchrate.ai</div>
@@ -101,7 +101,6 @@ const Index = () => {
         </div>
       </header>
 
-      {/* Hero Section - with purple gradient background */}
       <section className="pt-24 pb-24 bg-gradient-to-br from-purple-50 to-purple-100">
         <div className="container mx-auto px-4 md:px-8 text-center">
           <h1 className="text-5xl md:text-6xl font-bold text-gray-900 tracking-tight mb-8">
@@ -142,14 +141,13 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Features Section - using the new design */}
       <section id="features" className="py-24 bg-white">
         <div className="container mx-auto px-4 md:px-8">
           <div className="text-center mb-16">
-            <p className="text-indigo-600 font-medium text-sm mb-2">Deploy faster</p>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Everything you need</h2>
+            <p className="text-indigo-600 font-medium text-sm mb-2">Key Features</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Transform Your PM Resume</h2>
             <p className="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">
-              Quis tellus eget adipiscing convallis sit sit eget aliquet quis. Suspendisse eget egestas a elementum pulvinar et feugiat blandit at.
+              Get detailed, actionable feedback tailored specifically for Product Management roles in tech companies.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-5xl mx-auto">
@@ -166,12 +164,11 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Testimonials Section - using the new design */}
       <section id="testimonials" className="py-24 bg-gradient-to-br from-purple-50 to-purple-100">
         <div className="container mx-auto px-4 md:px-8">
           <div className="text-center mb-16">
-            <p className="text-indigo-600 font-medium text-sm mb-2">Testimonials</p>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">We have worked with<br />thousands of amazing people</h2>
+            <p className="text-indigo-600 font-medium text-sm mb-2">Success Stories</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Trusted by aspiring<br />Product Managers</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {testimonials.map((testimonial, index) => (
@@ -190,50 +187,11 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Pricing Section - using the new design */}
-      <section id="pricing" className="py-24 bg-gradient-to-br from-purple-50 to-purple-100">
-        <div className="container mx-auto px-4 md:px-8">
-          <div className="text-center mb-16">
-            <p className="text-indigo-600 font-medium text-sm mb-2">Pricing</p>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Choose the right plan for you</h2>
-            <p className="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">
-              Choose an affordable plan that's packed with the best features for engaging your audience, creating customer loyalty, and driving sales.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            {pricingPlans.map((plan, index) => (
-              <Card key={index} className="p-8 bg-white shadow-sm">
-                <h3 className="text-indigo-600 font-medium">{plan.name}</h3>
-                <div className="mt-4 flex items-baseline">
-                  <span className="text-4xl font-bold text-gray-900">${plan.price}</span>
-                  <span className="ml-2 text-gray-600">/month</span>
-                </div>
-                <p className="mt-4 text-gray-600">{plan.description}</p>
-                <ul className="mt-8 space-y-4">
-                  {plan.features.map((feature, i) => (
-                    <li key={i} className="flex items-center">
-                      <Check className="h-5 w-5 text-indigo-600 mr-3" />
-                      <span className="text-gray-600">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-                <Button 
-                  className="mt-8 w-full bg-indigo-600 hover:bg-indigo-700 text-white"
-                >
-                  Get started today
-                </Button>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section - using the new design */}
       <section className="py-24 bg-white">
         <div className="container mx-auto px-4 md:px-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Boost your productivity.<br />Start using our app today.</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Ready to improve your PM resume?<br />Start your review today.</h2>
           <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-            Incididunt sint fugiat pariatur cupidatat consectetur sit cillum anim id veniam aliqua proident excepteur commodo do ea.
+            Get honest, detailed feedback that helps you stand out in the competitive PM job market. No fluff, just actionable insights.
           </p>
           <div className="flex gap-4 justify-center">
             <Button 
@@ -252,7 +210,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Footer - styled to match the new design */}
       <footer className="py-12 border-t border-gray-200 bg-gradient-to-br from-purple-50 to-purple-100">
         <div className="container mx-auto px-4 md:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
