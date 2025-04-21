@@ -1,26 +1,95 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import AnimatedTextCycle from "@/components/ui/animated-text-cycle";
+import { Card } from "@/components/ui/card";
+import { Check } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
 
+  const features = [
+    {
+      title: "Push to deploy",
+      description: "Morbi viverra dui mi arcu sed. Tellus semper adipiscing suspendisse semper morbi. Odio urna massa nunc massa.",
+      icon: <div className="w-12 h-12 rounded-lg bg-indigo-600/10 flex items-center justify-center"><Check className="w-6 h-6 text-indigo-600" /></div>
+    },
+    {
+      title: "SSL certificates",
+      description: "Sit quis amet rutrum tellus ullamcorper ultricies libero dolor eget. Sem sodales gravida quam turpis enim lacus amet.",
+      icon: <div className="w-12 h-12 rounded-lg bg-indigo-600/10 flex items-center justify-center"><Check className="w-6 h-6 text-indigo-600" /></div>
+    },
+    {
+      title: "Simple queues",
+      description: "Quisque est vel vulputate cursus. Risus proin diam nunc commodo. Lobortis auctor congue commodo diam neque.",
+      icon: <div className="w-12 h-12 rounded-lg bg-indigo-600/10 flex items-center justify-center"><Check className="w-6 h-6 text-indigo-600" /></div>
+    },
+    {
+      title: "Advanced security",
+      description: "Arcu egestas dolor vel iaculis in ipsum mauris. Tincidunt mattis aliquet hac quis. Id hac maecenas ac donec pharetra eget.",
+      icon: <div className="w-12 h-12 rounded-lg bg-indigo-600/10 flex items-center justify-center"><Check className="w-6 h-6 text-indigo-600" /></div>
+    }
+  ];
+
+  const testimonials = [
+    {
+      text: "Integer id nunc sit semper purus. Bibendum at lacus ut arcu blandit montes vitae auctor libero. Has condimentum dignissim nibh vulputate ut nunc. Amet nibh orci mi venenatis blandit vel et proin. Non hendrerit in vel ac diam.",
+      author: "Brenna Goyette",
+      handle: "@brennagoyette"
+    },
+    {
+      text: "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.",
+      author: "John Doe",
+      handle: "@johndoe"
+    },
+    {
+      text: "Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.",
+      author: "Jane Smith",
+      handle: "@janesmith"
+    }
+  ];
+
+  const pricingPlans = [
+    {
+      name: "Personal",
+      price: "29",
+      description: "The perfect plan if you're just getting started with our product.",
+      features: [
+        "25 products",
+        "Up to 10,000 subscribers",
+        "Audience segmentation",
+        "Advanced analytics",
+        "Email support",
+        "Marketing automations"
+      ]
+    },
+    {
+      name: "Team",
+      price: "99",
+      description: "A plan that scales with your rapidly growing business.",
+      features: [
+        "Priority support",
+        "Single sign-on",
+        "Enterprise integrations",
+        "Custom reporting tools"
+      ]
+    }
+  ];
+
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header/Navigation */}
-      <header className="bg-white shadow-sm py-4">
+    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
+      {/* Header */}
+      <header className="bg-transparent py-6">
         <div className="container mx-auto px-4 flex justify-between items-center">
-          <div className="font-bold text-xl text-blue-600">Matchrate.ai</div>
+          <div className="font-bold text-2xl text-gray-900">Matchrate.ai</div>
           <nav>
-            <ul className="flex space-x-6">
-              <li><a href="/" className="text-slate-700 hover:text-blue-600">Home</a></li>
-              <li><a href="#features" className="text-slate-700 hover:text-blue-600">Features</a></li>
-              <li><a href="#testimonials" className="text-slate-700 hover:text-blue-600">Testimonials</a></li>
-              <li><a href="#pricing" className="text-slate-700 hover:text-blue-600">Pricing</a></li>
+            <ul className="flex space-x-8">
+              <li><a href="#features" className="text-gray-600 hover:text-gray-900">Features</a></li>
+              <li><a href="#testimonials" className="text-gray-600 hover:text-gray-900">Testimonials</a></li>
+              <li><a href="#pricing" className="text-gray-600 hover:text-gray-900">Pricing</a></li>
               <li>
                 <Button 
                   variant="outline"
-                  className="border-blue-600 text-blue-600 hover:bg-blue-50"
+                  className="bg-white border-gray-300 text-gray-900 hover:bg-gray-50"
                   onClick={() => navigate("/review")}
                 >
                   Try it now
@@ -32,107 +101,63 @@ const Index = () => {
       </header>
 
       {/* Hero Section */}
-      <main className="container mx-auto px-4 pt-20 pb-16">
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6">
-            Get&nbsp;
+      <section className="pt-24 pb-16">
+        <div className="container mx-auto px-4 text-center">
+          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 tracking-tight mb-8">
+            Get{" "}
             <AnimatedTextCycle
               words={[
                 "brutally honest",
                 "insightful",
                 "actionable",
-                "data-driven",
                 "expert",
                 "unbiased",
                 "tailored"
               ]}
               interval={2600}
-              className="text-blue-600"
-            />
-            &nbsp;resume feedback tailored to PM roles in tech
+              className="text-indigo-600"
+            />{" "}
+            resume feedback for PM roles
           </h1>
-          <p className="text-xl text-slate-600 mb-8">
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-12">
             Upload your resume and job description. Get detailed, actionable feedback to improve your chances.
           </p>
-          <Button 
-            size="lg"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 text-lg"
-            onClick={() => navigate("/review")}
-          >
-            Try Resume Review
-          </Button>
-
-          {/* Process Steps */}
-          <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                title: "Upload",
-                description: "Share your resume and target job description",
-              },
-              {
-                title: "Analyze",
-                description: "Our AI reviews your materials thoroughly",
-              },
-              {
-                title: "Get Feedback",
-                description: "Receive detailed, actionable insights",
-              },
-            ].map((step, index) => (
-              <div
-                key={index}
-                className="p-6 bg-slate-50 rounded-lg border border-slate-100"
-              >
-                <div className="text-blue-600 font-bold mb-2">Step {index + 1}</div>
-                <h3 className="text-xl font-semibold text-slate-900 mb-2">
-                  {step.title}
-                </h3>
-                <p className="text-slate-600">{step.description}</p>
-              </div>
-            ))}
+          <div className="flex gap-4 justify-center">
+            <Button 
+              size="lg"
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-6 text-lg rounded-lg"
+              onClick={() => navigate("/review")}
+            >
+              Try Resume Review
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              className="border-gray-300 text-gray-700 px-8 py-6 text-lg rounded-lg"
+            >
+              Learn more
+            </Button>
           </div>
         </div>
-      </main>
+      </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 bg-slate-50">
+      <section id="features" className="py-24 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-slate-900">Powerful Resume Analysis Features</h2>
-            <p className="mt-4 text-lg text-slate-600 max-w-3xl mx-auto">
-              Our AI-powered platform provides in-depth analysis to help you stand out from the competition
+            <h2 className="text-3xl font-bold text-gray-900">Everything you need</h2>
+            <p className="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">
+              Quis tellus eget adipiscing convallis sit sit eget aliquet quis. Suspendisse eget egestas a elementum pulvinar et feugiat blandit at.
             </p>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-            {[
-              {
-                title: "Keyword Analysis",
-                description: "Identifies missing keywords from the job description that should be in your resume"
-              },
-              {
-                title: "Section-by-Section Feedback",
-                description: "Get targeted feedback for each section of your resume to maximize impact"
-              },
-              {
-                title: "Bullet Point Enhancement",
-                description: "Transform weak bullet points into powerful, metrics-driven statements"
-              },
-              {
-                title: "ATS Compatibility Check",
-                description: "Ensure your resume passes through Applicant Tracking Systems successfully"
-              },
-              {
-                title: "Tone & Clarity Suggestions",
-                description: "Improve the overall clarity and professional tone of your resume"
-              },
-              {
-                title: "Hiring Manager Perspective",
-                description: "Get an honest assessment of whether your resume would lead to an interview"
-              }
-            ].map((feature, index) => (
-              <div key={index} className="bg-white p-6 rounded-lg shadow-sm border border-slate-100">
-                <h3 className="text-xl font-semibold text-slate-900 mb-3">{feature.title}</h3>
-                <p className="text-slate-600">{feature.description}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-5xl mx-auto">
+            {features.map((feature, index) => (
+              <div key={index} className="flex gap-6">
+                {feature.icon}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{feature.title}</h3>
+                  <p className="text-gray-600">{feature.description}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -140,146 +165,84 @@ const Index = () => {
       </section>
 
       {/* Testimonials Section */}
-      <section id="testimonials" className="py-20 bg-white">
+      <section id="testimonials" className="py-24 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-slate-900">What Our Users Say</h2>
-            <p className="mt-4 text-lg text-slate-600 max-w-3xl mx-auto">
-              Success stories from job seekers who improved their resumes with our platform
-            </p>
+            <div className="text-sm font-semibold text-indigo-600 tracking-wide uppercase mb-2">Testimonials</div>
+            <h2 className="text-3xl font-bold text-gray-900">We have worked with<br />thousands of amazing people</h2>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                quote: "The keyword analysis helped me understand exactly what hiring managers were looking for. I got 3 interviews after updating my resume!",
-                author: "Jessica K., Product Manager"
-              },
-              {
-                quote: "The bullet point improvements transformed my experience section. What used to be a list of tasks is now a powerful showcase of achievements.",
-                author: "Michael T., Senior PM"
-              },
-              {
-                quote: "After two years of job searching, I finally got feedback that actually helped. Landed my dream role at a tech company within a month.",
-                author: "Aisha R., Associate PM"
-              }
-            ].map((testimonial, index) => (
-              <div key={index} className="bg-slate-50 p-8 rounded-lg">
-                <p className="italic text-slate-700 mb-6">"{testimonial.quote}"</p>
-                <p className="font-semibold text-slate-900">{testimonial.author}</p>
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {testimonials.map((testimonial, index) => (
+              <Card key={index} className="p-6 bg-white shadow-sm">
+                <p className="text-gray-600 mb-4">{testimonial.text}</p>
+                <div className="font-medium text-gray-900">{testimonial.author}</div>
+                <div className="text-gray-500 text-sm">{testimonial.handle}</div>
+              </Card>
             ))}
           </div>
         </div>
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="py-20 bg-slate-50">
+      <section id="pricing" className="py-24 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-slate-900">Simple, Transparent Pricing</h2>
-            <p className="mt-4 text-lg text-slate-600 max-w-3xl mx-auto">
-              Choose the plan that works for your job search needs
+            <h2 className="text-3xl font-bold text-gray-900">Choose the right plan for you</h2>
+            <p className="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">
+              Choose an affordable plan that's packed with the best features for engaging your audience, creating customer loyalty, and driving sales.
             </p>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {[
-              {
-                name: "Basic",
-                price: "Free",
-                features: [
-                  "1 resume analysis per day",
-                  "Keyword matching",
-                  "Basic feedback",
-                  "PDF export"
-                ],
-                cta: "Get Started",
-                highlighted: false
-              },
-              {
-                name: "Professional",
-                price: "$19/month",
-                features: [
-                  "Unlimited resume analysis",
-                  "Advanced feedback",
-                  "Bullet point improvements",
-                  "Interview probability score",
-                  "Multiple resume versions"
-                ],
-                cta: "Go Professional",
-                highlighted: true
-              },
-              {
-                name: "Premium",
-                price: "$49/month",
-                features: [
-                  "All Professional features",
-                  "Human expert review",
-                  "1-on-1 consultation call",
-                  "Priority support",
-                  "Interview guarantee"
-                ],
-                cta: "Go Premium",
-                highlighted: false
-              }
-            ].map((plan, index) => (
-              <div 
-                key={index} 
-                className={`${
-                  plan.highlighted ? 'border-blue-600 ring-2 ring-blue-600 shadow-lg' : 'border-slate-200 shadow-sm'
-                } bg-white p-8 rounded-lg border relative`}
-              >
-                {plan.highlighted && (
-                  <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-blue-600 text-white px-4 py-1 rounded-full text-sm font-semibold">
-                    Most Popular
-                  </div>
-                )}
-                <h3 className="text-xl font-bold text-slate-900 mb-2">{plan.name}</h3>
-                <p className="text-3xl font-bold text-slate-900 mb-6">{plan.price}</p>
-                <ul className="mb-8 space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+            {pricingPlans.map((plan, index) => (
+              <Card key={index} className="p-8">
+                <h3 className="text-lg font-semibold text-gray-900">{plan.name}</h3>
+                <div className="mt-4 flex items-baseline">
+                  <span className="text-4xl font-bold text-gray-900">${plan.price}</span>
+                  <span className="ml-2 text-gray-600">/month</span>
+                </div>
+                <p className="mt-4 text-gray-600">{plan.description}</p>
+                <ul className="mt-8 space-y-4">
                   {plan.features.map((feature, i) => (
-                    <li key={i} className="flex items-start">
-                      <svg className="h-5 w-5 text-blue-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span className="text-slate-600">{feature}</span>
+                    <li key={i} className="flex items-center">
+                      <Check className="h-5 w-5 text-indigo-600 mr-3" />
+                      <span className="text-gray-600">{feature}</span>
                     </li>
                   ))}
                 </ul>
                 <Button 
-                  className={`w-full ${
-                    plan.highlighted ? 'bg-blue-600 hover:bg-blue-700' : 'bg-slate-100 text-slate-800 hover:bg-slate-200'
-                  }`}
-                  onClick={() => navigate("/review")}
+                  className="mt-8 w-full bg-indigo-600 hover:bg-indigo-700 text-white"
                 >
-                  {plan.cta}
+                  Get started today
                 </Button>
-              </div>
+              </Card>
             ))}
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-blue-600 text-white">
+      <section className="py-24 bg-gray-50">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-6">Ready to supercharge your job search?</h2>
-          <p className="text-xl mb-8 max-w-3xl mx-auto">
-            Stop sending the same resume to every job application. Get tailored feedback that helps you stand out.
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">Boost your productivity.<br />Start using our app today.</h2>
+          <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+            Incididunt sint fugiat pariatur cupidatat consectetur sit cillum anim id veniam aliqua proident excepteur commodo do ea.
           </p>
-          <Button 
-            size="lg"
-            className="bg-white text-blue-600 hover:bg-blue-50 px-8 py-6 text-lg"
-            onClick={() => navigate("/review")}
-          >
-            Try Resume Review Now
-          </Button>
+          <div className="flex gap-4 justify-center">
+            <Button 
+              className="bg-indigo-600 hover:bg-indigo-700 text-white"
+              onClick={() => navigate("/review")}
+            >
+              Get started
+            </Button>
+            <Button variant="outline" className="border-gray-300">
+              Learn more →
+            </Button>
+          </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-slate-900 text-white py-12">
+      <footer className="bg-white py-12 border-t border-gray-200">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
@@ -313,7 +276,7 @@ const Index = () => {
               </ul>
             </div>
           </div>
-          <div className="border-t border-slate-800 mt-12 pt-8 text-center text-slate-400">
+          <div className="border-t border-gray-200 mt-12 pt-8 text-center text-gray-500">
             <p>© {new Date().getFullYear()} Matchrate.ai. All rights reserved.</p>
           </div>
         </div>
