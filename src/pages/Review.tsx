@@ -1,30 +1,28 @@
 
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
-import { FileText, Upload } from "lucide-react";
+import { Upload, FileText } from "lucide-react";
 import { jsPDF } from "jspdf";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Feedback } from "./review/types";
+import ResultList from "./review/ResultList";
+import ReviewForm from "./review/ReviewForm";
 
 const Review = () => {
-  const [resume, setResume] = useState("");
-  const [jobDescription, setJobDescription] = useState("");
+  const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [feedback, setFeedback] = useState<null | any>(null);
   const [helpfulFeedback, setHelpfulFeedback] = useState<null | boolean>(null);
   const docRef = useRef<jsPDF | null>(null);
   const { toast } = useToast();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleFormSubmit = async (resume: string, jobDescription: string) => {
     setIsLoading(true);
-    
+
     try {
-      // Call the Supabase Edge Function to analyze the resume
-      const { data, error } = await supabase.functions.invoke('analyze-resume', {
-        body: { resume, jobDescription },
+      const { data, error } = await supabase.functions.invoke("analyze-resume", {
+        body: { resume, jobDescription }
       });
 
       if (error) {
@@ -33,11 +31,11 @@ const Review = () => {
 
       setFeedback(data);
     } catch (error) {
-      console.error('Error analyzing resume:', error);
+      console.error("Error analyzing resume:", error);
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to analyze resume",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setIsLoading(false);
@@ -86,10 +84,19 @@ const Review = () => {
     doc.text("Weak Bullet Improvements:", 14, yPos);
     yPos += 7;
     doc.setFontSize(12);
-    feedback.weakBullets.forEach((bullet: string) => {
-      const splitBullet = doc.splitTextToSize(`• ${bullet}`, 180);
-      doc.text(splitBullet, 14, yPos);
-      yPos += splitBullet.length * 6 + 2;
+    feedback.weakBullets.forEach((bullet: any) => {
+      if (typeof bullet === "object" && bullet.original && bullet.improved) {
+        const orig = doc.splitTextToSize(`Original: ${bullet.original}`, 180);
+        const impr = doc.splitTextToSize(`Improved: ${bullet.improved}`, 180);
+        doc.text(orig, 14, yPos);
+        yPos += orig.length * 6 + 2;
+        doc.text(impr, 14, yPos);
+        yPos += impr.length * 6 + 2;
+      } else if (typeof bullet === "string") {
+        const bulletText = doc.splitTextToSize(`• ${bullet}`, 180);
+        doc.text(bulletText, 14, yPos);
+        yPos += bulletText.length * 6 + 2;
+      }
     });
 
     doc.setFontSize(14);
@@ -118,52 +125,7 @@ const Review = () => {
       </h1>
 
       {!feedback ? (
-        <Card className="p-6">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Paste your resume
-              </label>
-              <Textarea
-                placeholder="Copy and paste your resume text here..."
-                className="min-h-[200px]"
-                value={resume}
-                onChange={(e) => setResume(e.target.value)}
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Paste the job description
-              </label>
-              <Textarea
-                placeholder="Copy and paste the job description here..."
-                className="min-h-[200px]"
-                value={jobDescription}
-                onChange={(e) => setJobDescription(e.target.value)}
-                required
-              />
-            </div>
-
-            <div className="flex justify-center">
-              <Button
-                type="submit"
-                className="bg-blue-600 hover:bg-blue-700"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  "Analyzing..."
-                ) : (
-                  <>
-                    <FileText className="mr-2 h-4 w-4" />
-                    Get Feedback
-                  </>
-                )}
-              </Button>
-            </div>
-          </form>
-        </Card>
+        <ReviewForm onSubmit={handleFormSubmit} isLoading={isLoading} />
       ) : (
         <Card className="p-6">
           <div className="space-y-6">
@@ -190,69 +152,7 @@ const Review = () => {
               </div>
             </div>
 
-            <div className="grid gap-6">
-              <ResultSection
-                title="Relevance Score"
-                content={`${feedback.score}/100`}
-              />
-              
-              <ResultSection
-                title="Missing Keywords"
-                content={
-                  <ul className="list-disc pl-5">
-                    {feedback.missingKeywords.map((keyword: string, i: number) => (
-                      <li key={i} className="text-slate-600">{keyword}</li>
-                    ))}
-                  </ul>
-                }
-              />
-
-              <ResultSection
-                title="Section-by-Section Feedback"
-                content={
-                  <div className="space-y-3">
-                    {Object.entries(feedback.sectionFeedback).map(([section, feedbackText]: [string, any]) => (
-                      <div key={section}>
-                        <h4 className="font-medium text-slate-900 capitalize">{section}</h4>
-                        <p className="text-slate-600">{feedbackText}</p>
-                      </div>
-                    ))}
-                  </div>
-                }
-              />
-
-              <ResultSection
-                title="Weak Bullet Improvements"
-                content={
-                  <ul className="space-y-3">
-                    {feedback.weakBullets.map((bullet: any, i: number) => (
-                      <li key={i} className="text-slate-600">
-                        {typeof bullet === 'object' ? (
-                          <div>
-                            <p className="font-medium">Original:</p>
-                            <p className="ml-4 mb-2">{bullet.original}</p>
-                            <p className="font-medium">Improved:</p>
-                            <p className="ml-4">{bullet.improved}</p>
-                          </div>
-                        ) : (
-                          bullet
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                }
-              />
-
-              <ResultSection
-                title="Tone & Clarity Suggestions"
-                content={feedback.toneSuggestions}
-              />
-
-              <ResultSection
-                title="Would I Interview?"
-                content={feedback.wouldInterview}
-              />
-            </div>
+            <ResultList feedback={feedback} />
 
             <div className="mt-8 border-t pt-4">
               <h3 className="text-lg font-semibold text-slate-900 mb-2">
@@ -286,12 +186,5 @@ const Review = () => {
     </div>
   );
 };
-
-const ResultSection = ({ title, content }: { title: string; content: React.ReactNode }) => (
-  <div>
-    <h3 className="font-semibold text-slate-900 mb-2">{title}</h3>
-    <div className="text-slate-600">{content}</div>
-  </div>
-);
 
 export default Review;
