@@ -1,6 +1,6 @@
-
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import AnimatedTextCycle from "@/components/ui/animated-text-cycle";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -35,7 +35,21 @@ const Index = () => {
       <main className="container mx-auto px-4 pt-20 pb-16">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6">
-            Get brutally honest resume feedback tailored to PM roles in tech
+            Get&nbsp;
+            <AnimatedTextCycle
+              words={[
+                "brutally honest",
+                "insightful",
+                "actionable",
+                "data-driven",
+                "expert",
+                "unbiased",
+                "tailored"
+              ]}
+              interval={2600}
+              className="text-blue-600"
+            />
+            &nbsp;resume feedback tailored to PM roles in tech
           </h1>
           <p className="text-xl text-slate-600 mb-8">
             Upload your resume and job description. Get detailed, actionable feedback to improve your chances.
