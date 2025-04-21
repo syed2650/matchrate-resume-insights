@@ -1,8 +1,9 @@
+
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import AnimatedTextCycle from "@/components/ui/animated-text-cycle";
 import { Card } from "@/components/ui/card";
-import { Check } from "lucide-react";
+import { Check, ArrowRight } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -11,22 +12,22 @@ const Index = () => {
     {
       title: "Push to deploy",
       description: "Morbi viverra dui mi arcu sed. Tellus semper adipiscing suspendisse semper morbi. Odio urna massa nunc massa.",
-      icon: <div className="w-12 h-12 rounded-lg bg-indigo-600/10 flex items-center justify-center"><Check className="w-6 h-6 text-indigo-600" /></div>
+      icon: <div className="w-12 h-12 rounded-lg bg-indigo-600 flex items-center justify-center"><Check className="w-6 h-6 text-white" /></div>
     },
     {
       title: "SSL certificates",
       description: "Sit quis amet rutrum tellus ullamcorper ultricies libero dolor eget. Sem sodales gravida quam turpis enim lacus amet.",
-      icon: <div className="w-12 h-12 rounded-lg bg-indigo-600/10 flex items-center justify-center"><Check className="w-6 h-6 text-indigo-600" /></div>
+      icon: <div className="w-12 h-12 rounded-lg bg-indigo-600 flex items-center justify-center"><Check className="w-6 h-6 text-white" /></div>
     },
     {
       title: "Simple queues",
       description: "Quisque est vel vulputate cursus. Risus proin diam nunc commodo. Lobortis auctor congue commodo diam neque.",
-      icon: <div className="w-12 h-12 rounded-lg bg-indigo-600/10 flex items-center justify-center"><Check className="w-6 h-6 text-indigo-600" /></div>
+      icon: <div className="w-12 h-12 rounded-lg bg-indigo-600 flex items-center justify-center"><Check className="w-6 h-6 text-white" /></div>
     },
     {
       title: "Advanced security",
       description: "Arcu egestas dolor vel iaculis in ipsum mauris. Tincidunt mattis aliquet hac quis. Id hac maecenas ac donec pharetra eget.",
-      icon: <div className="w-12 h-12 rounded-lg bg-indigo-600/10 flex items-center justify-center"><Check className="w-6 h-6 text-indigo-600" /></div>
+      icon: <div className="w-12 h-12 rounded-lg bg-indigo-600 flex items-center justify-center"><Check className="w-6 h-6 text-white" /></div>
     }
   ];
 
@@ -77,12 +78,12 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
-      {/* Header */}
-      <header className="bg-transparent py-6">
-        <div className="container mx-auto px-4 flex justify-between items-center">
+      {/* Header - with purple gradient background */}
+      <header className="py-6 bg-gradient-to-br from-purple-50 to-purple-100">
+        <div className="container mx-auto px-4 md:px-8 flex justify-between items-center">
           <div className="font-bold text-2xl text-gray-900">Matchrate.ai</div>
           <nav>
-            <ul className="flex space-x-8">
+            <ul className="hidden md:flex space-x-8">
               <li><a href="#features" className="text-gray-600 hover:text-gray-900">Features</a></li>
               <li><a href="#testimonials" className="text-gray-600 hover:text-gray-900">Testimonials</a></li>
               <li><a href="#pricing" className="text-gray-600 hover:text-gray-900">Pricing</a></li>
@@ -100,9 +101,9 @@ const Index = () => {
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="pt-24 pb-16">
-        <div className="container mx-auto px-4 text-center">
+      {/* Hero Section - with purple gradient background */}
+      <section className="pt-24 pb-24 bg-gradient-to-br from-purple-50 to-purple-100">
+        <div className="container mx-auto px-4 md:px-8 text-center">
           <h1 className="text-5xl md:text-6xl font-bold text-gray-900 tracking-tight mb-8">
             Get{" "}
             <AnimatedTextCycle
@@ -141,11 +142,12 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Features Section */}
+      {/* Features Section - using the new design */}
       <section id="features" className="py-24 bg-white">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-4 md:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900">Everything you need</h2>
+            <p className="text-indigo-600 font-medium text-sm mb-2">Deploy faster</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Everything you need</h2>
             <p className="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">
               Quis tellus eget adipiscing convallis sit sit eget aliquet quis. Suspendisse eget egestas a elementum pulvinar et feugiat blandit at.
             </p>
@@ -164,38 +166,44 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      <section id="testimonials" className="py-24 bg-gray-50">
-        <div className="container mx-auto px-4">
+      {/* Testimonials Section - using the new design */}
+      <section id="testimonials" className="py-24 bg-gradient-to-br from-purple-50 to-purple-100">
+        <div className="container mx-auto px-4 md:px-8">
           <div className="text-center mb-16">
-            <div className="text-sm font-semibold text-indigo-600 tracking-wide uppercase mb-2">Testimonials</div>
-            <h2 className="text-3xl font-bold text-gray-900">We have worked with<br />thousands of amazing people</h2>
+            <p className="text-indigo-600 font-medium text-sm mb-2">Testimonials</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">We have worked with<br />thousands of amazing people</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {testimonials.map((testimonial, index) => (
               <Card key={index} className="p-6 bg-white shadow-sm">
                 <p className="text-gray-600 mb-4">{testimonial.text}</p>
-                <div className="font-medium text-gray-900">{testimonial.author}</div>
-                <div className="text-gray-500 text-sm">{testimonial.handle}</div>
+                <div className="flex items-center">
+                  <div className="w-10 h-10 rounded-full bg-gray-200 mr-3"></div>
+                  <div>
+                    <div className="font-medium text-gray-900">{testimonial.author}</div>
+                    <div className="text-gray-500 text-sm">{testimonial.handle}</div>
+                  </div>
+                </div>
               </Card>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section id="pricing" className="py-24 bg-white">
-        <div className="container mx-auto px-4">
+      {/* Pricing Section - using the new design */}
+      <section id="pricing" className="py-24 bg-gradient-to-br from-purple-50 to-purple-100">
+        <div className="container mx-auto px-4 md:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900">Choose the right plan for you</h2>
+            <p className="text-indigo-600 font-medium text-sm mb-2">Pricing</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Choose the right plan for you</h2>
             <p className="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">
               Choose an affordable plan that's packed with the best features for engaging your audience, creating customer loyalty, and driving sales.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
             {pricingPlans.map((plan, index) => (
-              <Card key={index} className="p-8">
-                <h3 className="text-lg font-semibold text-gray-900">{plan.name}</h3>
+              <Card key={index} className="p-8 bg-white shadow-sm">
+                <h3 className="text-indigo-600 font-medium">{plan.name}</h3>
                 <div className="mt-4 flex items-baseline">
                   <span className="text-4xl font-bold text-gray-900">${plan.price}</span>
                   <span className="ml-2 text-gray-600">/month</span>
@@ -220,10 +228,10 @@ const Index = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-24 bg-gray-50">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Boost your productivity.<br />Start using our app today.</h2>
+      {/* CTA Section - using the new design */}
+      <section className="py-24 bg-white">
+        <div className="container mx-auto px-4 md:px-8 text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Boost your productivity.<br />Start using our app today.</h2>
           <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
             Incididunt sint fugiat pariatur cupidatat consectetur sit cillum anim id veniam aliqua proident excepteur commodo do ea.
           </p>
@@ -234,45 +242,48 @@ const Index = () => {
             >
               Get started
             </Button>
-            <Button variant="outline" className="border-gray-300">
-              Learn more →
+            <Button 
+              variant="outline" 
+              className="border-gray-300 text-gray-700 flex items-center gap-2"
+            >
+              Learn more <ArrowRight className="w-4 h-4" />
             </Button>
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-white py-12 border-t border-gray-200">
-        <div className="container mx-auto px-4">
+      {/* Footer - styled to match the new design */}
+      <footer className="py-12 border-t border-gray-200 bg-gradient-to-br from-purple-50 to-purple-100">
+        <div className="container mx-auto px-4 md:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
               <h3 className="text-xl font-bold mb-4">Matchrate.ai</h3>
-              <p className="text-slate-400">
+              <p className="text-gray-600">
                 AI-powered resume feedback tailored to product management roles.
               </p>
             </div>
             <div>
               <h4 className="font-semibold mb-4">Product</h4>
               <ul className="space-y-2">
-                <li><a href="#features" className="text-slate-400 hover:text-white">Features</a></li>
-                <li><a href="#pricing" className="text-slate-400 hover:text-white">Pricing</a></li>
-                <li><a href="#" className="text-slate-400 hover:text-white">FAQ</a></li>
+                <li><a href="#features" className="text-gray-600 hover:text-indigo-600">Features</a></li>
+                <li><a href="#pricing" className="text-gray-600 hover:text-indigo-600">Pricing</a></li>
+                <li><a href="#" className="text-gray-600 hover:text-indigo-600">FAQ</a></li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold mb-4">Company</h4>
               <ul className="space-y-2">
-                <li><a href="#" className="text-slate-400 hover:text-white">About</a></li>
-                <li><a href="#" className="text-slate-400 hover:text-white">Blog</a></li>
-                <li><a href="#" className="text-slate-400 hover:text-white">Careers</a></li>
+                <li><a href="#" className="text-gray-600 hover:text-indigo-600">About</a></li>
+                <li><a href="#" className="text-gray-600 hover:text-indigo-600">Blog</a></li>
+                <li><a href="#" className="text-gray-600 hover:text-indigo-600">Careers</a></li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold mb-4">Legal</h4>
               <ul className="space-y-2">
-                <li><a href="#" className="text-slate-400 hover:text-white">Privacy</a></li>
-                <li><a href="#" className="text-slate-400 hover:text-white">Terms</a></li>
-                <li><a href="#" className="text-slate-400 hover:text-white">Cookie Policy</a></li>
+                <li><a href="#" className="text-gray-600 hover:text-indigo-600">Privacy</a></li>
+                <li><a href="#" className="text-gray-600 hover:text-indigo-600">Terms</a></li>
+                <li><a href="#" className="text-gray-600 hover:text-indigo-600">Cookie Policy</a></li>
               </ul>
             </div>
           </div>
