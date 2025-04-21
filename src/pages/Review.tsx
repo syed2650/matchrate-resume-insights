@@ -225,8 +225,19 @@ const Review = () => {
                 title="Weak Bullet Improvements"
                 content={
                   <ul className="space-y-3">
-                    {feedback.weakBullets.map((bullet: string, i: number) => (
-                      <li key={i} className="text-slate-600">{bullet}</li>
+                    {feedback.weakBullets.map((bullet: any, i: number) => (
+                      <li key={i} className="text-slate-600">
+                        {typeof bullet === 'object' ? (
+                          <div>
+                            <p className="font-medium">Original:</p>
+                            <p className="ml-4 mb-2">{bullet.original}</p>
+                            <p className="font-medium">Improved:</p>
+                            <p className="ml-4">{bullet.improved}</p>
+                          </div>
+                        ) : (
+                          bullet
+                        )}
+                      </li>
                     ))}
                   </ul>
                 }

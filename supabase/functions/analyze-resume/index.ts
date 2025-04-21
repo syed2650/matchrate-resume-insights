@@ -40,10 +40,11 @@ serve(async (req) => {
             "experience": <feedback about work experience section>,
             "skills": <feedback about skills section>
           },
-          "weakBullets": [<examples of weak bullets with improved versions>],
+          "weakBullets": [<array of objects with format {original: "weak bullet text", improved: "improved bullet text"}>],
           "toneSuggestions": <feedback on tone and clarity>,
           "wouldInterview": <clear verdict on likelihood of interview>
         }
+        For the weakBullets section, each item must be an object with 'original' and 'improved' properties.
         Focus on actionable, specific feedback that would meaningfully improve the resume's chances.`
       },
       {
