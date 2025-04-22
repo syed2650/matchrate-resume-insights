@@ -11,8 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { UploadDropzone } from "@/server/uploadthing";
-import type { OurFileRouter } from "@/server/uploadthing";
+import { UploadDropzone } from "@uploadthing/react";
+import type { OurFileRouter } from "@/server/uploadthing-router";
 import { InputWithIcon } from "@/components/ui/input-with-icon";
 
 interface Props {
@@ -64,7 +64,7 @@ const ReviewForm: React.FC<Props> = ({ onSubmit, isLoading }) => {
             <div>
               <UploadDropzone<OurFileRouter>
                 endpoint="resumeUploader"
-                onUploadError={(error: Error) => {
+                onUploadError={(error) => {
                   console.log("⚠️ Upload error:", error.message);
                 }}
                 onUploadBegin={() => {
@@ -74,11 +74,11 @@ const ReviewForm: React.FC<Props> = ({ onSubmit, isLoading }) => {
                   console.log("✅ Upload completed:", res);
                   if (res && res[0]) {
                     setUploadedFile({
-                      fileName: res[0].fileName,
-                      fileUrl: res[0].fileUrl,
+                      fileName: res[0].name,
+                      fileUrl: res[0].url,
                     });
-                    setResume(res[0].fileName);
-                    console.log("📄 File processed:", res[0].fileName);
+                    setResume(res[0].name);
+                    console.log("📄 File processed:", res[0].name);
                   }
                 }}
               />
