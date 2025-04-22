@@ -43,7 +43,13 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans;
-    font-family: 'Inter', sans-serif;
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', 'Satoshi', sans-serif !important;
+    letter-spacing: 0.02em;
+  }
+
+  .section-alt {
+    background-color: #F8FAFC;
   }
 }
+

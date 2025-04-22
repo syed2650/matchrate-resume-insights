@@ -1,5 +1,6 @@
 
 import { Card } from "@/components/ui/card";
+import { Star } from "lucide-react";
 
 const testimonials = [
   {
@@ -21,21 +22,28 @@ const testimonials = [
 
 const Testimonials = () => {
   return (
-    <section id="testimonials" className="py-24 bg-gradient-to-br from-purple-50 to-purple-100">
-      <div className="container mx-auto px-4 md:px-8">
+    <section id="testimonials" className="py-20 md:py-24 bg-white">
+      <div className="container max-w-6xl mx-auto px-4">
         <div className="text-center mb-16">
-          <p className="text-indigo-600 font-medium text-sm mb-2">Success Stories</p>
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Trusted by aspiring<br />Product Managers</h2>
+          <p className="text-[#3B82F6] font-medium text-sm mb-2 uppercase tracking-wider">Success Stories</p>
+          <h2 className="text-3xl md:text-4xl font-bold text-[#1E293B] mb-2 leading-tight">
+            Trusted by aspiring<br />Product Managers
+          </h2>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {testimonials.map((testimonial, index) => (
-            <Card key={index} className="p-6 bg-white shadow-sm">
-              <p className="text-gray-600 mb-4">{testimonial.text}</p>
-              <div className="flex items-center">
-                <div className="w-10 h-10 rounded-full bg-gray-200 mr-3"></div>
+            <Card key={index} className="flex flex-col gap-6 p-7 bg-white rounded-2xl shadow-md border border-gray-100 hover:shadow-lg transition">
+              <div className="flex items-center gap-1 mb-2">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star key={i} className="w-5 h-5 text-[#FBBF24] fill-[#FBBF24]" />
+                ))}
+              </div>
+              <p className="text-[#334155] text-base mb-3">{testimonial.text}</p>
+              <div className="flex items-center gap-3 mt-auto">
+                <div className="w-11 h-11 rounded-full bg-[#F1F5F9] flex items-center justify-center text-[#64748B] font-semibold text-xl">{testimonial.author[0]}</div>
                 <div>
-                  <div className="font-medium text-gray-900">{testimonial.author}</div>
-                  <div className="text-gray-500 text-sm">{testimonial.handle}</div>
+                  <div className="font-semibold text-[#1E293B] text-base">{testimonial.author}</div>
+                  <div className="text-[#64748B] text-sm">{testimonial.handle}</div>
                 </div>
               </div>
             </Card>
