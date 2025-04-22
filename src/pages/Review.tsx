@@ -14,6 +14,7 @@ const Review = () => {
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [helpfulFeedback, setHelpfulFeedback] = useState<null | boolean>(null);
+  const [submissionId, setSubmissionId] = useState<string | null>(null);
   const { toast } = useToast();
 
   const handleFormSubmit = async (
@@ -47,7 +48,7 @@ const Review = () => {
       console.log("Received analysis result:", data);
 
       // Store submission in database
-      await supabase
+      const { data: submissionData, error: submissionError } = await supabase
         .from('submissions')
         .insert({
           resume_text: resume,
@@ -55,7 +56,15 @@ const Review = () => {
           job_url: jobUrl,
           selected_role: selectedRole as any,
           feedback_results: data
-        });
+        })
+        .select('id')
+        .single();
+
+      if (submissionError) {
+        console.error("Error storing submission:", submissionError);
+      } else if (submissionData) {
+        setSubmissionId(submissionData.id);
+      }
 
       setFeedback(data);
     } catch (error) {
@@ -81,20 +90,23 @@ const Review = () => {
   const handleFeedbackSubmit = (isHelpful: boolean) => {
     setHelpfulFeedback(isHelpful);
     
-    // Store feedback in the metrics table
-    if (feedback) {
+    // Store feedback in the submissions table
+    if (submissionId) {
+      // Use submissionId for the update instead of comparing the feedback object
       supabase
         .from('submissions')
         .update({
           helpful: isHelpful
         })
-        .eq('feedback_results', feedback)
+        .eq('id', submissionId)
         .then(() => {
           console.log("Feedback stored successfully");
         })
         .catch((error) => {
           console.error("Error storing feedback:", error);
         });
+    } else {
+      console.log("Cannot store feedback: No submission ID available");
     }
   };
 
