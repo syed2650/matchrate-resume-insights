@@ -1,9 +1,9 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { FileText, Link2 } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { UploadDropzone } from "@/server/uploadthing";
+import type { OurFileRouter } from "@/server/uploadthing";
 import { InputWithIcon } from "@/components/ui/input-with-icon";
 
 interface Props {
@@ -25,16 +26,23 @@ interface Props {
   isLoading: boolean;
 }
 
+interface UploadedFile {
+  fileName: string;
+  fileUrl: string;
+}
+
 const ReviewForm: React.FC<Props> = ({ onSubmit, isLoading }) => {
   const [resume, setResume] = useState("");
   const [jobDescription, setJobDescription] = useState("");
   const [jobUrl, setJobUrl] = useState("");
   const [selectedRole, setSelectedRole] = useState<string>("Product Manager");
-  const [uploadedFile, setUploadedFile] = useState<{ fileName: string; fileUrl: string } | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<UploadedFile | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
+    console.log("🚀 Starting form submission");
     e.preventDefault();
-    onSubmit(resume, jobDescription, jobUrl, selectedRole, undefined); // optionally: pass file blob if needed
+    onSubmit(resume, jobDescription, jobUrl, selectedRole, undefined);
+    console.log("📤 Form submitted with data:", { resume, jobDescription, jobUrl, selectedRole });
   };
 
   const jobRoles = [
@@ -54,15 +62,23 @@ const ReviewForm: React.FC<Props> = ({ onSubmit, isLoading }) => {
           </label>
           {!uploadedFile ? (
             <div>
-              <UploadDropzone
+              <UploadDropzone<OurFileRouter>
                 endpoint="resumeUploader"
+                onUploadError={(error: Error) => {
+                  console.log("⚠️ Upload error:", error.message);
+                }}
+                onUploadBegin={() => {
+                  console.log("🚀 Starting file upload");
+                }}
                 onClientUploadComplete={(res) => {
+                  console.log("✅ Upload completed:", res);
                   if (res && res[0]) {
                     setUploadedFile({
                       fileName: res[0].fileName,
                       fileUrl: res[0].fileUrl,
                     });
-                    setResume(res[0].fileName); // Optional: or use fileUrl
+                    setResume(res[0].fileName);
+                    console.log("📄 File processed:", res[0].fileName);
                   }
                 }}
               />
@@ -71,7 +87,10 @@ const ReviewForm: React.FC<Props> = ({ onSubmit, isLoading }) => {
                 placeholder="Copy and paste your resume text here..."
                 className="min-h-[200px]"
                 value={resume}
-                onChange={(e) => setResume(e.target.value)}
+                onChange={(e) => {
+                  setResume(e.target.value);
+                  console.log("✍️ Resume text updated");
+                }}
                 required={!uploadedFile}
               />
             </div>
@@ -85,6 +104,7 @@ const ReviewForm: React.FC<Props> = ({ onSubmit, isLoading }) => {
                 onClick={() => {
                   setUploadedFile(null);
                   setResume("");
+                  console.log("🗑️ File removed");
                 }}
               >
                 Remove
