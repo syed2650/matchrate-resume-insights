@@ -40,8 +40,8 @@ serve(async (req) => {
     const messages = [
       {
         role: 'system',
-        content: rolePrompts[selectedRole] || rolePrompts["Product Manager"] + 
-          " Provide brutally honest, structured feedback focusing on: relevance score, missing keywords, section-by-section critique, STAR-format bullet improvements, tone suggestions, and a clear interview recommendation."
+        content: `${rolePrompts[selectedRole] || rolePrompts["Product Manager"]} 
+          Provide brutally honest, structured feedback focusing on: relevance score, missing keywords, section-by-section critique, STAR-format bullet improvements, tone suggestions, and a clear interview recommendation. Format your response as JSON with the following fields: score (number), missingKeywords (array), sectionFeedback (object), weakBullets (array), toneSuggestions (string), wouldInterview (string).`
       },
       {
         role: 'user',
@@ -71,7 +71,17 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    const analysis = JSON.parse(data.choices[0].message.content);
+    let analysis;
+    
+    try {
+      analysis = JSON.parse(data.choices[0].message.content);
+    } catch (e) {
+      // If JSON parsing fails, use the raw content
+      analysis = {
+        error: "Failed to parse AI response as JSON",
+        rawContent: data.choices[0].message.content
+      };
+    }
 
     return new Response(JSON.stringify(analysis), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
