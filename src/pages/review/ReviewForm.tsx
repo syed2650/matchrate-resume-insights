@@ -1,26 +1,24 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { FileText, Link2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { UploadDropzone } from "@/server/uploadthing";
-import type { OurFileRouter } from "@/server/uploadthing";
 import { InputWithIcon } from "@/components/ui/input-with-icon";
 
 interface Props {
   onSubmit: (
-    resume: string, 
-    jobDescription: string, 
-    jobUrl?: string, 
+    resume: string,
+    jobDescription: string,
+    jobUrl?: string,
     role?: string,
     file?: File
   ) => Promise<void>;
@@ -32,19 +30,19 @@ const ReviewForm: React.FC<Props> = ({ onSubmit, isLoading }) => {
   const [jobDescription, setJobDescription] = useState("");
   const [jobUrl, setJobUrl] = useState("");
   const [selectedRole, setSelectedRole] = useState<string>("Product Manager");
-  const [uploadedFile, setUploadedFile] = useState<File | undefined>();
+  const [uploadedFile, setUploadedFile] = useState<{ fileName: string; fileUrl: string } | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(resume, jobDescription, jobUrl, selectedRole, uploadedFile);
+    onSubmit(resume, jobDescription, jobUrl, selectedRole, undefined); // optionally: pass file blob if needed
   };
 
   const jobRoles = [
     "Product Manager",
-    "UX Designer", 
-    "Data Analyst", 
-    "Software Engineer", 
-    "Consultant"
+    "UX Designer",
+    "Data Analyst",
+    "Software Engineer",
+    "Consultant",
   ];
 
   return (
@@ -56,12 +54,15 @@ const ReviewForm: React.FC<Props> = ({ onSubmit, isLoading }) => {
           </label>
           {!uploadedFile ? (
             <div>
-              <UploadDropzone<OurFileRouter, never>
+              <UploadDropzone
                 endpoint="resumeUploader"
                 onClientUploadComplete={(res) => {
                   if (res && res[0]) {
-                    setUploadedFile(res[0].file as unknown as File);
-                    setResume(res[0].name);
+                    setUploadedFile({
+                      fileName: res[0].fileName,
+                      fileUrl: res[0].fileUrl,
+                    });
+                    setResume(res[0].fileName); // Optional: or use fileUrl
                   }
                 }}
               />
@@ -70,18 +71,21 @@ const ReviewForm: React.FC<Props> = ({ onSubmit, isLoading }) => {
                 placeholder="Copy and paste your resume text here..."
                 className="min-h-[200px]"
                 value={resume}
-                onChange={e => setResume(e.target.value)}
+                onChange={(e) => setResume(e.target.value)}
                 required={!uploadedFile}
               />
             </div>
           ) : (
             <div className="flex items-center justify-between bg-gray-100 p-4 rounded-md">
-              <span>{uploadedFile.name}</span>
-              <Button 
-                type="button" 
-                variant="outline" 
+              <span>{uploadedFile.fileName}</span>
+              <Button
+                type="button"
+                variant="outline"
                 size="sm"
-                onClick={() => setUploadedFile(undefined)}
+                onClick={() => {
+                  setUploadedFile(null);
+                  setResume("");
+                }}
               >
                 Remove
               </Button>
@@ -97,7 +101,7 @@ const ReviewForm: React.FC<Props> = ({ onSubmit, isLoading }) => {
             <InputWithIcon
               placeholder="Optional: Paste Job URL (LinkedIn, Indeed, etc.)"
               value={jobUrl}
-              onChange={e => setJobUrl(e.target.value)}
+              onChange={(e) => setJobUrl(e.target.value)}
               className="mb-2"
               icon={<Link2 className="h-4 w-4" />}
             />
@@ -105,7 +109,7 @@ const ReviewForm: React.FC<Props> = ({ onSubmit, isLoading }) => {
               placeholder="Or paste the job description here..."
               className="min-h-[200px]"
               value={jobDescription}
-              onChange={e => setJobDescription(e.target.value)}
+              onChange={(e) => setJobDescription(e.target.value)}
               required={!jobUrl}
             />
           </div>
@@ -115,15 +119,12 @@ const ReviewForm: React.FC<Props> = ({ onSubmit, isLoading }) => {
           <label className="block text-sm font-medium text-slate-700 mb-2">
             Select Target Role
           </label>
-          <Select 
-            value={selectedRole} 
-            onValueChange={setSelectedRole}
-          >
+          <Select value={selectedRole} onValueChange={setSelectedRole}>
             <SelectTrigger>
               <SelectValue placeholder="Select Role" />
             </SelectTrigger>
             <SelectContent>
-              {jobRoles.map(role => (
+              {jobRoles.map((role) => (
                 <SelectItem key={role} value={role}>
                   {role}
                 </SelectItem>
