@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
@@ -92,8 +91,8 @@ const Review = () => {
     
     // Store feedback in the submissions table
     if (submissionId) {
-      // Use submissionId for the update instead of comparing the feedback object
-      supabase
+      // Return the promise and add proper error handling
+      return supabase
         .from('submissions')
         .update({
           helpful: isHelpful
@@ -104,9 +103,17 @@ const Review = () => {
         })
         .catch((error) => {
           console.error("Error storing feedback:", error);
+          // Optionally show a toast notification
+          toast({
+            title: "Feedback Error",
+            description: "Could not store feedback",
+            variant: "destructive"
+          });
         });
     } else {
       console.log("Cannot store feedback: No submission ID available");
+      // Return a resolved promise to maintain type consistency
+      return Promise.resolve();
     }
   };
 
