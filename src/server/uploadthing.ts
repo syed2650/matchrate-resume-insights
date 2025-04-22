@@ -1,9 +1,18 @@
 
-// Import the React components from @uploadthing/react
-import { UploadButton, UploadDropzone, Uploader } from "@uploadthing/react";
+// Import UploadThing React components
+import {
+  UploadButton as BaseUploadButton,
+  UploadDropzone as BaseUploadDropzone,
+  Uploader as BaseUploader,
+} from "@uploadthing/react";
 
-// Import needed types
+// Import the type definition for your file router
 import type { OurFileRouter } from "./uploadthing-router";
 
-export { UploadButton, UploadDropzone, Uploader };
+// Re-export components with generics already applied
+export const UploadButton = BaseUploadButton<OurFileRouter>;
+export const UploadDropzone = BaseUploadDropzone<OurFileRouter>;
+export const Uploader = BaseUploader<OurFileRouter>;
+
+// Re-export type if needed in component files
 export type { OurFileRouter };
