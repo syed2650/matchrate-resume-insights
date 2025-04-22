@@ -81,15 +81,14 @@ const Review = () => {
   const handleFeedbackSubmit = (isHelpful: boolean) => {
     setHelpfulFeedback(isHelpful);
     
-    // Optionally store feedback in the database
+    // Store feedback in the metrics table
     if (feedback) {
       supabase
-        .from('feedback')
-        .insert({
-          feedback_id: crypto.randomUUID(),
-          was_helpful: isHelpful,
-          timestamp: new Date().toISOString()
+        .from('submissions')
+        .update({
+          helpful: isHelpful
         })
+        .eq('feedback_results', feedback)
         .then(() => {
           console.log("Feedback stored successfully");
         })
