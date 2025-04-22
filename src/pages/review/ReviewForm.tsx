@@ -11,8 +11,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { UploadDropzone } from "@uploadthing/react";
-import type { OurFileRouter } from "@/server/uploadthing-router";
 import { InputWithIcon } from "@/components/ui/input-with-icon";
 
 interface Props {
@@ -20,15 +18,9 @@ interface Props {
     resume: string,
     jobDescription: string,
     jobUrl?: string,
-    role?: string,
-    file?: File
+    role?: string
   ) => Promise<void>;
   isLoading: boolean;
-}
-
-interface UploadedFile {
-  fileName: string;
-  fileUrl: string;
 }
 
 const ReviewForm: React.FC<Props> = ({ onSubmit, isLoading }) => {
@@ -36,12 +28,11 @@ const ReviewForm: React.FC<Props> = ({ onSubmit, isLoading }) => {
   const [jobDescription, setJobDescription] = useState("");
   const [jobUrl, setJobUrl] = useState("");
   const [selectedRole, setSelectedRole] = useState<string>("Product Manager");
-  const [uploadedFile, setUploadedFile] = useState<UploadedFile | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     console.log("🚀 Starting form submission");
     e.preventDefault();
-    onSubmit(resume, jobDescription, jobUrl, selectedRole, undefined);
+    onSubmit(resume, jobDescription, jobUrl, selectedRole);
     console.log("📤 Form submitted with data:", { resume, jobDescription, jobUrl, selectedRole });
   };
 
@@ -58,59 +49,18 @@ const ReviewForm: React.FC<Props> = ({ onSubmit, isLoading }) => {
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-2">
-            Upload Resume or Paste Text
+            Resume Text
           </label>
-          {!uploadedFile ? (
-            <div>
-              <UploadDropzone<OurFileRouter, "resumeUploader">
-                endpoint="resumeUploader"
-                onUploadError={(error) => {
-                  console.log("⚠️ Upload error:", error.message);
-                }}
-                onUploadBegin={() => {
-                  console.log("🚀 Starting file upload");
-                }}
-                onClientUploadComplete={(res) => {
-                  console.log("✅ Upload completed:", res);
-                  if (res && res[0]) {
-                    setUploadedFile({
-                      fileName: res[0].name,
-                      fileUrl: res[0].url,
-                    });
-                    setResume(res[0].name);
-                    console.log("📄 File processed:", res[0].name);
-                  }
-                }}
-              />
-              <div className="text-center my-4">or</div>
-              <Textarea
-                placeholder="Copy and paste your resume text here..."
-                className="min-h-[200px]"
-                value={resume}
-                onChange={(e) => {
-                  setResume(e.target.value);
-                  console.log("✍️ Resume text updated");
-                }}
-                required={!uploadedFile}
-              />
-            </div>
-          ) : (
-            <div className="flex items-center justify-between bg-gray-100 p-4 rounded-md">
-              <span>{uploadedFile.fileName}</span>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setUploadedFile(null);
-                  setResume("");
-                  console.log("🗑️ File removed");
-                }}
-              >
-                Remove
-              </Button>
-            </div>
-          )}
+          <Textarea
+            placeholder="Copy and paste your resume text here..."
+            className="min-h-[200px]"
+            value={resume}
+            onChange={(e) => {
+              setResume(e.target.value);
+              console.log("✍️ Resume text updated");
+            }}
+            required
+          />
         </div>
 
         <div>
@@ -157,7 +107,7 @@ const ReviewForm: React.FC<Props> = ({ onSubmit, isLoading }) => {
           <Button
             type="submit"
             className="bg-blue-600 hover:bg-blue-700"
-            disabled={isLoading || (!resume && !uploadedFile)}
+            disabled={isLoading || !resume}
           >
             {isLoading ? (
               "Analyzing..."
