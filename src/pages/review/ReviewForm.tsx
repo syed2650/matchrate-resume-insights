@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { UploadDropzone } from "@/server/uploadthing";
 import type { OurFileRouter } from "@/server/uploadthing";
+import { InputWithIcon } from "@/components/ui/input-with-icon";
 
 interface Props {
   onSubmit: (
@@ -55,11 +56,11 @@ const ReviewForm: React.FC<Props> = ({ onSubmit, isLoading }) => {
           </label>
           {!uploadedFile ? (
             <div>
-              <UploadDropzone
+              <UploadDropzone<OurFileRouter>
                 endpoint="resumeUploader"
                 onClientUploadComplete={(res) => {
                   if (res && res[0]) {
-                    setUploadedFile(res[0] as any);
+                    setUploadedFile(res[0].file as unknown as File);
                     setResume(res[0].name);
                   }
                 }}
@@ -93,15 +94,13 @@ const ReviewForm: React.FC<Props> = ({ onSubmit, isLoading }) => {
             Job Description
           </label>
           <div className="space-y-4">
-            <div className="relative">
-              <Input 
-                placeholder="Optional: Paste Job URL (LinkedIn, Indeed, etc.)"
-                value={jobUrl}
-                onChange={e => setJobUrl(e.target.value)}
-                className="pl-10 mb-2"
-              />
-              <Link2 className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            </div>
+            <InputWithIcon
+              placeholder="Optional: Paste Job URL (LinkedIn, Indeed, etc.)"
+              value={jobUrl}
+              onChange={e => setJobUrl(e.target.value)}
+              className="mb-2"
+              icon={<Link2 className="h-4 w-4" />}
+            />
             <Textarea
               placeholder="Or paste the job description here..."
               className="min-h-[200px]"
