@@ -1,11 +1,9 @@
 
-// Import from "@uploadthing/react" for React components
+// Import the React components from @uploadthing/react
 import { UploadButton, UploadDropzone, Uploader } from "@uploadthing/react";
 
-// Import from "@uploadthing/react" for helpers since "uploadthing/react" isn't found
-import { useUploadThing } from "@uploadthing/react";
-
+// Import needed types
 import type { OurFileRouter } from "./uploadthing-router";
 
-export { useUploadThing, UploadButton, UploadDropzone, Uploader };
+export { UploadButton, UploadDropzone, Uploader };
 export type { OurFileRouter };
