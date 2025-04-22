@@ -56,7 +56,7 @@ const ReviewForm: React.FC<Props> = ({ onSubmit, isLoading }) => {
           </label>
           {!uploadedFile ? (
             <div>
-              <UploadDropzone<OurFileRouter>
+              <UploadDropzone<OurFileRouter, never>
                 endpoint="resumeUploader"
                 onClientUploadComplete={(res) => {
                   if (res && res[0]) {
