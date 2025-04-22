@@ -43,28 +43,43 @@ export type Database = {
           created_at: string
           feedback_comment: string | null
           feedback_results: Json
+          file_name: string | null
+          file_path: string | null
+          file_type: string | null
           helpful: boolean | null
           id: string
           job_description: string
+          job_url: string | null
           resume_text: string
+          selected_role: Database["public"]["Enums"]["job_role"] | null
         }
         Insert: {
           created_at?: string
           feedback_comment?: string | null
           feedback_results: Json
+          file_name?: string | null
+          file_path?: string | null
+          file_type?: string | null
           helpful?: boolean | null
           id?: string
           job_description: string
+          job_url?: string | null
           resume_text: string
+          selected_role?: Database["public"]["Enums"]["job_role"] | null
         }
         Update: {
           created_at?: string
           feedback_comment?: string | null
           feedback_results?: Json
+          file_name?: string | null
+          file_path?: string | null
+          file_type?: string | null
           helpful?: boolean | null
           id?: string
           job_description?: string
+          job_url?: string | null
           resume_text?: string
+          selected_role?: Database["public"]["Enums"]["job_role"] | null
         }
         Relationships: []
       }
@@ -76,7 +91,12 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      job_role:
+        | "Product Manager"
+        | "UX Designer"
+        | "Data Analyst"
+        | "Software Engineer"
+        | "Consultant"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -191,6 +211,14 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      job_role: [
+        "Product Manager",
+        "UX Designer",
+        "Data Analyst",
+        "Software Engineer",
+        "Consultant",
+      ],
+    },
   },
 } as const

@@ -16,44 +16,40 @@ serve(async (req) => {
   }
 
   try {
-    const { resume, jobDescription } = await req.json();
+    const { resume, jobDescription, jobUrl, selectedRole } = await req.json();
 
-    if (!resume || !jobDescription) {
-      throw new Error('Both resume and job description are required');
+    // Validate basic inputs
+    if ((!resume && !jobDescription) && !jobUrl) {
+      throw new Error('Either resume text or job URL is required');
     }
 
     if (!openAIApiKey) {
       throw new Error('OpenAI API key is not configured');
     }
 
+    // Role-specific prompt variations
+    const rolePrompts: Record<string, string> = {
+      "Product Manager": "You are reviewing a resume for a Product Manager at a tech company. Focus on product strategy, metrics, cross-functional leadership, and measurable outcomes.",
+      "UX Designer": "You are reviewing a resume for a UX Designer. Emphasize design thinking, user research, prototyping, and impact on user experience.",
+      "Data Analyst": "You are reviewing a resume for a Data Analyst. Highlight statistical analysis, data visualization, SQL skills, and business insights.",
+      "Software Engineer": "You are reviewing a resume for a Software Engineer. Focus on technical skills, programming languages, system design, and project impact.",
+      "Consultant": "You are reviewing a resume for a Business Consultant. Emphasize problem-solving, strategic thinking, client management, and quantifiable results."
+    };
+
     // Prepare the prompt for the AI
     const messages = [
       {
         role: 'system',
-        content: `You are an expert resume reviewer and career coach who specializes in helping job seekers optimize their resumes for specific job descriptions. 
-        Analyze the resume against the job description and provide structured feedback in the following JSON format:
-        {
-          "score": <number between 0-100 representing match percentage>,
-          "missingKeywords": [<array of important keywords from job description missing in resume>],
-          "sectionFeedback": {
-            "summary": <feedback about summary/profile section>,
-            "experience": <feedback about work experience section>,
-            "skills": <feedback about skills section>
-          },
-          "weakBullets": [<array of objects with format {original: "weak bullet text", improved: "improved bullet text"}>],
-          "toneSuggestions": <feedback on tone and clarity>,
-          "wouldInterview": <clear verdict on likelihood of interview>
-        }
-        For the weakBullets section, each item must be an object with 'original' and 'improved' properties.
-        Focus on actionable, specific feedback that would meaningfully improve the resume's chances.`
+        content: rolePrompts[selectedRole] || rolePrompts["Product Manager"] + 
+          " Provide brutally honest, structured feedback focusing on: relevance score, missing keywords, section-by-section critique, STAR-format bullet improvements, tone suggestions, and a clear interview recommendation."
       },
       {
         role: 'user',
-        content: `Job Description:\n${jobDescription}\n\nResume:\n${resume}`
+        content: `Job Description:\n${jobDescription || 'No specific job description provided'}\n\nResume:\n${resume}`
       }
     ];
 
-    // Call OpenAI API
+    // Call OpenAI API with role-specific prompt
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -63,9 +59,9 @@ serve(async (req) => {
       body: JSON.stringify({
         model: 'gpt-4o-mini',
         messages,
-        temperature: 0.2, // Lower temperature for more focused, deterministic responses
+        temperature: 0.2,
         max_tokens: 1500,
-        response_format: { type: "json_object" }, // Ensure output is in JSON format
+        response_format: { type: "json_object" },
       }),
     });
 

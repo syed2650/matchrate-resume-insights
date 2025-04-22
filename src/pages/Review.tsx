@@ -17,17 +17,55 @@ const Review = () => {
   const docRef = useRef<jsPDF | null>(null);
   const { toast } = useToast();
 
-  const handleFormSubmit = async (resume: string, jobDescription: string) => {
+  const handleFormSubmit = async (
+    resume: string, 
+    jobDescription: string, 
+    jobUrl?: string, 
+    selectedRole?: string,
+    file?: File
+  ) => {
     setIsLoading(true);
 
     try {
+      // If a file is uploaded, we'll need to handle file upload to Supabase storage
+      let filePath = null;
+      if (file) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}.${fileExt}`;
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('resumes')
+          .upload(fileName, file);
+
+        if (uploadError) throw uploadError;
+        filePath = uploadData?.path;
+      }
+
       const { data, error } = await supabase.functions.invoke("analyze-resume", {
-        body: { resume, jobDescription }
+        body: { 
+          resume: resume, 
+          jobDescription, 
+          jobUrl, 
+          selectedRole 
+        }
       });
 
       if (error) {
         throw new Error(error.message);
       }
+
+      // Store submission in database
+      await supabase
+        .from('submissions')
+        .insert({
+          resume_text: resume,
+          job_description: jobDescription,
+          job_url: jobUrl,
+          selected_role: selectedRole as any,
+          file_path: filePath,
+          file_type: file?.type,
+          file_name: file?.name,
+          feedback_results: data
+        });
 
       setFeedback(data);
     } catch (error) {
