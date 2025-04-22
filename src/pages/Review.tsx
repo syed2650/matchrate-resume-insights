@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
@@ -91,7 +92,6 @@ const Review = () => {
     
     // Store feedback in the submissions table
     if (submissionId) {
-      // Return the promise and add proper error handling
       return supabase
         .from('submissions')
         .update({
