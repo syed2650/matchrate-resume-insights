@@ -12,22 +12,16 @@ const corsHeaders = {
 async function fetchJobDescription(url: string): Promise<string> {
   console.log(`Attempting to fetch job description from URL: ${url}`);
   try {
-    // This is a simplified approach - in production, you'd want to use a more robust solution
-    // like a specialized API or a more sophisticated web scraping approach
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`Failed to fetch job description: ${response.statusText}`);
     }
     const html = await response.text();
     
-    // Extract text content from HTML (very simplified approach)
-    // Strip HTML tags and get plain text
     const textContent = html.replace(/<[^>]*>/g, ' ')
                             .replace(/\s+/g, ' ')
                             .trim();
     
-    // Get a reasonable chunk of text that might contain the job description
-    // This is a very simplified approach and might need refinement
     const potentialJobDescription = textContent.substring(0, 3000);
     
     console.log(`Successfully extracted potential job description (${potentialJobDescription.length} chars)`);
@@ -38,6 +32,55 @@ async function fetchJobDescription(url: string): Promise<string> {
   }
 }
 
+async function generateFullResumeRewrite(resume: string, jobDescription: string, companyType: string, selectedRole: string): Promise<string> {
+  console.log("Generating full resume rewrite...");
+  
+  let companySpecificPrompt = "";
+  switch (companyType) {
+    case "startup":
+      companySpecificPrompt = "This is for a startup, emphasize versatility, entrepreneurial spirit, and rapid execution.";
+      break;
+    case "enterprise":
+      companySpecificPrompt = "This is for an enterprise company, emphasize process knowledge, scalability, and collaboration with large teams.";
+      break;
+    case "consulting":
+      companySpecificPrompt = "This is for a consulting firm, emphasize client management, adaptability, and industry knowledge.";
+      break;
+    default:
+      companySpecificPrompt = "Format for a general company type.";
+  }
+
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${openAIApiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'gpt-4o',
+      messages: [
+        {
+          role: 'system',
+          content: `You are an expert resume rewriter. ${companySpecificPrompt} Create a completely rewritten version of the resume that is tailored specifically to the job description. Maintain the same sections and basic information but optimize all content to highlight relevant experience and skills. Format the resume professionally with clear section headings and bullet points.`
+        },
+        {
+          role: 'user',
+          content: `Job Description:\n${jobDescription}\n\nResume to Rewrite:\n${resume}`
+        }
+      ],
+      temperature: 0.3,
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error?.message || 'Failed to generate resume rewrite');
+  }
+
+  const data = await response.json();
+  return data.choices[0].message.content;
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -45,7 +88,7 @@ serve(async (req) => {
   }
 
   try {
-    const { resume, jobDescription, jobUrl, selectedRole } = await req.json();
+    const { resume, jobDescription, jobUrl, selectedRole, companyType, generateRewrite } = await req.json();
 
     // Validate basic inputs
     if ((!resume && !jobDescription) && !jobUrl) {
@@ -116,7 +159,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4o',
         messages,
         temperature: 0.2,
         max_tokens: 1500,
@@ -201,7 +244,29 @@ serve(async (req) => {
       analysis.wouldInterview = "No interview recommendation available";
     }
 
-    return new Response(JSON.stringify(analysis), {
+    // Generate full resume rewrite if requested
+    let rewrittenResume = null;
+    if (generateRewrite) {
+      try {
+        rewrittenResume = await generateFullResumeRewrite(
+          resume, 
+          effectiveJobDescription, 
+          companyType || "general", 
+          selectedRole || "Product Manager"
+        );
+      } catch (error) {
+        console.error("Error generating resume rewrite:", error);
+        rewrittenResume = "Failed to generate resume rewrite: " + error.message;
+      }
+    }
+
+    // Return combined results
+    const finalResult = {
+      ...analysis,
+      rewrittenResume
+    };
+
+    return new Response(JSON.stringify(finalResult), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
@@ -213,7 +278,8 @@ serve(async (req) => {
       sectionFeedback: { error: error.message },
       weakBullets: [],
       toneSuggestions: "Error occurred during analysis",
-      wouldInterview: "Unable to provide recommendation due to error"
+      wouldInterview: "Unable to provide recommendation due to error",
+      rewrittenResume: null
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

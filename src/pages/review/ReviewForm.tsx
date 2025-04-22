@@ -12,13 +12,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { InputWithIcon } from "@/components/ui/input-with-icon";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 
 interface Props {
   onSubmit: (
     resume: string,
     jobDescription: string,
     jobUrl?: string,
-    role?: string
+    role?: string,
+    companyType?: string,
+    generateRewrite?: boolean
   ) => Promise<void>;
   isLoading: boolean;
 }
@@ -28,12 +33,14 @@ const ReviewForm: React.FC<Props> = ({ onSubmit, isLoading }) => {
   const [jobDescription, setJobDescription] = useState("");
   const [jobUrl, setJobUrl] = useState("");
   const [selectedRole, setSelectedRole] = useState<string>("Product Manager");
+  const [companyType, setCompanyType] = useState<string>("general");
+  const [generateRewrite, setGenerateRewrite] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     console.log("🚀 Starting form submission");
     e.preventDefault();
-    onSubmit(resume, jobDescription, jobUrl, selectedRole);
-    console.log("📤 Form submitted with data:", { resume, jobDescription, jobUrl, selectedRole });
+    onSubmit(resume, jobDescription, jobUrl, selectedRole, companyType, generateRewrite);
+    console.log("📤 Form submitted with data:", { resume, jobDescription, jobUrl, selectedRole, companyType, generateRewrite });
   };
 
   const jobRoles = [
@@ -42,6 +49,13 @@ const ReviewForm: React.FC<Props> = ({ onSubmit, isLoading }) => {
     "Data Analyst",
     "Software Engineer",
     "Consultant",
+  ];
+
+  const companyTypes = [
+    { value: "general", label: "General" },
+    { value: "startup", label: "Startup" },
+    { value: "enterprise", label: "Enterprise" },
+    { value: "consulting", label: "Consulting" },
   ];
 
   return (
@@ -85,24 +99,57 @@ const ReviewForm: React.FC<Props> = ({ onSubmit, isLoading }) => {
           </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">
-            Select Target Role
-          </label>
-          <Select value={selectedRole} onValueChange={setSelectedRole}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select Role" />
-            </SelectTrigger>
-            <SelectContent>
-              {jobRoles.map((role) => (
-                <SelectItem key={role} value={role}>
-                  {role}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              Select Target Role
+            </label>
+            <Select value={selectedRole} onValueChange={setSelectedRole}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select Role" />
+              </SelectTrigger>
+              <SelectContent>
+                {jobRoles.map((role) => (
+                  <SelectItem key={role} value={role}>
+                    {role}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              Company Type
+            </label>
+            <Select value={companyType} onValueChange={setCompanyType}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select Company Type" />
+              </SelectTrigger>
+              <SelectContent>
+                {companyTypes.map((type) => (
+                  <SelectItem key={type.value} value={type.value}>
+                    {type.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
+        <Separator />
+        
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="generate-rewrite"
+            checked={generateRewrite}
+            onCheckedChange={setGenerateRewrite}
+          />
+          <Label htmlFor="generate-rewrite">
+            Generate full resume rewrite (optimized for this role and company type)
+          </Label>
+        </div>
+        
         <div className="flex justify-center">
           <Button
             type="submit"

@@ -9,35 +9,43 @@ import ReviewForm from "./review/ReviewForm";
 import AnalysisHeader from "./review/AnalysisHeader";
 import FeedbackForm from "./review/FeedbackForm";
 import { generatePDF } from "./review/PDFGenerator";
+import ResumeRewrite from "./review/ResumeRewrite";
 
 const Review = () => {
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [helpfulFeedback, setHelpfulFeedback] = useState<null | boolean>(null);
   const [submissionId, setSubmissionId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'analysis' | 'rewrite'>('analysis');
   const { toast } = useToast();
 
   const handleFormSubmit = async (
     resume: string, 
     jobDescription: string, 
     jobUrl?: string, 
-    selectedRole?: string
+    selectedRole?: string,
+    companyType?: string,
+    generateRewrite?: boolean
   ) => {
     setIsLoading(true);
     console.log("🚀 Processing review request with inputs:", { 
       resumeLength: resume?.length, 
       jobDescriptionLength: jobDescription?.length,
       jobUrl, 
-      selectedRole 
+      selectedRole,
+      companyType,
+      generateRewrite
     });
 
     try {
       const { data, error } = await supabase.functions.invoke("analyze-resume", {
         body: { 
-          resume: resume, 
+          resume, 
           jobDescription, 
           jobUrl, 
-          selectedRole 
+          selectedRole,
+          companyType,
+          generateRewrite
         }
       });
 
@@ -67,6 +75,10 @@ const Review = () => {
       }
 
       setFeedback(data);
+      // If there's a rewrite, switch to that tab
+      if (data.rewrittenResume) {
+        setActiveTab('rewrite');
+      }
     } catch (error) {
       console.error("Error analyzing resume:", error);
       toast({
@@ -127,10 +139,17 @@ const Review = () => {
           <div className="space-y-6">
             <AnalysisHeader 
               onReset={() => setFeedback(null)} 
-              onExportPDF={handleExportPDF} 
+              onExportPDF={handleExportPDF}
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+              hasRewrite={!!feedback.rewrittenResume}
             />
 
-            <ResultList feedback={feedback} />
+            {activeTab === 'analysis' ? (
+              <ResultList feedback={feedback} />
+            ) : (
+              <ResumeRewrite rewrittenResume={feedback.rewrittenResume} />
+            )}
 
             <FeedbackForm 
               helpfulFeedback={helpfulFeedback} 

@@ -18,4 +18,5 @@ export interface Feedback {
   weakBullets: (string | FeedbackWeakBullet)[];
   toneSuggestions: string;
   wouldInterview: string;
+  rewrittenResume?: string | null;
 }
