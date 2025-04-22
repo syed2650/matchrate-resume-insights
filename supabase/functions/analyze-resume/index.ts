@@ -27,6 +27,13 @@ serve(async (req) => {
       throw new Error('OpenAI API key is not configured');
     }
 
+    // Process job URL if provided but no job description
+    let effectiveJobDescription = jobDescription || '';
+    if (jobUrl && !jobDescription) {
+      console.log(`Job URL provided: ${jobUrl}`);
+      effectiveJobDescription = `Job URL: ${jobUrl}\nPlease consider this URL as the source of the job description.`;
+    }
+
     // Role-specific prompt variations
     const rolePrompts: Record<string, string> = {
       "Product Manager": "You are reviewing a resume for a Product Manager at a tech company. Focus on product strategy, metrics, cross-functional leadership, and measurable outcomes.",
@@ -45,9 +52,11 @@ serve(async (req) => {
       },
       {
         role: 'user',
-        content: `Job Description:\n${jobDescription || 'No specific job description provided'}\n\nResume:\n${resume}`
+        content: `Job Description:\n${effectiveJobDescription || 'No specific job description provided'}\n\nResume:\n${resume}`
       }
     ];
+
+    console.log("Sending analysis request to OpenAI...");
 
     // Call OpenAI API with role-specific prompt
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -75,7 +84,9 @@ serve(async (req) => {
     
     try {
       analysis = JSON.parse(data.choices[0].message.content);
+      console.log("Successfully parsed AI response as JSON");
     } catch (e) {
+      console.error("Failed to parse AI response as JSON:", e);
       // If JSON parsing fails, use the raw content
       analysis = {
         error: "Failed to parse AI response as JSON",

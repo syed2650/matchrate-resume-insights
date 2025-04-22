@@ -40,6 +40,14 @@ const Review = () => {
         filePath = uploadData?.path;
       }
 
+      // Log the request parameters for debugging
+      console.log("Sending to analyze-resume function:", { 
+        resumeLength: resume?.length, 
+        jobDescriptionLength: jobDescription?.length,
+        jobUrl, 
+        selectedRole 
+      });
+
       const { data, error } = await supabase.functions.invoke("analyze-resume", {
         body: { 
           resume: resume, 
@@ -52,6 +60,8 @@ const Review = () => {
       if (error) {
         throw new Error(error.message);
       }
+
+      console.log("Received analysis result:", data);
 
       // Store submission in database
       await supabase
@@ -83,75 +93,163 @@ const Review = () => {
 
   const generatePDF = () => {
     if (!feedback) return;
-    const doc = new jsPDF();
+    
+    // Create new PDF document with a4 format (210x297mm)
+    const doc = new jsPDF({ 
+      format: 'a4',
+      unit: 'mm',
+    });
 
+    // Set margins and calculate usable width
+    const margin = 15;
+    const pageWidth = 210 - (margin * 2);
+    
     doc.setFontSize(20);
-    doc.text("Resume Review Analysis Results", 14, 20);
+    doc.text("Resume Review Analysis Results", margin, 20);
 
-    doc.setFontSize(14);
-    doc.text("Relevance Score:", 14, 35);
-    doc.setFontSize(12);
-    doc.text(`${feedback.score}/100`, 14, 42);
+    // Track y position as we add content
+    let yPos = 30;
 
-    let yPos = 52;
-
-    doc.setFontSize(14);
-    doc.text("Missing Keywords:", 14, yPos);
-    yPos += 6;
-    doc.setFontSize(12);
-    feedback.missingKeywords.forEach((keyword: string) => {
-      doc.text(`• ${keyword}`, 14, yPos);
-      yPos += 7;
-    });
-
-    yPos += 4;
-    doc.setFontSize(14);
-    doc.text("Section-by-Section Feedback:", 14, yPos);
+    // Add relevance score
+    doc.setFontSize(16);
+    doc.text("Relevance Score:", margin, yPos);
     yPos += 7;
+    doc.setFontSize(14);
+    doc.text(`${feedback.score}/100`, margin, yPos);
+    yPos += 12;
 
+    // Add missing keywords
+    doc.setFontSize(16);
+    doc.text("Missing Keywords:", margin, yPos);
+    yPos += 7;
     doc.setFontSize(12);
-    Object.entries(feedback.sectionFeedback).forEach(([section, text]: [string, string]) => {
-      doc.text(`${section.charAt(0).toUpperCase() + section.slice(1)}:`, 14, yPos);
+    
+    if (feedback.missingKeywords && feedback.missingKeywords.length > 0) {
+      feedback.missingKeywords.forEach((keyword: string) => {
+        doc.text(`• ${keyword}`, margin, yPos);
+        yPos += 6;
+      });
+    } else {
+      doc.text("None identified", margin, yPos);
       yPos += 6;
-      const splitText = doc.splitTextToSize(text, 180);
-      doc.text(splitText, 14, yPos);
-      yPos += splitText.length * 6 + 4;
-    });
+    }
+    yPos += 6;
 
-    doc.setFontSize(14);
-    doc.text("Weak Bullet Improvements:", 14, yPos);
-    yPos += 7;
-    doc.setFontSize(12);
-    feedback.weakBullets.forEach((bullet: any) => {
-      if (typeof bullet === "object" && bullet.original && bullet.improved) {
-        const orig = doc.splitTextToSize(`Original: ${bullet.original}`, 180);
-        const impr = doc.splitTextToSize(`Improved: ${bullet.improved}`, 180);
-        doc.text(orig, 14, yPos);
-        yPos += orig.length * 6 + 2;
-        doc.text(impr, 14, yPos);
-        yPos += impr.length * 6 + 2;
-      } else if (typeof bullet === "string") {
-        const bulletText = doc.splitTextToSize(`• ${bullet}`, 180);
-        doc.text(bulletText, 14, yPos);
-        yPos += bulletText.length * 6 + 2;
-      }
-    });
+    // Add section feedback
+    doc.setFontSize(16);
+    doc.text("Section-by-Section Feedback:", margin, yPos);
+    yPos += 10;
 
-    doc.setFontSize(14);
-    doc.text("Tone & Clarity Suggestions:", 14, yPos);
-    yPos += 7;
-    doc.setFontSize(12);
-    const toneSplit = doc.splitTextToSize(feedback.toneSuggestions, 180);
-    doc.text(toneSplit, 14, yPos);
-    yPos += toneSplit.length * 6 + 4;
+    if (feedback.sectionFeedback) {
+      doc.setFontSize(12);
+      Object.entries(feedback.sectionFeedback).forEach(([section, text]: [string, string]) => {
+        // Add section name
+        doc.setFont(undefined, 'bold');
+        doc.text(`${section.charAt(0).toUpperCase() + section.slice(1)}:`, margin, yPos);
+        yPos += 6;
+        
+        // Reset font
+        doc.setFont(undefined, 'normal');
+        
+        // Handle multiline text
+        const splitText = doc.splitTextToSize(text, pageWidth);
+        doc.text(splitText, margin, yPos);
+        yPos += splitText.length * 6 + 4;
+        
+        // Check if we need a new page
+        if (yPos > 270) {
+          doc.addPage();
+          yPos = 20;
+        }
+      });
+    }
 
-    doc.setFontSize(14);
-    doc.text("Would I Interview?", 14, yPos);
-    yPos += 7;
-    doc.setFontSize(12);
-    const interviewSplit = doc.splitTextToSize(feedback.wouldInterview, 180);
-    doc.text(interviewSplit, 14, yPos);
+    // Add weak bullet improvements
+    // Check if we need a new page
+    if (yPos > 240) {
+      doc.addPage();
+      yPos = 20;
+    }
 
+    doc.setFontSize(16);
+    doc.text("Weak Bullet Improvements:", margin, yPos);
+    yPos += 8;
+    
+    if (feedback.weakBullets && feedback.weakBullets.length > 0) {
+      doc.setFontSize(12);
+      feedback.weakBullets.forEach((bullet: any) => {
+        if (typeof bullet === "object" && bullet.original && bullet.improved) {
+          // Bold for Original
+          doc.setFont(undefined, 'bold');
+          doc.text("Original:", margin, yPos);
+          yPos += 5;
+          
+          // Normal for content
+          doc.setFont(undefined, 'normal');
+          const origText = doc.splitTextToSize(bullet.original, pageWidth);
+          doc.text(origText, margin, yPos);
+          yPos += origText.length * 5 + 2;
+          
+          // Bold for Improved
+          doc.setFont(undefined, 'bold');
+          doc.text("Improved:", margin, yPos);
+          yPos += 5;
+          
+          // Normal for content
+          doc.setFont(undefined, 'normal');
+          const imprText = doc.splitTextToSize(bullet.improved, pageWidth);
+          doc.text(imprText, margin, yPos);
+          yPos += imprText.length * 5 + 6;
+        } else if (typeof bullet === "string") {
+          const bulletText = doc.splitTextToSize(`• ${bullet}`, pageWidth);
+          doc.text(bulletText, margin, yPos);
+          yPos += bulletText.length * 5 + 4;
+        }
+        
+        // Check if we need a new page
+        if (yPos > 270) {
+          doc.addPage();
+          yPos = 20;
+        }
+      });
+    }
+
+    // Add tone suggestions
+    // Check if we need a new page
+    if (yPos > 240) {
+      doc.addPage();
+      yPos = 20;
+    }
+
+    doc.setFontSize(16);
+    doc.text("Tone & Clarity Suggestions:", margin, yPos);
+    yPos += 8;
+    
+    if (feedback.toneSuggestions) {
+      doc.setFontSize(12);
+      const toneSplit = doc.splitTextToSize(feedback.toneSuggestions, pageWidth);
+      doc.text(toneSplit, margin, yPos);
+      yPos += toneSplit.length * 5 + 8;
+    }
+
+    // Add interview recommendation
+    // Check if we need a new page
+    if (yPos > 260) {
+      doc.addPage();
+      yPos = 20;
+    }
+
+    doc.setFontSize(16);
+    doc.text("Would I Interview?", margin, yPos);
+    yPos += 8;
+    
+    if (feedback.wouldInterview) {
+      doc.setFontSize(12);
+      const interviewSplit = doc.splitTextToSize(feedback.wouldInterview, pageWidth);
+      doc.text(interviewSplit, margin, yPos);
+    }
+
+    // Save the PDF
     doc.save("resume-review-feedback.pdf");
     docRef.current = doc;
   };
