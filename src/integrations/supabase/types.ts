@@ -38,6 +38,27 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
       submissions: {
         Row: {
           created_at: string
@@ -52,6 +73,7 @@ export type Database = {
           job_url: string | null
           resume_text: string
           selected_role: Database["public"]["Enums"]["job_role"] | null
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -66,6 +88,7 @@ export type Database = {
           job_url?: string | null
           resume_text: string
           selected_role?: Database["public"]["Enums"]["job_role"] | null
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -80,6 +103,7 @@ export type Database = {
           job_url?: string | null
           resume_text?: string
           selected_role?: Database["public"]["Enums"]["job_role"] | null
+          user_id?: string | null
         }
         Relationships: []
       }

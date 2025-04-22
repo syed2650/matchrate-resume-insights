@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +9,7 @@ import AnalysisHeader from "./review/AnalysisHeader";
 import FeedbackForm from "./review/FeedbackForm";
 import { generatePDF } from "./review/PDFGenerator";
 import ResumeRewrite from "./review/ResumeRewrite";
+import { useAuthUser } from "@/hooks/useAuthUser";
 
 const Review = () => {
   const [feedback, setFeedback] = useState<Feedback | null>(null);
@@ -18,6 +18,7 @@ const Review = () => {
   const [submissionId, setSubmissionId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'analysis' | 'rewrite'>('analysis');
   const { toast } = useToast();
+  const { user } = useAuthUser();
 
   const handleFormSubmit = async (
     resume: string, 
@@ -55,7 +56,7 @@ const Review = () => {
 
       console.log("Received analysis result:", data);
 
-      // Store submission in database
+      // Store submission in database and associate with user if exists
       const { data: submissionData, error: submissionError } = await supabase
         .from('submissions')
         .insert({
@@ -63,7 +64,8 @@ const Review = () => {
           job_description: jobDescription,
           job_url: jobUrl,
           selected_role: selectedRole as any,
-          feedback_results: data
+          feedback_results: data,
+          user_id: user?.id ?? null
         })
         .select('id')
         .single();
