@@ -87,33 +87,30 @@ const Review = () => {
     doc.save("resume-review-feedback.pdf");
   };
 
-  const handleFeedbackSubmit = (isHelpful: boolean) => {
+  const handleFeedbackSubmit = async (isHelpful: boolean) => {
     setHelpfulFeedback(isHelpful);
     
     // Store feedback in the submissions table
     if (submissionId) {
-      return supabase
-        .from('submissions')
-        .update({
-          helpful: isHelpful
-        })
-        .eq('id', submissionId)
-        .then(() => {
-          console.log("Feedback stored successfully");
-        })
-        .catch((error) => {
-          console.error("Error storing feedback:", error);
-          // Optionally show a toast notification
-          toast({
-            title: "Feedback Error",
-            description: "Could not store feedback",
-            variant: "destructive"
-          });
+      try {
+        await supabase
+          .from('submissions')
+          .update({
+            helpful: isHelpful
+          })
+          .eq('id', submissionId);
+        
+        console.log("Feedback stored successfully");
+      } catch (error) {
+        console.error("Error storing feedback:", error);
+        toast({
+          title: "Feedback Error",
+          description: "Could not store feedback",
+          variant: "destructive"
         });
+      }
     } else {
       console.log("Cannot store feedback: No submission ID available");
-      // Return a resolved promise to maintain type consistency
-      return Promise.resolve();
     }
   };
 
