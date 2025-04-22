@@ -62,7 +62,7 @@ const ReviewForm: React.FC<Props> = ({ onSubmit, isLoading }) => {
           </label>
           {!uploadedFile ? (
             <div>
-              <UploadDropzone<OurFileRouter>
+              <UploadDropzone
                 endpoint="resumeUploader"
                 onUploadError={(error) => {
                   console.log("⚠️ Upload error:", error.message);
