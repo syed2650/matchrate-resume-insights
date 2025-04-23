@@ -1,5 +1,6 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://api.fontshare.com/v2/css?f[]=satoshi@400,700,500,301,701,300&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -35,7 +36,7 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
 
-    --radius: 0.5rem;
+    --radius: 0.7rem;
   }
 
   * {
@@ -43,13 +44,66 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Inter', 'Satoshi', sans-serif !important;
-    letter-spacing: 0.02em;
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Satoshi', 'Inter', sans-serif !important;
+    letter-spacing: 0.01em;
   }
 
   .section-alt {
     background-color: #F8FAFC;
   }
-}
+  
+  /* Premium SaaS UI Components */
+  .card-premium {
+    @apply bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-300;
+  }
+  
+  .container-content {
+    @apply max-w-screen-xl mx-auto px-4 sm:px-6;
+  }
+  
+  .section-padding {
+    @apply py-16 md:py-24;
+  }
+  
+  .heading-xl {
+    @apply text-4xl md:text-5xl font-bold text-[#1E293B] leading-tight tracking-tight;
+  }
+  
+  .heading-lg {
+    @apply text-3xl md:text-4xl font-bold text-[#1E293B] leading-tight;
+  }
+  
+  .heading-md {
+    @apply text-2xl md:text-3xl font-bold text-[#1E293B];
+  }
+  
+  .text-premium {
+    @apply text-lg text-[#475569];
+  }
+  
+  .button-primary {
+    @apply bg-[#3B82F6] hover:bg-blue-600 text-white font-semibold rounded-lg transition-colors;
+  }
+  
+  .button-secondary {
+    @apply bg-white text-[#3B82F6] border border-[#3B82F6] hover:bg-[#EFF6FF] font-semibold rounded-lg transition-colors;
+  }
+  
+  .button-tertiary {
+    @apply text-[#64748B] hover:text-[#1E293B] font-medium;
+  }
 
+  /* Score colors */
+  .score-high {
+    @apply text-emerald-600;
+  }
+  
+  .score-medium {
+    @apply text-amber-600;
+  }
+  
+  .score-low {
+    @apply text-rose-600;
+  }
+}

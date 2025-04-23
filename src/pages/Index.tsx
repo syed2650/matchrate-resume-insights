@@ -10,18 +10,26 @@ import Footer from "@/components/sections/Footer";
 const Index = () => {
   return (
     <div className="min-h-screen bg-white font-sans">
-      <div className="bg-white">
+      <div className="bg-white border-b border-gray-100 sticky top-0 z-50">
         <Header />
       </div>
       {/* max-w-screen-xl (1280px) content, centered */}
-      <main className="mx-auto max-w-screen-xl">
+      <main className="mx-auto">
         <Hero />
-        <div className="section-alt">
-          <Features />
+        <div className="section-alt section-padding">
+          <div className="container-content">
+            <Features />
+          </div>
         </div>
-        <Testimonials />
-        <div className="section-alt">
-          <Pricing />
+        <div className="section-padding">
+          <div className="container-content">
+            <Testimonials />
+          </div>
+        </div>
+        <div className="section-alt section-padding">
+          <div className="container-content">
+            <Pricing />
+          </div>
         </div>
         <CallToAction />
       </main>

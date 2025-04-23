@@ -1,22 +1,20 @@
 
-export interface FeedbackSectionFeedback {
-  summary: string;
-  experience: string;
-  skills: string;
-  [key: string]: string;
-}
-
-export interface FeedbackWeakBullet {
-  original: string;
-  improved: string;
-}
-
 export interface Feedback {
   score: number;
   missingKeywords: string[];
-  sectionFeedback: FeedbackSectionFeedback;
-  weakBullets: (string | FeedbackWeakBullet)[];
+  sectionFeedback: {
+    [key: string]: string;
+  };
+  weakBullets: Array<{
+    original: string;
+    improved: string;
+  } | string>;
   toneSuggestions: string;
   wouldInterview: string;
-  rewrittenResume?: string | null;
+  rewrittenResume?: string | {
+    startup?: string;
+    enterprise?: string;
+    consulting?: string;
+    [key: string]: string | undefined;
+  };
 }

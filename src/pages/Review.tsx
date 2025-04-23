@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,18 +25,20 @@ const Review = () => {
     resume: string, 
     jobDescription: string, 
     jobUrl?: string, 
-    selectedRole?: string,
+    jobTitle?: string,
     companyType?: string,
-    generateRewrite?: boolean
+    generateRewrite?: boolean,
+    multiVersion?: boolean
   ) => {
     setIsLoading(true);
     console.log("🚀 Processing review request with inputs:", { 
       resumeLength: resume?.length, 
       jobDescriptionLength: jobDescription?.length,
       jobUrl, 
-      selectedRole,
+      jobTitle,
       companyType,
-      generateRewrite
+      generateRewrite,
+      multiVersion
     });
 
     try {
@@ -44,9 +47,10 @@ const Review = () => {
           resume, 
           jobDescription, 
           jobUrl, 
-          selectedRole,
+          selectedRole: jobTitle || "General",
           companyType,
-          generateRewrite
+          generateRewrite,
+          multiVersion
         }
       });
 
@@ -63,7 +67,7 @@ const Review = () => {
           resume_text: resume,
           job_description: jobDescription,
           job_url: jobUrl,
-          selected_role: selectedRole as any,
+          selected_role: jobTitle as any,
           feedback_results: data,
           user_id: user?.id ?? null
         })
@@ -98,7 +102,7 @@ const Review = () => {
     if (!feedback) return;
     
     const doc = generatePDF(feedback);
-    doc.save("resume-review-feedback.pdf");
+    doc.save("matchrate-resume-analysis.pdf");
   };
 
   const handleFeedbackSubmit = async (isHelpful: boolean) => {
@@ -129,16 +133,16 @@ const Review = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-5xl">
-      <h1 className="text-3xl font-bold text-slate-900 mb-8 text-center">
-        Resume Review
+    <div className="container mx-auto px-4 py-16 max-w-5xl">
+      <h1 className="text-4xl font-bold text-slate-900 mb-8 text-center">
+        Resume Analysis & Optimization
       </h1>
 
       {!feedback ? (
         <ReviewForm onSubmit={handleFormSubmit} isLoading={isLoading} />
       ) : (
-        <Card className="p-6">
-          <div className="space-y-6">
+        <Card className="p-6 shadow-md rounded-xl">
+          <div className="space-y-8">
             <AnalysisHeader 
               onReset={() => setFeedback(null)} 
               onExportPDF={handleExportPDF}
