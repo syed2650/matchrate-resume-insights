@@ -18,3 +18,16 @@ export interface Feedback {
     [key: string]: string | undefined;
   };
 }
+
+export type ExtractionStatus = 
+  | { status: 'idle' }
+  | { status: 'loading'; message: string }
+  | { status: 'success'; message: string }
+  | { status: 'error'; message: string };
+
+export interface ResumeFile {
+  name: string;
+  url?: string;
+  type?: string;
+  size?: number;
+}
