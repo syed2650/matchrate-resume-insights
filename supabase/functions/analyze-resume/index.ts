@@ -15,60 +15,19 @@ const corsHeaders = {
 async function fetchJobDescription(url: string): Promise<string> {
   console.log(`Attempting to fetch job description from URL: ${url}`);
   try {
-    // Validate URL format
-    new URL(url); // Will throw if URL is invalid
-    
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-      }
-    });
-    
+    const response = await fetch(url);
     if (!response.ok) {
-      throw new Error(`Failed to fetch job description: ${response.statusText} (${response.status})`);
+      throw new Error(`Failed to fetch job description: ${response.statusText}`);
     }
-    
     const html = await response.text();
-    
-    // Try to extract job content from common job board formats
-    let textContent = "";
-    if (url.includes('linkedin.com')) {
-      // LinkedIn specific extraction logic
-      const jobDescMatch = html.match(/<div class="description__text description__text--rich">(.+?)<\/div>/s);
-      if (jobDescMatch && jobDescMatch[1]) {
-        textContent = jobDescMatch[1];
-      }
-    } 
-    
-    // If no specific extraction worked, fall back to generic cleaning
-    if (!textContent) {
-      textContent = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, ' ')
-                        .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, ' ')
-                        .replace(/<[^>]*>/g, ' ')
-                        .replace(/\s+/g, ' ')
-                        .trim();
-    }
-    
-    // Extract a reasonable portion that's likely to be the job description
-    const potentialJobDescription = textContent.substring(0, 5000);
+    const textContent = html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    const potentialJobDescription = textContent.substring(0, 3000);
     console.log(`Successfully extracted potential job description (${potentialJobDescription.length} chars)`);
     return potentialJobDescription;
   } catch (error) {
     console.error(`Error fetching job description: ${error.message}`);
-    throw new Error(`Failed to extract job description from URL: ${error.message}`);
+    return `Failed to extract job description from URL: ${url}. Error: ${error.message}`;
   }
-}
-
-/**
- * Utility: Check if resume text contains binary/corrupted data
- */
-function detectCorruptedText(text: string): boolean {
-  // Check for high concentration of unusual characters that suggest binary data
-  const unusualCharCount = (text.match(/[^\x20-\x7E\n\r\t]/g) || []).length;
-  const ratio = unusualCharCount / text.length;
-  
-  // If more than 15% of characters are unusual, likely corrupted
-  return ratio > 0.15;
 }
 
 /**
@@ -83,13 +42,10 @@ function buildAnalysisPrompt(selectedRole: string, effectiveJobDescription: stri
     "Consultant": "You are reviewing a resume for a Business Consultant. Emphasize problem-solving, strategic thinking, client management, and quantifiable results."
   };
 
-  // Determine the role-specific prompt or use a generic prompt
-  let rolePrompt = rolePrompts[selectedRole] || `You are reviewing a resume for a ${selectedRole} role.`;
-
   return [
     {
       role: 'system',
-      content: `${rolePrompt} 
+      content: `${rolePrompts[selectedRole] || rolePrompts["Product Manager"]} 
         Provide brutally honest, structured feedback focusing on: relevance score, missing keywords, section-by-section critique, STAR-format bullet improvements, tone suggestions, and a clear interview recommendation. 
         Format your response as JSON with the following fields: 
         - score (number between 0-100)
@@ -244,28 +200,6 @@ async function generateResumeRewritesForAllCompanyTypes(resume: string, jobDescr
 }
 
 /**
- * Utility: Clean and normalize resume text
- */
-function normalizeResumeText(resumeText: string): string {
-  if (!resumeText) return "";
-  
-  // Check if it appears to be a raw file upload notation
-  if (resumeText.startsWith("File uploaded:")) {
-    return "The resume was uploaded as a file, but text extraction failed. Please copy and paste the text manually.";
-  }
-  
-  // Check if text is likely corrupted binary data
-  if (detectCorruptedText(resumeText)) {
-    throw new Error("The resume text appears to contain binary or corrupted data. Please upload a plain text version or copy and paste the content directly.");
-  }
-  
-  return resumeText
-    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, '') // Remove non-printable characters
-    .replace(/\u0000/g, ' ') // Replace null bytes with spaces
-    .trim();
-}
-
-/**
  * === Main Edge Function Handler ===
  */
 serve(async (req) => {
@@ -275,35 +209,14 @@ serve(async (req) => {
   }
 
   try {
-    const { resume: rawResume, jobDescription, jobUrl, selectedRole, companyType, generateRewrite, multiVersion } = await req.json();
+    const { resume, jobDescription, jobUrl, selectedRole, companyType, generateRewrite, multiVersion } = await req.json();
 
     // Validate required values
-    if (!rawResume && !jobDescription && !jobUrl) {
-      throw new Error('Either resume text or job description is required');
+    if ((!resume && !jobDescription) && !jobUrl) {
+      throw new Error('Either resume text or job URL is required');
     }
     if (!openAIApiKey) {
       throw new Error('OpenAI API key is not configured');
-    }
-
-    // Clean and normalize the resume text
-    let resume;
-    try {
-      resume = normalizeResumeText(rawResume);
-    } catch (error) {
-      // Return a specific error for corrupted resume data
-      return new Response(JSON.stringify({
-        parsingError: error.message,
-        score: 0,
-        missingKeywords: [],
-        sectionFeedback: { "Error": "Could not parse resume text" },
-        weakBullets: [],
-        toneSuggestions: "Unable to analyze due to parsing error",
-        wouldInterview: "Unable to determine due to parsing error",
-        rewrittenResume: null
-      }), {
-        status: 200, // Send 200 to prevent front-end error handling
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
     }
 
     // Use provided job description or fetch from URL

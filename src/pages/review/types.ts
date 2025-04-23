@@ -17,10 +17,4 @@ export interface Feedback {
     consulting?: string;
     [key: string]: string | undefined;
   };
-  parsingError?: string;
-}
-
-export interface ExtractionStatus {
-  status: 'idle' | 'loading' | 'success' | 'error';
-  message?: string;
 }

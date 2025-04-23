@@ -11,7 +11,6 @@ import FeedbackForm from "./review/FeedbackForm";
 import { generatePDF } from "./review/PDFGenerator";
 import ResumeRewrite from "./review/ResumeRewrite";
 import { useAuthUser } from "@/hooks/useAuthUser";
-import { AlertCircle } from "lucide-react";
 
 const Review = () => {
   const [feedback, setFeedback] = useState<Feedback | null>(null);
@@ -19,7 +18,6 @@ const Review = () => {
   const [helpfulFeedback, setHelpfulFeedback] = useState<null | boolean>(null);
   const [submissionId, setSubmissionId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'analysis' | 'rewrite'>('analysis');
-  const [parsingError, setParsingError] = useState<string | null>(null);
   const { toast } = useToast();
   const { user } = useAuthUser();
 
@@ -32,7 +30,6 @@ const Review = () => {
     generateRewrite?: boolean,
     multiVersion?: boolean
   ) => {
-    setParsingError(null);
     setIsLoading(true);
     console.log("🚀 Processing review request with inputs:", { 
       resumeLength: resume?.length, 
@@ -62,16 +59,6 @@ const Review = () => {
       }
 
       console.log("Received analysis result:", data);
-
-      // Check if there's a parsing error in the response
-      if (data.parsingError) {
-        setParsingError(data.parsingError);
-        toast({
-          title: "Resume Parsing Issue",
-          description: data.parsingError,
-          variant: "destructive"
-        });
-      }
 
       // Store submission in database and associate with user if exists
       const { data: submissionData, error: submissionError } = await supabase
@@ -152,20 +139,9 @@ const Review = () => {
       </h1>
 
       {!feedback ? (
-        <>
-          {parsingError && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 flex items-start">
-              <AlertCircle className="h-5 w-5 mt-0.5 mr-2 flex-shrink-0 text-red-500" />
-              <div>
-                <p className="font-semibold">Resume Parsing Error</p>
-                <p className="text-sm">{parsingError}</p>
-              </div>
-            </div>
-          )}
-          <ReviewForm onSubmit={handleFormSubmit} isLoading={isLoading} />
-        </>
+        <ReviewForm onSubmit={handleFormSubmit} isLoading={isLoading} />
       ) : (
-        <Card className="p-6 shadow-md rounded-xl border border-gray-200 bg-white">
+        <Card className="p-6 shadow-md rounded-xl">
           <div className="space-y-8">
             <AnalysisHeader 
               onReset={() => setFeedback(null)} 
