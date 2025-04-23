@@ -13,6 +13,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useToast } from "@/hooks/use-toast";
 import { UploadDropzone } from "@/server/uploadthing";
 import { ExtractionStatus } from "./types";
+import { supabase } from "@/integrations/supabase/client";
+import type { OurFileRouter } from "@/server/uploadthing-router";
 
 interface Props {
   onSubmit: (
@@ -95,7 +97,6 @@ const ReviewForm: React.FC<Props> = ({ onSubmit, isLoading }) => {
     
     try {
       // Call the edge function to extract job description
-      // In a real implementation, this would call your job scraper edge function
       const { data, error } = await supabase.functions.invoke("extract-job-description", {
         body: { url: jobUrl }
       });
@@ -143,7 +144,7 @@ const ReviewForm: React.FC<Props> = ({ onSubmit, isLoading }) => {
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold text-slate-900">Resume</h2>
-            <UploadDropzone
+            <UploadDropzone<OurFileRouter>
               endpoint="resumeUploader"
               onClientUploadComplete={(res) => {
                 // Handle the successful upload
