@@ -24,7 +24,7 @@ export const OutputOptionsSection: React.FC<Props> = ({
         <Switch
           id="generate-rewrite"
           checked={generateRewrite}
-          onCheckedChange={setGenerateRewrite}
+          onCheckedChange={(value) => setGenerateRewrite(value)}
         />
         <Label htmlFor="generate-rewrite" className="text-slate-700">
           Generate full resume rewrite (optimized for this role and company)
@@ -36,7 +36,7 @@ export const OutputOptionsSection: React.FC<Props> = ({
           <Switch
             id="multi-version"
             checked={multiVersion}
-            onCheckedChange={setMultiVersion}
+            onCheckedChange={(value) => setMultiVersion(value)}
           />
           <Label htmlFor="multi-version" className="text-slate-700">
             Create multiple versions (Startup, Enterprise, Consulting)

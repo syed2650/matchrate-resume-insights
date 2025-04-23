@@ -18,27 +18,45 @@ export const useResumeUpload = () => {
         type: file.type
       });
       
+      // For PDF files, we would need a PDF.js implementation
+      // For now, we'll handle basic text and DOCX as text
       const reader = new FileReader();
+      
       reader.onload = (e) => {
-        const text = e.target?.result as string;
-        setResume(text);
-        
-        toast({
-          title: "Resume parsed successfully",
-          description: `Extracted ${text.length} characters from ${file.name}`,
-        });
-        setIsParsingResume(false);
+        try {
+          const text = e.target?.result as string;
+          
+          // Clean up text if needed (remove binary artifacts)
+          const cleanText = text.replace(/[\x00-\x09\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, '');
+          setResume(cleanText || "");
+          
+          toast({
+            title: "Resume parsed successfully",
+            description: `Extracted content from ${file.name}`,
+          });
+        } catch (parseError) {
+          console.error("Error parsing file content:", parseError);
+          toast({
+            title: "Error parsing resume",
+            description: "Failed to extract text from the uploaded file. Please paste your resume text manually.",
+            variant: "destructive"
+          });
+        } finally {
+          setIsParsingResume(false);
+        }
       };
       
-      reader.onerror = () => {
+      reader.onerror = (error) => {
+        console.error("FileReader error:", error);
         toast({
           title: "Error parsing resume",
-          description: "Failed to extract text from the uploaded file. Please paste your resume text manually.",
+          description: "Failed to read the uploaded file. Please paste your resume text manually.",
           variant: "destructive"
         });
         setIsParsingResume(false);
       };
       
+      // Read the file as text
       reader.readAsText(file);
     } catch (error) {
       console.error("Error parsing resume:", error);

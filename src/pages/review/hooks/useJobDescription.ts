@@ -17,7 +17,14 @@ export const useJobDescription = () => {
   }, [jobUrl]);
 
   const handleUrlPaste = async () => {
-    if (!jobUrl) return;
+    if (!jobUrl) {
+      toast({
+        title: "No URL provided",
+        description: "Please enter a job URL to extract the description",
+        variant: "destructive"
+      });
+      return;
+    }
     
     setExtractionStatus({ status: 'loading', message: 'Attempting to extract job description...' });
     
@@ -26,7 +33,12 @@ export const useJobDescription = () => {
         body: { url: jobUrl }
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Function invocation error:", error);
+        throw new Error(error.message || "Failed to call extraction function");
+      }
+      
+      console.log("Extract function response:", data);
       
       if (data?.description) {
         setJobDescription(data.description);
@@ -41,12 +53,24 @@ export const useJobDescription = () => {
           status: 'error', 
           message: 'Could not extract job description. Please paste it manually.' 
         });
+        
+        toast({
+          title: "Extraction failed",
+          description: "Could not extract job details from the URL. Please paste the job description manually.",
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error("Error in extraction process:", error);
       setExtractionStatus({ 
         status: 'error', 
         message: 'An error occurred during extraction. Please paste job description manually.' 
+      });
+      
+      toast({
+        title: "Extraction error",
+        description: error instanceof Error ? error.message : "Failed to extract job description",
+        variant: "destructive"
       });
     }
   };

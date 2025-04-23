@@ -8,7 +8,7 @@ const corsHeaders = {
 };
 
 /**
- * Utility: Extracts job description from a URL.
+ * Extracts job description from a URL.
  */
 async function fetchJobDescription(url: string): Promise<{ description: string; title?: string }> {
   console.log(`Attempting to fetch job description from URL: ${url}`);
@@ -57,11 +57,11 @@ async function fetchJobDescription(url: string): Promise<{ description: string; 
     // Extract a reasonable chunk of text that might contain the job description
     const contentStart = Math.max(0, textContent.toLowerCase().indexOf('job '));
     if (contentStart >= 0) {
-      description = textContent.substring(contentStart, contentStart + 4000);
+      description = textContent.substring(contentStart, Math.min(contentStart + 4000, textContent.length));
     } else {
       // Fallback: take the first 4000 chars from the middle of the page
       const middle = Math.floor(textContent.length / 3);
-      description = textContent.substring(middle, middle + 4000);
+      description = textContent.substring(middle, Math.min(middle + 4000, textContent.length));
     }
     
     console.log(`Successfully extracted job description (${description.length} chars)`);
