@@ -1,19 +1,17 @@
-import React, { useState, useEffect } from "react";
+
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Copy, FileText, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { getATSScoreExplanation, getATSScoreDetail } from "./utils";
-import { jsPDF } from "jspdf";
-import {
-  Document, Paragraph, TextRun, HeadingLevel, 
-  AlignmentType, Packer, Table, TableRow, TableCell, TableBorders, BorderStyle,
-  WidthType, UnderlineType, SectionType
-} from "docx";
+import VersionSelector from "./components/VersionSelector";
+import SuggestedBullets from "./components/SuggestedBullets";
+import { useResumeVersion } from "./hooks/useResumeVersion";
+import { generateDocument } from "./utils/docGenerator";
 
 interface ResumeRewriteProps {
-  rewrittenResume: any; // Can be string or object with multiple versions
+  rewrittenResume: any;
   atsScores?: Record<string, number>;
 }
 
@@ -21,50 +19,13 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
   const [activeVersion, setActiveVersion] = useState<string>("startup");
-  const [generatedTimestamp, setGeneratedTimestamp] = useState<string>("");
-  const [suggestedBulletPoints, setSuggestedBulletPoints] = useState<string[]>([]);
-  
-  useEffect(() => {
-    if (!generatedTimestamp) {
-      setGeneratedTimestamp(new Date().toLocaleString());
-    }
-  }, [rewrittenResume, generatedTimestamp]);
-  
-  useEffect(() => {
-    if (rewrittenResume) {
-      const extractBullets = (text: string): string[] => {
-        const bulletPattern = /^(?:\*|\-)\s+(.+?)$/gm;
-        const bullets: string[] = [];
-        let match;
-        
-        while ((match = bulletPattern.exec(text)) !== null) {
-          if (match[1]) bullets.push(match[1]);
-        }
-        
-        return bullets.slice(0, 8);
-      };
-      
-      const hasMultipleVersions = typeof rewrittenResume === 'object' && 
-                             rewrittenResume !== null &&
-                             !Array.isArray(rewrittenResume) &&
-                             Object.keys(rewrittenResume).length > 1;
-      
-      const currentResumeText = hasMultipleVersions 
-        ? rewrittenResume[activeVersion] || ''
-        : (typeof rewrittenResume === 'string' ? rewrittenResume : '');
-      
-      setSuggestedBulletPoints(extractBullets(currentResumeText));
-    }
-  }, [rewrittenResume, activeVersion]);
-  
-  const hasMultipleVersions = typeof rewrittenResume === 'object' && 
-                             rewrittenResume !== null &&
-                             !Array.isArray(rewrittenResume) &&
-                             Object.keys(rewrittenResume).length > 1;
-  
-  const currentResume = hasMultipleVersions 
-    ? rewrittenResume[activeVersion] || ''
-    : typeof rewrittenResume === 'string' ? rewrittenResume : '';
+
+  const { 
+    hasMultipleVersions, 
+    currentResume, 
+    suggestedBulletPoints, 
+    generatedTimestamp 
+  } = useResumeVersion({ rewrittenResume, activeVersion });
 
   const currentAtsScore = hasMultipleVersions
     ? atsScores[activeVersion] || 0
@@ -72,9 +33,6 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
     
   const roleSummaryMatch = currentResume.match(/This resume is optimized for(?: a)?:? (.*?)(\n|$)/);
   const roleSummary = roleSummaryMatch ? roleSummaryMatch[1].trim() : "";
-  
-  const atsScoreExplanation = getATSScoreExplanation(currentAtsScore);
-  const atsScoreDetail = getATSScoreDetail(currentAtsScore);
 
   const handleCopyToClipboard = () => {
     if (currentResume) {
@@ -96,228 +54,30 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
     }
   };
 
-  const parseResumeContent = (content: string) => {
-    const sections: {[key: string]: string[]} = {};
-    let currentSection = "header";
-    sections[currentSection] = [];
-    
-    const lines = content.split('\n');
-    lines.forEach(line => {
-      if (line.match(/^#{1,2}\s+/) || line.match(/^[A-Z\s]{5,}$/)) {
-        currentSection = line.replace(/^#{1,2}\s+/, '').trim();
-        sections[currentSection] = [];
-      } else if (line.trim()) {
-        sections[currentSection].push(line);
-      }
-    });
-    
-    return sections;
-  };
-  
-  const handleDownloadPDF = () => {
-    if (!currentResume) return;
-    
-    const doc = new jsPDF({
-      orientation: 'portrait',
-      unit: 'pt',
-      format: 'letter'
-    });
-    
-    const margin = 60;
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(16);
-    
-    const firstLine = currentResume.split('\n')[0].replace('#', '').trim();
-    doc.text(firstLine, margin, margin);
-    
-    let yPos = margin + 30;
-    if (roleSummary) {
-      doc.setFontSize(11);
-      doc.setFont('helvetica', 'italic');
-      doc.text(`Tailored for: ${roleSummary}`, margin, yPos);
-      yPos += 25;
-    }
-    
-    const sections = parseResumeContent(currentResume);
-    doc.setFontSize(10);
-    
-    Object.keys(sections).forEach(sectionName => {
-      if (sectionName === 'header') return;
-      
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(12);
-      doc.text(sectionName.toUpperCase(), margin, yPos);
-      yPos += 18;
-      
-      doc.setDrawColor(100, 100, 100);
-      doc.setLineWidth(0.5);
-      doc.line(margin, yPos - 5, doc.internal.pageSize.width - margin, yPos - 5);
-      
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(10);
-      
-      sections[sectionName].forEach(line => {
-        if (yPos > doc.internal.pageSize.height - margin) {
-          doc.addPage();
-          yPos = margin;
-        }
-        
-        if (line.startsWith('* ') || line.startsWith('- ')) {
-          const bulletText = line.replace(/^[*-]\s/, '');
-          doc.circle(margin + 3, yPos - 3, 1.5, 'F');
-          doc.text(bulletText, margin + 10, yPos);
-          yPos += 18;
-        } else if (line.match(/^[A-Za-z ]+\s+\|\s+/)) {
-          doc.setFont('helvetica', 'bold');
-          doc.text(line, margin, yPos);
-          doc.setFont('helvetica', 'normal');
-          yPos += 18;
-        } else {
-          doc.text(line, margin, yPos);
-          yPos += 18;
-        }
-      });
-      
-      yPos += 10;
-    });
-    
-    const footerText = `ATS Score: ${currentAtsScore}/100 - Generated on ${generatedTimestamp}`;
-    doc.text(footerText, margin, doc.internal.pageSize.height - 30);
-    
-    const versionLabel = hasMultipleVersions ? `-${activeVersion}` : '';
-    doc.save(`matchrate-optimized-resume${versionLabel}.pdf`);
-    
-    toast({
-      title: "Success",
-      description: "Resume downloaded as PDF",
-    });
-  };
-  
-  const handleDownloadDocx = () => {
+  const handleDownloadDocx = async () => {
     if (!currentResume) return;
     
     try {
-      const sections = parseResumeContent(currentResume);
-      
-      // Create a new document with proper structure
-      const doc = new Document();
-      
-      // Create the first section of content
-      const name = currentResume.split('\n')[0].replace('#', '').trim();
-      
-      // Add name as first paragraph
-      doc.addSection({
-        children: [
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: name,
-                bold: true,
-                size: 28,
-              })
-            ],
-            spacing: { after: 200 }
-          })
-        ]
-      });
-      
-      // Access the first section we just created
-      const firstSection = doc.sections[0];
-      
-      // Add role summary if available
-      if (roleSummary) {
-        firstSection.addParagraph(
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: `Tailored for: ${roleSummary}`,
-                italics: true,
-                size: 22,
-              })
-            ],
-            spacing: { after: 300 }
-          })
-        );
-      }
-
-      // Add all resume sections
-      Object.keys(sections).forEach(sectionName => {
-        if (sectionName === 'header') return;
-        
-        firstSection.addParagraph(
-          new Paragraph({
-            text: sectionName.toUpperCase(),
-            heading: HeadingLevel.HEADING_2,
-            thematicBreak: true,
-            spacing: { after: 200 }
-          })
-        );
-        
-        sections[sectionName].forEach(line => {
-          if (line.startsWith('* ') || line.startsWith('- ')) {
-            const bulletText = line.replace(/^[*-]\s/, '');
-            firstSection.addParagraph(
-              new Paragraph({
-                children: [new TextRun(bulletText)],
-                bullet: { level: 0 },
-                spacing: { after: 120 }
-              })
-            );
-          } else if (line.match(/^[A-Za-z ]+\s+\|\s+/)) {
-            firstSection.addParagraph(
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text: line,
-                    bold: true
-                  })
-                ],
-                spacing: { after: 120 }
-              })
-            );
-          } else {
-            firstSection.addParagraph(
-              new Paragraph({
-                text: line,
-                spacing: { after: 120 }
-              })
-            );
-          }
-        });
-        
-        firstSection.addParagraph(
-          new Paragraph({ spacing: { after: 300 }})
-        );
-      });
-      
-      // Add footer with ATS score and timestamp
-      firstSection.addParagraph(
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: `ATS Score: ${currentAtsScore}/100 - Generated on ${generatedTimestamp}`,
-              size: 16,
-              color: "666666",
-            })
-          ],
-          spacing: { before: 300 }
-        })
+      const blob = await generateDocument(
+        currentResume,
+        roleSummary,
+        currentAtsScore,
+        generatedTimestamp,
+        activeVersion,
+        hasMultipleVersions
       );
+      
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      const versionLabel = hasMultipleVersions ? `-${activeVersion}` : '';
+      link.href = url;
+      link.download = `matchrate-optimized-resume${versionLabel}.docx`;
+      link.click();
+      URL.revokeObjectURL(url);
 
-      // Generate the DOCX file
-      Packer.toBlob(doc).then(blob => {
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        const versionLabel = hasMultipleVersions ? `-${activeVersion}` : '';
-        link.href = url;
-        link.download = `matchrate-optimized-resume${versionLabel}.docx`;
-        link.click();
-        URL.revokeObjectURL(url);
-
-        toast({
-          title: "Success",
-          description: "Resume downloaded as DOCX",
-        });
+      toast({
+        title: "Success",
+        description: "Resume downloaded as DOCX",
       });
     } catch (error) {
       console.error("DOCX generation error:", error);
@@ -328,7 +88,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
       });
     }
   };
-  
+
   const getAtsScoreBadge = (score: number) => {
     if (score >= 80) {
       return <Badge className="bg-green-600 hover:bg-green-700 ml-2">ATS Score: {score}</Badge>;
@@ -394,51 +154,15 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
             <FileText className="h-4 w-4 mr-2" />
             Download .docx
           </Button>
-          
-          <Button 
-            variant="default" 
-            className="bg-blue-600 hover:bg-blue-700" 
-            onClick={handleDownloadPDF}
-          >
-            <FileText className="h-4 w-4 mr-2" />
-            Download PDF
-          </Button>
         </div>
       </div>
       
       {hasMultipleVersions && (
-        <Tabs 
-          value={activeVersion} 
-          className="w-full"
-          onValueChange={value => setActiveVersion(value)}
-        >
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="startup">
-              Startup Version
-              {atsScores["startup"] && (
-                <span className="ml-2 text-xs font-medium bg-blue-100 text-blue-800 rounded-full px-2 py-0.5">
-                  {atsScores["startup"]}
-                </span>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="enterprise">
-              Enterprise Version
-              {atsScores["enterprise"] && (
-                <span className="ml-2 text-xs font-medium bg-blue-100 text-blue-800 rounded-full px-2 py-0.5">
-                  {atsScores["enterprise"]}
-                </span>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="consulting">
-              Consulting Version
-              {atsScores["consulting"] && (
-                <span className="ml-2 text-xs font-medium bg-blue-100 text-blue-800 rounded-full px-2 py-0.5">
-                  {atsScores["consulting"]}
-                </span>
-              )}
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <VersionSelector 
+          activeVersion={activeVersion}
+          atsScores={atsScores}
+          onVersionChange={setActiveVersion}
+        />
       )}
       
       <div className="border rounded-xl p-6 bg-white shadow-md overflow-auto max-h-[600px]">
@@ -447,24 +171,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
         </pre>
       </div>
       
-      <div className="border-t pt-6 mt-6">
-        <h4 className="font-bold text-lg text-slate-900 mb-3">Suggested Resume Upgrades</h4>
-        <p className="text-sm text-slate-600 mb-4">
-          These STAR-format bullet points are tailored to highlight your relevant skills and match the job requirements:
-        </p>
-        <ul className="space-y-3">
-          {suggestedBulletPoints.length > 0 ? (
-            suggestedBulletPoints.map((bullet, idx) => (
-              <li key={idx} className="pl-6 relative text-slate-700">
-                <span className="absolute top-0 left-0 text-blue-600">•</span>
-                {bullet}
-              </li>
-            ))
-          ) : (
-            <li className="text-slate-500 italic">No suggested bullet points available.</li>
-          )}
-        </ul>
-      </div>
+      <SuggestedBullets bullets={suggestedBulletPoints} />
       
       {currentAtsScore > 0 && (
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 shadow-sm">
@@ -475,10 +182,10 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
             </Badge>
           </div>
           <p className="text-blue-700 text-sm">
-            {atsScoreExplanation}
+            {getATSScoreExplanation(currentAtsScore)}
           </p>
           <p className="text-blue-600 text-xs mt-2">
-            {atsScoreDetail}
+            {getATSScoreDetail(currentAtsScore)}
           </p>
           {generatedTimestamp && (
             <div className="mt-3 text-xs text-blue-500 italic">
