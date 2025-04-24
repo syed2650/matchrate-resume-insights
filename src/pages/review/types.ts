@@ -1,22 +1,13 @@
-
 export interface Feedback {
   score: number;
   missingKeywords: string[];
-  sectionFeedback: {
-    [key: string]: string;
-  };
-  weakBullets: Array<{
-    original: string;
-    improved: string;
-  } | string>;
+  sectionFeedback: Record<string, string>;
+  weakBullets: Array<{ original: string; improved: string; } | string>;
   toneSuggestions: string;
   wouldInterview: string;
-  rewrittenResume?: string | {
-    startup?: string;
-    enterprise?: string;
-    consulting?: string;
-    [key: string]: string | undefined;
-  };
+  rewrittenResume?: string | Record<string, string>;
+  atsScores?: Record<string, number>;
+  error?: string;
 }
 
 export type ExtractionStatus = 

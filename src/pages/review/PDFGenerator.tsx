@@ -9,6 +9,13 @@ export const generatePDF = (feedback: Feedback): jsPDF => {
     unit: 'mm',
   });
 
+  // Set fonts for a more professional look
+  doc.addFont('https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiJ.ttf', 'Inter', 'normal');
+  doc.addFont('https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuFuYAZ9hiJ.ttf', 'Inter', 'bold');
+  
+  // Set default font
+  doc.setFont('Inter');
+
   // Set margins and calculate usable width
   const margin = 15;
   const pageWidth = 210 - (margin * 2);
@@ -19,7 +26,7 @@ export const generatePDF = (feedback: Feedback): jsPDF => {
   
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(20);
-  doc.setFont(undefined, 'bold');
+  doc.setFont('Inter', 'bold');
   doc.text("Matchrate.ai Resume Analysis", margin, 20);
   
   // Reset text color for rest of document
@@ -37,19 +44,19 @@ export const generatePDF = (feedback: Feedback): jsPDF => {
   
   // Add company logo/name
   doc.setFontSize(12);
-  doc.setFont(undefined, 'bold');
+  doc.setFont('Inter', 'bold');
   doc.setTextColor(59, 130, 246); // Blue
   doc.text("MATCHRATE.AI", margin, yPos);
-  doc.setFont(undefined, 'normal');
+  doc.setFont('Inter', 'normal');
   doc.setTextColor(0, 0, 0);
   yPos += 12;
 
-  // Add scores section
+  // Add scores section with consistent ATS score (from feedback if available)
   doc.setFillColor(248, 250, 252); // Light gray background
   doc.rect(margin, yPos, pageWidth, 25, 'F');
   
   doc.setFontSize(14);
-  doc.setFont(undefined, 'bold');
+  doc.setFont('Inter', 'bold');
   doc.text("Relevance Score:", margin + 5, yPos + 8);
   
   // Color code the score
@@ -65,8 +72,19 @@ export const generatePDF = (feedback: Feedback): jsPDF => {
   doc.text(`${score}/100`, margin + 45, yPos + 8);
   doc.setTextColor(0, 0, 0);
   
-  // Add ATS score (calculated similar to the UI component)
-  const atsScore = Math.min(95, Math.max(40, feedback.score + Math.floor(Math.random() * 15) - 5));
+  // Add ATS score from feedback if available or calculate it deterministically
+  let atsScore = 0;
+  if (feedback.atsScores && typeof feedback.atsScores === 'object') {
+    // Get the first score available
+    const scores = Object.values(feedback.atsScores);
+    if (scores.length > 0) {
+      atsScore = scores[0];
+    }
+  } else {
+    // Calculate a score deterministically based on the relevance score
+    atsScore = Math.min(95, Math.max(40, feedback.score + 5));
+  }
+  
   doc.text("ATS Readiness:", margin + 85, yPos + 8);
   
   if (atsScore >= 80) {
@@ -83,11 +101,11 @@ export const generatePDF = (feedback: Feedback): jsPDF => {
   yPos += 35;
 
   // Add missing keywords
-  doc.setFont(undefined, 'bold');
+  doc.setFont('Inter', 'bold');
   doc.setFontSize(16);
   doc.text("Missing Keywords & Skills:", margin, yPos);
   yPos += 8;
-  doc.setFont(undefined, 'normal');
+  doc.setFont('Inter', 'normal');
   doc.setFontSize(12);
   
   if (feedback.missingKeywords && feedback.missingKeywords.length > 0) {
@@ -131,7 +149,7 @@ export const generatePDF = (feedback: Feedback): jsPDF => {
 
   // Add section feedback
   doc.setFontSize(16);
-  doc.setFont(undefined, 'bold');
+  doc.setFont('Inter', 'bold');
   doc.text("Section-by-Section Feedback:", margin, yPos);
   yPos += 8;
 
@@ -147,12 +165,12 @@ export const generatePDF = (feedback: Feedback): jsPDF => {
       // Add section name with background
       doc.setFillColor(248, 250, 252); // Light gray background
       doc.rect(margin, yPos - 5, pageWidth, 10, 'F');
-      doc.setFont(undefined, 'bold');
+      doc.setFont('Inter', 'bold');
       doc.text(`${section.charAt(0).toUpperCase() + section.slice(1)}:`, margin + 2, yPos);
       yPos += 7;
       
       // Reset font
-      doc.setFont(undefined, 'normal');
+      doc.setFont('Inter', 'normal');
       
       // Handle multiline text
       const splitText = doc.splitTextToSize(text, pageWidth - 4);
@@ -169,7 +187,7 @@ export const generatePDF = (feedback: Feedback): jsPDF => {
   }
 
   doc.setFontSize(16);
-  doc.setFont(undefined, 'bold');
+  doc.setFont('Inter', 'bold');
   doc.text("STAR Format Bullet Improvements:", margin, yPos);
   yPos += 8;
   
@@ -188,13 +206,13 @@ export const generatePDF = (feedback: Feedback): jsPDF => {
         doc.rect(margin, yPos - 4, pageWidth, 6 + doc.getTextDimensions(bullet.original, { maxWidth: pageWidth - 8 }).h, 'F');
         
         // Bold for Original
-        doc.setFont(undefined, 'bold');
+        doc.setFont('Inter', 'bold');
         doc.setTextColor(100, 116, 139); // Slate 500
         doc.text("Original:", margin + 2, yPos);
         yPos += 6;
         
         // Normal for content
-        doc.setFont(undefined, 'normal');
+        doc.setFont('Inter', 'normal');
         doc.setTextColor(71, 85, 105); // Slate 600
         const origText = doc.splitTextToSize(bullet.original, pageWidth - 8);
         doc.text(origText, margin + 4, yPos);
@@ -205,13 +223,13 @@ export const generatePDF = (feedback: Feedback): jsPDF => {
         doc.rect(margin, yPos - 4, pageWidth, 6 + doc.getTextDimensions(bullet.improved, { maxWidth: pageWidth - 8 }).h, 'F');
         
         // Bold for Improved
-        doc.setFont(undefined, 'bold');
+        doc.setFont('Inter', 'bold');
         doc.setTextColor(37, 99, 235); // Blue 600
         doc.text("Improved:", margin + 2, yPos);
         yPos += 6;
         
         // Normal for content
-        doc.setFont(undefined, 'normal');
+        doc.setFont('Inter', 'normal');
         doc.setTextColor(0, 0, 0);
         const imprText = doc.splitTextToSize(bullet.improved, pageWidth - 8);
         doc.text(imprText, margin + 4, yPos);
@@ -235,13 +253,13 @@ export const generatePDF = (feedback: Feedback): jsPDF => {
   }
 
   doc.setFontSize(16);
-  doc.setFont(undefined, 'bold');
+  doc.setFont('Inter', 'bold');
   doc.text("Tone & Clarity Suggestions:", margin, yPos);
   yPos += 8;
   
   if (feedback.toneSuggestions) {
     doc.setFontSize(12);
-    doc.setFont(undefined, 'normal');
+    doc.setFont('Inter', 'normal');
     const toneSplit = doc.splitTextToSize(feedback.toneSuggestions, pageWidth);
     doc.text(toneSplit, margin, yPos);
     yPos += toneSplit.length * 5 + 8;
@@ -258,13 +276,13 @@ export const generatePDF = (feedback: Feedback): jsPDF => {
   doc.rect(margin, yPos, pageWidth, 40, 'F');
 
   doc.setFontSize(16);
-  doc.setFont(undefined, 'bold');
+  doc.setFont('Inter', 'bold');
   doc.text("Final Verdict: Would I Interview?", margin + 2, yPos + 8);
   yPos += 14;
   
   if (feedback.wouldInterview) {
     doc.setFontSize(12);
-    doc.setFont(undefined, 'normal');
+    doc.setFont('Inter', 'normal');
     const interviewSplit = doc.splitTextToSize(feedback.wouldInterview, pageWidth - 4);
     doc.text(interviewSplit, margin + 2, yPos);
   }

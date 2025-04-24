@@ -154,7 +154,10 @@ const Review = () => {
             {activeTab === 'analysis' ? (
               <ResultList feedback={feedback} />
             ) : (
-              <ResumeRewrite rewrittenResume={feedback.rewrittenResume} />
+              <ResumeRewrite 
+                rewrittenResume={feedback.rewrittenResume} 
+                atsScores={feedback.atsScores}
+              />
             )}
 
             <FeedbackForm 

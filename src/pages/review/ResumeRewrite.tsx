@@ -4,12 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Copy, Download, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 
 interface ResumeRewriteProps {
   rewrittenResume: any; // Can be string or object with multiple versions
+  atsScores?: Record<string, number>;
 }
 
-const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume }) => {
+const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScores = {} }) => {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
   const [activeVersion, setActiveVersion] = useState<string>("startup");
@@ -24,6 +26,15 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume }) => {
   const currentResume = hasMultipleVersions 
     ? rewrittenResume[activeVersion] || ''
     : typeof rewrittenResume === 'string' ? rewrittenResume : '';
+
+  // Get ATS score for current version
+  const currentAtsScore = hasMultipleVersions
+    ? atsScores[activeVersion] || 0
+    : (typeof atsScores === 'object' && Object.values(atsScores)[0]) || 0;
+    
+  // Extract role summary if available
+  const roleSummaryMatch = currentResume.match(/This version is optimized for: (.*?)(\n|$)/);
+  const roleSummary = roleSummaryMatch ? roleSummaryMatch[1] : "";
 
   const handleCopyToClipboard = () => {
     if (currentResume) {
@@ -63,6 +74,16 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume }) => {
     });
   };
 
+  const getAtsScoreBadge = (score: number) => {
+    if (score >= 80) {
+      return <Badge className="bg-green-600 hover:bg-green-700 ml-2">ATS Score: {score}</Badge>;
+    } else if (score >= 60) {
+      return <Badge className="bg-amber-600 hover:bg-amber-700 ml-2">ATS Score: {score}</Badge>;
+    } else {
+      return <Badge className="bg-red-600 hover:bg-red-700 ml-2">ATS Score: {score}</Badge>;
+    }
+  };
+
   if (!rewrittenResume) {
     return (
       <div className="py-8 text-center">
@@ -74,11 +95,20 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume }) => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <h3 className="text-2xl font-bold text-slate-900">
-          {hasMultipleVersions 
-            ? "Tailored Resume Versions" 
-            : "Optimized Resume"}
-        </h3>
+        <div>
+          <h3 className="text-2xl font-bold text-slate-900 flex items-center">
+            {hasMultipleVersions 
+              ? "Tailored Resume Versions" 
+              : "Optimized Resume"}
+            {currentAtsScore > 0 && getAtsScoreBadge(currentAtsScore)}
+          </h3>
+          
+          {roleSummary && (
+            <div className="mt-1 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-md px-3 py-1 inline-block">
+              {roleSummary}
+            </div>
+          )}
+        </div>
         
         <div className="flex items-center gap-3">
           <Button variant="outline" onClick={handleCopyToClipboard}>
@@ -113,9 +143,30 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume }) => {
           onValueChange={value => setActiveVersion(value)}
         >
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="startup">Startup Version</TabsTrigger>
-            <TabsTrigger value="enterprise">Enterprise Version</TabsTrigger>
-            <TabsTrigger value="consulting">Consulting Version</TabsTrigger>
+            <TabsTrigger value="startup">
+              Startup Version
+              {atsScores["startup"] && (
+                <span className="ml-2 text-xs font-medium bg-blue-100 text-blue-800 rounded-full px-2 py-0.5">
+                  {atsScores["startup"]}
+                </span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="enterprise">
+              Enterprise Version
+              {atsScores["enterprise"] && (
+                <span className="ml-2 text-xs font-medium bg-blue-100 text-blue-800 rounded-full px-2 py-0.5">
+                  {atsScores["enterprise"]}
+                </span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="consulting">
+              Consulting Version
+              {atsScores["consulting"] && (
+                <span className="ml-2 text-xs font-medium bg-blue-100 text-blue-800 rounded-full px-2 py-0.5">
+                  {atsScores["consulting"]}
+                </span>
+              )}
+            </TabsTrigger>
           </TabsList>
         </Tabs>
       )}
