@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
@@ -66,12 +67,13 @@ const Review = () => {
     });
 
     try {
+      // Generate a hash of the inputs to check for cached scores
       const inputHash = generateHash(resume, jobDescription);
       let cachedScore: CachedATSScore | undefined;
       
-      if (!generateRewrite) {
-        cachedScore = cachedAtsScores.find(item => item.hash === inputHash);
-      }
+      // Check for cached ATS scores if we're not specifically requesting a rewrite
+      cachedScore = cachedAtsScores.find(item => item.hash === inputHash);
+      console.log("Cached score found:", !!cachedScore);
 
       const { data, error } = await supabase.functions.invoke("analyze-resume", {
         body: { 
@@ -92,9 +94,13 @@ const Review = () => {
 
       console.log("Received analysis result:", data);
 
-      if (cachedScore && !generateRewrite) {
+      // Use cached ATS scores if available
+      if (cachedScore) {
+        console.log("Using cached ATS score from:", cachedScore.timestamp);
         data.atsScores = cachedScore.scores;
       } else if (data.atsScores) {
+        // Cache the new ATS scores
+        console.log("Caching new ATS scores");
         const newCachedScore: CachedATSScore = {
           hash: inputHash,
           scores: data.atsScores,
@@ -202,7 +208,16 @@ const Review = () => {
             />
 
             {activeTab === 'analysis' ? (
-              <ResultList feedback={feedback} />
+              <>
+                <ResultList feedback={feedback} />
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 text-sm text-slate-600">
+                  <p>
+                    <strong>About Our Analysis:</strong> AI analysis is based on your most recent inputs. 
+                    ATS compatibility reflects structure, keywords, and formatting. 
+                    Score won't change unless your resume does.
+                  </p>
+                </div>
+              </>
             ) : (
               <ResumeRewrite 
                 rewrittenResume={feedback.rewrittenResume} 

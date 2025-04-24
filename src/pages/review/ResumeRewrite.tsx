@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Copy, FileText, Check } from "lucide-react";
@@ -8,9 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { getATSScoreExplanation, getATSScoreDetail } from "./utils";
 import { jsPDF } from "jspdf";
 import { renderAsync } from "docx-preview";
-import { Document, Packer, Paragraph, TextRun, HeadingLevel, 
+import { Document, Paragraph, TextRun, HeadingLevel, 
   AlignmentType, Table, TableRow, TableCell, TableBorders, BorderStyle,
-  WidthType, UnderlineType } from "docx";
+  WidthType, UnderlineType, Packer } from "docx";
 
 interface ResumeRewriteProps {
   rewrittenResume: any; // Can be string or object with multiple versions
@@ -22,35 +21,52 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
   const [copied, setCopied] = useState(false);
   const [activeVersion, setActiveVersion] = useState<string>("startup");
   const [generatedTimestamp, setGeneratedTimestamp] = useState<string>("");
+  const [suggestedBulletPoints, setSuggestedBulletPoints] = useState<string[]>([]);
   
-  // Set timestamp when component mounts or when rewrittenResume changes
   useEffect(() => {
     if (!generatedTimestamp) {
       setGeneratedTimestamp(new Date().toLocaleString());
     }
   }, [rewrittenResume, generatedTimestamp]);
   
-  // Determine if rewrittenResume is an object with multiple versions or just a single string
+  useEffect(() => {
+    if (rewrittenResume) {
+      const extractBullets = (text: string): string[] => {
+        const bulletPattern = /^(?:\*|\-)\s+(.+?)$/gm;
+        const bullets: string[] = [];
+        let match;
+        
+        while ((match = bulletPattern.exec(text)) !== null) {
+          if (match[1]) bullets.push(match[1]);
+        }
+        
+        return bullets.slice(0, 8);
+      };
+      
+      const currentResumeText = hasMultipleVersions 
+        ? rewrittenResume[activeVersion] || ''
+        : (typeof rewrittenResume === 'string' ? rewrittenResume : '');
+      
+      setSuggestedBulletPoints(extractBullets(currentResumeText));
+    }
+  }, [rewrittenResume, activeVersion]);
+  
   const hasMultipleVersions = typeof rewrittenResume === 'object' && 
                              rewrittenResume !== null &&
                              !Array.isArray(rewrittenResume) &&
                              Object.keys(rewrittenResume).length > 1;
   
-  // Get the current version to display
   const currentResume = hasMultipleVersions 
     ? rewrittenResume[activeVersion] || ''
     : typeof rewrittenResume === 'string' ? rewrittenResume : '';
 
-  // Get ATS score for current version
   const currentAtsScore = hasMultipleVersions
     ? atsScores[activeVersion] || 0
     : (typeof atsScores === 'object' && Object.values(atsScores)[0]) || 0;
     
-  // Extract role summary if available
   const roleSummaryMatch = currentResume.match(/This resume is optimized for(?: a)?:? (.*?)(\n|$)/);
   const roleSummary = roleSummaryMatch ? roleSummaryMatch[1].trim() : "";
   
-  // Get ATS score explanations
   const atsScoreExplanation = getATSScoreExplanation(currentAtsScore);
   const atsScoreDetail = getATSScoreDetail(currentAtsScore);
 
@@ -74,7 +90,6 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
     }
   };
 
-  // Parse resume content into sections for better formatting
   const parseResumeContent = (content: string) => {
     const sections: {[key: string]: string[]} = {};
     let currentSection = "header";
@@ -83,7 +98,6 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
     const lines = content.split('\n');
     lines.forEach(line => {
       if (line.match(/^#{1,2}\s+/) || line.match(/^[A-Z\s]{5,}$/)) {
-        // New section header detected
         currentSection = line.replace(/^#{1,2}\s+/, '').trim();
         sections[currentSection] = [];
       } else if (line.trim()) {
@@ -103,16 +117,13 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
       format: 'letter'
     });
     
-    // Professional formatting
     const margin = 60;
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(16);
     
-    // Extract name from top of resume
     const firstLine = currentResume.split('\n')[0].replace('#', '').trim();
     doc.text(firstLine, margin, margin);
     
-    // Add summary line if available
     let yPos = margin + 30;
     if (roleSummary) {
       doc.setFontSize(11);
@@ -121,61 +132,49 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
       yPos += 25;
     }
     
-    // Parse the resume into sections
     const sections = parseResumeContent(currentResume);
     doc.setFontSize(10);
     
     Object.keys(sections).forEach(sectionName => {
       if (sectionName === 'header') return;
       
-      // Add section header
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(12);
       doc.text(sectionName.toUpperCase(), margin, yPos);
       yPos += 18;
       
-      // Add horizontal line
       doc.setDrawColor(100, 100, 100);
       doc.setLineWidth(0.5);
       doc.line(margin, yPos - 5, doc.internal.pageSize.width - margin, yPos - 5);
       
-      // Add section content
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(10);
       
       sections[sectionName].forEach(line => {
-        // Check for page break
         if (yPos > doc.internal.pageSize.height - margin) {
           doc.addPage();
           yPos = margin;
         }
         
-        // Format bullet points
         if (line.startsWith('* ') || line.startsWith('- ')) {
           const bulletText = line.replace(/^[*-]\s/, '');
           doc.circle(margin + 3, yPos - 3, 1.5, 'F');
           doc.text(bulletText, margin + 10, yPos);
           yPos += 18;
         } else if (line.match(/^[A-Za-z ]+\s+\|\s+/)) {
-          // Job title or position
           doc.setFont('helvetica', 'bold');
           doc.text(line, margin, yPos);
           doc.setFont('helvetica', 'normal');
           yPos += 18;
         } else {
-          // Regular text
           doc.text(line, margin, yPos);
           yPos += 18;
         }
       });
       
-      // Add spacing between sections
       yPos += 10;
     });
     
-    // Add footer with ATS score and timestamp
-    doc.setFontSize(8);
-    doc.setTextColor(100, 100, 100);
     const footerText = `ATS Score: ${currentAtsScore}/100 - Generated on ${generatedTimestamp}`;
     doc.text(footerText, margin, doc.internal.pageSize.height - 30);
     
@@ -192,10 +191,8 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
     if (!currentResume) return;
     
     try {
-      // Parse resume sections
       const sections = parseResumeContent(currentResume);
       
-      // Create document with sections array
       const doc = new Document({
         sections: [{
           properties: {},
@@ -203,10 +200,8 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
         }]
       });
 
-      // Get the document children array to populate
       const docChildren = doc.sections[0].children;
       
-      // Add header/name (first line of resume)
       docChildren.push(
         new Paragraph({
           children: [
@@ -220,7 +215,6 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
         })
       );
 
-      // Add role summary if available
       if (roleSummary) {
         docChildren.push(
           new Paragraph({
@@ -236,11 +230,9 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
         );
       }
 
-      // Add each section
       Object.keys(sections).forEach(sectionName => {
         if (sectionName === 'header') return;
         
-        // Section header
         docChildren.push(
           new Paragraph({
             text: sectionName.toUpperCase(),
@@ -250,10 +242,8 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
           })
         );
         
-        // Section content
         sections[sectionName].forEach(line => {
           if (line.startsWith('* ') || line.startsWith('- ')) {
-            // Bullet point
             const bulletText = line.replace(/^[*-]\s/, '');
             docChildren.push(
               new Paragraph({
@@ -263,7 +253,6 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
               })
             );
           } else if (line.match(/^[A-Za-z ]+\s+\|\s+/)) {
-            // Job title or position
             docChildren.push(
               new Paragraph({
                 children: [
@@ -276,7 +265,6 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
               })
             );
           } else {
-            // Regular text
             docChildren.push(
               new Paragraph({
                 text: line,
@@ -286,13 +274,11 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
           }
         });
         
-        // Add spacing after section
         docChildren.push(
           new Paragraph({ spacing: { after: 300 }})
         );
       });
       
-      // Add footer with score
       docChildren.push(
         new Paragraph({
           children: [
@@ -306,7 +292,6 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
         })
       );
 
-      // Save the document
       Packer.toBlob(doc).then(blob => {
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
@@ -356,7 +341,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
           <h3 className="text-2xl font-bold text-slate-900 flex items-center">
             {hasMultipleVersions 
               ? "Tailored Resume Versions" 
-              : "Optimized Resume"}
+              : "Resume Analysis"}
             {currentAtsScore > 0 && getAtsScoreBadge(currentAtsScore)}
           </h3>
           
@@ -368,7 +353,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
 
           {generatedTimestamp && (
             <div className="mt-1 text-xs text-slate-500">
-              Last generated on {generatedTimestamp}
+              Generated on {generatedTimestamp}
             </div>
           )}
         </div>
@@ -449,10 +434,32 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
         </pre>
       </div>
       
+      <div className="border-t pt-6 mt-6">
+        <h4 className="font-bold text-lg text-slate-900 mb-3">Suggested Resume Upgrades</h4>
+        <p className="text-sm text-slate-600 mb-4">
+          These STAR-format bullet points are tailored to highlight your relevant skills and match the job requirements:
+        </p>
+        <ul className="space-y-3">
+          {suggestedBulletPoints.length > 0 ? (
+            suggestedBulletPoints.map((bullet, idx) => (
+              <li key={idx} className="pl-6 relative text-slate-700">
+                <span className="absolute top-0 left-0 text-blue-600">•</span>
+                {bullet}
+              </li>
+            ))
+          ) : (
+            <li className="text-slate-500 italic">No suggested bullet points available.</li>
+          )}
+        </ul>
+      </div>
+      
       {currentAtsScore > 0 && (
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 shadow-sm">
           <div className="flex items-center mb-2">
             <h4 className="font-semibold text-blue-800">ATS Compatibility: {currentAtsScore}/100</h4>
+            <Badge className="ml-2 bg-blue-200 text-blue-800 hover:bg-blue-300">
+              🔒 Score locked until resume changes
+            </Badge>
           </div>
           <p className="text-blue-700 text-sm">
             {atsScoreExplanation}
@@ -465,6 +472,11 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
               Score generated on {generatedTimestamp}
             </div>
           )}
+          <div className="mt-3 p-3 bg-white rounded border border-blue-100 text-xs text-slate-600">
+            <p>
+              <strong>About ATS Scores:</strong> AI analysis is based on your most recent inputs. ATS compatibility reflects structure, keywords, and formatting. Score won't change unless your resume does.
+            </p>
+          </div>
         </div>
       )}
       

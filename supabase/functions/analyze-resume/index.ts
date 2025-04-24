@@ -55,7 +55,7 @@ serve(async (req) => {
       const analysisData = await callOpenAIForAnalysis(analysisMessages, openAIApiKey);
       let analysis = parseAndValidateAnalysis(analysisData);
 
-      // Resume rewrite generation (if requested)
+      // Resume rewrite generation (if requested) - SIMPLIFIED TO STAR BULLET POINTS
       let rewrittenResume = null;
       let atsScores = {};
       
@@ -67,47 +67,107 @@ serve(async (req) => {
           atsScores = {};
           
           for (const type of companyTypes) {
-            const result = await generateFullResumeRewrite(
-              resume,
-              effectiveJobDescription,
-              type,
-              selectedRole || "Product Manager",
-              openAIApiKey
-            );
-            rewrittenResume[type] = result.text;
+            // Modified to focus on STAR bullet point extraction instead of full rewrites
+            const extractionPrompt = [
+              { role: "system", content: `You are an expert resume writer specializing in ${type} companies. 
+                Extract 8 relevant skills and 3 core responsibilities from the job description, 
+                and rephrase them as STAR-format resume bullet points for this ${selectedRole || "professional"}. 
+                Keep language concise and results-focused. Format with bullet points (*)` },
+              { role: "user", content: `Job Description: ${effectiveJobDescription}
+                Resume: ${resume}
+                
+                Please provide 8 strong, STAR-format bullet points that highlight relevant skills and achievements
+                for this ${selectedRole || "role"} at a ${type} company. Focus on results and quantifiable impacts.` }
+            ];
+            
+            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${openAIApiKey}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                model: 'gpt-4o',
+                messages: extractionPrompt,
+                temperature: 0.7,
+              }),
+            });
+            
+            const data = await response.json();
+            if (data.error) {
+              throw new Error(`OpenAI API error: ${data.error.message}`);
+            }
+            
+            // Extract the bullet points from the response
+            const bulletPoints = data.choices[0].message.content;
+            
+            // Add header to identify the purpose
+            const headerText = `# Resume Upgrade Suggestions for ${selectedRole || "Professional"} (${type} Focus)\n\n`;
+            const roleContext = `This resume is optimized for: ${selectedRole || "Professional"} at a ${type} company\n\n`;
+            
+            rewrittenResume[type] = `${headerText}${roleContext}${bulletPoints}`;
             
             // Only calculate ATS scores if not skipped
             if (!skipATSCalculation) {
-              atsScores[type] = calculateATSScore(result.text, effectiveJobDescription);
+              atsScores[type] = calculateATSScore(bulletPoints, effectiveJobDescription);
             }
           }
         } catch (error) {
           console.error("Error generating multi-version rewrites:", error);
           rewrittenResume = {
-            error: "Failed to generate multi-version rewrite",
+            error: "Failed to generate bullet point suggestions",
             detail: error.message
           };
         }
       } else if (generateRewrite) {
-        // Generate one version per requested company type
+        // Generate one version with STAR bullet points
         try {
-          const rewriteResult = await generateFullResumeRewrite(
-            resume,
-            effectiveJobDescription,
-            companyType || "general",
-            selectedRole || "Product Manager",
-            openAIApiKey
-          );
+          const extractionPrompt = [
+            { role: "system", content: `You are an expert resume writer specializing in ${companyType || "various"} companies. 
+              Extract 8 relevant skills and 3 core responsibilities from the job description, 
+              and rephrase them as STAR-format resume bullet points for this ${selectedRole || "professional"}. 
+              Keep language concise and results-focused. Format with bullet points (*)` },
+            { role: "user", content: `Job Description: ${effectiveJobDescription}
+              Resume: ${resume}
+              
+              Please provide 8 strong, STAR-format bullet points that highlight relevant skills and achievements
+              for this ${selectedRole || "role"} at a ${companyType || "typical"} company. Focus on results and quantifiable impacts.` }
+          ];
           
-          rewrittenResume = rewriteResult.text;
+          const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${openAIApiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'gpt-4o',
+              messages: extractionPrompt,
+              temperature: 0.7,
+            }),
+          });
+          
+          const data = await response.json();
+          if (data.error) {
+            throw new Error(`OpenAI API error: ${data.error.message}`);
+          }
+          
+          // Extract the bullet points from the response
+          const bulletPoints = data.choices[0].message.content;
+          
+          // Add header to identify the purpose
+          const headerText = `# Resume Upgrade Suggestions for ${selectedRole || "Professional"}\n\n`;
+          const roleContext = `This resume is optimized for: ${selectedRole || "Professional"} at a ${companyType || "typical"} company\n\n`;
+          
+          rewrittenResume = `${headerText}${roleContext}${bulletPoints}`;
           
           // Only calculate ATS scores if not skipped
           if (!skipATSCalculation) {
-            atsScores = { [companyType || "general"]: calculateATSScore(rewriteResult.text, effectiveJobDescription) };
+            atsScores = { [companyType || "general"]: calculateATSScore(bulletPoints, effectiveJobDescription) };
           }
         } catch (error) {
           console.error("Error generating single rewrite:", error);
-          rewrittenResume = "Failed to generate resume rewrite: " + error.message;
+          rewrittenResume = "Failed to generate bullet point suggestions: " + error.message;
         }
       }
 
