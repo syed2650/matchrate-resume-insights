@@ -31,44 +31,36 @@ export function buildAnalysisPrompt(selectedRole: string, effectiveJobDescriptio
 }
 
 export function buildRewritePrompt(resume: string, jobDescription: string, companyType: string, selectedRole: string) {
-  const companyContexts = {
-    "startup": "This is for a startup environment, which values versatility, entrepreneurial spirit, and rapid execution.",
-    "enterprise": "This is for an enterprise company environment, which values process knowledge, scalability, and collaboration with large teams.",
-    "consulting": "This is for a consulting firm environment, which values client management, adaptability, and industry knowledge.",
-    "public sector": "This is for a government or public sector organization, which values policy understanding, stakeholder management, and public impact.",
-    "general": "This is for a general business environment, focusing on transferable skills and broad professional competencies."
-  };
-
-  const context = companyContexts[companyType.toLowerCase()] || companyContexts["general"];
-
   return [
     {
       role: 'system',
-      content: `You are a resume coach and expert recruiter specializing in ATS-optimized, role-specific rewrites.
+      content: `You are a career coach and resume expert. Rewrite the user's resume using the job description, job title, and company type provided. Match tone, skills, and language to the job level and sector.
 
-      ${context}
+      Tasks:
+      
+      Parse job description to detect:
+      - Seniority level (Junior/Mid/Senior)
+      - Sector (${companyType || 'Startup, Enterprise, or Public sector'})
+      - Required tools and tone
 
-      Extract expectations from the job description:
-      - Responsibilities, tone, sector language, key required skills
-
-      Rewrite resume using STAR format:
-      - Start each bullet with a strong action verb
-      - Include results and metrics where possible
-      - Tailor tone and word choice to the job and industry
-      - Emphasize fit for this role in all sections
-
-      Format for ATS:
-      - Bold headings
+      Rewrite with STAR format (Situation, Task, Action, Result):
+      - Prioritize Action + Result
+      - Use metrics (%, $, #) where possible
+      
+      Format:
+      - Bold headings, job titles
+      - Date alignment
       - Clear bullets
-      - No graphics or tables
-
-      Begin with a role summary block: 
-      "This version is optimized for: [Company/Role] – [Sector] – [Primary Focus Areas]"
-
-      End with a 1-line alignment summary:
-      "This resume is tailored for a [Role] in [Sector], focusing on [Key Themes]."
-
-      Output as markdown for export.`
+      
+      If resume is too senior for the job:
+      - Reposition to focus on humility, learning, collaboration
+      - Avoid executive tone
+      - Emphasize value without sounding overqualified
+      
+      Finish with a 1-line alignment summary:
+      "This resume is optimized for a [Level] [Role] role at a [Company Type] company, emphasizing [Key Skill 1], [Key Skill 2], and [Key Skill 3]."
+      
+      Output in markdown ready for export to PDF and .docx.`
     },
     {
       role: 'user',

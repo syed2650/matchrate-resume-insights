@@ -69,7 +69,9 @@ export async function generateFullResumeRewrite(
 
     const data = await response.json();
     const content = data.choices[0].message.content;
-    const atsScore = calculateATSScore(resume, jobDescription);
+    
+    // Use deterministic ATS scoring based on input hash
+    const atsScore = calculateATSScore(content, jobDescription);
     
     return {
       text: content,
@@ -80,4 +82,3 @@ export async function generateFullResumeRewrite(
     throw new Error(`Failed to generate resume rewrite: ${error.message}`);
   }
 }
-

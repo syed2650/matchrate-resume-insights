@@ -1,7 +1,6 @@
 
-import React from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Download, FileText } from "lucide-react";
+import { ArrowLeft, FilePdf } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface AnalysisHeaderProps {
@@ -12,58 +11,47 @@ interface AnalysisHeaderProps {
   hasRewrite: boolean;
 }
 
-const AnalysisHeader: React.FC<AnalysisHeaderProps> = ({ 
-  onReset, 
-  onExportPDF, 
-  activeTab, 
-  setActiveTab, 
-  hasRewrite 
-}) => {
+const AnalysisHeader = ({
+  onReset,
+  onExportPDF,
+  activeTab,
+  setActiveTab,
+  hasRewrite
+}: AnalysisHeaderProps) => {
   return (
-    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b pb-4">
-      <div className="flex items-center gap-3">
-        <Button 
-          variant="outline" 
+    <div className="relative flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b">
+      <div className="flex items-center justify-start gap-2">
+        <Button
+          variant="ghost"
           size="sm"
-          onClick={onReset} 
-          className="flex items-center gap-2"
+          className="flex items-center gap-1 text-slate-600 hover:text-slate-900 mr-2"
+          onClick={onReset}
         >
-          <ArrowLeft className="h-4 w-4" />
-          Back
+          <ArrowLeft size={16} />
+          <span>New Analysis</span>
         </Button>
         
         {hasRewrite && (
-          <Tabs value={activeTab} className="w-auto">
-            <TabsList>
-              <TabsTrigger 
-                value="analysis" 
-                onClick={() => setActiveTab('analysis')}
-                className="flex items-center gap-2"
-              >
-                <FileText className="h-4 w-4" />
-                Analysis
-              </TabsTrigger>
-              <TabsTrigger 
-                value="rewrite" 
-                onClick={() => setActiveTab('rewrite')}
-                className="flex items-center gap-2"
-              >
-                <FileText className="h-4 w-4" />
-                Rewrite
-              </TabsTrigger>
+          <Tabs value={activeTab} className="w-full" onValueChange={(v) => setActiveTab(v as 'analysis' | 'rewrite')}>
+            <TabsList className="grid w-[300px] grid-cols-2">
+              <TabsTrigger value="analysis">Analysis Report</TabsTrigger>
+              <TabsTrigger value="rewrite">Rewritten Resume</TabsTrigger>
             </TabsList>
           </Tabs>
         )}
       </div>
       
-      <Button 
-        variant="outline" 
-        onClick={onExportPDF}
-        className="flex items-center gap-2"
-      >
-        <Download className="h-4 w-4" />
-        Export PDF
-      </Button>
+      {activeTab === 'analysis' && (
+        <Button 
+          variant="outline" 
+          size="sm"
+          className="flex items-center gap-1 border-blue-200 text-blue-600 hover:bg-blue-50"
+          onClick={onExportPDF}
+        >
+          <FilePdf size={16} />
+          <span>Download Feedback Report</span>
+        </Button>
+      )}
     </div>
   );
 };

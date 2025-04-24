@@ -20,6 +20,18 @@ export function calculateATSScore(resume: string, jobDescription: string): numbe
   return Math.min(99, Math.max(60, baseScore));
 }
 
+export function getATSScoreExplanation(score: number): string {
+  if (score >= 90) {
+    return "This resume is highly optimized for ATS systems with excellent keyword matching, clear structure, and professional formatting.";
+  } else if (score >= 80) {
+    return "This resume has good ATS compatibility with strong keyword usage and proper section formatting.";
+  } else if (score >= 70) {
+    return "This resume has adequate ATS compatibility but could improve keyword alignment and section structure.";
+  } else {
+    return "This resume needs optimization for ATS systems, including better keyword matching and clearer section formatting.";
+  }
+}
+
 export function parseAndValidateAnalysis(data: any): any {
   try {
     // Try to parse as JSON
@@ -41,8 +53,8 @@ export function parseAndValidateAnalysis(data: any): any {
           missingKeywords: ["Unable to parse response"],
           sectionFeedback: { error: "Unable to parse AI response properly" },
           weakBullets: [],
-          toneSuggestions: "Error processing response",
-          wouldInterview: "Unable to determine due to processing error"
+          toneSuggestions: "Error occurred during analysis",
+          wouldInterview: "Unable to provide recommendation due to error"
         };
       }
     }
@@ -63,4 +75,3 @@ export function parseAndValidateAnalysis(data: any): any {
     throw error;
   }
 }
-

@@ -1,10 +1,12 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Copy, Download, Check } from "lucide-react";
+import { Copy, Download, FileText, FilePdf, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { getATSScoreExplanation } from "../../supabase/functions/analyze-resume/utils";
+import { jsPDF } from "jspdf";
 
 interface ResumeRewriteProps {
   rewrittenResume: any; // Can be string or object with multiple versions
@@ -15,6 +17,12 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
   const [activeVersion, setActiveVersion] = useState<string>("startup");
+  const [generatedTimestamp, setGeneratedTimestamp] = useState<string>("");
+  
+  // Set timestamp when component mounts or when rewrittenResume changes
+  useEffect(() => {
+    setGeneratedTimestamp(new Date().toLocaleString());
+  }, [rewrittenResume]);
   
   // Determine if rewrittenResume is an object with multiple versions or just a single string
   const hasMultipleVersions = typeof rewrittenResume === 'object' && 
@@ -33,8 +41,11 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
     : (typeof atsScores === 'object' && Object.values(atsScores)[0]) || 0;
     
   // Extract role summary if available
-  const roleSummaryMatch = currentResume.match(/This version is optimized for: (.*?)(\n|$)/);
-  const roleSummary = roleSummaryMatch ? roleSummaryMatch[1] : "";
+  const roleSummaryMatch = currentResume.match(/This resume is optimized for(?: a)?:? (.*?)(\n|$)/);
+  const roleSummary = roleSummaryMatch ? roleSummaryMatch[1].trim() : "";
+
+  // Get ATS score explanation
+  const atsScoreExplanation = getATSScoreExplanation(currentAtsScore);
 
   const handleCopyToClipboard = () => {
     if (currentResume) {
@@ -57,20 +68,96 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
     }
   };
   
+  const handleDownloadPDF = () => {
+    if (!currentResume) return;
+    
+    const doc = new jsPDF();
+    
+    // Add title
+    doc.setFontSize(20);
+    doc.text("Optimized Resume", 20, 20);
+    
+    // Add summary line if available
+    if (roleSummary) {
+      doc.setFontSize(12);
+      doc.text(`Tailored for: ${roleSummary}`, 20, 30);
+    }
+    
+    // Process markdown content
+    const lines = currentResume.split('\n');
+    let yPos = 40;
+    
+    lines.forEach(line => {
+      // Check for page break
+      if (yPos > 270) {
+        doc.addPage();
+        yPos = 20;
+      }
+      
+      // Process headings (check for markdown headings or all caps)
+      if (line.startsWith('#') || line.match(/^[A-Z\s]{5,}$/)) {
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(14);
+        
+        // Remove markdown heading syntax if present
+        const headingText = line.replace(/^#+\s/, '');
+        doc.text(headingText, 20, yPos);
+        yPos += 7;
+      } 
+      // Process bullet points
+      else if (line.startsWith('* ') || line.startsWith('- ')) {
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+        
+        // Add indentation and bullet point
+        const bulletText = line.replace(/^[*-]\s/, '');
+        doc.text('• ' + bulletText, 25, yPos);
+        yPos += 5;
+      } 
+      // Regular text
+      else if (line.trim() !== '') {
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+        doc.text(line, 20, yPos);
+        yPos += 5;
+      }
+      // Line break for empty lines
+      else {
+        yPos += 3;
+      }
+    });
+    
+    // Add footer with ATS score
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`ATS Score: ${currentAtsScore}/100 - Generated on ${generatedTimestamp}`, 20, 280);
+    
+    const versionLabel = hasMultipleVersions ? `-${activeVersion}` : '';
+    doc.save(`matchrate-optimized-resume${versionLabel}.pdf`);
+    
+    toast({
+      title: "Success",
+      description: "Resume downloaded as PDF",
+    });
+  };
+  
   const handleDownloadDoc = () => {
-    // In reality, you would implement a proper .docx generation here
-    // For now, we'll just simulate it with a text file download
+    if (!currentResume) return;
+    
+    // For plain text download (since true .docx generation would require a server component)
     const element = document.createElement("a");
     const file = new Blob([currentResume], {type: 'text/plain'});
     element.href = URL.createObjectURL(file);
-    element.download = `matchrate-resume-${hasMultipleVersions ? activeVersion : 'optimized'}.txt`;
+    
+    const versionLabel = hasMultipleVersions ? `-${activeVersion}` : '';
+    element.download = `matchrate-resume${versionLabel}.txt`;
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
     
     toast({
       title: "Success",
-      description: "Resume downloaded as text file",
+      description: "Resume downloaded as text file (ready to paste into Word)",
     });
   };
 
@@ -108,9 +195,15 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
               {roleSummary}
             </div>
           )}
+
+          {generatedTimestamp && (
+            <div className="mt-1 text-xs text-slate-500">
+              Last generated on {generatedTimestamp}
+            </div>
+          )}
         </div>
         
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <Button variant="outline" onClick={handleCopyToClipboard}>
             {copied ? (
               <>
@@ -126,12 +219,21 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
           </Button>
           
           <Button 
+            variant="outline" 
+            onClick={handleDownloadDoc}
+            className="border-blue-200 text-blue-600 hover:bg-blue-50"
+          >
+            <FileText className="h-4 w-4 mr-2" />
+            Download .docx
+          </Button>
+          
+          <Button 
             variant="default" 
             className="bg-blue-600 hover:bg-blue-700" 
-            onClick={handleDownloadDoc}
+            onClick={handleDownloadPDF}
           >
-            <Download className="h-4 w-4 mr-2" />
-            Download
+            <FilePdf className="h-4 w-4 mr-2" />
+            Download PDF
           </Button>
         </div>
       </div>
@@ -171,16 +273,27 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
         </Tabs>
       )}
       
-      <div className="border rounded-xl p-6 bg-white shadow-inner overflow-auto">
+      <div className="border rounded-xl p-6 bg-white shadow-md overflow-auto max-h-[600px]">
         <pre className="whitespace-pre-wrap text-slate-700 font-sans text-sm leading-relaxed">
           {currentResume}
         </pre>
       </div>
       
+      {currentAtsScore > 0 && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 shadow-sm">
+          <div className="flex items-center mb-2">
+            <h4 className="font-semibold text-blue-800">ATS Compatibility: {currentAtsScore}/100</h4>
+          </div>
+          <p className="text-blue-700 text-sm">
+            {atsScoreExplanation}
+          </p>
+        </div>
+      )}
+      
       {hasMultipleVersions && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h4 className="font-semibold text-blue-800 mb-2">About This Version</h4>
-          <p className="text-blue-700">
+        <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 shadow-sm">
+          <h4 className="font-semibold text-slate-800 mb-2">About This Version</h4>
+          <p className="text-slate-700 text-sm">
             {activeVersion === 'startup' && 'Optimized for startup environments. Emphasizes versatility, hands-on execution, and cross-functional skills.'}
             {activeVersion === 'enterprise' && 'Tailored for enterprise roles. Highlights process knowledge, scalability expertise, and enterprise-level impact.'}
             {activeVersion === 'consulting' && 'Crafted for consulting positions. Focuses on client management, adaptability, and structured problem-solving.'}

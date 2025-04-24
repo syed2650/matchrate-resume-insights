@@ -1,6 +1,7 @@
 
 import { jsPDF } from "jspdf";
 
+// Define PDF styles as typed tuples for proper TypeScript compatibility
 export const PDF_STYLES = {
   margins: {
     side: 15,
