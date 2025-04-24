@@ -1,12 +1,16 @@
 
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Copy, Download, FileText, Check } from "lucide-react";
+import { Copy, FileText, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { getATSScoreExplanation } from "./utils";
+import { getATSScoreExplanation, getATSScoreDetail } from "./utils";
 import { jsPDF } from "jspdf";
+import { renderAsync } from "docx-preview";
+import { Document, Packer, Paragraph, TextRun, HeadingLevel, 
+  AlignmentType, Table, TableRow, TableCell, TableBorders, BorderStyle,
+  WidthType, UnderlineType } from "docx";
 
 interface ResumeRewriteProps {
   rewrittenResume: any; // Can be string or object with multiple versions
@@ -21,8 +25,10 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
   
   // Set timestamp when component mounts or when rewrittenResume changes
   useEffect(() => {
-    setGeneratedTimestamp(new Date().toLocaleString());
-  }, [rewrittenResume]);
+    if (!generatedTimestamp) {
+      setGeneratedTimestamp(new Date().toLocaleString());
+    }
+  }, [rewrittenResume, generatedTimestamp]);
   
   // Determine if rewrittenResume is an object with multiple versions or just a single string
   const hasMultipleVersions = typeof rewrittenResume === 'object' && 
@@ -43,9 +49,10 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
   // Extract role summary if available
   const roleSummaryMatch = currentResume.match(/This resume is optimized for(?: a)?:? (.*?)(\n|$)/);
   const roleSummary = roleSummaryMatch ? roleSummaryMatch[1].trim() : "";
-
-  // Get ATS score explanation
+  
+  // Get ATS score explanations
   const atsScoreExplanation = getATSScoreExplanation(currentAtsScore);
+  const atsScoreDetail = getATSScoreDetail(currentAtsScore);
 
   const handleCopyToClipboard = () => {
     if (currentResume) {
@@ -56,7 +63,6 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
           description: "Resume copied to clipboard",
         });
         
-        // Reset copied status after 2 seconds
         setTimeout(() => setCopied(false), 2000);
       }).catch(() => {
         toast({
@@ -67,70 +73,111 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
       });
     }
   };
+
+  // Parse resume content into sections for better formatting
+  const parseResumeContent = (content: string) => {
+    const sections: {[key: string]: string[]} = {};
+    let currentSection = "header";
+    sections[currentSection] = [];
+    
+    const lines = content.split('\n');
+    lines.forEach(line => {
+      if (line.match(/^#{1,2}\s+/) || line.match(/^[A-Z\s]{5,}$/)) {
+        // New section header detected
+        currentSection = line.replace(/^#{1,2}\s+/, '').trim();
+        sections[currentSection] = [];
+      } else if (line.trim()) {
+        sections[currentSection].push(line);
+      }
+    });
+    
+    return sections;
+  };
   
   const handleDownloadPDF = () => {
     if (!currentResume) return;
     
-    const doc = new jsPDF();
-    
-    // Add title
-    doc.setFontSize(20);
-    doc.text("Optimized Resume", 20, 20);
-    
-    // Add summary line if available
-    if (roleSummary) {
-      doc.setFontSize(12);
-      doc.text(`Tailored for: ${roleSummary}`, 20, 30);
-    }
-    
-    // Process markdown content
-    const lines = currentResume.split('\n');
-    let yPos = 40;
-    
-    lines.forEach(line => {
-      // Check for page break
-      if (yPos > 270) {
-        doc.addPage();
-        yPos = 20;
-      }
-      
-      // Process headings (check for markdown headings or all caps)
-      if (line.startsWith('#') || line.match(/^[A-Z\s]{5,}$/)) {
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(14);
-        
-        // Remove markdown heading syntax if present
-        const headingText = line.replace(/^#+\s/, '');
-        doc.text(headingText, 20, yPos);
-        yPos += 7;
-      } 
-      // Process bullet points
-      else if (line.startsWith('* ') || line.startsWith('- ')) {
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(10);
-        
-        // Add indentation and bullet point
-        const bulletText = line.replace(/^[*-]\s/, '');
-        doc.text('• ' + bulletText, 25, yPos);
-        yPos += 5;
-      } 
-      // Regular text
-      else if (line.trim() !== '') {
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(10);
-        doc.text(line, 20, yPos);
-        yPos += 5;
-      }
-      // Line break for empty lines
-      else {
-        yPos += 3;
-      }
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'pt',
+      format: 'letter'
     });
     
-    // Add footer with ATS score
+    // Professional formatting
+    const margin = 60;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    
+    // Extract name from top of resume
+    const firstLine = currentResume.split('\n')[0].replace('#', '').trim();
+    doc.text(firstLine, margin, margin);
+    
+    // Add summary line if available
+    let yPos = margin + 30;
+    if (roleSummary) {
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'italic');
+      doc.text(`Tailored for: ${roleSummary}`, margin, yPos);
+      yPos += 25;
+    }
+    
+    // Parse the resume into sections
+    const sections = parseResumeContent(currentResume);
     doc.setFontSize(10);
+    
+    Object.keys(sections).forEach(sectionName => {
+      if (sectionName === 'header') return;
+      
+      // Add section header
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(12);
+      doc.text(sectionName.toUpperCase(), margin, yPos);
+      yPos += 18;
+      
+      // Add horizontal line
+      doc.setDrawColor(100, 100, 100);
+      doc.setLineWidth(0.5);
+      doc.line(margin, yPos - 5, doc.internal.pageSize.width - margin, yPos - 5);
+      
+      // Add section content
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      
+      sections[sectionName].forEach(line => {
+        // Check for page break
+        if (yPos > doc.internal.pageSize.height - margin) {
+          doc.addPage();
+          yPos = margin;
+        }
+        
+        // Format bullet points
+        if (line.startsWith('* ') || line.startsWith('- ')) {
+          const bulletText = line.replace(/^[*-]\s/, '');
+          doc.circle(margin + 3, yPos - 3, 1.5, 'F');
+          doc.text(bulletText, margin + 10, yPos);
+          yPos += 18;
+        } else if (line.match(/^[A-Za-z ]+\s+\|\s+/)) {
+          // Job title or position
+          doc.setFont('helvetica', 'bold');
+          doc.text(line, margin, yPos);
+          doc.setFont('helvetica', 'normal');
+          yPos += 18;
+        } else {
+          // Regular text
+          doc.text(line, margin, yPos);
+          yPos += 18;
+        }
+      });
+      
+      // Add spacing between sections
+      yPos += 10;
+    });
+    
+    // Add footer with ATS score and timestamp
+    doc.setFontSize(8);
     doc.setTextColor(100, 100, 100);
-    doc.text(`ATS Score: ${currentAtsScore}/100 - Generated on ${generatedTimestamp}`, 20, 280);
+    const footerText = `ATS Score: ${currentAtsScore}/100 - Generated on ${generatedTimestamp}`;
+    doc.text(footerText, margin, doc.internal.pageSize.height - 30);
     
     const versionLabel = hasMultipleVersions ? `-${activeVersion}` : '';
     doc.save(`matchrate-optimized-resume${versionLabel}.pdf`);
@@ -141,26 +188,142 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
     });
   };
   
-  const handleDownloadDoc = () => {
+  const handleDownloadDocx = () => {
     if (!currentResume) return;
     
-    // For plain text download (since true .docx generation would require a server component)
-    const element = document.createElement("a");
-    const file = new Blob([currentResume], {type: 'text/plain'});
-    element.href = URL.createObjectURL(file);
-    
-    const versionLabel = hasMultipleVersions ? `-${activeVersion}` : '';
-    element.download = `matchrate-resume${versionLabel}.txt`;
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
-    
-    toast({
-      title: "Success",
-      description: "Resume downloaded as text file (ready to paste into Word)",
-    });
-  };
+    try {
+      // Parse resume sections
+      const sections = parseResumeContent(currentResume);
+      
+      // Create document
+      const doc = new Document({
+        sections: [{
+          properties: {},
+          children: [
+            // Header/Name (first line of resume)
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: currentResume.split('\n')[0].replace('#', '').trim(),
+                  bold: true,
+                  size: 28,
+                })
+              ],
+              spacing: { after: 200 }
+            })
+          ]
+        }]
+      });
 
+      // Add role summary if available
+      if (roleSummary) {
+        doc.addParagraph(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: `Tailored for: ${roleSummary}`,
+                italics: true,
+                size: 22,
+              })
+            ],
+            spacing: { after: 300 }
+          })
+        );
+      }
+
+      // Add each section
+      Object.keys(sections).forEach(sectionName => {
+        if (sectionName === 'header') return;
+        
+        // Section header
+        doc.addParagraph(
+          new Paragraph({
+            text: sectionName.toUpperCase(),
+            heading: HeadingLevel.HEADING_2,
+            thematicBreak: true,
+            spacing: { after: 200 }
+          })
+        );
+        
+        // Section content
+        sections[sectionName].forEach(line => {
+          if (line.startsWith('* ') || line.startsWith('- ')) {
+            // Bullet point
+            const bulletText = line.replace(/^[*-]\s/, '');
+            doc.addParagraph(
+              new Paragraph({
+                children: [new TextRun(bulletText)],
+                bullet: { level: 0 },
+                spacing: { after: 120 }
+              })
+            );
+          } else if (line.match(/^[A-Za-z ]+\s+\|\s+/)) {
+            // Job title or position
+            doc.addParagraph(
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: line,
+                    bold: true
+                  })
+                ],
+                spacing: { after: 120 }
+              })
+            );
+          } else {
+            // Regular text
+            doc.addParagraph(
+              new Paragraph({
+                text: line,
+                spacing: { after: 120 }
+              })
+            );
+          }
+        });
+        
+        // Add spacing after section
+        doc.addParagraph(new Paragraph({ spacing: { after: 300 }}));
+      });
+      
+      // Add footer with score
+      doc.addParagraph(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: `ATS Score: ${currentAtsScore}/100 - Generated on ${generatedTimestamp}`,
+              size: 16,
+              color: "666666",
+            })
+          ],
+          spacing: { before: 300 }
+        })
+      );
+
+      // Save the document
+      Packer.toBlob(doc).then(blob => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        const versionLabel = hasMultipleVersions ? `-${activeVersion}` : '';
+        link.href = url;
+        link.download = `matchrate-optimized-resume${versionLabel}.docx`;
+        link.click();
+        URL.revokeObjectURL(url);
+
+        toast({
+          title: "Success",
+          description: "Resume downloaded as DOCX",
+        });
+      });
+    } catch (error) {
+      console.error("DOCX generation error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate DOCX file. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+  
   const getAtsScoreBadge = (score: number) => {
     if (score >= 80) {
       return <Badge className="bg-green-600 hover:bg-green-700 ml-2">ATS Score: {score}</Badge>;
@@ -220,7 +383,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
           
           <Button 
             variant="outline" 
-            onClick={handleDownloadDoc}
+            onClick={handleDownloadDocx}
             className="border-blue-200 text-blue-600 hover:bg-blue-50"
           >
             <FileText className="h-4 w-4 mr-2" />
@@ -287,6 +450,14 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
           <p className="text-blue-700 text-sm">
             {atsScoreExplanation}
           </p>
+          <p className="text-blue-600 text-xs mt-2">
+            {atsScoreDetail}
+          </p>
+          {generatedTimestamp && (
+            <div className="mt-3 text-xs text-blue-500 italic">
+              Score generated on {generatedTimestamp}
+            </div>
+          )}
         </div>
       )}
       

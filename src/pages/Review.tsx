@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -11,6 +10,13 @@ import FeedbackForm from "./review/FeedbackForm";
 import { generatePDF } from "./review/PDFGenerator";
 import ResumeRewrite from "./review/ResumeRewrite";
 import { useAuthUser } from "@/hooks/useAuthUser";
+import { generateHash } from "./review/utils";
+
+interface CachedATSScore {
+  hash: string;
+  scores: Record<string, number>;
+  timestamp: string;
+}
 
 const Review = () => {
   const [feedback, setFeedback] = useState<Feedback | null>(null);
@@ -18,8 +24,26 @@ const Review = () => {
   const [helpfulFeedback, setHelpfulFeedback] = useState<null | boolean>(null);
   const [submissionId, setSubmissionId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'analysis' | 'rewrite'>('analysis');
+  const [cachedAtsScores, setCachedAtsScores] = useState<CachedATSScore[]>([]);
   const { toast } = useToast();
   const { user } = useAuthUser();
+
+  useEffect(() => {
+    try {
+      const storedScores = localStorage.getItem('cachedATSScores');
+      if (storedScores) {
+        setCachedAtsScores(JSON.parse(storedScores));
+      }
+    } catch (error) {
+      console.error("Error loading cached scores:", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (cachedAtsScores.length > 0) {
+      localStorage.setItem('cachedATSScores', JSON.stringify(cachedAtsScores));
+    }
+  }, [cachedAtsScores]);
 
   const handleFormSubmit = async (
     resume: string, 
@@ -42,6 +66,13 @@ const Review = () => {
     });
 
     try {
+      const inputHash = generateHash(resume, jobDescription);
+      let cachedScore: CachedATSScore | undefined;
+      
+      if (!generateRewrite) {
+        cachedScore = cachedAtsScores.find(item => item.hash === inputHash);
+      }
+
       const { data, error } = await supabase.functions.invoke("analyze-resume", {
         body: { 
           resume, 
@@ -50,7 +81,8 @@ const Review = () => {
           selectedRole: jobTitle || "General",
           companyType,
           generateRewrite,
-          multiVersion
+          multiVersion,
+          skipATSCalculation: !!cachedScore
         }
       });
 
@@ -60,7 +92,27 @@ const Review = () => {
 
       console.log("Received analysis result:", data);
 
-      // Store submission in database and associate with user if exists
+      if (cachedScore && !generateRewrite) {
+        data.atsScores = cachedScore.scores;
+      } else if (data.atsScores) {
+        const newCachedScore: CachedATSScore = {
+          hash: inputHash,
+          scores: data.atsScores,
+          timestamp: new Date().toLocaleString()
+        };
+        
+        const existingIndex = cachedAtsScores.findIndex(item => item.hash === inputHash);
+        if (existingIndex >= 0) {
+          setCachedAtsScores(prev => {
+            const updated = [...prev];
+            updated[existingIndex] = newCachedScore;
+            return updated;
+          });
+        } else {
+          setCachedAtsScores(prev => [...prev, newCachedScore]);
+        }
+      }
+
       const { data: submissionData, error: submissionError } = await supabase
         .from('submissions')
         .insert({
@@ -81,7 +133,6 @@ const Review = () => {
       }
 
       setFeedback(data);
-      // If there's a rewrite, switch to that tab
       if (data.rewrittenResume) {
         setActiveTab('rewrite');
       }
@@ -108,7 +159,6 @@ const Review = () => {
   const handleFeedbackSubmit = async (isHelpful: boolean) => {
     setHelpfulFeedback(isHelpful);
     
-    // Store feedback in the submissions table
     if (submissionId) {
       try {
         await supabase

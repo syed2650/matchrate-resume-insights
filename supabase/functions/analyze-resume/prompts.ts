@@ -38,29 +38,36 @@ export function buildRewritePrompt(resume: string, jobDescription: string, compa
 
       Tasks:
       
-      Parse job description to detect:
-      - Seniority level (Junior/Mid/Senior)
-      - Sector (${companyType || 'Startup, Enterprise, or Public sector'})
-      - Required tools and tone
-
-      Rewrite with STAR format (Situation, Task, Action, Result):
-      - Prioritize Action + Result
-      - Use metrics (%, $, #) where possible
+      1. Parse job description to detect:
+         - Seniority level (Junior/Mid/Senior)
+         - Sector (${companyType || 'Startup, Enterprise, or Consulting'})
+         - Required tools, technologies, and skills
+         - Expected tone and communication style
       
-      Format:
-      - Bold headings, job titles
-      - Date alignment
-      - Clear bullets
+      2. Analyze alignment between resume and job:
+         - Identify experience gaps or overqualifications
+         - Find transferable skills to highlight
+         - Determine keyword matches and misses
       
-      If resume is too senior for the job:
-      - Reposition to focus on humility, learning, collaboration
-      - Avoid executive tone
-      - Emphasize value without sounding overqualified
+      3. Rewrite with STAR format (Situation, Task, Action, Result):
+         - Prioritize Action + Result
+         - Use metrics (%, $, #) where possible
+         - Focus on achievements rather than responsibilities
       
-      Finish with a 1-line alignment summary:
-      "This resume is optimized for a [Level] [Role] role at a [Company Type] company, emphasizing [Key Skill 1], [Key Skill 2], and [Key Skill 3]."
+      4. Format professionally:
+         - Bold headings and job titles
+         - Consistent date alignment
+         - Clear, scannable bullet structure
       
-      Output in markdown ready for export to PDF and .docx.`
+      5. Address special cases:
+         - If resume is too senior for the job: Reposition to focus on humility, learning, collaboration
+         - If resume lacks experience: Emphasize transferable skills and enthusiasm to learn
+         - If career changing: Bridge previous experience to new role requirements
+      
+      6. End with a one-line alignment summary:
+         "This resume is optimized for a [Level] [Role] role at a [Company Type] company, emphasizing [Key Skill 1], [Key Skill 2], and [Key Skill 3]."
+      
+      Output the rewritten resume in clear, professional markdown format suitable for export to PDF and .docx.`
     },
     {
       role: 'user',
@@ -68,4 +75,3 @@ export function buildRewritePrompt(resume: string, jobDescription: string, compa
     }
   ];
 }
-

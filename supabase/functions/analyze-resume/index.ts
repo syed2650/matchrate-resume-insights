@@ -3,7 +3,7 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { callOpenAIForAnalysis, generateFullResumeRewrite } from "./api.ts";
 import { buildAnalysisPrompt } from "./prompts.ts";
-import { parseAndValidateAnalysis } from "./utils.ts";
+import { parseAndValidateAnalysis, calculateATSScore } from "./utils.ts";
 
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
 
@@ -19,7 +19,16 @@ serve(async (req) => {
   }
 
   try {
-    const { resume, jobDescription, jobUrl, selectedRole, companyType, generateRewrite, multiVersion } = await req.json();
+    const { 
+      resume, 
+      jobDescription, 
+      jobUrl, 
+      selectedRole, 
+      companyType, 
+      generateRewrite, 
+      multiVersion,
+      skipATSCalculation = false
+    } = await req.json();
 
     // Log input sizes to help with debugging
     console.log(`Processing request: Resume length: ${resume?.length || 0}, Job description length: ${jobDescription?.length || 0}, URL: ${jobUrl || 'none'}`);
@@ -66,7 +75,11 @@ serve(async (req) => {
               openAIApiKey
             );
             rewrittenResume[type] = result.text;
-            atsScores[type] = result.atsScore;
+            
+            // Only calculate ATS scores if not skipped
+            if (!skipATSCalculation) {
+              atsScores[type] = calculateATSScore(result.text, effectiveJobDescription);
+            }
           }
         } catch (error) {
           console.error("Error generating multi-version rewrites:", error);
@@ -87,7 +100,11 @@ serve(async (req) => {
           );
           
           rewrittenResume = rewriteResult.text;
-          atsScores = { [companyType || "general"]: rewriteResult.atsScore };
+          
+          // Only calculate ATS scores if not skipped
+          if (!skipATSCalculation) {
+            atsScores = { [companyType || "general"]: calculateATSScore(rewriteResult.text, effectiveJobDescription) };
+          }
         } catch (error) {
           console.error("Error generating single rewrite:", error);
           rewrittenResume = "Failed to generate resume rewrite: " + error.message;
