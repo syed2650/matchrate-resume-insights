@@ -195,16 +195,20 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
       const sections = parseResumeContent(currentResume);
       
       const doc = new Document({
-        sections: [{
-          properties: {},
-          children: []
-        }]
+        sections: []
       });
       
-      const documentSection = doc.sections[0];
+      const documentSection = {
+        properties: {},
+        children: []
+      };
+      
+      doc.addSection(documentSection);
+      
+      const firstSection = doc.sections[0];
       
       const name = currentResume.split('\n')[0].replace('#', '').trim();
-      documentSection.children.push(
+      firstSection.addParagraph(
         new Paragraph({
           children: [
             new TextRun({
@@ -218,7 +222,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
       );
       
       if (roleSummary) {
-        documentSection.children.push(
+        firstSection.addParagraph(
           new Paragraph({
             children: [
               new TextRun({
@@ -235,7 +239,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
       Object.keys(sections).forEach(sectionName => {
         if (sectionName === 'header') return;
         
-        documentSection.children.push(
+        firstSection.addParagraph(
           new Paragraph({
             text: sectionName.toUpperCase(),
             heading: HeadingLevel.HEADING_2,
@@ -247,7 +251,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
         sections[sectionName].forEach(line => {
           if (line.startsWith('* ') || line.startsWith('- ')) {
             const bulletText = line.replace(/^[*-]\s/, '');
-            documentSection.children.push(
+            firstSection.addParagraph(
               new Paragraph({
                 children: [new TextRun(bulletText)],
                 bullet: { level: 0 },
@@ -255,7 +259,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
               })
             );
           } else if (line.match(/^[A-Za-z ]+\s+\|\s+/)) {
-            documentSection.children.push(
+            firstSection.addParagraph(
               new Paragraph({
                 children: [
                   new TextRun({
@@ -267,7 +271,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
               })
             );
           } else {
-            documentSection.children.push(
+            firstSection.addParagraph(
               new Paragraph({
                 text: line,
                 spacing: { after: 120 }
@@ -276,12 +280,12 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
           }
         });
         
-        documentSection.children.push(
+        firstSection.addParagraph(
           new Paragraph({ spacing: { after: 300 }})
         );
       });
       
-      documentSection.children.push(
+      firstSection.addParagraph(
         new Paragraph({
           children: [
             new TextRun({
