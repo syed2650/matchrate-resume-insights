@@ -54,4 +54,3 @@ export const generatePDF = (feedback: Feedback): jsPDF => {
 };
 
 export default generatePDF;
-

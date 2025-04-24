@@ -1,5 +1,5 @@
 
-import { jsPDF } from "jsPDF";
+import { jsPDF } from "jspdf";
 import { PDF_STYLES as styles } from "./styles";
 import { Feedback } from "../types";
 
