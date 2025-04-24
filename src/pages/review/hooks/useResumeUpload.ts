@@ -3,7 +3,10 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { ResumeFile } from "../types";
 import mammoth from "mammoth";
-import * as pdfParse from 'pdf-parse';
+import * as pdfjs from 'pdfjs-dist';
+
+// Initialize PDF.js worker
+pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
 export const useResumeUpload = () => {
   const [resume, setResume] = useState("");
@@ -39,10 +42,20 @@ export const useResumeUpload = () => {
       
       // Process based on file type
       if (file.type === "application/pdf") {
-        // Handle PDF files
+        // Handle PDF files using pdfjs which works in browsers
         const arrayBuffer = await file.arrayBuffer();
-        const pdfData = await pdfParse(new Uint8Array(arrayBuffer));
-        extractedText = pdfData.text;
+        const pdf = await pdfjs.getDocument(new Uint8Array(arrayBuffer)).promise;
+        
+        let fullText = '';
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const textContent = await page.getTextContent();
+          const pageText = textContent.items
+            .map((item: any) => item.str)
+            .join(' ');
+          fullText += pageText + '\n';
+        }
+        extractedText = fullText;
       } else if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
         // Handle DOCX files
         const arrayBuffer = await file.arrayBuffer();
