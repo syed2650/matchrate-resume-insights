@@ -9,11 +9,10 @@ import Footer from "@/components/sections/Footer";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-white font-sans">
-      <div className="bg-white border-b border-gray-100 sticky top-0 z-50">
+    <div className="min-h-screen bg-warm-bg font-sans">
+      <div className="bg-white border-b border-slate-100 sticky top-0 z-50">
         <Header />
       </div>
-      {/* max-w-screen-xl (1280px) content, centered */}
       <main className="mx-auto">
         <Hero />
         <div className="section-alt section-padding">
@@ -21,7 +20,7 @@ const Index = () => {
             <Features />
           </div>
         </div>
-        <div className="section-padding">
+        <div className="section-padding bg-white">
           <div className="container-content">
             <Testimonials />
           </div>
