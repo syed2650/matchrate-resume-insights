@@ -31,6 +31,7 @@ const ReviewForm: React.FC<Props> = ({ onSubmit, isLoading }) => {
   const [companyType, setCompanyType] = useState<string>("general");
   const [generateRewrite, setGenerateRewrite] = useState(false);
   const [multiVersion, setMultiVersion] = useState(false);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
   const { toast } = useToast();
   
   const {
@@ -51,8 +52,9 @@ const ReviewForm: React.FC<Props> = ({ onSubmit, isLoading }) => {
     handleUrlPaste
   } = useJobDescription();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setAnalysisError(null);
     
     if (!resume && !resumeFile) {
       toast({
@@ -72,15 +74,26 @@ const ReviewForm: React.FC<Props> = ({ onSubmit, isLoading }) => {
       return;
     }
     
-    onSubmit(
-      resume, 
-      jobDescription, 
-      jobUrl, 
-      jobTitle, 
-      companyType, 
-      generateRewrite,
-      multiVersion
-    );
+    try {
+      await onSubmit(
+        resume, 
+        jobDescription, 
+        jobUrl, 
+        jobTitle, 
+        companyType, 
+        generateRewrite,
+        multiVersion
+      );
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      setAnalysisError(error instanceof Error ? error.message : "An unexpected error occurred during analysis");
+      
+      toast({
+        title: "Analysis failed",
+        description: "There was a problem analyzing your resume. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -120,11 +133,19 @@ const ReviewForm: React.FC<Props> = ({ onSubmit, isLoading }) => {
           setMultiVersion={setMultiVersion}
         />
         
+        {analysisError && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+            <p className="font-medium">Analysis failed</p>
+            <p className="text-sm mt-1">{analysisError}</p>
+            <p className="text-sm mt-2">Please try again or contact support if this persists.</p>
+          </div>
+        )}
+        
         <div className="flex justify-center pt-4">
           <Button
             type="submit"
             className="bg-blue-600 hover:bg-blue-700 text-lg py-6 px-8 rounded-xl transition-all shadow-lg hover:shadow-xl"
-            disabled={isLoading || (!resume && !resumeFile)}
+            disabled={isLoading || isParsingResume || (!resume && !resumeFile)}
           >
             {isLoading ? (
               <div className="flex items-center gap-2">

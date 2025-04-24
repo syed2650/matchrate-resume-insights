@@ -26,6 +26,18 @@ export const useJobDescription = () => {
       return;
     }
     
+    // Validate URL format
+    try {
+      new URL(jobUrl); // Will throw if invalid
+    } catch (error) {
+      toast({
+        title: "Invalid URL format",
+        description: "Please enter a valid job URL",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setExtractionStatus({ status: 'loading', message: 'Attempting to extract job description...' });
     
     try {
@@ -42,7 +54,10 @@ export const useJobDescription = () => {
       
       if (data?.description) {
         setJobDescription(data.description);
-        setExtractionStatus({ status: 'success', message: 'Job description extracted successfully!' });
+        setExtractionStatus({ 
+          status: 'success', 
+          message: data.title ? `Successfully extracted: "${data.title}"` : 'Job description extracted successfully!' 
+        });
         
         toast({
           title: "Job description extracted",

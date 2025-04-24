@@ -10,27 +10,6 @@ const corsHeaders = {
 };
 
 /**
- * Utility: Fetch and clean job description from a URL using simple HTML-to-text cleaning.
- */
-async function fetchJobDescription(url: string): Promise<string> {
-  console.log(`Attempting to fetch job description from URL: ${url}`);
-  try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch job description: ${response.statusText}`);
-    }
-    const html = await response.text();
-    const textContent = html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-    const potentialJobDescription = textContent.substring(0, 3000);
-    console.log(`Successfully extracted potential job description (${potentialJobDescription.length} chars)`);
-    return potentialJobDescription;
-  } catch (error) {
-    console.error(`Error fetching job description: ${error.message}`);
-    return `Failed to extract job description from URL: ${url}. Error: ${error.message}`;
-  }
-}
-
-/**
  * Utility: Creates prompt for the resume review/analysis, optionally customized by role.
  */
 function buildAnalysisPrompt(selectedRole: string, effectiveJobDescription: string, resume: string) {
@@ -67,26 +46,33 @@ function buildAnalysisPrompt(selectedRole: string, effectiveJobDescription: stri
  * Utility: Calls OpenAI for resume analysis (structured feedback as JSON).
  */
 async function callOpenAIForAnalysis(messages: any[]) {
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${openAIApiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'gpt-4o',
-      messages,
-      temperature: 0.2,
-      max_tokens: 1500,
-      response_format: { type: "json_object" },
-    }),
-  });
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o',
+        messages,
+        temperature: 0.2,
+        max_tokens: 1500,
+        response_format: { type: "json_object" },
+      }),
+    });
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error?.message || 'Failed to analyze resume');
+    if (!response.ok) {
+      const error = await response.json();
+      console.error("OpenAI API Error:", error);
+      throw new Error(error.error?.message || `OpenAI API returned status ${response.status}`);
+    }
+    
+    return response.json();
+  } catch (error) {
+    console.error("Error calling OpenAI:", error);
+    throw new Error(`Failed to analyze resume: ${error.message}`);
   }
-  return response.json();
 }
 
 /**
@@ -151,35 +137,40 @@ async function generateFullResumeRewrite(resume: string, jobDescription: string,
       companySpecificPrompt = "Format for a general company type.";
   }
 
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${openAIApiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'gpt-4o',
-      messages: [
-        {
-          role: 'system',
-          content: `You are an expert resume rewriter. ${companySpecificPrompt} Create a completely rewritten version of the resume that is tailored specifically to the job description. Maintain the same sections and basic information but optimize all content to highlight relevant experience and skills. Format the resume professionally with clear section headings and bullet points.`
-        },
-        {
-          role: 'user',
-          content: `Job Description:\n${jobDescription}\n\nResume to Rewrite:\n${resume}`
-        }
-      ],
-      temperature: 0.3,
-    }),
-  });
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o',
+        messages: [
+          {
+            role: 'system',
+            content: `You are an expert resume rewriter. ${companySpecificPrompt} Create a completely rewritten version of the resume that is tailored specifically to the job description. Maintain the same sections and basic information but optimize all content to highlight relevant experience and skills. Format the resume professionally with clear section headings and bullet points.`
+          },
+          {
+            role: 'user',
+            content: `Job Description:\n${jobDescription}\n\nResume to Rewrite:\n${resume}`
+          }
+        ],
+        temperature: 0.3,
+      }),
+    });
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error?.message || 'Failed to generate resume rewrite');
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error?.message || 'Failed to generate resume rewrite');
+    }
+
+    const data = await response.json();
+    return data.choices[0].message.content;
+  } catch (error) {
+    console.error("Error generating resume rewrite:", error);
+    throw new Error(`Failed to generate resume rewrite: ${error.message}`);
   }
-
-  const data = await response.json();
-  return data.choices[0].message.content;
 }
 
 /**
@@ -193,6 +184,7 @@ async function generateResumeRewritesForAllCompanyTypes(resume: string, jobDescr
     try {
       rewrites[companyType] = await generateFullResumeRewrite(resume, jobDescription, companyType, selectedRole);
     } catch (error) {
+      console.error(`Error generating ${companyType} rewrite:`, error);
       rewrites[companyType] = `Failed to generate rewrite for ${companyType}: ${error.message}`;
     }
   }
@@ -211,74 +203,76 @@ serve(async (req) => {
   try {
     const { resume, jobDescription, jobUrl, selectedRole, companyType, generateRewrite, multiVersion } = await req.json();
 
+    // Log input sizes to help with debugging
+    console.log(`Processing request: Resume length: ${resume?.length || 0}, Job description length: ${jobDescription?.length || 0}, URL: ${jobUrl || 'none'}`);
+    
     // Validate required values
-    if ((!resume && !jobDescription) && !jobUrl) {
-      throw new Error('Either resume text or job URL is required');
+    if ((!resume || resume.trim() === '') && (!jobDescription || jobDescription.trim() === '')) {
+      throw new Error('Both resume text and job description are empty');
     }
+    
     if (!openAIApiKey) {
       throw new Error('OpenAI API key is not configured');
     }
 
-    // Use provided job description or fetch from URL
-    let effectiveJobDescription = jobDescription || '';
-    if (jobUrl && (!jobDescription || jobDescription.trim() === '')) {
-      try {
-        const extractedDescription = await fetchJobDescription(jobUrl);
-        effectiveJobDescription = extractedDescription;
-        console.log("Successfully extracted job description from URL");
-      } catch (error) {
-        console.error(`Error extracting job description from URL: ${error.message}`);
-        effectiveJobDescription = `Error extracting job description from URL: ${jobUrl}. Please paste the job description manually.`;
-      }
-    }
+    // Use provided job description or use a placeholder
+    const effectiveJobDescription = jobDescription && jobDescription.trim() !== '' 
+      ? jobDescription 
+      : 'No job description provided. General resume feedback will be given.';
 
     // Build and send GPT prompt for analysis
     const analysisMessages = buildAnalysisPrompt(selectedRole, effectiveJobDescription, resume);
     console.log("Sending analysis request to OpenAI...");
 
-    const analysisData = await callOpenAIForAnalysis(analysisMessages);
-    let analysis = parseAndValidateAnalysis(analysisData);
+    try {
+      const analysisData = await callOpenAIForAnalysis(analysisMessages);
+      let analysis = parseAndValidateAnalysis(analysisData);
 
-    // Resume rewrite generation (legacy: single, new: multiVersion)
-    let rewrittenResume = null;
-    if (multiVersion) {
-      // Generate all versions for company types
-      try {
-        rewrittenResume = await generateResumeRewritesForAllCompanyTypes(
-          resume,
-          effectiveJobDescription,
-          selectedRole || "Product Manager"
-        );
-      } catch (error) {
-        rewrittenResume = {
-          error: "Failed to generate multi-version rewrite",
-          detail: error.message
-        };
+      // Resume rewrite generation (if requested)
+      let rewrittenResume = null;
+      if (multiVersion) {
+        // Generate all versions for company types
+        try {
+          rewrittenResume = await generateResumeRewritesForAllCompanyTypes(
+            resume,
+            effectiveJobDescription,
+            selectedRole || "Product Manager"
+          );
+        } catch (error) {
+          console.error("Error generating multi-version rewrites:", error);
+          rewrittenResume = {
+            error: "Failed to generate multi-version rewrite",
+            detail: error.message
+          };
+        }
+      } else if (generateRewrite) {
+        // Generate one version per requested company type
+        try {
+          rewrittenResume = await generateFullResumeRewrite(
+            resume,
+            effectiveJobDescription,
+            companyType || "general",
+            selectedRole || "Product Manager"
+          );
+        } catch (error) {
+          console.error("Error generating single rewrite:", error);
+          rewrittenResume = "Failed to generate resume rewrite: " + error.message;
+        }
       }
-    } else if (generateRewrite) {
-      // Generate one version per requested company type (maintain legacy compatibility)
-      try {
-        rewrittenResume = await generateFullResumeRewrite(
-          resume,
-          effectiveJobDescription,
-          companyType || "general",
-          selectedRole || "Product Manager"
-        );
-      } catch (error) {
-        rewrittenResume = "Failed to generate resume rewrite: " + error.message;
-      }
+
+      // Return combined analysis + rewrite(s)
+      const finalResult = {
+        ...analysis,
+        rewrittenResume
+      };
+
+      return new Response(JSON.stringify(finalResult), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    } catch (error) {
+      console.error("Error in analysis process:", error);
+      throw new Error(`Analysis failed: ${error.message}`);
     }
-
-    // Return combined analysis + rewrite(s)
-    const finalResult = {
-      ...analysis,
-      rewrittenResume
-    };
-
-    return new Response(JSON.stringify(finalResult), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-
   } catch (error) {
     console.error('Error in analyze-resume function:', error);
     return new Response(JSON.stringify({

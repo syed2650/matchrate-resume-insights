@@ -2,6 +2,8 @@
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { ResumeFile } from "../types";
+import * as mammoth from 'mammoth';
+import * as pdfParse from 'pdf-parse';
 
 export const useResumeUpload = () => {
   const [resume, setResume] = useState("");
@@ -9,62 +11,75 @@ export const useResumeUpload = () => {
   const [isParsingResume, setIsParsingResume] = useState(false);
   const { toast } = useToast();
 
-  const handleFileUpload = (file: File) => {
+  // Maximum file size: 5MB
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB in bytes
+
+  const handleFileUpload = async (file: File) => {
     setIsParsingResume(true);
+    
     try {
+      // Check file size
+      if (file.size > MAX_FILE_SIZE) {
+        toast({
+          title: "File too large",
+          description: "Maximum file size is 5MB. Please upload a smaller file.",
+          variant: "destructive"
+        });
+        setIsParsingResume(false);
+        return;
+      }
+      
       setResumeFile({
         name: file.name,
         size: file.size,
         type: file.type
       });
       
-      // For PDF files, we would need a PDF.js implementation
-      // For now, we'll handle basic text and DOCX as text
-      const reader = new FileReader();
+      let extractedText = "";
       
-      reader.onload = (e) => {
+      // Process based on file type
+      if (file.type === "application/pdf") {
+        // Handle PDF files
+        const arrayBuffer = await file.arrayBuffer();
+        const pdfData = await pdfParse(new Uint8Array(arrayBuffer));
+        extractedText = pdfData.text;
+      } else if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+        // Handle DOCX files
+        const arrayBuffer = await file.arrayBuffer();
+        const result = await mammoth.extractRawText({arrayBuffer});
+        extractedText = result.value;
+      } else if (file.type === "text/plain") {
+        // Handle plain text files
+        extractedText = await file.text();
+      } else {
+        // Try basic text extraction as fallback
         try {
-          const text = e.target?.result as string;
-          
-          // Clean up text if needed (remove binary artifacts)
-          const cleanText = text.replace(/[\x00-\x09\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, '');
-          setResume(cleanText || "");
-          
-          toast({
-            title: "Resume parsed successfully",
-            description: `Extracted content from ${file.name}`,
-          });
-        } catch (parseError) {
-          console.error("Error parsing file content:", parseError);
-          toast({
-            title: "Error parsing resume",
-            description: "Failed to extract text from the uploaded file. Please paste your resume text manually.",
-            variant: "destructive"
-          });
-        } finally {
-          setIsParsingResume(false);
+          extractedText = await file.text();
+        } catch (error) {
+          throw new Error("Unsupported file format. Please upload a PDF, DOCX, or TXT file.");
         }
-      };
+      }
       
-      reader.onerror = (error) => {
-        console.error("FileReader error:", error);
-        toast({
-          title: "Error parsing resume",
-          description: "Failed to read the uploaded file. Please paste your resume text manually.",
-          variant: "destructive"
-        });
-        setIsParsingResume(false);
-      };
+      // Clean up text (remove excessive whitespace, etc.)
+      const cleanText = extractedText
+        .replace(/\r\n/g, "\n")
+        .replace(/\n{3,}/g, "\n\n")
+        .trim();
       
-      // Read the file as text
-      reader.readAsText(file);
+      setResume(cleanText);
+      
+      toast({
+        title: "Resume parsed successfully",
+        description: `Extracted content from ${file.name}`,
+      });
     } catch (error) {
-      console.error("Error parsing resume:", error);
+      console.error("Error parsing file:", error);
       toast({
         title: "Error parsing resume",
-        description: "Failed to extract text from the uploaded file. Please paste your resume text manually.",
+        description: error instanceof Error ? error.message : "Failed to extract text from the uploaded file. Please paste your resume text manually.",
         variant: "destructive"
       });
+    } finally {
       setIsParsingResume(false);
     }
   };
