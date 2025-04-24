@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { ResumeFile } from "../types";
-import * as mammoth from 'mammoth';
+import mammoth from "mammoth";
 import * as pdfParse from 'pdf-parse';
 
 export const useResumeUpload = () => {
