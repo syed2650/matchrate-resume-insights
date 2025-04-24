@@ -44,6 +44,11 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
         return bullets.slice(0, 8);
       };
       
+      const hasMultipleVersions = typeof rewrittenResume === 'object' && 
+                             rewrittenResume !== null &&
+                             !Array.isArray(rewrittenResume) &&
+                             Object.keys(rewrittenResume).length > 1;
+      
       const currentResumeText = hasMultipleVersions 
         ? rewrittenResume[activeVersion] || ''
         : (typeof rewrittenResume === 'string' ? rewrittenResume : '');
@@ -194,33 +199,32 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
     try {
       const sections = parseResumeContent(currentResume);
       
-      const doc = new Document({
-        sections: []
+      // Create a new document with proper structure
+      const doc = new Document();
+      
+      // Create the first section of content
+      const name = currentResume.split('\n')[0].replace('#', '').trim();
+      
+      // Add name as first paragraph
+      doc.addSection({
+        children: [
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: name,
+                bold: true,
+                size: 28,
+              })
+            ],
+            spacing: { after: 200 }
+          })
+        ]
       });
       
-      const documentSection = {
-        properties: {},
-        children: []
-      };
-      
-      doc.addSection(documentSection);
-      
+      // Access the first section we just created
       const firstSection = doc.sections[0];
       
-      const name = currentResume.split('\n')[0].replace('#', '').trim();
-      firstSection.addParagraph(
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: name,
-              bold: true,
-              size: 28,
-            })
-          ],
-          spacing: { after: 200 }
-        })
-      );
-      
+      // Add role summary if available
       if (roleSummary) {
         firstSection.addParagraph(
           new Paragraph({
@@ -236,6 +240,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
         );
       }
 
+      // Add all resume sections
       Object.keys(sections).forEach(sectionName => {
         if (sectionName === 'header') return;
         
@@ -285,6 +290,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
         );
       });
       
+      // Add footer with ATS score and timestamp
       firstSection.addParagraph(
         new Paragraph({
           children: [
@@ -298,6 +304,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
         })
       );
 
+      // Generate the DOCX file
       Packer.toBlob(doc).then(blob => {
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
