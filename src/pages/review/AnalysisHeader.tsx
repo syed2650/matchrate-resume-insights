@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, FilePdf } from "lucide-react";
+import { ArrowLeft, FileText } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface AnalysisHeaderProps {
@@ -48,7 +48,7 @@ const AnalysisHeader = ({
           className="flex items-center gap-1 border-blue-200 text-blue-600 hover:bg-blue-50"
           onClick={onExportPDF}
         >
-          <FilePdf size={16} />
+          <FileText size={16} />
           <span>Download Feedback Report</span>
         </Button>
       )}

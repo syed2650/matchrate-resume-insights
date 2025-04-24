@@ -1,11 +1,11 @@
 
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Copy, Download, FileText, FilePdf, Check } from "lucide-react";
+import { Copy, Download, FileText, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { getATSScoreExplanation } from "../../supabase/functions/analyze-resume/utils";
+import { getATSScoreExplanation } from "./utils";
 import { jsPDF } from "jspdf";
 
 interface ResumeRewriteProps {
@@ -232,7 +232,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
             className="bg-blue-600 hover:bg-blue-700" 
             onClick={handleDownloadPDF}
           >
-            <FilePdf className="h-4 w-4 mr-2" />
+            <FileText className="h-4 w-4 mr-2" />
             Download PDF
           </Button>
         </div>
