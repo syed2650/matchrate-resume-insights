@@ -1,60 +1,67 @@
 
 import { Button } from "@/components/ui/button";
-import { Check } from "lucide-react";
+import { Check, X } from "lucide-react";
 
 const pricingPlans = [
   {
     name: "Free",
     price: "0",
-    description: "Perfect for trying out our resume review tool.",
+    description: "For job seekers exploring our resume feedback tool.",
     features: [
-      "One resume analysis per day",
-      "Basic keyword matching",
-      "Section-by-section feedback",
-      "Download PDF report",
-      "No login required"
+      { name: "1 resume review per day", available: true },
+      { name: "Keyword matching", available: true },
+      { name: "Section-by-section feedback", available: true },
+      { name: "Relevance & ATS Score", available: true },
+      { name: "STAR bullet suggestions", available: true, note: "(View-only)" },
+      { name: "Full Resume Rewrite", available: false },
+      { name: "Export reports", available: false },
+      { name: "Multiple version rewrites", available: false },
     ]
   },
   {
-    name: "Career Booster",
-    price: "19",
-    period: "/month",
-    description: "For serious PM candidates actively job hunting.",
+    name: "Standard",
+    price: "7",
+    period: "one-time",
+    description: "For focused job seekers actively applying.",
     features: [
-      "Unlimited resume analyses",
-      "Advanced keyword matching",
-      "STAR format suggestions",
-      "Saved history dashboard",
-      "Role-specific feedback",
-      "Priority support"
+      { name: "Unlimited resume reviews", available: true },
+      { name: "Keyword matching", available: true },
+      { name: "Section-by-section feedback", available: true },
+      { name: "Relevance & ATS Score", available: true },
+      { name: "STAR bullet suggestions", available: true },
+      { name: "Full Resume Rewrite", available: true, note: "(7 total)" },
+      { name: "Export reports (.pdf/.docx)", available: true },
+      { name: "Multiple version rewrites", available: false },
     ],
     popular: true
   },
   {
-    name: "Expert Review",
-    price: "49",
-    period: "/one-time",
-    description: "Get a deep-dive human review of your resume.",
+    name: "Pro",
+    price: "25",
+    period: "lifetime",
+    description: "For career pivoters or long-term job seekers.",
     features: [
-      "Everything in Career Booster",
-      "Human expert review",
-      "Detailed teardown report",
-      "1-on-1 feedback session",
-      "LinkedIn summary rewrite",
-      "2 revision rounds"
+      { name: "Unlimited resume reviews", available: true },
+      { name: "Keyword matching", available: true },
+      { name: "Section-by-section feedback", available: true },
+      { name: "Relevance & ATS Score", available: true },
+      { name: "STAR bullet suggestions", available: true },
+      { name: "Full Resume Rewrite", available: true, note: "(25 total)" },
+      { name: "Export reports (.pdf/.docx)", available: true },
+      { name: "Multiple version rewrites", available: true },
     ]
   }
 ];
 
 const Pricing = () => {
   return (
-    <section id="pricing" className="py-20 md:py-24 bg-transparent">
+    <section id="pricing" className="py-20 md:py-28 bg-transparent">
       <div className="container max-w-6xl mx-auto px-4">
         <div className="text-center mb-16">
           <p className="text-[#3B82F6] font-medium text-sm mb-2 uppercase tracking-wider">Pricing Plans</p>
           <h2 className="text-3xl md:text-4xl font-bold text-[#1E293B] mb-2">Choose Your Plan</h2>
           <p className="mt-4 text-lg text-[#64748B] max-w-3xl mx-auto">
-            Select the perfect plan for your PM career journey
+            Get the feedback you need to land interviews, with plans designed for every job seeker
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-9">
@@ -83,8 +90,15 @@ const Pricing = () => {
               <ul className="space-y-3">
                 {plan.features.map((feature, featureIndex) => (
                   <li key={featureIndex} className="flex items-start gap-3 text-[#475569]">
-                    <Check className="w-5 h-5 text-[#3B82F6] mt-0.5" />
-                    <span>{feature}</span>
+                    {feature.available ? (
+                      <Check className="w-5 h-5 text-[#3B82F6] mt-0.5" />
+                    ) : (
+                      <X className="w-5 h-5 text-gray-400 mt-0.5" />
+                    )}
+                    <span>
+                      {feature.name} 
+                      {feature.note && <span className="text-sm text-gray-500"> {feature.note}</span>}
+                    </span>
                   </li>
                 ))}
               </ul>
