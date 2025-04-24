@@ -28,9 +28,9 @@ export const PDF_STYLES = {
     title: 20,
   },
   backgrounds: {
-    header: [30, 41, 59], // Dark blue
-    lightGray: [248, 250, 252],
-    lightBlue: [239, 246, 255],
+    header: [30, 41, 59] as [number, number, number], // Dark blue
+    lightGray: [248, 250, 252] as [number, number, number],
+    lightBlue: [239, 246, 255] as [number, number, number],
   }
 };
 
@@ -44,4 +44,3 @@ export function configurePDFStyles(doc: jsPDF) {
 
   return doc;
 }
-

@@ -1,10 +1,11 @@
 
-import { jsPDF } from "jspdf";
+import { jsPDF } from "jsPDF";
 import { PDF_STYLES as styles } from "./styles";
 import { Feedback } from "../types";
 
 export function drawHeader(doc: jsPDF, pageWidth: number) {
-  doc.setFillColor(...styles.backgrounds.header);
+  const headerColor = styles.backgrounds.header;
+  doc.setFillColor(headerColor[0], headerColor[1], headerColor[2]);
   doc.rect(0, 0, pageWidth, 30, 'F');
   
   doc.setTextColor(styles.colors.white);
@@ -33,7 +34,8 @@ export function drawMetadata(doc: jsPDF, yPos: number) {
 }
 
 export function drawScores(doc: jsPDF, feedback: Feedback, pageWidth: number, yPos: number) {
-  doc.setFillColor(...styles.backgrounds.lightGray);
+  const lightGrayColor = styles.backgrounds.lightGray;
+  doc.setFillColor(lightGrayColor[0], lightGrayColor[1], lightGrayColor[2]);
   const scoreHeight = 25;
   doc.rect(styles.margins.side, yPos, pageWidth - (styles.margins.side * 2), scoreHeight, 'F');
   
@@ -87,7 +89,8 @@ export function addFooters(doc: jsPDF) {
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
     
-    doc.setFillColor(...styles.backgrounds.lightGray);
+    const lightGrayColor = styles.backgrounds.lightGray;
+    doc.setFillColor(lightGrayColor[0], lightGrayColor[1], lightGrayColor[2]);
     doc.rect(0, pageHeight - 15, pageWidth, 15, 'F');
     
     doc.setTextColor(styles.colors.slate[500]);
@@ -98,4 +101,3 @@ export function addFooters(doc: jsPDF) {
       pageWidth - styles.margins.side, pageHeight - 8, { align: 'right' });
   }
 }
-

@@ -1,5 +1,5 @@
 
-import { jsPDF } from "jspdf";
+import { jsPDF } from "jsPDF";
 import { PDF_STYLES as styles } from "./styles";
 import { Feedback } from "../types";
 
@@ -31,7 +31,8 @@ export function drawMissingKeywords(doc: jsPDF, feedback: Feedback, pageWidth: n
       const currentY = yPos + (rowIndex * 8);
       
       // Draw background for each item
-      doc.setFillColor(...styles.backgrounds.lightBlue);
+      const lightBlueColor = styles.backgrounds.lightBlue;
+      doc.setFillColor(lightBlueColor[0], lightBlueColor[1], lightBlueColor[2]);
       doc.roundedRect(xPos, currentY - 4, colWidth - 4, 7, 1, 1, 'F');
       
       doc.text(`• ${feedback.missingKeywords[i]}`, xPos + 3, currentY);
@@ -62,7 +63,8 @@ export function drawSectionFeedback(doc: jsPDF, feedback: Feedback, pageWidth: n
       yPos = checkPageBreak(doc, yPos);
       
       // Add section name with background
-      doc.setFillColor(...styles.backgrounds.lightGray);
+      const lightGrayColor = styles.backgrounds.lightGray;
+      doc.setFillColor(lightGrayColor[0], lightGrayColor[1], lightGrayColor[2]);
       doc.rect(styles.margins.side, yPos - 5, pageWidth - (styles.margins.side * 2), 10, 'F');
       doc.setFont(styles.fonts.regular, 'bold');
       doc.text(`${section.charAt(0).toUpperCase() + section.slice(1)}:`, styles.margins.side + 2, yPos);
@@ -93,7 +95,8 @@ export function drawWeakBullets(doc: jsPDF, feedback: Feedback, pageWidth: numbe
       
       if (typeof bullet === "object" && bullet.original && bullet.improved) {
         // Original bullet
-        doc.setFillColor(...styles.backgrounds.lightGray);
+        const lightGrayColor = styles.backgrounds.lightGray;
+        doc.setFillColor(lightGrayColor[0], lightGrayColor[1], lightGrayColor[2]);
         const origHeight = doc.getTextDimensions(bullet.original, { maxWidth: pageWidth - (styles.margins.side * 2) - 8 }).h;
         doc.rect(styles.margins.side, yPos - 4, pageWidth - (styles.margins.side * 2), 6 + origHeight, 'F');
         
@@ -109,7 +112,8 @@ export function drawWeakBullets(doc: jsPDF, feedback: Feedback, pageWidth: numbe
         yPos += origText.length * 5 + 4;
         
         // Improved bullet
-        doc.setFillColor(...styles.backgrounds.lightBlue);
+        const lightBlueColor = styles.backgrounds.lightBlue;
+        doc.setFillColor(lightBlueColor[0], lightBlueColor[1], lightBlueColor[2]);
         const imprHeight = doc.getTextDimensions(bullet.improved, { maxWidth: pageWidth - (styles.margins.side * 2) - 8 }).h;
         doc.rect(styles.margins.side, yPos - 4, pageWidth - (styles.margins.side * 2), 6 + imprHeight, 'F');
         
@@ -167,4 +171,3 @@ export function drawFinalSection(doc: jsPDF, feedback: Feedback, pageWidth: numb
 
   return yPos;
 }
-
