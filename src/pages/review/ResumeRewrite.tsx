@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Copy, FileText, Check } from "lucide-react";
@@ -6,10 +7,11 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { getATSScoreExplanation, getATSScoreDetail } from "./utils";
 import { jsPDF } from "jspdf";
-import { renderAsync } from "docx-preview";
-import { Document, Paragraph, TextRun, HeadingLevel, 
-  AlignmentType, Table, TableRow, TableCell, TableBorders, BorderStyle,
-  WidthType, UnderlineType, Packer } from "docx";
+import {
+  Document, Paragraph, TextRun, HeadingLevel, 
+  AlignmentType, Packer, Table, TableRow, TableCell, TableBorders, BorderStyle,
+  WidthType, UnderlineType, SectionType
+} from "docx";
 
 interface ResumeRewriteProps {
   rewrittenResume: any; // Can be string or object with multiple versions
@@ -193,28 +195,28 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
     try {
       const sections = parseResumeContent(currentResume);
       
+      // Create a new Document
       const doc = new Document({
         sections: [{
           properties: {},
-          children: []
+          children: [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: currentResume.split('\n')[0].replace('#', '').trim(),
+                  bold: true,
+                  size: 28,
+                })
+              ],
+              spacing: { after: 200 }
+            })
+          ]
         }]
       });
 
+      // Get the first section's children array to add paragraphs to
       const docChildren = doc.sections[0].children;
       
-      docChildren.push(
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: currentResume.split('\n')[0].replace('#', '').trim(),
-              bold: true,
-              size: 28,
-            })
-          ],
-          spacing: { after: 200 }
-        })
-      );
-
       if (roleSummary) {
         docChildren.push(
           new Paragraph({
