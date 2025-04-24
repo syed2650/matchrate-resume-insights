@@ -4,8 +4,7 @@ import {
   Paragraph,
   TextRun,
   HeadingLevel,
-  Packer,
-  ISectionOptions
+  Packer
 } from "docx";
 
 interface Section {
@@ -39,18 +38,11 @@ export const generateDocument = async (
   hasMultipleVersions: boolean
 ) => {
   const sections = parseResumeContent(currentResume);
-  const doc = new Document({
-    sections: [{
-      children: []
-    }]
-  });
-  
-  // Get the first (and only) section
-  const section = doc.sections[0];
+  const paragraphs = [];
   
   // Add name
   const name = currentResume.split('\n')[0].replace('#', '').trim();
-  section.children.push(
+  paragraphs.push(
     new Paragraph({
       children: [
         new TextRun({
@@ -65,7 +57,7 @@ export const generateDocument = async (
   
   // Add role summary if available
   if (roleSummary) {
-    section.children.push(
+    paragraphs.push(
       new Paragraph({
         children: [
           new TextRun({
@@ -83,7 +75,7 @@ export const generateDocument = async (
   Object.keys(sections).forEach(sectionName => {
     if (sectionName === 'header') return;
     
-    section.children.push(
+    paragraphs.push(
       new Paragraph({
         text: sectionName.toUpperCase(),
         heading: HeadingLevel.HEADING_2,
@@ -95,7 +87,7 @@ export const generateDocument = async (
     sections[sectionName].forEach(line => {
       if (line.startsWith('* ') || line.startsWith('- ')) {
         const bulletText = line.replace(/^[*-]\s/, '');
-        section.children.push(
+        paragraphs.push(
           new Paragraph({
             children: [new TextRun(bulletText)],
             bullet: { level: 0 },
@@ -103,7 +95,7 @@ export const generateDocument = async (
           })
         );
       } else if (line.match(/^[A-Za-z ]+\s+\|\s+/)) {
-        section.children.push(
+        paragraphs.push(
           new Paragraph({
             children: [
               new TextRun({
@@ -115,7 +107,7 @@ export const generateDocument = async (
           })
         );
       } else {
-        section.children.push(
+        paragraphs.push(
           new Paragraph({
             text: line,
             spacing: { after: 120 }
@@ -124,13 +116,13 @@ export const generateDocument = async (
       }
     });
     
-    section.children.push(
+    paragraphs.push(
       new Paragraph({ spacing: { after: 300 }})
     );
   });
   
   // Add footer
-  section.children.push(
+  paragraphs.push(
     new Paragraph({
       children: [
         new TextRun({
@@ -142,6 +134,15 @@ export const generateDocument = async (
       spacing: { before: 300 }
     })
   );
+
+  // Create the document with all paragraphs
+  const doc = new Document({
+    sections: [
+      {
+        children: paragraphs
+      }
+    ]
+  });
 
   return Packer.toBlob(doc);
 };
