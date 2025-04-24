@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Copy, FileText, Check } from "lucide-react";
@@ -195,32 +194,31 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
     try {
       const sections = parseResumeContent(currentResume);
       
-      // Create a new Document with proper structure
-      const doc = new Document();
-      
-      // Add the content to the document
-      const name = currentResume.split('\n')[0].replace('#', '').trim();
-      
-      doc.addSection({
-        children: [
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: name,
-                bold: true,
-                size: 28,
-              })
-            ],
-            spacing: { after: 200 }
-          })
-        ]
+      const doc = new Document({
+        sections: [{
+          properties: {},
+          children: []
+        }]
       });
       
-      // Get the last section to add more content
-      const currentSection = doc.sections[doc.sections.length - 1];
+      const documentSection = doc.sections[0];
+      
+      const name = currentResume.split('\n')[0].replace('#', '').trim();
+      documentSection.children.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: name,
+              bold: true,
+              size: 28,
+            })
+          ],
+          spacing: { after: 200 }
+        })
+      );
       
       if (roleSummary) {
-        currentSection.addParagraph(
+        documentSection.children.push(
           new Paragraph({
             children: [
               new TextRun({
@@ -237,7 +235,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
       Object.keys(sections).forEach(sectionName => {
         if (sectionName === 'header') return;
         
-        currentSection.addParagraph(
+        documentSection.children.push(
           new Paragraph({
             text: sectionName.toUpperCase(),
             heading: HeadingLevel.HEADING_2,
@@ -249,7 +247,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
         sections[sectionName].forEach(line => {
           if (line.startsWith('* ') || line.startsWith('- ')) {
             const bulletText = line.replace(/^[*-]\s/, '');
-            currentSection.addParagraph(
+            documentSection.children.push(
               new Paragraph({
                 children: [new TextRun(bulletText)],
                 bullet: { level: 0 },
@@ -257,7 +255,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
               })
             );
           } else if (line.match(/^[A-Za-z ]+\s+\|\s+/)) {
-            currentSection.addParagraph(
+            documentSection.children.push(
               new Paragraph({
                 children: [
                   new TextRun({
@@ -269,7 +267,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
               })
             );
           } else {
-            currentSection.addParagraph(
+            documentSection.children.push(
               new Paragraph({
                 text: line,
                 spacing: { after: 120 }
@@ -278,12 +276,12 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
           }
         });
         
-        currentSection.addParagraph(
+        documentSection.children.push(
           new Paragraph({ spacing: { after: 300 }})
         );
       });
       
-      currentSection.addParagraph(
+      documentSection.children.push(
         new Paragraph({
           children: [
             new TextRun({
@@ -314,7 +312,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
       console.error("DOCX generation error:", error);
       toast({
         title: "Error",
-        description: "Failed to generate DOCX file. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to generate DOCX file. Please try again.",
         variant: "destructive"
       });
     }
