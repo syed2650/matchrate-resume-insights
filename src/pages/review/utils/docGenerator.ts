@@ -7,8 +7,7 @@ import {
   Packer,
   AlignmentType,
   LevelFormat,
-  convertInchesToTwip,
-  IBulletPath
+  convertInchesToTwip
 } from "docx";
 
 interface Section {
@@ -107,7 +106,14 @@ export const generateDocument = async (
         text: sectionName.toUpperCase(),
         heading: HeadingLevel.HEADING_1,
         spacing: { after: RESUME_STYLES.spacing.afterHeading },
-        border: { bottom: { color: "auto", size: 6, space: 1 } },
+        border: { 
+          bottom: { 
+            color: "auto", 
+            size: 6, 
+            space: 1,
+            style: 'single' 
+          } 
+        },
         font: RESUME_STYLES.fonts.heading
       })
     );
@@ -214,4 +220,3 @@ export const generateDocument = async (
 
   return Packer.toBlob(doc);
 };
-
