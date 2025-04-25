@@ -43,7 +43,7 @@ const ReviewForm = ({ onSubmit, isLoading, jobSector, setJobSector }: ReviewForm
     jobUrl,
     setJobUrl,
     extractionStatus,
-    handleExtractJobDescription
+    handleUrlPaste
   } = useJobDescription();
 
   const [jobTitle, setJobTitle] = useState<string>("");
@@ -90,7 +90,7 @@ const ReviewForm = ({ onSubmit, isLoading, jobSector, setJobSector }: ReviewForm
             jobUrl={jobUrl}
             setJobUrl={setJobUrl}
             extractionStatus={extractionStatus as ExtractionStatus}
-            onExtract={handleExtractJobDescription}
+            onExtract={handleUrlPaste}
           />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -136,4 +136,3 @@ const ReviewForm = ({ onSubmit, isLoading, jobSector, setJobSector }: ReviewForm
 };
 
 export default ReviewForm;
-
