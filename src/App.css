@@ -2,19 +2,61 @@
 #root {
   width: 100%;
   margin: 0 auto;
-  text-align: center;
 }
 
-/* Remove unnecessary old styles */
-.logo {
-  will-change: filter;
-  transition: filter 300ms;
+/* Badge component */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
 }
 
-.logo:hover {
-  filter: drop-shadow(0 0 1em rgba(255, 114, 94, 0.6));
+.badge-primary {
+  background-color: var(--warm-accent);
+  color: white;
 }
 
-.card {
-  padding: 2em;
+.badge-outline {
+  background-color: transparent;
+  border: 1px solid var(--warm-accent);
+  color: var(--warm-accent);
+}
+
+/* Sticky header transition */
+.header-scrolled {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(8px);
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+/* Smooth scrolling for the entire site */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Link hover effect */
+.hover-link {
+  position: relative;
+}
+
+.hover-link:after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  transform: scaleX(0);
+  height: 2px;
+  bottom: 0;
+  left: 0;
+  background-color: var(--warm-accent);
+  transform-origin: bottom right;
+  transition: transform 0.3s ease-out;
+}
+
+.hover-link:hover:after {
+  transform: scaleX(1);
+  transform-origin: bottom left;
 }

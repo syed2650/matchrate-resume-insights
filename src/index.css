@@ -125,10 +125,80 @@
 
 /* Gradient backgrounds */
 .hero-gradient {
-  background: linear-gradient(to bottom, #FAF9F6 0%, rgba(255,255,255,0.9) 100%);
+  background: linear-gradient(to bottom, #FFF1F0 0%, #FFE4D6 100%);
+}
+
+.feature-gradient {
+  background: linear-gradient(to bottom, #FAFAFA 0%, #F5F5F5 100%);
+}
+
+.cta-gradient {
+  background: linear-gradient(to right, #FB6B5A 0%, #F87171 100%);
+}
+
+.cta-blue-gradient {
+  background: linear-gradient(to right, #6366F1 0%, #3B82F6 100%);
 }
 
 /* Soft card styling */
 .premium-card {
   @apply bg-white rounded-xl shadow-card border border-slate-100/80 hover:shadow-premium-hover transition-all duration-300;
+}
+
+/* Glassmorphism effects */
+.glass-effect {
+  @apply bg-white/70 backdrop-blur-sm border border-white/50 shadow-md;
+}
+
+/* Built With section animation */
+.marquee {
+  @apply flex overflow-hidden whitespace-nowrap;
+}
+
+.marquee-content {
+  @apply flex items-center gap-12;
+  animation: scroll 25s linear infinite;
+}
+
+.marquee-content-reversed {
+  @apply flex items-center gap-12;
+  animation: scroll-reversed 25s linear infinite;
+}
+
+@keyframes scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes scroll-reversed {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0); }
+}
+
+/* Sticky CTA */
+.sticky-cta {
+  @apply fixed bottom-6 right-6 z-50 shadow-xl rounded-full transform transition-transform hover:scale-105;
+}
+
+/* Text gradient */
+.text-gradient {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-warm-accent to-rose-500;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #ddd;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #ccc;
 }
