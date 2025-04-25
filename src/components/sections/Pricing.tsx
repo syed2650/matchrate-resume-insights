@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Check, X } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -8,6 +7,7 @@ const pricingPlans = [
   {
     name: "Free",
     price: "0",
+    period: null,
     description: "For job seekers exploring our resume feedback tool.",
     features: [
       { name: "1 resume review per day", available: true },
@@ -23,7 +23,7 @@ const pricingPlans = [
   {
     name: "Standard",
     price: "7",
-    period: "one-time",
+    period: "weekly",
     description: "For focused job seekers actively applying.",
     features: [
       { name: "Unlimited resume reviews", available: true },
@@ -31,7 +31,7 @@ const pricingPlans = [
       { name: "Section-by-section feedback", available: true },
       { name: "Relevance & ATS Score", available: true },
       { name: "STAR bullet suggestions", available: true },
-      { name: "Full Resume Rewrite", available: true, note: "(7 credits)" },
+      { name: "Resume rewrite credits", available: true, note: "(7 credits)" },
       { name: "Export reports (.pdf/.docx)", available: true },
       { name: "Multiple version rewrites", available: false },
     ],
@@ -48,7 +48,7 @@ const pricingPlans = [
       { name: "Section-by-section feedback", available: true },
       { name: "Relevance & ATS Score", available: true },
       { name: "STAR bullet suggestions", available: true },
-      { name: "Full Resume Rewrite", available: true, note: "(25 credits)" },
+      { name: "Resume rewrite credits", available: true, note: "(25 credits)" },
       { name: "Export reports (.pdf/.docx)", available: true },
       { name: "Multiple version rewrites", available: true },
     ]
@@ -196,7 +196,7 @@ const Pricing = () => {
                       "Section-by-section feedback",
                       "Relevance & ATS Score",
                       "STAR bullet suggestions",
-                      "Full Resume Rewrite",
+                      "Resume rewrite credits",
                       "Export reports",
                       "Multiple version rewrites",
                     ].map((feature, i) => (
