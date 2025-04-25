@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Copy, FileText, Check, FilePdf } from "lucide-react";
+import { Copy, FileText, Check, FileType } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { jsPDF } from "jspdf";
@@ -35,7 +34,6 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
   } = useResumeVersion({ rewrittenResume, activeVersion });
   
   useEffect(() => {
-    // Stabilize ATS scores by checking cache
     if (scoreHash) {
       const cachedScore = getATSScoreFromCache(scoreHash);
       if (cachedScore) {
