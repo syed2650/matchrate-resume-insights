@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Copy, FileText, Check, FileType } from "lucide-react";
@@ -10,6 +9,7 @@ import VersionSelector from "./components/VersionSelector";
 import SuggestedBullets from "./components/SuggestedBullets";
 import { useResumeVersion } from "./hooks/useResumeVersion";
 import { generateDocument } from "./utils/docGenerator";
+import { ExportInfo } from "./components/ExportInfo";
 
 interface ResumeRewriteProps {
   rewrittenResume: any;
@@ -333,6 +333,8 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
           {currentResume}
         </pre>
       </div>
+      
+      <ExportInfo />
       
       <SuggestedBullets bullets={suggestedBulletPoints} />
       
