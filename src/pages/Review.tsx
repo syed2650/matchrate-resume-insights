@@ -77,23 +77,47 @@ const Review = () => {
       const cachedScore = getATSScoreFromCache(inputHash);
       console.log("Cached score found:", !!cachedScore);
 
-      const { data, error } = await supabase.functions.invoke("analyze-resume", {
-        body: { 
-          resume, 
-          jobDescription, 
-          jobUrl, 
-          selectedRole: jobTitle || "General",
-          companyType: companyType || jobSector,
-          generateRewrite,
-          multiVersion,
-          skipATSCalculation: !!cachedScore,
-          scoreHash: inputHash
-        }
-      });
+      //const { data, error } = await supabase.functions.invoke("analyze-resume", {
+       // body: { 
+         // resume, 
+         // jobDescription, 
+         // jobUrl, 
+         // selectedRole: jobTitle || "General",
+         // companyType: companyType || jobSector,
+         // generateRewrite,
+         // multiVersion,
+         // skipATSCalculation: !!cachedScore,
+         // scoreHash: inputHash
+      //  }
+      // });
 
-      if (error) {
-        throw new Error(error.message);
-      }
+      const response = await fetch('https://<your-supabase-project-id>.functions.supabase.co/analyze-resume', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJvZGtycGVxeGdxaXpuZ2R5cGJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNDY5ODEsImV4cCI6MjA2MDcyMjk4MX0.ECPKii1lST8GcNt0M8SGXKLeeyJSL6vtIpoXVH5SZYA', // Replace with your real anon key
+  },
+  body: JSON.stringify({
+    resume,
+    jobDescription,
+    jobUrl,
+    selectedRole: jobTitle || "General",
+    companyType: companyType || jobSector,
+    generateRewrite,
+    multiVersion,
+    skipATSCalculation: !!cachedScore,
+    scoreHash: inputHash,
+  }),
+});
+
+const data = await response.json();
+
+      if (!response.ok) {
+  throw new Error(`Error from Supabase Function: ${data.error || 'Unknown error'}`);
+}
+      //if (error) {
+        //throw new Error(error.message);
+      //}
 
       console.log("Received analysis result:", data);
 
