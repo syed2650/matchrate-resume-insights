@@ -96,7 +96,7 @@
 
   /* Feature cards with hover effect */
   .feature-card {
-    @apply glass-card rounded-xl p-6 hover:shadow-premium-hover transition-all duration-300 hover:translate-y-[-3px];
+    @apply bg-white/70 backdrop-blur-sm border border-white/30 rounded-xl p-6 hover:shadow-premium-hover transition-all duration-300 hover:translate-y-[-3px];
   }
   
   /* Icon circle backgrounds */
@@ -106,7 +106,7 @@
   
   /* Testimonial cards */
   .testimonial-card {
-    @apply glass-card rounded-xl p-6 hover:shadow-premium-hover transition-all duration-300;
+    @apply bg-white/70 backdrop-blur-sm border border-white/30 rounded-xl p-6 hover:shadow-premium-hover transition-all duration-300;
   }
 
   /* Score colors */
@@ -224,4 +224,10 @@
 /* Improved glassmorphism */
 .glassmorphism {
   @apply bg-white/60 backdrop-blur-md border border-white/40 shadow-glass;
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-white/70 backdrop-blur-sm border border-white/30 rounded-xl shadow-md transition-all duration-200;
+  }
 }
