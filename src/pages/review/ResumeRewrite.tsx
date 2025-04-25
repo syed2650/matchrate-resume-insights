@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Copy, FileText, Check, FileType } from "lucide-react";
@@ -14,12 +15,19 @@ interface ResumeRewriteProps {
   rewrittenResume: any;
   atsScores?: Record<string, number>;
   scoreHash?: string | null;
+  jobContext?: {
+    keywords: string[];
+    responsibilities: string[];
+    industry: string;
+    tone: string;
+  };
 }
 
 const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ 
   rewrittenResume, 
   atsScores = {},
-  scoreHash = null
+  scoreHash = null,
+  jobContext
 }) => {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
@@ -107,6 +115,85 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
       });
     }
   };
+  
+  const handleDownloadPdf = () => {
+    if (!currentResume) return;
+    
+    try {
+      const doc = new jsPDF();
+      
+      // Add title
+      doc.setFontSize(16);
+      doc.setFont("helvetica", "bold");
+      doc.text("Optimized Resume", 20, 20);
+      
+      // Add role summary if available
+      if (roleSummary) {
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "italic");
+        doc.text(`Optimized for: ${roleSummary}`, 20, 30);
+      }
+      
+      // Add ATS score
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "normal");
+      doc.text(`ATS Compatibility Score: ${currentAtsScore}/100`, 20, 40);
+      
+      // Add resume content with proper line breaks
+      doc.setFontSize(11);
+      const textLines = currentResume
+        .replace(/#{1,3}\s+/g, "") // Remove markdown headings
+        .split("\n")
+        .filter(line => line.trim() !== "");
+      
+      let yPosition = 55;
+      
+      textLines.forEach(line => {
+        // Process bullet points
+        if (line.startsWith("* ") || line.startsWith("- ")) {
+          line = "• " + line.substring(2);
+        }
+        
+        // Add the line with word wrapping
+        const splitLines = doc.splitTextToSize(line, 170);
+        doc.text(splitLines, 20, yPosition);
+        yPosition += 7 * splitLines.length;
+        
+        // Add extra space after what appears to be a section header
+        if (line === line.toUpperCase() && line.length < 30) {
+          yPosition += 3;
+        }
+        
+        // Add a new page if needed
+        if (yPosition > 280) {
+          doc.addPage();
+          yPosition = 20;
+        }
+      });
+      
+      // Add timestamp
+      if (generatedTimestamp) {
+        doc.setFontSize(8);
+        doc.setTextColor(100, 100, 100);
+        doc.text(`Generated on ${generatedTimestamp}`, 20, 290);
+      }
+      
+      const versionLabel = hasMultipleVersions ? `-${activeVersion}` : '';
+      doc.save(`matchrate-optimized-resume${versionLabel}.pdf`);
+      
+      toast({
+        title: "Success",
+        description: "Resume downloaded as PDF",
+      });
+    } catch (error) {
+      console.error("PDF generation error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate PDF. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
 
   const getAtsScoreBadge = (score: number) => {
     if (score >= 80) {
@@ -116,6 +203,52 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
     } else {
       return <Badge className="bg-red-600 hover:bg-red-700 ml-2">ATS Score: {score}</Badge>;
     }
+  };
+
+  const renderJobContext = () => {
+    if (!jobContext || (!jobContext.keywords?.length && !jobContext.industry)) {
+      return null;
+    }
+    
+    return (
+      <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-6">
+        <h4 className="text-sm font-semibold text-blue-800 mb-2">Job Context Used to Optimize Resume</h4>
+        {jobContext.industry && (
+          <div className="mb-2">
+            <span className="text-xs font-medium text-blue-700">Industry:</span> 
+            <span className="text-xs ml-1">{jobContext.industry}</span>
+          </div>
+        )}
+        {jobContext.tone && (
+          <div className="mb-2">
+            <span className="text-xs font-medium text-blue-700">Tone:</span> 
+            <span className="text-xs ml-1">{jobContext.tone}</span>
+          </div>
+        )}
+        {jobContext.keywords?.length > 0 && (
+          <div className="mb-2">
+            <span className="text-xs font-medium text-blue-700">Key Skills:</span>
+            <div className="flex flex-wrap gap-1 mt-1">
+              {jobContext.keywords.map((keyword, idx) => (
+                <Badge key={idx} variant="outline" className="text-xs bg-white">
+                  {keyword}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
+        {jobContext.responsibilities?.length > 0 && (
+          <div>
+            <span className="text-xs font-medium text-blue-700">Core Responsibilities:</span>
+            <ul className="text-xs mt-1 list-disc list-inside">
+              {jobContext.responsibilities.map((resp, idx) => (
+                <li key={idx}>{resp}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+    );
   };
 
   if (!rewrittenResume) {
@@ -173,6 +306,15 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
             <FileText className="h-4 w-4 mr-2" />
             Download .docx
           </Button>
+          
+          <Button 
+            variant="outline" 
+            onClick={handleDownloadPdf}
+            className="border-blue-200 text-blue-600 hover:bg-blue-50"
+          >
+            <FileType className="h-4 w-4 mr-2" />
+            Download .pdf
+          </Button>
         </div>
       </div>
       
@@ -183,6 +325,8 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
           onVersionChange={setActiveVersion}
         />
       )}
+      
+      {renderJobContext()}
       
       <div className="border rounded-xl p-6 bg-white shadow-md overflow-auto max-h-[600px]">
         <pre className="whitespace-pre-wrap text-slate-700 font-sans text-sm leading-relaxed">

@@ -2,12 +2,17 @@ export interface Feedback {
   score: number;
   missingKeywords: string[];
   sectionFeedback: Record<string, string>;
-  weakBullets: Array<{ original: string; improved: string; } | string>;
+  weakBullets: { original: string; improved: string }[];
   toneSuggestions: string;
   wouldInterview: string;
-  rewrittenResume?: string | Record<string, string>;
+  rewrittenResume?: any; // Can be string or object with version keys
   atsScores?: Record<string, number>;
-  error?: string;
+  jobContext?: {
+    keywords: string[];
+    responsibilities: string[];
+    industry: string;
+    tone: string;
+  };
 }
 
 export type ExtractionStatus = 

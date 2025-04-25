@@ -49,6 +49,74 @@ serve(async (req) => {
       ? jobDescription 
       : 'No job description provided. General resume feedback will be given.';
 
+    // First analyze job description to extract key information
+    let jobKeywords = [];
+    let coreResponsibilities = [];
+    let industryContext = "";
+    let toneSuggestion = "";
+    
+    // Only extract this information if we're going to generate a rewrite
+    if (generateRewrite || multiVersion) {
+      try {
+        console.log("Extracting key information from job description...");
+        const extractionPrompt = [
+          {
+            role: "system", 
+            content: `You are an expert job description analyst. Extract exactly these elements from the job description:
+              1. 5-8 keywords (most important skills or qualifications)
+              2. 3 core responsibilities
+              3. Industry context (e.g., SaaS, Public Sector, Finance, Healthcare)
+              4. Writing tone that would match this job (e.g., innovation-focused, compliance-oriented, analytical)
+              
+              Respond in JSON format with these keys: keywords, responsibilities, industry, tone`
+          },
+          {
+            role: "user", 
+            content: effectiveJobDescription
+          }
+        ];
+        
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openAIApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o',
+            messages: extractionPrompt,
+            temperature: 0.4,
+          }),
+        });
+        
+        const data = await response.json();
+        if (data.error) {
+          throw new Error(`OpenAI API error: ${data.error.message}`);
+        }
+        
+        // Parse the extracted information
+        const extractedContent = data.choices[0].message.content;
+        try {
+          const parsed = JSON.parse(extractedContent);
+          jobKeywords = parsed.keywords || [];
+          coreResponsibilities = parsed.responsibilities || [];
+          industryContext = parsed.industry || "";
+          toneSuggestion = parsed.tone || "";
+          
+          console.log("Successfully extracted job information:", {
+            keywords: jobKeywords,
+            responsibilities: coreResponsibilities,
+            industry: industryContext,
+            tone: toneSuggestion
+          });
+        } catch (parseError) {
+          console.error("Error parsing extracted job information:", parseError);
+        }
+      } catch (extractionError) {
+        console.error("Error extracting job information:", extractionError);
+      }
+    }
+
     // Build and send GPT prompt for analysis
     const analysisMessages = buildAnalysisPrompt(selectedRole, effectiveJobDescription, resume);
     console.log("Sending analysis request to OpenAI...");
@@ -57,7 +125,7 @@ serve(async (req) => {
       const analysisData = await callOpenAIForAnalysis(analysisMessages, openAIApiKey);
       let analysis = parseAndValidateAnalysis(analysisData);
 
-      // Resume rewrite generation (if requested) - SIMPLIFIED TO STAR BULLET POINTS
+      // Resume rewrite generation (if requested) with enhanced context
       let rewrittenResume = null;
       let atsScores = {};
       
@@ -69,17 +137,29 @@ serve(async (req) => {
           atsScores = {};
           
           for (const type of companyTypes) {
-            // Modified to focus on STAR bullet point extraction instead of full rewrites
+            // Enhanced prompt with extracted job information
             const extractionPrompt = [
               { role: "system", content: `You are an expert resume writer specializing in ${type} companies. 
-                Extract 8 relevant skills and 3 core responsibilities from the job description, 
-                and rephrase them as STAR-format resume bullet points for this ${selectedRole || "professional"}. 
-                Keep language concise and results-focused. Format with bullet points (*)` },
+                You will create tailored bullet points for a ${selectedRole || "professional"} in the ${industryContext || type} industry.
+                
+                KEY JOB INFORMATION:
+                - Industry: ${industryContext || "Not specified"}
+                - Required tone: ${toneSuggestion || "Professional and results-oriented"}
+                - Key skills: ${jobKeywords.join(', ')}
+                - Core responsibilities: ${coreResponsibilities.join(', ')}
+                
+                Create 8 strong STAR-format bullet points that:
+                1. Incorporate the key skills and align with the core responsibilities
+                2. Match the industry context and writing tone
+                3. Follow the STAR format with emphasis on Action and Results
+                4. Include metrics and quantifiable achievements
+                5. Use language appropriate for ${selectedRole || "professional"} roles in ${type} companies` },
+                
               { role: "user", content: `Job Description: ${effectiveJobDescription}
                 Resume: ${resume}
                 
                 Please provide 8 strong, STAR-format bullet points that highlight relevant skills and achievements
-                for this ${selectedRole || "role"} at a ${type} company. Focus on results and quantifiable impacts.` }
+                for this ${selectedRole || "role"} at a ${type} company. Use the context and keywords provided.` }
             ];
             
             const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -103,11 +183,12 @@ serve(async (req) => {
             // Extract the bullet points from the response
             const bulletPoints = data.choices[0].message.content;
             
-            // Add header to identify the purpose
+            // Add header with context information
             const headerText = `# Resume Upgrade Suggestions for ${selectedRole || "Professional"} (${type} Focus)\n\n`;
-            const roleContext = `This resume is optimized for: ${selectedRole || "Professional"} at a ${type} company\n\n`;
+            const contextInfo = `Industry: ${industryContext || type}\nTone: ${toneSuggestion || "Professional"}\n\n`;
+            const roleContext = `This resume is optimized for: ${selectedRole || "Professional"} at a ${type} company focusing on ${jobKeywords.slice(0, 3).join(', ')}\n\n`;
             
-            rewrittenResume[type] = `${headerText}${roleContext}${bulletPoints}`;
+            rewrittenResume[type] = `${headerText}${roleContext}${contextInfo}${bulletPoints}`;
             
             // Only calculate ATS scores if not skipped
             if (!skipATSCalculation) {
@@ -124,18 +205,31 @@ serve(async (req) => {
           };
         }
       } else if (generateRewrite) {
-        // Generate one version with STAR bullet points
+        // Generate one version with enhanced context
         try {
+          // Enhanced prompt with extracted job information
           const extractionPrompt = [
             { role: "system", content: `You are an expert resume writer specializing in ${companyType || "various"} companies. 
-              Extract 8 relevant skills and 3 core responsibilities from the job description, 
-              and rephrase them as STAR-format resume bullet points for this ${selectedRole || "professional"}. 
-              Keep language concise and results-focused. Format with bullet points (*)` },
+              You will create tailored bullet points for a ${selectedRole || "professional"} in the ${industryContext || companyType || "various"} industry.
+              
+              KEY JOB INFORMATION:
+              - Industry: ${industryContext || "Not specified"}
+              - Required tone: ${toneSuggestion || "Professional and results-oriented"}
+              - Key skills: ${jobKeywords.join(', ')}
+              - Core responsibilities: ${coreResponsibilities.join(', ')}
+              
+              Create 8 strong STAR-format bullet points that:
+              1. Incorporate the key skills and align with the core responsibilities
+              2. Match the industry context and writing tone
+              3. Follow the STAR format with emphasis on Action and Results
+              4. Include metrics and quantifiable achievements
+              5. Use language appropriate for ${selectedRole || "professional"} roles` },
+              
             { role: "user", content: `Job Description: ${effectiveJobDescription}
               Resume: ${resume}
               
               Please provide 8 strong, STAR-format bullet points that highlight relevant skills and achievements
-              for this ${selectedRole || "role"} at a ${companyType || "typical"} company. Focus on results and quantifiable impacts.` }
+              for this ${selectedRole || "role"} at a ${companyType || "typical"} company. Use the context and keywords provided.` }
           ];
           
           const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -159,11 +253,13 @@ serve(async (req) => {
           // Extract the bullet points from the response
           const bulletPoints = data.choices[0].message.content;
           
-          // Add header to identify the purpose
+          // Add header with context information
           const headerText = `# Resume Upgrade Suggestions for ${selectedRole || "Professional"}\n\n`;
+          const contextInfo = `Industry: ${industryContext || companyType || "General"}\nTone: ${toneSuggestion || "Professional"}\n\n`;
+          const skillsHighlight = `Key skills focus: ${jobKeywords.slice(0, 3).join(', ')}\n\n`;
           const roleContext = `This resume is optimized for: ${selectedRole || "Professional"} at a ${companyType || "typical"} company\n\n`;
           
-          rewrittenResume = `${headerText}${roleContext}${bulletPoints}`;
+          rewrittenResume = `${headerText}${roleContext}${contextInfo}${skillsHighlight}${bulletPoints}`;
           
           // Only calculate ATS scores if not skipped
           if (!skipATSCalculation) {
@@ -181,7 +277,13 @@ serve(async (req) => {
       const finalResult = {
         ...analysis,
         rewrittenResume,
-        atsScores
+        atsScores,
+        jobContext: {
+          keywords: jobKeywords,
+          responsibilities: coreResponsibilities,
+          industry: industryContext,
+          tone: toneSuggestion
+        }
       };
 
       return new Response(JSON.stringify(finalResult), {

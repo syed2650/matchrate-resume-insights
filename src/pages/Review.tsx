@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
@@ -211,6 +212,7 @@ const Review = () => {
                 rewrittenResume={feedback.rewrittenResume} 
                 atsScores={feedback.atsScores}
                 scoreHash={currentScoreHash}
+                jobContext={feedback.jobContext}
               />
             )}
 
