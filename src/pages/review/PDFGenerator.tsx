@@ -21,13 +21,10 @@ export const generatePDF = (feedback: Feedback): jsPDF => {
     // Configure document styles and add standard fonts
     configurePDFStyles(doc);
     
-    // Register needed fonts
-    doc.addFont("helvetica", "normal");
-    doc.addFont("helvetica", "bold");
-    doc.addFont("helvetica", "italic");
-    
-    // Set initial font for the document
-    doc.setFont("helvetica", "normal");
+    // Use standard fonts with correct arguments
+    // The addFont function requires a fontName and style as minimum parameters
+    doc.setFont("helvetica");
+    doc.setFontSize(styles.fontSize.normal);
     
     // Calculate usable width
     const pageWidth = doc.internal.pageSize.width;
