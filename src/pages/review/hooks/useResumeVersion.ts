@@ -1,20 +1,35 @@
 
 import { useState, useEffect } from "react";
+import { getActiveResumeATSHash } from "../utils";
 
 interface UseResumeVersionProps {
   rewrittenResume: any;
   activeVersion?: string;
+  scoreHash?: string | null;
 }
 
-export const useResumeVersion = ({ rewrittenResume, activeVersion = "startup" }: UseResumeVersionProps) => {
+export const useResumeVersion = ({ 
+  rewrittenResume, 
+  activeVersion = "startup",
+  scoreHash = null
+}: UseResumeVersionProps) => {
   const [suggestedBulletPoints, setSuggestedBulletPoints] = useState<string[]>([]);
   const [generatedTimestamp, setGeneratedTimestamp] = useState<string>("");
+  const [sessionHash, setSessionHash] = useState<string | null>(null);
 
   useEffect(() => {
+    // Try to get hash from session if not provided
+    if (!scoreHash) {
+      const activeHash = getActiveResumeATSHash();
+      if (activeHash) {
+        setSessionHash(activeHash);
+      }
+    }
+    
     if (!generatedTimestamp) {
       setGeneratedTimestamp(new Date().toLocaleString());
     }
-  }, [rewrittenResume, generatedTimestamp]);
+  }, [rewrittenResume, generatedTimestamp, scoreHash]);
 
   useEffect(() => {
     if (rewrittenResume) {
@@ -56,6 +71,7 @@ export const useResumeVersion = ({ rewrittenResume, activeVersion = "startup" }:
     hasMultipleVersions,
     currentResume,
     suggestedBulletPoints,
-    generatedTimestamp
+    generatedTimestamp,
+    activeScoreHash: scoreHash || sessionHash
   };
 };

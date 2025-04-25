@@ -43,3 +43,79 @@ export function getATSScoreDetail(score: number): string {
     return "Score shows significant gaps in keyword alignment, improper formatting, or missing crucial sections that ATS systems require for successful scanning.";
   }
 }
+
+// Cache management functions for ATS scores
+export function saveATSScoreToCache(hash: string, scores: Record<string, number>) {
+  try {
+    // Get existing cache
+    let cachedScores = getATSScoresFromCache();
+    
+    // Find existing entry or add new one
+    const existingIndex = cachedScores.findIndex(item => item.hash === hash);
+    if (existingIndex >= 0) {
+      cachedScores[existingIndex] = {
+        hash,
+        scores,
+        timestamp: new Date().toLocaleString()
+      };
+    } else {
+      cachedScores.push({
+        hash,
+        scores,
+        timestamp: new Date().toLocaleString()
+      });
+    }
+    
+    // Limit cache size to prevent localStorage bloat
+    if (cachedScores.length > 50) {
+      cachedScores = cachedScores.slice(-50);
+    }
+    
+    // Save updated cache
+    localStorage.setItem('cachedATSScores', JSON.stringify(cachedScores));
+    return true;
+  } catch (error) {
+    console.error("Error saving ATS score to cache:", error);
+    return false;
+  }
+}
+
+export function getATSScoresFromCache() {
+  try {
+    const storedScores = localStorage.getItem('cachedATSScores');
+    return storedScores ? JSON.parse(storedScores) : [];
+  } catch (error) {
+    console.error("Error loading cached scores:", error);
+    return [];
+  }
+}
+
+export function getATSScoreFromCache(hash: string) {
+  const cachedScores = getATSScoresFromCache();
+  return cachedScores.find(item => item.hash === hash);
+}
+
+export function clearATSScoreCache() {
+  try {
+    localStorage.removeItem('cachedATSScores');
+    return true;
+  } catch (error) {
+    console.error("Error clearing ATS score cache:", error);
+    return false;
+  }
+}
+
+// Session storage function to maintain score during session
+export function storeActiveResumeATSScore(resumeJobHash: string) {
+  try {
+    sessionStorage.setItem('activeResumeATSHash', resumeJobHash);
+    return true;
+  } catch (error) {
+    console.error("Error storing active resume hash:", error);
+    return false;
+  }
+}
+
+export function getActiveResumeATSHash() {
+  return sessionStorage.getItem('activeResumeATSHash');
+}

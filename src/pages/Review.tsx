@@ -11,7 +11,13 @@ import FeedbackForm from "./review/FeedbackForm";
 import { generatePDF } from "./review/PDFGenerator";
 import ResumeRewrite from "./review/ResumeRewrite";
 import { useAuthUser } from "@/hooks/useAuthUser";
-import { generateHash } from "./review/utils";
+import { 
+  generateHash, 
+  getATSScoreFromCache, 
+  saveATSScoreToCache,
+  getATSScoresFromCache,
+  storeActiveResumeATSScore
+} from "./review/utils";
 
 interface CachedATSScore {
   hash: string;
@@ -26,18 +32,12 @@ const Review = () => {
   const [submissionId, setSubmissionId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'analysis' | 'rewrite'>('analysis');
   const [cachedAtsScores, setCachedAtsScores] = useState<CachedATSScore[]>([]);
+  const [currentScoreHash, setCurrentScoreHash] = useState<string | null>(null);
   const { toast } = useToast();
   const { user } = useAuthUser();
 
   useEffect(() => {
-    try {
-      const storedScores = localStorage.getItem('cachedATSScores');
-      if (storedScores) {
-        setCachedAtsScores(JSON.parse(storedScores));
-      }
-    } catch (error) {
-      console.error("Error loading cached scores:", error);
-    }
+    setCachedAtsScores(getATSScoresFromCache());
   }, []);
 
   useEffect(() => {
@@ -69,10 +69,11 @@ const Review = () => {
     try {
       // Generate a hash of the inputs to check for cached scores
       const inputHash = generateHash(resume, jobDescription);
-      let cachedScore: CachedATSScore | undefined;
+      setCurrentScoreHash(inputHash);
+      storeActiveResumeATSScore(inputHash);
       
       // Check for cached ATS scores if we're not specifically requesting a rewrite
-      cachedScore = cachedAtsScores.find(item => item.hash === inputHash);
+      const cachedScore = getATSScoreFromCache(inputHash);
       console.log("Cached score found:", !!cachedScore);
 
       const { data, error } = await supabase.functions.invoke("analyze-resume", {
@@ -84,7 +85,8 @@ const Review = () => {
           companyType,
           generateRewrite,
           multiVersion,
-          skipATSCalculation: !!cachedScore
+          skipATSCalculation: !!cachedScore,
+          scoreHash: inputHash // Pass hash to backend for consistency
         }
       });
 
@@ -101,22 +103,8 @@ const Review = () => {
       } else if (data.atsScores) {
         // Cache the new ATS scores
         console.log("Caching new ATS scores");
-        const newCachedScore: CachedATSScore = {
-          hash: inputHash,
-          scores: data.atsScores,
-          timestamp: new Date().toLocaleString()
-        };
-        
-        const existingIndex = cachedAtsScores.findIndex(item => item.hash === inputHash);
-        if (existingIndex >= 0) {
-          setCachedAtsScores(prev => {
-            const updated = [...prev];
-            updated[existingIndex] = newCachedScore;
-            return updated;
-          });
-        } else {
-          setCachedAtsScores(prev => [...prev, newCachedScore]);
-        }
+        saveATSScoreToCache(inputHash, data.atsScores);
+        setCachedAtsScores(getATSScoresFromCache());
       }
 
       const { data: submissionData, error: submissionError } = await supabase
@@ -222,6 +210,7 @@ const Review = () => {
               <ResumeRewrite 
                 rewrittenResume={feedback.rewrittenResume} 
                 atsScores={feedback.atsScores}
+                scoreHash={currentScoreHash}
               />
             )}
 

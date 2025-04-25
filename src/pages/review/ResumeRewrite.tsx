@@ -1,10 +1,10 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Copy, FileText, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
-import { getATSScoreExplanation, getATSScoreDetail } from "./utils";
+import { getATSScoreExplanation, getATSScoreDetail, getATSScoreFromCache } from "./utils";
 import VersionSelector from "./components/VersionSelector";
 import SuggestedBullets from "./components/SuggestedBullets";
 import { useResumeVersion } from "./hooks/useResumeVersion";
@@ -13,12 +13,18 @@ import { generateDocument } from "./utils/docGenerator";
 interface ResumeRewriteProps {
   rewrittenResume: any;
   atsScores?: Record<string, number>;
+  scoreHash?: string | null;
 }
 
-const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScores = {} }) => {
+const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ 
+  rewrittenResume, 
+  atsScores = {},
+  scoreHash = null
+}) => {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
   const [activeVersion, setActiveVersion] = useState<string>("startup");
+  const [stableAtsScores, setStableAtsScores] = useState<Record<string, number>>(atsScores);
 
   const { 
     hasMultipleVersions, 
@@ -26,10 +32,24 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
     suggestedBulletPoints, 
     generatedTimestamp 
   } = useResumeVersion({ rewrittenResume, activeVersion });
+  
+  useEffect(() => {
+    // Stabilize ATS scores by checking cache
+    if (scoreHash) {
+      const cachedScore = getATSScoreFromCache(scoreHash);
+      if (cachedScore) {
+        setStableAtsScores(cachedScore.scores);
+      } else if (Object.keys(atsScores).length > 0) {
+        setStableAtsScores(atsScores);
+      }
+    } else if (Object.keys(atsScores).length > 0) {
+      setStableAtsScores(atsScores);
+    }
+  }, [scoreHash, atsScores]);
 
   const currentAtsScore = hasMultipleVersions
-    ? atsScores[activeVersion] || 0
-    : (typeof atsScores === 'object' && Object.values(atsScores)[0]) || 0;
+    ? stableAtsScores[activeVersion] || 0
+    : (typeof stableAtsScores === 'object' && Object.values(stableAtsScores)[0]) || 0;
     
   const roleSummaryMatch = currentResume.match(/This resume is optimized for(?: a)?:? (.*?)(\n|$)/);
   const roleSummary = roleSummaryMatch ? roleSummaryMatch[1].trim() : "";
@@ -160,7 +180,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ rewrittenResume, atsScore
       {hasMultipleVersions && (
         <VersionSelector 
           activeVersion={activeVersion}
-          atsScores={atsScores}
+          atsScores={stableAtsScores}
           onVersionChange={setActiveVersion}
         />
       )}

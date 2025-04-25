@@ -27,11 +27,13 @@ serve(async (req) => {
       companyType, 
       generateRewrite, 
       multiVersion,
-      skipATSCalculation = false
+      skipATSCalculation = false,
+      scoreHash = null
     } = await req.json();
 
     // Log input sizes to help with debugging
     console.log(`Processing request: Resume length: ${resume?.length || 0}, Job description length: ${jobDescription?.length || 0}, URL: ${jobUrl || 'none'}`);
+    console.log(`Using score hash: ${scoreHash || 'none'}, Skip ATS calculation: ${skipATSCalculation}`);
     
     // Validate required values
     if ((!resume || resume.trim() === '') && (!jobDescription || jobDescription.trim() === '')) {
@@ -109,7 +111,9 @@ serve(async (req) => {
             
             // Only calculate ATS scores if not skipped
             if (!skipATSCalculation) {
-              atsScores[type] = calculateATSScore(bulletPoints, effectiveJobDescription);
+              // Use the score hash as part of the calculation to ensure deterministic results
+              const scoreSeed = scoreHash ? `${bulletPoints}-${scoreHash}-${type}` : bulletPoints;
+              atsScores[type] = calculateATSScore(scoreSeed, effectiveJobDescription);
             }
           }
         } catch (error) {
@@ -163,7 +167,9 @@ serve(async (req) => {
           
           // Only calculate ATS scores if not skipped
           if (!skipATSCalculation) {
-            atsScores = { [companyType || "general"]: calculateATSScore(bulletPoints, effectiveJobDescription) };
+            // Use the score hash as part of the calculation to ensure deterministic results
+            const scoreSeed = scoreHash ? `${bulletPoints}-${scoreHash}-${companyType || "general"}` : bulletPoints;
+            atsScores = { [companyType || "general"]: calculateATSScore(scoreSeed, effectiveJobDescription) };
           }
         } catch (error) {
           console.error("Error generating single rewrite:", error);
