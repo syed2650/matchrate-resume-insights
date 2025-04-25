@@ -63,7 +63,7 @@
   }
   
   .section-padding {
-    @apply py-16 md:py-24;
+    @apply py-12 md:py-20;
   }
   
   .heading-xl {
@@ -96,7 +96,7 @@
 
   /* Feature cards with hover effect */
   .feature-card {
-    @apply bg-white shadow-card rounded-xl p-6 hover:shadow-premium-hover transition-all duration-300 hover:translate-y-[-3px];
+    @apply glass-card rounded-xl p-6 hover:shadow-premium-hover transition-all duration-300 hover:translate-y-[-3px];
   }
   
   /* Icon circle backgrounds */
@@ -106,7 +106,7 @@
   
   /* Testimonial cards */
   .testimonial-card {
-    @apply bg-white shadow-card rounded-xl p-6 hover:shadow-premium-hover transition-all duration-300;
+    @apply glass-card rounded-xl p-6 hover:shadow-premium-hover transition-all duration-300;
   }
 
   /* Score colors */
@@ -129,7 +129,7 @@
 }
 
 .feature-gradient {
-  background: linear-gradient(to bottom, #FAFAFA 0%, #F5F5F5 100%);
+  background: linear-gradient(to bottom, #F5F3FF 0%, #EDE9FE 100%);
 }
 
 .cta-gradient {
@@ -201,4 +201,27 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: #ccc;
+}
+
+/* Tech stack logos */
+.tech-stack {
+  @apply flex items-center gap-4;
+}
+
+.tech-stack-item {
+  @apply flex items-center gap-2 px-3 py-2 bg-white/80 rounded-lg shadow-sm border border-gray-100;
+}
+
+/* Animations */
+.hover-lift {
+  @apply transition-all duration-200;
+}
+
+.hover-lift:hover {
+  @apply -translate-y-1 shadow-lg;
+}
+
+/* Improved glassmorphism */
+.glassmorphism {
+  @apply bg-white/60 backdrop-blur-md border border-white/40 shadow-glass;
 }

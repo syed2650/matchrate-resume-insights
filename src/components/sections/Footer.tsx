@@ -7,7 +7,7 @@ const Footer = () => {
           <div>
             <h3 className="text-xl font-bold text-warm-text mb-3">Matchrate.ai</h3>
             <p className="text-slate-600 text-base">
-              AI-powered resume feedback tailored to product management roles.
+              AI-powered resume feedback tailored to tech job seekers — from PMs to Engineers and beyond.
             </p>
             <p className="text-slate-500 text-sm mt-4">
               Built with GPT-4o. Trusted by job seekers in tech.

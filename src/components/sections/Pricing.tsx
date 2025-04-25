@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Check, X } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useEffect, useRef } from "react";
 
 const pricingPlans = [
   {
@@ -30,7 +31,7 @@ const pricingPlans = [
       { name: "Section-by-section feedback", available: true },
       { name: "Relevance & ATS Score", available: true },
       { name: "STAR bullet suggestions", available: true },
-      { name: "Full Resume Rewrite", available: true, note: "(7 total)" },
+      { name: "Full Resume Rewrite", available: true, note: "(7 credits)" },
       { name: "Export reports (.pdf/.docx)", available: true },
       { name: "Multiple version rewrites", available: false },
     ],
@@ -47,7 +48,7 @@ const pricingPlans = [
       { name: "Section-by-section feedback", available: true },
       { name: "Relevance & ATS Score", available: true },
       { name: "STAR bullet suggestions", available: true },
-      { name: "Full Resume Rewrite", available: true, note: "(25 total)" },
+      { name: "Full Resume Rewrite", available: true, note: "(25 credits)" },
       { name: "Export reports (.pdf/.docx)", available: true },
       { name: "Multiple version rewrites", available: true },
     ]
@@ -55,26 +56,52 @@ const pricingPlans = [
 ];
 
 const Pricing = () => {
+  const pricingRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('active');
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+    
+    const pricingElements = document.querySelectorAll('.pricing-animated');
+    pricingElements.forEach((el) => {
+      observer.observe(el);
+    });
+    
+    return () => {
+      pricingElements.forEach((el) => {
+        observer.unobserve(el);
+      });
+    };
+  }, []);
+
   return (
-    <section id="pricing" className="py-24 md:py-32 bg-gradient-to-b from-white to-warm-section relative">
+    <section id="pricing" className="py-20 md:py-28 relative" ref={pricingRef}>
       {/* Background effects */}
       <div className="absolute top-0 left-0 w-full h-40 bg-gradient-to-b from-white to-transparent"></div>
       
-      <div className="container max-w-6xl mx-auto px-4">
-        <div className="text-center mb-16">
+      <div className="container max-w-6xl mx-auto px-4 relative z-10">
+        <div className="text-left mb-16 fade-in pricing-animated">
           <p className="text-warm-accent font-medium text-sm mb-3 uppercase tracking-wider">Simple Pricing</p>
           <h2 className="text-3xl md:text-5xl font-bold text-warm-text mb-6">
             Choose the Plan That <span className="text-gradient">Fits Your Needs</span>
           </h2>
-          <p className="mt-4 text-lg text-slate-600 max-w-3xl mx-auto">
+          <p className="mt-4 text-lg text-slate-600 max-w-3xl">
             Get the feedback you need to land interviews, with plans designed for every job seeker's budget and goals.
           </p>
         </div>
         
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-4xl mx-auto fade-in pricing-animated">
           <Tabs defaultValue="plans" className="mb-8">
             <div className="flex justify-center">
-              <TabsList className="grid w-64 grid-cols-2 mb-12">
+              <TabsList className="grid w-64 grid-cols-2 mb-12 glass">
                 <TabsTrigger value="plans">Plans</TabsTrigger>
                 <TabsTrigger value="compare">Compare</TabsTrigger>
               </TabsList>
@@ -85,7 +112,7 @@ const Pricing = () => {
                 {pricingPlans.map((plan, index) => (
                   <div 
                     key={index} 
-                    className={`flex flex-col rounded-2xl bg-white shadow-card border transition-all duration-300 hover:shadow-premium-hover px-7 py-9 relative ${
+                    className={`flex flex-col rounded-2xl glassmorphism transition-all duration-300 hover:shadow-premium-hover px-7 py-9 relative ${
                       plan.popular ? 'border-warm-accent ring-2 ring-warm-accent/20 translate-y-[-8px]' : 'border-slate-100'
                     }`}
                   >
@@ -152,7 +179,7 @@ const Pricing = () => {
             </TabsContent>
             
             <TabsContent value="compare">
-              <div className="bg-white rounded-xl shadow-card border border-slate-100 overflow-hidden">
+              <div className="glassmorphism rounded-xl overflow-hidden">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-slate-100">
@@ -209,9 +236,9 @@ const Pricing = () => {
             </TabsContent>
           </Tabs>
           
-          <div className="mt-12 text-center">
+          <div className="mt-12 text-center fade-in pricing-animated" style={{ animationDelay: '300ms' }}>
             <p className="text-slate-500 mb-4">Need a custom solution for your team?</p>
-            <Button variant="outline" className="border-slate-200 hover:bg-slate-50">
+            <Button variant="outline" className="glassmorphism hover:bg-white/80">
               Contact Us for Enterprise Plans
             </Button>
           </div>

@@ -4,6 +4,7 @@ import { Star, Quote } from "lucide-react";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { useRef, useEffect } from "react";
 
 const testimonials = [
   {
@@ -15,52 +16,86 @@ const testimonials = [
     company: "Spotify"
   },
   {
-    text: "The keyword analysis feature is a game-changer. It helped me align my experience perfectly with the job requirements. Honest, actionable feedback that actually helps.",
-    author: "Michael Ross",
-    handle: "@mross_product",
-    role: "Product Manager at Stripe",
-    initial: "MR",
+    text: "As a software engineer, I was skeptical, but the tool actually caught missing technical keywords and helped me quantify my achievements. The difference was immediate in callback rates.",
+    author: "Alex Rodriguez",
+    handle: "@alexdev",
+    role: "Full-Stack Engineer",
+    initial: "AR",
     company: "Stripe"
   },
   {
-    text: "As someone transitioning into product management, this tool was invaluable. It helped me highlight transferable skills and frame my experience in a PM context.",
+    text: "As someone transitioning into UX design, this tool was invaluable. It helped me highlight transferable skills and frame my experience in a design context that recruiters understand.",
     author: "Priya Sharma",
-    handle: "@priyapm",
-    role: "Associate PM at Shopify",
+    handle: "@priyaux",
+    role: "UX Designer at Shopify",
     initial: "PS",
     company: "Shopify"
   },
   {
-    text: "After multiple rejections, this tool helped me understand I wasn't quantifying my achievements. The STAR format suggestions transformed my resume completely.",
-    author: "David Wong",
-    handle: "@dwong_tech",
-    role: "Product Lead at Figma",
-    initial: "DW",
-    company: "Figma"
+    text: "Being a recent grad, I had no idea how to make my resume stand out. The detailed feedback showed me exactly how to position my projects and internships to land my first tech job.",
+    author: "Jason Lee",
+    handle: "@jasontech",
+    role: "Junior Developer",
+    initial: "JL",
+    company: "Adobe"
+  },
+  {
+    text: "Switching from finance to tech was daunting, but the tool helped me translate my skills into tech-friendly language. The STAR format suggestions were game-changing.",
+    author: "Maya Johnson",
+    handle: "@mayafintech",
+    role: "Business Analyst",
+    initial: "MJ",
+    company: "Square"
   }
 ];
 
 const Testimonials = () => {
+  const testimonialRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('active');
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+    
+    const testimonialElements = document.querySelectorAll('.testimonial-animated');
+    testimonialElements.forEach((el) => {
+      observer.observe(el);
+    });
+    
+    return () => {
+      testimonialElements.forEach((el) => {
+        observer.unobserve(el);
+      });
+    };
+  }, []);
+
   return (
-    <section id="testimonials" className="py-24 md:py-32 bg-warm-section relative overflow-hidden">
+    <section id="testimonials" className="py-20 md:py-28 relative overflow-hidden" ref={testimonialRef}>
       {/* Background effects */}
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-warm-accent/5 rounded-full blur-3xl"></div>
       <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-blue-500/5 rounded-full blur-3xl"></div>
       
       <div className="container max-w-6xl mx-auto px-4 relative z-10">
-        <div className="text-center mb-16">
+        <div className="text-left mb-16 fade-in testimonial-animated">
           <Badge variant="outline" className="mb-4 px-4 py-1.5 bg-white text-warm-accent border-warm-accent/20">
             Success Stories
           </Badge>
           <h2 className="text-3xl md:text-5xl font-bold text-warm-text mb-6 leading-tight">
-            Trusted by aspiring<br /><span className="text-gradient">Product Managers</span>
+            Trusted by job seekers<br />across<span className="text-gradient ml-2">tech roles</span>
           </h2>
-          <p className="text-slate-600 max-w-2xl mx-auto">
+          <p className="text-slate-600 max-w-2xl">
             See how our users transformed their resumes and landed interviews at top tech companies.
           </p>
         </div>
         
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-5xl mx-auto fade-in testimonial-animated">
           <Carousel
             opts={{
               align: "start",
@@ -71,7 +106,7 @@ const Testimonials = () => {
             <CarouselContent className="-ml-2 md:-ml-4">
               {testimonials.map((testimonial, index) => (
                 <CarouselItem key={index} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/2">
-                  <div className="testimonial-card h-full flex flex-col py-8 px-6">
+                  <div className="testimonial-card glassmorphism h-full flex flex-col py-8 px-6">
                     <Quote className="w-10 h-10 text-warm-accent/20 mb-4" />
                     <div className="flex items-center gap-1 mb-4">
                       {Array.from({ length: 5 }).map((_, i) => (

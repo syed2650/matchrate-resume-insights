@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import AnimatedTextCycle from "@/components/ui/animated-text-cycle";
-import { ArrowRight, ArrowUpRight } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Check } from "lucide-react";
 
 const Hero = () => {
   const navigate = useNavigate();
@@ -13,8 +13,8 @@ const Hero = () => {
       <div className="absolute top-20 right-20 w-64 h-64 bg-warm-accent/5 rounded-full blur-3xl"></div>
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-warm-accent/5 rounded-full blur-3xl"></div>
       
-      <div className="container max-w-6xl mx-auto px-4 text-center flex flex-col items-center relative z-10">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/80 backdrop-blur-sm border border-gray-100 shadow-sm text-sm font-medium text-gray-600 mb-8">
+      <div className="container max-w-6xl mx-auto px-4 text-center md:text-left flex flex-col items-center md:items-start relative z-10">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass-effect border border-white/30 shadow-sm text-sm font-medium text-gray-600 mb-8">
           <span className="relative flex h-2.5 w-2.5">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-warm-accent opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-warm-accent"></span>
@@ -50,7 +50,7 @@ const Hero = () => {
           Understand exactly why your resume isn't landing interviews — and how to fix it.
         </p>
         
-        <div className="flex flex-col sm:flex-row gap-4 mb-16">
+        <div className="flex flex-col sm:flex-row gap-4 mb-16 w-full md:w-auto">
           <Button 
             size="lg"
             className="cta-gradient hover:scale-[1.03] transition-all duration-200 text-white px-9 py-7 text-lg rounded-xl shadow-cta font-semibold"
@@ -63,7 +63,7 @@ const Hero = () => {
           <Button
             size="lg"
             variant="outline"
-            className="bg-white/90 hover:bg-white border border-gray-200 text-gray-700 px-9 py-7 text-lg rounded-xl font-semibold transition-all hover:border-gray-300"
+            className="glassmorphism hover:bg-white/80 border border-gray-200 text-gray-700 px-9 py-7 text-lg rounded-xl font-semibold transition-all hover:border-gray-300"
             onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
           >
             See How It Works
@@ -74,7 +74,7 @@ const Hero = () => {
         <div className="w-full max-w-5xl mx-auto relative animate-float">
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white z-20 h-24 bottom-0 rounded-b-xl"></div>
           
-          <div className="bg-white rounded-xl shadow-premium overflow-hidden border border-slate-200/80">
+          <div className="bg-white rounded-xl shadow-premium overflow-hidden border border-slate-200/80 glassmorphism">
             <div className="w-full flex flex-col">
               {/* Mockup Header */}
               <div className="bg-slate-50 border-b border-slate-100 p-3 flex items-center">
@@ -150,28 +150,40 @@ const Hero = () => {
               <div className="marquee-content">
                 {[...Array(2)].map((_, i) => (
                   <div key={i} className="flex items-center gap-12">
-                    <div className="flex items-center gap-2 text-slate-700">
-                      <div className="w-5 h-5 rounded-full bg-blue-500/20"></div>
+                    <div className="tech-stack-item">
+                      <div className="w-5 h-5 rounded-full bg-blue-500/20 flex items-center justify-center">
+                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="text-blue-500"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                      </div>
                       <span className="font-medium">GPT-4o</span>
                     </div>
-                    <div className="flex items-center gap-2 text-slate-700">
-                      <div className="w-5 h-5 rounded-full bg-emerald-500/20"></div>
+                    <div className="tech-stack-item">
+                      <div className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500"><path d="M12 2l9 4.9V17L12 22l-9-4.9V7z"/></svg>
+                      </div>
                       <span className="font-medium">Lovable</span>
                     </div>
-                    <div className="flex items-center gap-2 text-slate-700">
-                      <div className="w-5 h-5 rounded-full bg-purple-500/20"></div>
+                    <div className="tech-stack-item">
+                      <div className="w-5 h-5 rounded-full bg-purple-500/20 flex items-center justify-center">
+                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="text-purple-500"><polyline points="4 7 4 4 20 4 20 7"></polyline><line x1="9" y1="20" x2="15" y2="20"></line><line x1="12" y1="4" x2="12" y2="20"></line><line x1="12" y1="4" x2="12" y2="20"></line></svg>
+                      </div>
                       <span className="font-medium">Supabase</span>
                     </div>
-                    <div className="flex items-center gap-2 text-slate-700">
-                      <div className="w-5 h-5 rounded-full bg-pink-500/20"></div>
+                    <div className="tech-stack-item">
+                      <div className="w-5 h-5 rounded-full bg-pink-500/20 flex items-center justify-center">
+                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="text-pink-500"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                      </div>
                       <span className="font-medium">UploadThing</span>
                     </div>
-                    <div className="flex items-center gap-2 text-slate-700">
-                      <div className="w-5 h-5 rounded-full bg-amber-500/20"></div>
+                    <div className="tech-stack-item">
+                      <div className="w-5 h-5 rounded-full bg-amber-500/20 flex items-center justify-center">
+                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                      </div>
                       <span className="font-medium">React</span>
                     </div>
-                    <div className="flex items-center gap-2 text-slate-700">
-                      <div className="w-5 h-5 rounded-full bg-cyan-500/20"></div>
+                    <div className="tech-stack-item">
+                      <div className="w-5 h-5 rounded-full bg-cyan-500/20 flex items-center justify-center">
+                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="text-cyan-500"><path d="M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7m0-18H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7m0-18v18"></path></svg>
+                      </div>
                       <span className="font-medium">Tailwind CSS</span>
                     </div>
                   </div>
@@ -180,17 +192,6 @@ const Hero = () => {
             </div>
           </div>
         </div>
-      </div>
-      
-      {/* Sticky CTA button */}
-      <div className="sticky-cta">
-        <Button
-          size="icon"
-          className="cta-gradient h-14 w-14 flex items-center justify-center"
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        >
-          <ArrowUpRight className="h-5 w-5 text-white" />
-        </Button>
       </div>
     </section>
   );
