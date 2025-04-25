@@ -26,7 +26,7 @@ export function drawMetadata(doc: jsPDF, yPos: number) {
   doc.setFontSize(styles.fontSize.normal);
   doc.setFont(styles.fonts.regular, 'bold');
   doc.setTextColor(styles.colors.blue[600]);
-  doc.text("MATCHRATE.AI", styles.margins.side, yPos);
+  doc.text("MATCHRATE.AI FEEDBACK REPORT", styles.margins.side, yPos);
   doc.setFont(styles.fonts.regular, 'normal');
   doc.setTextColor(styles.colors.black);
   

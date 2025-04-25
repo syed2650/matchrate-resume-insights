@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
@@ -67,12 +66,10 @@ const Review = () => {
     });
 
     try {
-      // Generate a hash of the inputs to check for cached scores
       const inputHash = generateHash(resume, jobDescription);
       setCurrentScoreHash(inputHash);
       storeActiveResumeATSScore(inputHash);
       
-      // Check for cached ATS scores if we're not specifically requesting a rewrite
       const cachedScore = getATSScoreFromCache(inputHash);
       console.log("Cached score found:", !!cachedScore);
 
@@ -86,7 +83,7 @@ const Review = () => {
           generateRewrite,
           multiVersion,
           skipATSCalculation: !!cachedScore,
-          scoreHash: inputHash // Pass hash to backend for consistency
+          scoreHash: inputHash
         }
       });
 
@@ -96,12 +93,10 @@ const Review = () => {
 
       console.log("Received analysis result:", data);
 
-      // Use cached ATS scores if available
       if (cachedScore) {
         console.log("Using cached ATS score from:", cachedScore.timestamp);
         data.atsScores = cachedScore.scores;
       } else if (data.atsScores) {
-        // Cache the new ATS scores
         console.log("Caching new ATS scores");
         saveATSScoreToCache(inputHash, data.atsScores);
         setCachedAtsScores(getATSScoresFromCache());
@@ -147,7 +142,12 @@ const Review = () => {
     if (!feedback) return;
     
     const doc = generatePDF(feedback);
-    doc.save("matchrate-resume-analysis.pdf");
+    doc.save("matchrate-feedback-report.pdf");
+    
+    toast({
+      title: "Success",
+      description: "Feedback report downloaded successfully",
+    });
   };
 
   const handleFeedbackSubmit = async (isHelpful: boolean) => {

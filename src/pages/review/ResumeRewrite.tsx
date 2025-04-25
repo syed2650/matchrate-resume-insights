@@ -1,9 +1,10 @@
 
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Copy, FileText, Check } from "lucide-react";
+import { Copy, FileText, Check, FilePdf } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { jsPDF } from "jspdf";
 import { getATSScoreExplanation, getATSScoreDetail, getATSScoreFromCache } from "./utils";
 import VersionSelector from "./components/VersionSelector";
 import SuggestedBullets from "./components/SuggestedBullets";
