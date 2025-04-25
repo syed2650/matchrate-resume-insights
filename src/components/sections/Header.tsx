@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -26,13 +27,13 @@ const Header = () => {
     <header className={`py-4 transition-all duration-300 ${isScrolled ? 'header-scrolled' : ''}`}>
       <div className="container max-w-screen-xl mx-auto px-4">
         <nav className="flex items-center justify-between">
-          <div className="font-bold text-2xl text-slate-800 tracking-tight select-none">
+          <div className="font-medium text-xl text-slate-700 tracking-tight">
             Matchrate.ai
           </div>
-          <div className="hidden md:flex items-center gap-8">
-            <a href="#features" className="text-slate-600 hover:text-slate-800 transition-colors duration-200">Features</a>
-            <a href="#testimonials" className="text-slate-600 hover:text-slate-800 transition-colors duration-200">Testimonials</a>
-            <a href="#pricing" className="text-slate-600 hover:text-slate-800 transition-colors duration-200">Pricing</a>
+          <div className="flex items-center gap-8">
+            <a href="#features" className="text-slate-600 hover:text-slate-800 transition-colors duration-200 hidden md:inline-block">Features</a>
+            <a href="#testimonials" className="text-slate-600 hover:text-slate-800 transition-colors duration-200 hidden md:inline-block">Testimonials</a>
+            <a href="#pricing" className="text-slate-600 hover:text-slate-800 transition-colors duration-200 hidden md:inline-block">Pricing</a>
             <Button 
               variant="default"
               className="cta-gradient text-white px-6"

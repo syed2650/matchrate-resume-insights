@@ -61,6 +61,7 @@
     @apply max-w-screen-xl mx-auto px-4 sm:px-6;
   }
   
+  /* Reduce section padding to decrease spacing between sections */
   .section-padding {
     @apply py-8 md:py-14;
   }
@@ -133,14 +134,23 @@
     transform: translateY(0);
   }
 
-  /* Built With section styling */
-  .tech-logo {
-    @apply w-10 h-10 md:w-12 md:h-12 object-contain opacity-70 hover:opacity-100 transition-opacity duration-200;
+  /* Tech stack logos - improved styling */
+  .tech-stack {
+    @apply flex items-center gap-4;
   }
 
   .tech-stack-wrapper {
     @apply flex items-center gap-8 md:gap-12;
     animation: scroll 20s linear infinite;
+  }
+
+  .tech-stack-item {
+    @apply flex items-center gap-2 px-3 py-2 bg-white/80 rounded-lg shadow-sm border border-gray-100;
+    transition: all 0.3s ease;
+  }
+  
+  .tech-stack-item:hover {
+    @apply bg-white shadow-md transform -translate-y-1;
   }
 }
 
@@ -171,7 +181,7 @@
   @apply bg-white/70 backdrop-blur-sm border border-white/50 shadow-md;
 }
 
-/* Built With section animation */
+/* Built With section animation - improved with more natural speed */
 .marquee {
   @apply flex overflow-hidden whitespace-nowrap;
 }
@@ -222,15 +232,6 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: #ccc;
-}
-
-/* Tech stack logos */
-.tech-stack {
-  @apply flex items-center gap-4;
-}
-
-.tech-stack-item {
-  @apply flex items-center gap-2 px-3 py-2 bg-white/80 rounded-lg shadow-sm border border-gray-100;
 }
 
 /* Animations */
