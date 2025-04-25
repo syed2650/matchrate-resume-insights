@@ -1,4 +1,3 @@
-
 import {
   Document,
   Paragraph,
@@ -103,7 +102,14 @@ export const generateDocument = async (
     // Add section heading
     paragraphs.push(
       new Paragraph({
-        text: sectionName.toUpperCase(),
+        children: [
+          new TextRun({
+            text: sectionName.toUpperCase(),
+            bold: true,
+            size: RESUME_STYLES.fontSize.heading * 2,
+            font: RESUME_STYLES.fonts.heading
+          })
+        ],
         heading: HeadingLevel.HEADING_1,
         spacing: { after: RESUME_STYLES.spacing.afterHeading },
         border: { 
@@ -113,8 +119,7 @@ export const generateDocument = async (
             space: 1,
             style: 'single' 
           } 
-        },
-        font: RESUME_STYLES.fonts.heading
+        }
       })
     );
     
