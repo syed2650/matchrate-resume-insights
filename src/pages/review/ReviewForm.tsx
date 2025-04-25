@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -28,12 +29,12 @@ interface ReviewFormProps {
 
 const ReviewForm = ({ onSubmit, isLoading, jobSector, setJobSector }: ReviewFormProps) => {
   const {
-    resumeText,
-    setResumeText,
-    handleResumeUpload,
-    handleResumeTextChange,
-    processingResume,
-    resumeError
+    resume,
+    setResume,
+    resumeFile,
+    isParsingResume,
+    handleFileUpload,
+    clearResume
   } = useResumeUpload();
 
   const {
@@ -52,9 +53,9 @@ const ReviewForm = ({ onSubmit, isLoading, jobSector, setJobSector }: ReviewForm
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (resumeText && (jobDescription || jobUrl)) {
+    if (resume && (jobDescription || jobUrl)) {
       onSubmit(
-        resumeText, 
+        resume, 
         jobDescription, 
         jobUrl,
         jobTitle,
@@ -65,17 +66,22 @@ const ReviewForm = ({ onSubmit, isLoading, jobSector, setJobSector }: ReviewForm
     }
   };
 
+  const handleResumeTextChange = (text: string) => {
+    // Optional: Add any additional logic for text change if needed
+  };
+
   return (
     <Card className="p-6">
       <form onSubmit={handleSubmit}>
         <div className="space-y-12">
           <ResumeUploadSection
-            resumeText={resumeText}
-            setResumeText={setResumeText}
-            onFileUpload={handleResumeUpload}
+            resumeText={resume}
+            setResumeText={setResume}
+            onFileUpload={handleFileUpload}
             onTextChange={handleResumeTextChange}
-            processingResume={processingResume}
-            resumeError={resumeError}
+            isParsingResume={isParsingResume}
+            resumeFile={resumeFile}
+            onClear={clearResume}
           />
 
           <JobDescriptionSection
@@ -91,6 +97,8 @@ const ReviewForm = ({ onSubmit, isLoading, jobSector, setJobSector }: ReviewForm
             <CompanySection
               jobTitle={jobTitle}
               setJobTitle={setJobTitle}
+              companyType={jobSector}
+              setCompanyType={setJobSector}
             />
             <CompanySectorInput
               selectedSector={jobSector}
@@ -108,7 +116,7 @@ const ReviewForm = ({ onSubmit, isLoading, jobSector, setJobSector }: ReviewForm
           <div className="flex justify-center">
             <Button
               type="submit"
-              disabled={isLoading || !resumeText || (!jobDescription && !jobUrl)}
+              disabled={isLoading || !resume || (!jobDescription && !jobUrl)}
               className="px-8 py-6 text-lg"
             >
               {isLoading ? (
@@ -128,3 +136,4 @@ const ReviewForm = ({ onSubmit, isLoading, jobSector, setJobSector }: ReviewForm
 };
 
 export default ReviewForm;
+

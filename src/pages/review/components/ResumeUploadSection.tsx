@@ -7,20 +7,22 @@ import { Loader2 } from "lucide-react";
 import { ResumeFile } from "../types";
 
 interface Props {
-  resume: string;
-  setResume: (value: string) => void;
+  resumeText: string;
+  setResumeText: (value: string) => void;
   resumeFile: ResumeFile | null;
   isParsingResume: boolean;
   onFileUpload: (file: File) => void;
+  onTextChange: (text: string) => void;
   onClear: () => void;
 }
 
-export const ResumeUploadSection: React.FC<Props> = ({
-  resume,
-  setResume,
+const ResumeUploadSection: React.FC<Props> = ({
+  resumeText,
+  setResumeText,
   resumeFile,
   isParsingResume,
   onFileUpload,
+  onTextChange,
   onClear
 }) => {
   return (
@@ -55,8 +57,11 @@ export const ResumeUploadSection: React.FC<Props> = ({
         <Textarea
           placeholder="Copy and paste your resume text here..."
           className="min-h-[200px] resize-y rounded-xl border-gray-200 focus:border-blue-400 focus:ring-blue-400"
-          value={resume}
-          onChange={(e) => setResume(e.target.value)}
+          value={resumeText}
+          onChange={(e) => {
+            setResumeText(e.target.value);
+            onTextChange(e.target.value);
+          }}
           required={!resumeFile}
         />
         
@@ -88,3 +93,6 @@ export const ResumeUploadSection: React.FC<Props> = ({
     </div>
   );
 };
+
+export default ResumeUploadSection;
+
