@@ -1,4 +1,3 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { callOpenAIForAnalysis, generateFullResumeRewrite } from "./api.ts";
@@ -137,10 +136,15 @@ serve(async (req) => {
           atsScores = {};
           
           for (const type of companyTypes) {
-            // Enhanced prompt with extracted job information
+            // Enhanced prompt with extracted job information and better STAR formatting
             const extractionPrompt = [
-              { role: "system", content: `You are an expert resume writer specializing in ${type} companies. 
-                You will create tailored bullet points for a ${selectedRole || "professional"} in the ${industryContext || type} industry.
+              { role: "system", content: `You are an elite resume writer who specializes in creating high-impact, achievement-focused bullets for ${type} companies. 
+                Your expertise is creating bullets that follow the STAR format perfectly:
+                
+                - Situation: Brief context (1-2 words max)
+                - Task: What was required (1-2 words max)
+                - Action: SPECIFICALLY what YOU did (strong verb + details)
+                - Result: Quantified outcome (%, $, time saved, etc.)
                 
                 KEY JOB INFORMATION:
                 - Industry: ${industryContext || "Not specified"}
@@ -148,18 +152,30 @@ serve(async (req) => {
                 - Key skills: ${jobKeywords.join(', ')}
                 - Core responsibilities: ${coreResponsibilities.join(', ')}
                 
-                Create 8 strong STAR-format bullet points that:
-                1. Incorporate the key skills and align with the core responsibilities
-                2. Match the industry context and writing tone
-                3. Follow the STAR format with emphasis on Action and Results
-                4. Include metrics and quantifiable achievements
-                5. Use language appropriate for ${selectedRole || "professional"} roles in ${type} companies` },
+                CREATE 8 POWERFUL BULLETS THAT:
+                1. Start with strong action verbs in past tense (Launched, Executed, Spearheaded)
+                2. Focus 70% on YOUR ACTIONS and RESULTS, minimal on situation/task
+                3. Include AT LEAST ONE NUMBER in EVERY bullet (%, $, scale, time)
+                4. Keep each bullet 1-2 lines maximum
+                5. Use concrete, specific language with zero fluff
+                6. Demonstrate outcomes and impact, not just responsibilities
+                7. Match language to ${selectedRole || "professional"} in ${type} environments
+                8. Follow this exact format: "Action verb + specific task + measurable results"
+                
+                WHAT TO AVOID:
+                - Generic language like "responsible for" or "worked on"
+                - First person pronouns (I, my, we)
+                - Present tense for past experiences
+                - Bullets without metrics
+                - Vague accomplishments
+                - Soft skills without examples` },
                 
               { role: "user", content: `Job Description: ${effectiveJobDescription}
                 Resume: ${resume}
                 
-                Please provide 8 strong, STAR-format bullet points that highlight relevant skills and achievements
-                for this ${selectedRole || "role"} at a ${type} company. Use the context and keywords provided.` }
+                Please create 8 powerful STAR-format bullet points specifically tailored for a ${selectedRole || "professional"} at a ${type} company.
+                Each bullet MUST have quantifiable metrics and demonstrate clear impact.
+                BE EXTREMELY SPECIFIC about what action was taken and what resulted.` }
             ];
             
             const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -171,7 +187,7 @@ serve(async (req) => {
               body: JSON.stringify({
                 model: 'gpt-4o',
                 messages: extractionPrompt,
-                temperature: 0.7,
+                temperature: 0, // Set temperature to 0 for more consistent results
               }),
             });
             
@@ -193,7 +209,7 @@ serve(async (req) => {
             // Only calculate ATS scores if not skipped
             if (!skipATSCalculation) {
               // Use the score hash as part of the calculation to ensure deterministic results
-              const scoreSeed = scoreHash ? `${bulletPoints}-${scoreHash}-${type}` : bulletPoints;
+              const scoreSeed = `${bulletPoints}-${scoreHash || 'default'}-${type}`;
               atsScores[type] = calculateATSScore(scoreSeed, effectiveJobDescription);
             }
           }
@@ -207,10 +223,15 @@ serve(async (req) => {
       } else if (generateRewrite) {
         // Generate one version with enhanced context
         try {
-          // Enhanced prompt with extracted job information
+          // Enhanced prompt with extracted job information and better STAR guidance
           const extractionPrompt = [
-            { role: "system", content: `You are an expert resume writer specializing in ${companyType || "various"} companies. 
-              You will create tailored bullet points for a ${selectedRole || "professional"} in the ${industryContext || companyType || "various"} industry.
+            { role: "system", content: `You are an elite resume writer who specializes in creating high-impact, achievement-focused bullets for ${companyType || "various"} companies. 
+              Your expertise is creating bullets that follow the STAR format perfectly:
+              
+              - Situation: Brief context (1-2 words max)
+              - Task: What was required (1-2 words max)
+              - Action: SPECIFICALLY what YOU did (strong verb + details)
+              - Result: Quantified outcome (%, $, time saved, etc.)
               
               KEY JOB INFORMATION:
               - Industry: ${industryContext || "Not specified"}
@@ -218,18 +239,30 @@ serve(async (req) => {
               - Key skills: ${jobKeywords.join(', ')}
               - Core responsibilities: ${coreResponsibilities.join(', ')}
               
-              Create 8 strong STAR-format bullet points that:
-              1. Incorporate the key skills and align with the core responsibilities
-              2. Match the industry context and writing tone
-              3. Follow the STAR format with emphasis on Action and Results
-              4. Include metrics and quantifiable achievements
-              5. Use language appropriate for ${selectedRole || "professional"} roles` },
+              CREATE 8 POWERFUL BULLETS THAT:
+              1. Start with strong action verbs in past tense (Launched, Executed, Spearheaded)
+              2. Focus 70% on YOUR ACTIONS and RESULTS, minimal on situation/task
+              3. Include AT LEAST ONE NUMBER in EVERY bullet (%, $, scale, time)
+              4. Keep each bullet 1-2 lines maximum
+              5. Use concrete, specific language with zero fluff
+              6. Demonstrate outcomes and impact, not just responsibilities
+              7. Match language to ${selectedRole || "professional"} roles
+              8. Follow this exact format: "Action verb + specific task + measurable results"
+              
+              WHAT TO AVOID:
+              - Generic language like "responsible for" or "worked on"
+              - First person pronouns (I, my, we)
+              - Present tense for past experiences
+              - Bullets without metrics
+              - Vague accomplishments
+              - Soft skills without examples` },
               
             { role: "user", content: `Job Description: ${effectiveJobDescription}
               Resume: ${resume}
               
-              Please provide 8 strong, STAR-format bullet points that highlight relevant skills and achievements
-              for this ${selectedRole || "role"} at a ${companyType || "typical"} company. Use the context and keywords provided.` }
+              Please create 8 powerful STAR-format bullet points specifically tailored for a ${selectedRole || "role"} at a ${companyType || "typical"} company.
+              Each bullet MUST have quantifiable metrics and demonstrate clear impact.
+              BE EXTREMELY SPECIFIC about what action was taken and what resulted.` }
           ];
           
           const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -241,7 +274,7 @@ serve(async (req) => {
             body: JSON.stringify({
               model: 'gpt-4o',
               messages: extractionPrompt,
-              temperature: 0.7,
+              temperature: 0, // Set temperature to 0 for more consistent results
             }),
           });
           
@@ -264,7 +297,7 @@ serve(async (req) => {
           // Only calculate ATS scores if not skipped
           if (!skipATSCalculation) {
             // Use the score hash as part of the calculation to ensure deterministic results
-            const scoreSeed = scoreHash ? `${bulletPoints}-${scoreHash}-${companyType || "general"}` : bulletPoints;
+            const scoreSeed = `${bulletPoints}-${scoreHash || 'default'}-${companyType || "general"}`;
             atsScores = { [companyType || "general"]: calculateATSScore(scoreSeed, effectiveJobDescription) };
           }
         } catch (error) {

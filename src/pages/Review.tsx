@@ -36,6 +36,7 @@ const Review = () => {
   const [jobSector, setJobSector] = useState<"saas" | "enterprise" | "public" | "startup" | "consulting" | "general">("general");
   const { toast } = useToast();
   const { user } = useAuthUser();
+  const [exportError, setExportError] = useState<string | null>(null);
 
   useEffect(() => {
     setCachedAtsScores(getATSScoresFromCache());
@@ -57,6 +58,7 @@ const Review = () => {
     multiVersion?: boolean
   ) => {
     setIsLoading(true);
+    setExportError(null);
     console.log("🚀 Processing review request with inputs:", { 
       resumeLength: resume?.length, 
       jobDescriptionLength: jobDescription?.length,
@@ -142,15 +144,34 @@ const Review = () => {
   };
 
   const handleExportPDF = () => {
-    if (!feedback) return;
+    if (!feedback) {
+      toast({
+        title: "Error",
+        description: "No feedback to export",
+        variant: "destructive"
+      });
+      return;
+    }
     
-    const doc = generatePDF(feedback);
-    doc.save("matchrate-feedback-report.pdf");
-    
-    toast({
-      title: "Success",
-      description: "Feedback report downloaded successfully",
-    });
+    try {
+      setExportError(null);
+      console.log("Generating PDF...");
+      const doc = generatePDF(feedback);
+      doc.save("matchrate-feedback-report.pdf");
+      
+      toast({
+        title: "Success",
+        description: "Feedback report downloaded successfully",
+      });
+    } catch (error) {
+      console.error("Error exporting PDF:", error);
+      setExportError("Failed to generate PDF: " + (error.message || "Unknown error"));
+      toast({
+        title: "Export Failed",
+        description: "Could not generate PDF report. Try again or contact support.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleFeedbackSubmit = async (isHelpful: boolean) => {
@@ -202,6 +223,12 @@ const Review = () => {
               setActiveTab={setActiveTab}
               hasRewrite={!!feedback.rewrittenResume}
             />
+
+            {exportError && (
+              <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-md mb-4">
+                {exportError}
+              </div>
+            )}
 
             {activeTab === 'analysis' ? (
               <>

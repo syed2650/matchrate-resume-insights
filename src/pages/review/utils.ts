@@ -1,4 +1,3 @@
-
 /**
  * Utility functions for resume reviews
  */
@@ -44,7 +43,7 @@ export function getATSScoreDetail(score: number): string {
   }
 }
 
-// Cache management functions for ATS scores
+// Cache management functions for ATS scores with improved error handling
 export function saveATSScoreToCache(hash: string, scores: Record<string, number>) {
   try {
     // Get existing cache
@@ -56,13 +55,13 @@ export function saveATSScoreToCache(hash: string, scores: Record<string, number>
       cachedScores[existingIndex] = {
         hash,
         scores,
-        timestamp: new Date().toLocaleString()
+        timestamp: new Date().toISOString() // Use ISO string format for better consistency
       };
     } else {
       cachedScores.push({
         hash,
         scores,
-        timestamp: new Date().toLocaleString()
+        timestamp: new Date().toISOString()
       });
     }
     
@@ -73,6 +72,7 @@ export function saveATSScoreToCache(hash: string, scores: Record<string, number>
     
     // Save updated cache
     localStorage.setItem('cachedATSScores', JSON.stringify(cachedScores));
+    console.log(`Saved ATS scores for hash: ${hash} to cache`);
     return true;
   } catch (error) {
     console.error("Error saving ATS score to cache:", error);
@@ -83,7 +83,9 @@ export function saveATSScoreToCache(hash: string, scores: Record<string, number>
 export function getATSScoresFromCache() {
   try {
     const storedScores = localStorage.getItem('cachedATSScores');
-    return storedScores ? JSON.parse(storedScores) : [];
+    const parsedScores = storedScores ? JSON.parse(storedScores) : [];
+    console.log(`Retrieved ${parsedScores.length} cached ATS scores`);
+    return parsedScores;
   } catch (error) {
     console.error("Error loading cached scores:", error);
     return [];
@@ -91,8 +93,19 @@ export function getATSScoresFromCache() {
 }
 
 export function getATSScoreFromCache(hash: string) {
-  const cachedScores = getATSScoresFromCache();
-  return cachedScores.find(item => item.hash === hash);
+  try {
+    const cachedScores = getATSScoresFromCache();
+    const result = cachedScores.find(item => item.hash === hash);
+    if (result) {
+      console.log(`Found cached ATS scores for hash: ${hash} from ${result.timestamp}`);
+    } else {
+      console.log(`No cached ATS scores found for hash: ${hash}`);
+    }
+    return result;
+  } catch (error) {
+    console.error("Error retrieving ATS score from cache:", error);
+    return null;
+  }
 }
 
 export function clearATSScoreCache() {

@@ -17,40 +17,54 @@ export const generatePDF = (feedback: Feedback): jsPDF => {
     unit: 'mm',
   });
 
-  // Configure document styles
-  configurePDFStyles(doc);
-  
-  // Calculate usable width
-  const pageWidth = doc.internal.pageSize.width;
-  
-  // Add header
-  drawHeader(doc, pageWidth);
-  
-  // Track y position as we add content
-  let yPos = 40;
-  
-  // Add metadata
-  yPos = drawMetadata(doc, yPos);
-  
-  // Add scores section
-  yPos = drawScores(doc, feedback, pageWidth, yPos);
-  
-  // Add missing keywords
-  yPos = drawMissingKeywords(doc, feedback, pageWidth, yPos);
-  
-  // Add section feedback
-  yPos = drawSectionFeedback(doc, feedback, pageWidth, yPos);
-  
-  // Add weak bullet improvements
-  yPos = drawWeakBullets(doc, feedback, pageWidth, yPos);
-  
-  // Add final sections
-  yPos = drawFinalSection(doc, feedback, pageWidth, yPos);
+  try {
+    // Configure document styles
+    configurePDFStyles(doc);
+    
+    // Calculate usable width
+    const pageWidth = doc.internal.pageSize.width;
+    
+    // Add header
+    drawHeader(doc, pageWidth);
+    
+    // Track y position as we add content
+    let yPos = 40;
+    
+    // Add metadata
+    yPos = drawMetadata(doc, yPos);
+    
+    // Add scores section
+    yPos = drawScores(doc, feedback, pageWidth, yPos);
+    
+    // Add missing keywords
+    yPos = drawMissingKeywords(doc, feedback, pageWidth, yPos);
+    
+    // Add section feedback
+    yPos = drawSectionFeedback(doc, feedback, pageWidth, yPos);
+    
+    // Add weak bullet improvements
+    yPos = drawWeakBullets(doc, feedback, pageWidth, yPos);
+    
+    // Add final sections
+    yPos = drawFinalSection(doc, feedback, pageWidth, yPos);
 
-  // Add footers to all pages
-  addFooters(doc);
+    // Add footers to all pages
+    addFooters(doc);
 
-  return doc;
+    console.log("PDF generation completed successfully");
+    return doc;
+  } catch (error) {
+    console.error("Error generating PDF:", error);
+    // Create a basic error PDF instead of failing completely
+    doc.setFontSize(16);
+    doc.setTextColor(255, 0, 0);
+    doc.text("Error generating full report", 20, 20);
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text("Please try again or contact support if the issue persists.", 20, 30);
+    doc.text("Error details: " + (error.message || "Unknown error"), 20, 40);
+    return doc;
+  }
 };
 
 export default generatePDF;
