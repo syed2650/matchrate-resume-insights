@@ -24,12 +24,15 @@ export const useResumeVersion = ({
       if (activeHash) {
         setSessionHash(activeHash);
       }
+    } else if (scoreHash !== sessionHash) {
+      // Update session hash when score hash changes to maintain consistency
+      setSessionHash(scoreHash);
     }
     
     if (!generatedTimestamp) {
       setGeneratedTimestamp(new Date().toLocaleString());
     }
-  }, [rewrittenResume, generatedTimestamp, scoreHash]);
+  }, [rewrittenResume, generatedTimestamp, scoreHash, sessionHash]);
 
   useEffect(() => {
     if (rewrittenResume) {

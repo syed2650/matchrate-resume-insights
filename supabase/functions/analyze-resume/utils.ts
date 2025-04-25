@@ -1,3 +1,4 @@
+
 function hashCode(str: string): number {
   let hash = 0;
   if (str.length === 0) return hash;
@@ -14,7 +15,7 @@ function hashCode(str: string): number {
 export function calculateATSScore(input: string, jobDescription: string): number {
   // Use a stable scoring algorithm based on a consistent hash
   // This ensures the same input always produces the same score
-  let combinedInput = input;
+  const combinedInput = input + jobDescription;
   
   // Extract a stable seed from the combined input
   const hash = Math.abs(hashCode(combinedInput));
@@ -25,10 +26,10 @@ export function calculateATSScore(input: string, jobDescription: string): number
   
   // Add a small stable variation to make scores look less artificial
   const variationFactor = (hash % 100) / 100; // Between 0-0.99
-  const finalScore = Math.min(99, Math.max(60, baseScore + (variationFactor < 0.5 ? -1 : 1)));
+  const finalScore = Math.min(99, Math.max(60, Math.round(baseScore + (variationFactor < 0.5 ? -1 : 1))));
   
   console.log(`Calculated ATS score: ${finalScore} from hash: ${hash}`);
-  return Math.round(finalScore);
+  return finalScore;
 }
 
 export function getATSScoreExplanation(score: number): string {

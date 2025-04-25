@@ -8,6 +8,9 @@ interface VersionSelectorProps {
 }
 
 const VersionSelector = ({ activeVersion, atsScores, onVersionChange }: VersionSelectorProps) => {
+  // Create a copy of the scores object to avoid unwanted modifications
+  const scoreValues = {...atsScores};
+  
   return (
     <Tabs 
       value={activeVersion} 
@@ -17,25 +20,25 @@ const VersionSelector = ({ activeVersion, atsScores, onVersionChange }: VersionS
       <TabsList className="grid w-full grid-cols-3">
         <TabsTrigger value="startup">
           Startup Version
-          {atsScores["startup"] && (
+          {scoreValues["startup"] && (
             <span className="ml-2 text-xs font-medium bg-blue-100 text-blue-800 rounded-full px-2 py-0.5">
-              {atsScores["startup"]}
+              {scoreValues["startup"]}
             </span>
           )}
         </TabsTrigger>
         <TabsTrigger value="enterprise">
           Enterprise Version
-          {atsScores["enterprise"] && (
+          {scoreValues["enterprise"] && (
             <span className="ml-2 text-xs font-medium bg-blue-100 text-blue-800 rounded-full px-2 py-0.5">
-              {atsScores["enterprise"]}
+              {scoreValues["enterprise"]}
             </span>
           )}
         </TabsTrigger>
         <TabsTrigger value="consulting">
           Consulting Version
-          {atsScores["consulting"] && (
+          {scoreValues["consulting"] && (
             <span className="ml-2 text-xs font-medium bg-blue-100 text-blue-800 rounded-full px-2 py-0.5">
-              {atsScores["consulting"]}
+              {scoreValues["consulting"]}
             </span>
           )}
         </TabsTrigger>

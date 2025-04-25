@@ -18,8 +18,16 @@ export const generatePDF = (feedback: Feedback): jsPDF => {
   });
 
   try {
-    // Configure document styles
+    // Configure document styles and add standard fonts
     configurePDFStyles(doc);
+    
+    // Register needed fonts
+    doc.addFont("helvetica", "normal");
+    doc.addFont("helvetica", "bold");
+    doc.addFont("helvetica", "italic");
+    
+    // Set initial font for the document
+    doc.setFont("helvetica", "normal");
     
     // Calculate usable width
     const pageWidth = doc.internal.pageSize.width;
