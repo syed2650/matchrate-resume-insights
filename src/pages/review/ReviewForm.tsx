@@ -1,164 +1,126 @@
-
-import React, { useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { FileText, Loader2 } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
-import { useToast } from "@/hooks/use-toast";
-
-import { ResumeUploadSection } from "./components/ResumeUploadSection";
+import { Loader2 } from "lucide-react";
+import ResumeUploadSection from "./components/ResumeUploadSection";
 import { JobDescriptionSection } from "./components/JobDescriptionSection";
+import { ExtractionStatus } from "./types";
+import { useJobDescription } from "./hooks/useJobDescription";
+import { useResumeUpload } from "./hooks/useResumeUpload";
 import { CompanySection } from "./components/CompanySection";
 import { OutputOptionsSection } from "./components/OutputOptionsSection";
-import { useResumeUpload } from "./hooks/useResumeUpload";
-import { useJobDescription } from "./hooks/useJobDescription";
+import CompanySectorInput from "./components/CompanySectorInput";
 
-interface Props {
+interface ReviewFormProps {
   onSubmit: (
     resume: string,
     jobDescription: string,
-    jobUrl?: string,
-    role?: string,
+    jobUrl?: string, 
+    jobTitle?: string,
     companyType?: string,
     generateRewrite?: boolean,
     multiVersion?: boolean
-  ) => Promise<void>;
+  ) => void;
   isLoading: boolean;
+  jobSector: "saas" | "enterprise" | "public" | "startup" | "consulting" | "general";
+  setJobSector: (sector: "saas" | "enterprise" | "public" | "startup" | "consulting" | "general") => void;
 }
 
-const ReviewForm: React.FC<Props> = ({ onSubmit, isLoading }) => {
-  const [jobTitle, setJobTitle] = useState("");
-  const [companyType, setCompanyType] = useState<string>("general");
-  const [generateRewrite, setGenerateRewrite] = useState(false);
-  const [multiVersion, setMultiVersion] = useState(false);
-  const [analysisError, setAnalysisError] = useState<string | null>(null);
-  const { toast } = useToast();
-  
+const ReviewForm = ({ onSubmit, isLoading, jobSector, setJobSector }: ReviewFormProps) => {
   const {
-    resume,
-    setResume,
-    resumeFile,
-    isParsingResume,
-    handleFileUpload,
-    clearResume
+    resumeText,
+    setResumeText,
+    handleResumeUpload,
+    handleResumeTextChange,
+    processingResume,
+    resumeError
   } = useResumeUpload();
-  
+
   const {
     jobDescription,
     setJobDescription,
     jobUrl,
     setJobUrl,
     extractionStatus,
-    handleUrlPaste
+    handleExtractJobDescription
   } = useJobDescription();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const [jobTitle, setJobTitle] = useState<string>("");
+  const [generateRewrite, setGenerateRewrite] = useState<boolean>(true);
+  const [multiVersion, setMultiVersion] = useState<boolean>(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setAnalysisError(null);
     
-    if (!resume && !resumeFile) {
-      toast({
-        title: "Resume required",
-        description: "Please paste your resume text or upload a resume file",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    if (!jobDescription && !jobUrl) {
-      toast({
-        title: "Job information required",
-        description: "Please paste a job description or provide a job URL",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    try {
-      await onSubmit(
-        resume, 
+    if (resumeText && (jobDescription || jobUrl)) {
+      onSubmit(
+        resumeText, 
         jobDescription, 
-        jobUrl, 
-        jobTitle, 
-        companyType, 
+        jobUrl,
+        jobTitle,
+        jobSector,
         generateRewrite,
         multiVersion
       );
-    } catch (error) {
-      console.error("Error submitting form:", error);
-      setAnalysisError(error instanceof Error ? error.message : "An unexpected error occurred during analysis");
-      
-      toast({
-        title: "Analysis failed",
-        description: "There was a problem analyzing your resume. Please try again.",
-        variant: "destructive"
-      });
     }
   };
 
   return (
-    <Card className="p-6 shadow-md rounded-xl border border-gray-200 bg-white">
-      <form onSubmit={handleSubmit} className="space-y-8">
-        <ResumeUploadSection
-          resume={resume}
-          setResume={setResume}
-          resumeFile={resumeFile}
-          isParsingResume={isParsingResume}
-          onFileUpload={handleFileUpload}
-          onClear={clearResume}
-        />
+    <Card className="p-6">
+      <form onSubmit={handleSubmit}>
+        <div className="space-y-12">
+          <ResumeUploadSection
+            resumeText={resumeText}
+            setResumeText={setResumeText}
+            onFileUpload={handleResumeUpload}
+            onTextChange={handleResumeTextChange}
+            processingResume={processingResume}
+            resumeError={resumeError}
+          />
 
-        <JobDescriptionSection
-          jobDescription={jobDescription}
-          setJobDescription={setJobDescription}
-          jobUrl={jobUrl}
-          setJobUrl={setJobUrl}
-          extractionStatus={extractionStatus}
-          onExtract={handleUrlPaste}
-        />
+          <JobDescriptionSection
+            jobDescription={jobDescription}
+            setJobDescription={setJobDescription}
+            jobUrl={jobUrl}
+            setJobUrl={setJobUrl}
+            extractionStatus={extractionStatus as ExtractionStatus}
+            onExtract={handleExtractJobDescription}
+          />
 
-        <CompanySection
-          jobTitle={jobTitle}
-          setJobTitle={setJobTitle}
-          companyType={companyType}
-          setCompanyType={setCompanyType}
-        />
-
-        <Separator className="my-6" />
-        
-        <OutputOptionsSection
-          generateRewrite={generateRewrite}
-          setGenerateRewrite={setGenerateRewrite}
-          multiVersion={multiVersion}
-          setMultiVersion={setMultiVersion}
-        />
-        
-        {analysisError && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-            <p className="font-medium">Analysis failed</p>
-            <p className="text-sm mt-1">{analysisError}</p>
-            <p className="text-sm mt-2">Please try again or contact support if this persists.</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <CompanySection
+              jobTitle={jobTitle}
+              setJobTitle={setJobTitle}
+            />
+            <CompanySectorInput
+              selectedSector={jobSector}
+              onSectorChange={setJobSector}
+            />
           </div>
-        )}
-        
-        <div className="flex justify-center pt-4">
-          <Button
-            type="submit"
-            className="bg-blue-600 hover:bg-blue-700 text-lg py-6 px-8 rounded-xl transition-all shadow-lg hover:shadow-xl"
-            disabled={isLoading || isParsingResume || (!resume && !resumeFile)}
-          >
-            {isLoading ? (
-              <div className="flex items-center gap-2">
-                <Loader2 className="h-5 w-5 animate-spin" />
-                Analyzing...
-              </div>
-            ) : (
-              <>
-                <FileText className="mr-2 h-5 w-5" />
-                Analyze My Resume
-              </>
-            )}
-          </Button>
+
+          <OutputOptionsSection
+            generateRewrite={generateRewrite}
+            setGenerateRewrite={setGenerateRewrite}
+            multiVersion={multiVersion}
+            setMultiVersion={setMultiVersion}
+          />
+
+          <div className="flex justify-center">
+            <Button
+              type="submit"
+              disabled={isLoading || !resumeText || (!jobDescription && !jobUrl)}
+              className="px-8 py-6 text-lg"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  Analyzing Resume...
+                </>
+              ) : (
+                "Analyze My Resume"
+              )}
+            </Button>
+          </div>
         </div>
       </form>
     </Card>

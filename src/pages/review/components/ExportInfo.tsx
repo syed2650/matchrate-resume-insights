@@ -1,31 +1,28 @@
 
 import React from "react";
 import { Info } from "lucide-react";
-import { Card } from "@/components/ui/card";
 
-export const ExportInfo = () => {
+export const ExportInfo: React.FC = () => {
   return (
-    <Card className="bg-blue-50 p-4 space-y-3 text-sm text-blue-700">
-      <div className="flex items-start gap-2">
-        <Info className="h-5 w-5 mt-0.5 flex-shrink-0" />
-        <p>
-          <strong>About ATS Scores:</strong> Scores are locked to this version of your resume and won't change unless you update your input. They reflect structure, keywords, and formatting compatibility.
-        </p>
+    <div className="bg-white border border-blue-100 rounded-lg p-4 text-sm text-slate-700 space-y-3">
+      <div className="flex gap-2 items-center">
+        <Info className="h-4 w-4 text-blue-500" />
+        <h4 className="font-medium">About Resume Exports</h4>
       </div>
       
-      <div className="flex items-start gap-2">
-        <Info className="h-5 w-5 mt-0.5 flex-shrink-0" />
+      <div className="space-y-2 pl-6">
         <p>
-          <strong>Resume Suggestions:</strong> Bullet point improvements are tailored to this specific job description. Replace your original bullets with these for better alignment with the role.
+          <span className="font-medium text-blue-700">🧠 ATS Compatibility:</span> Scores are locked to this version of your resume and won't change unless you modify your input.
+        </p>
+        
+        <p>
+          <span className="font-medium text-blue-700">🎯 Bullet Points:</span> Suggested rewrites are tailored to this specific job description and follow the STAR format for better impact.
+        </p>
+        
+        <p>
+          <span className="font-medium text-blue-700">📎 Document Format:</span> The .docx export is job-ready and compatible with all major ATS platforms. It preserves proper formatting while keeping a clean structure.
         </p>
       </div>
-      
-      <div className="flex items-start gap-2">
-        <Info className="h-5 w-5 mt-0.5 flex-shrink-0" />
-        <p>
-          <strong>Export Options:</strong> Download your resume in ATS-friendly formats (.docx recommended). Our templates ensure compatibility with major applicant tracking systems.
-        </p>
-      </div>
-    </Card>
+    </div>
   );
 };

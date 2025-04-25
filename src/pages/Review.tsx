@@ -33,6 +33,7 @@ const Review = () => {
   const [activeTab, setActiveTab] = useState<'analysis' | 'rewrite'>('analysis');
   const [cachedAtsScores, setCachedAtsScores] = useState<CachedATSScore[]>([]);
   const [currentScoreHash, setCurrentScoreHash] = useState<string | null>(null);
+  const [jobSector, setJobSector] = useState<"saas" | "enterprise" | "public" | "startup" | "consulting" | "general">("general");
   const { toast } = useToast();
   const { user } = useAuthUser();
 
@@ -61,7 +62,7 @@ const Review = () => {
       jobDescriptionLength: jobDescription?.length,
       jobUrl, 
       jobTitle,
-      companyType,
+      companyType: companyType || jobSector,
       generateRewrite,
       multiVersion
     });
@@ -80,7 +81,7 @@ const Review = () => {
           jobDescription, 
           jobUrl, 
           selectedRole: jobTitle || "General",
-          companyType,
+          companyType: companyType || jobSector,
           generateRewrite,
           multiVersion,
           skipATSCalculation: !!cachedScore,
@@ -111,7 +112,8 @@ const Review = () => {
           job_url: jobUrl,
           selected_role: jobTitle as any,
           feedback_results: data,
-          user_id: user?.id ?? null
+          user_id: user?.id ?? null,
+          job_sector: jobSector
         })
         .select('id')
         .single();
@@ -184,7 +186,12 @@ const Review = () => {
       </h1>
 
       {!feedback ? (
-        <ReviewForm onSubmit={handleFormSubmit} isLoading={isLoading} />
+        <ReviewForm 
+          onSubmit={handleFormSubmit} 
+          isLoading={isLoading}
+          jobSector={jobSector}
+          setJobSector={setJobSector} 
+        />
       ) : (
         <Card className="p-6 shadow-md rounded-xl">
           <div className="space-y-8">
@@ -213,6 +220,7 @@ const Review = () => {
                 atsScores={feedback.atsScores}
                 scoreHash={currentScoreHash}
                 jobContext={feedback.jobContext}
+                jobSector={jobSector}
               />
             )}
 

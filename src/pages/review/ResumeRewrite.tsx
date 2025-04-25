@@ -10,6 +10,8 @@ import SuggestedBullets from "./components/SuggestedBullets";
 import { useResumeVersion } from "./hooks/useResumeVersion";
 import { generateDocument } from "./utils/docGenerator";
 import { ExportInfo } from "./components/ExportInfo";
+import InterviewReadyIndicator from "./components/InterviewReadyIndicator";
+import BulletRewriteSuggestions from "./components/BulletRewriteSuggestions";
 
 interface ResumeRewriteProps {
   rewrittenResume: any;
@@ -21,18 +23,21 @@ interface ResumeRewriteProps {
     industry: string;
     tone: string;
   };
+  jobSector?: string;
 }
 
 const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ 
   rewrittenResume, 
   atsScores = {},
   scoreHash = null,
-  jobContext
+  jobContext,
+  jobSector = "general"
 }) => {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
-  const [activeVersion, setActiveVersion] = useState<string>("startup");
+  const [activeVersion, setActiveVersion] = useState<string>(jobSector || "startup");
   const [stableAtsScores, setStableAtsScores] = useState<Record<string, number>>(atsScores);
+  const [originalBullets, setOriginalBullets] = useState<string[]>([]);
 
   const { 
     hasMultipleVersions, 
@@ -54,12 +59,30 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
     }
   }, [scoreHash, atsScores]);
 
+  useEffect(() => {
+    const extractBullets = (text: string): string[] => {
+      const bulletPattern = /^(?:\*|\-)\s+(.+?)$/gm;
+      const bullets: string[] = [];
+      let match;
+      
+      while ((match = bulletPattern.exec(text)) !== null) {
+        if (match[1]) bullets.push(match[1]);
+      }
+      
+      return bullets.slice(0, 5);
+    };
+    
+    setOriginalBullets(extractBullets(currentResume));
+  }, [currentResume]);
+
   const currentAtsScore = hasMultipleVersions
     ? stableAtsScores[activeVersion] || 0
     : (typeof stableAtsScores === 'object' && Object.values(stableAtsScores)[0]) || 0;
     
   const roleSummaryMatch = currentResume.match(/This resume is optimized for(?: a)?:? (.*?)(\n|$)/);
   const roleSummary = roleSummaryMatch ? roleSummaryMatch[1].trim() : "";
+
+  const isInterviewReady = currentAtsScore >= 75;
 
   const handleCopyToClipboard = () => {
     if (currentResume) {
@@ -122,56 +145,47 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
     try {
       const doc = new jsPDF();
       
-      // Add title
       doc.setFontSize(16);
       doc.setFont("helvetica", "bold");
       doc.text("Optimized Resume", 20, 20);
       
-      // Add role summary if available
       if (roleSummary) {
         doc.setFontSize(12);
         doc.setFont("helvetica", "italic");
         doc.text(`Optimized for: ${roleSummary}`, 20, 30);
       }
       
-      // Add ATS score
       doc.setFontSize(12);
       doc.setFont("helvetica", "normal");
       doc.text(`ATS Compatibility Score: ${currentAtsScore}/100`, 20, 40);
       
-      // Add resume content with proper line breaks
       doc.setFontSize(11);
       const textLines = currentResume
-        .replace(/#{1,3}\s+/g, "") // Remove markdown headings
+        .replace(/#{1,3}\s+/g, "")
         .split("\n")
         .filter(line => line.trim() !== "");
       
       let yPosition = 55;
       
       textLines.forEach(line => {
-        // Process bullet points
         if (line.startsWith("* ") || line.startsWith("- ")) {
           line = "• " + line.substring(2);
         }
         
-        // Add the line with word wrapping
         const splitLines = doc.splitTextToSize(line, 170);
         doc.text(splitLines, 20, yPosition);
         yPosition += 7 * splitLines.length;
         
-        // Add extra space after what appears to be a section header
         if (line === line.toUpperCase() && line.length < 30) {
           yPosition += 3;
         }
         
-        // Add a new page if needed
         if (yPosition > 280) {
           doc.addPage();
           yPosition = 20;
         }
       });
       
-      // Add timestamp
       if (generatedTimestamp) {
         doc.setFontSize(8);
         doc.setTextColor(100, 100, 100);
@@ -326,6 +340,8 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
         />
       )}
       
+      <InterviewReadyIndicator isReady={isInterviewReady} score={currentAtsScore} />
+      
       {renderJobContext()}
       
       <div className="border rounded-xl p-6 bg-white shadow-md overflow-auto max-h-[600px]">
@@ -335,6 +351,11 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
       </div>
       
       <ExportInfo />
+      
+      <BulletRewriteSuggestions 
+        originalBullets={originalBullets} 
+        suggestedBullets={suggestedBulletPoints} 
+      />
       
       <SuggestedBullets bullets={suggestedBulletPoints} />
       
@@ -372,6 +393,9 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
             {activeVersion === 'startup' && 'Optimized for startup environments. Emphasizes versatility, hands-on execution, and cross-functional skills.'}
             {activeVersion === 'enterprise' && 'Tailored for enterprise roles. Highlights process knowledge, scalability expertise, and enterprise-level impact.'}
             {activeVersion === 'consulting' && 'Crafted for consulting positions. Focuses on client management, adaptability, and structured problem-solving.'}
+            {activeVersion === 'saas' && 'Customized for SaaS companies. Emphasizes product knowledge, user experience, and growth metrics.'}
+            {activeVersion === 'public' && 'Formatted for public sector positions. Highlights compliance, policy knowledge, and stakeholder management.'}
+            {activeVersion === 'general' && 'Standard professional format suitable for most industries. Balanced emphasis on skills, experience, and achievements.'}
           </p>
         </div>
       )}
