@@ -257,6 +257,37 @@ const data = await response.json();
             {activeTab === 'analysis' ? (
               <>
                 <ResultList feedback={feedback} />
+                {/* 🎯 Skill Gap Checklist */}
+{feedback?.missingKeywords && feedback.missingKeywords.length > 0 && (
+  <div className="p-4 bg-white rounded-xl shadow-md my-6">
+    <h2 className="text-xl font-semibold mb-2">Skill Gap Checklist</h2>
+    <ul className="list-disc pl-5">
+      {feedback.missingKeywords.map((keyword, index) => (
+        <li key={index} className="text-red-600 font-semibold">
+          {keyword}
+        </li>
+      ))}
+    </ul>
+  </div>
+)}
+
+{/* 🎯 Tone Suggestions */}
+{feedback?.toneSuggestions && (
+  <div className="p-4 bg-white rounded-xl shadow-md my-6">
+    <h2 className="text-xl font-semibold mb-2">Tone & Writing Style Feedback</h2>
+    <p className="text-gray-700">{feedback.toneSuggestions}</p>
+  </div>
+)}
+
+{/* 🎯 Resume Match Score */}
+{feedback?.score && (
+  <div className="p-6 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-2xl text-center my-6">
+    <h2 className="text-3xl font-bold mb-2">Your Resume Match Score</h2>
+    <p className="text-5xl font-bold">{feedback.score}%</p>
+    <p className="mt-2 text-lg">Good start — but aim for 80%+ to maximize your chances.</p>
+  </div>
+)}
+
                 <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 text-sm text-slate-600">
                   <p>
                     <strong>About Our Analysis:</strong> AI analysis is based on your most recent inputs. 
