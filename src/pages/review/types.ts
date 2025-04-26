@@ -1,3 +1,4 @@
+
 export interface Feedback {
   score: number;
   missingKeywords: string[];
@@ -7,12 +8,19 @@ export interface Feedback {
   wouldInterview: string;
   rewrittenResume?: any; // Can be string or object with version keys
   atsScores?: Record<string, number>;
-  jobContext?: {
-    keywords: string[];
-    responsibilities: string[];
-    industry: string;
-    tone: string;
-  };
+  jobContext?: JobContext;
+  // Add missing fields for Supabase storage
+  resume?: string;
+  jobDescription?: string;
+  jobUrl?: string;
+  jobTitle?: string;
+}
+
+export interface JobContext {
+  keywords: string[];
+  responsibilities: string[];
+  industry: string;
+  tone: string;
 }
 
 export type ExtractionStatus = 

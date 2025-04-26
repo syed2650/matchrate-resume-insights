@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { jsPDF } from "jspdf";
+import { Badge } from "@/components/ui/badge"; // Import Badge
 import { getATSScoreExplanation, getATSScoreDetail, getATSScoreFromCache } from "./utils";
 import { useResumeVersion } from "./hooks/useResumeVersion";
 import { generateDocument } from "./utils/docGenerator";

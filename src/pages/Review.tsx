@@ -21,14 +21,27 @@ const Review = () => {
     setHelpfulFeedback(null);
 
     try {
+      // Prepare feedback_results to match supabase Json type
+      const feedbackResults = {
+        score: data.score,
+        missingKeywords: data.missingKeywords,
+        sectionFeedback: data.sectionFeedback,
+        weakBullets: data.weakBullets,
+        toneSuggestions: data.toneSuggestions,
+        wouldInterview: data.wouldInterview,
+        rewrittenResume: data.rewrittenResume,
+        atsScores: data.atsScores,
+        jobContext: data.jobContext
+      };
+
       const { data: submissionData, error: submissionError } = await supabase
         .from('submissions')
         .insert({
-          resume_text: data.resume,
-          job_description: data.jobDescription,
-          job_url: data.jobUrl,
-          selected_role: data.jobTitle as any,
-          feedback_results: data,
+          resume_text: data.resume || "",
+          job_description: data.jobDescription || "",
+          job_url: data.jobUrl || null,
+          selected_role: data.jobTitle as any || null,
+          feedback_results: feedbackResults,
           user_id: user?.id ?? null
         })
         .select('id')

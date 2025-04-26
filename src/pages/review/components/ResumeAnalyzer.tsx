@@ -37,7 +37,17 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading }: ResumeAnalyzerProps) 
       });
 
       const data = await response.json();
-      onAnalysisComplete(data);
+      
+      // Add required properties for storage
+      const enhancedData = {
+        ...data,
+        resume,
+        jobDescription,
+        jobUrl,
+        jobTitle
+      };
+      
+      onAnalysisComplete(enhancedData);
     } catch (error) {
       console.error("Error analyzing resume:", error);
       toast({
