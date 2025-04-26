@@ -1,5 +1,4 @@
-
-import React from "react";
+import React, { useState, useEffect } from "react";
 import ResultSection from "./ResultSection";
 import { Feedback } from "./types";
 import { 
@@ -19,16 +18,47 @@ interface ResultListProps {
 }
 
 const ResultList = ({ feedback }: ResultListProps) => {
-  // Determine score class based on score value
+  const [animatedScore, setAnimatedScore] = useState(0);
+  const [animatedATSScore, setAnimatedATSScore] = useState(0);
+
   const getScoreClass = (score: number) => {
     if (score >= 80) return "score-high";
     if (score >= 60) return "score-medium";
     return "score-low";
   };
-  
-  // Calculate ATS readiness score (simplified version)
+
   const atsScore = Math.min(95, Math.max(40, feedback.score + Math.floor(Math.random() * 15) - 5));
-  
+
+  useEffect(() => {
+    if (feedback?.score) {
+      let current = 0;
+      const interval = setInterval(() => {
+        if (current < feedback.score) {
+          current += 1;
+          setAnimatedScore(current);
+        } else {
+          clearInterval(interval);
+        }
+      }, 20);
+      return () => clearInterval(interval);
+    }
+  }, [feedback?.score]);
+
+  useEffect(() => {
+    if (atsScore) {
+      let currentATS = 0;
+      const atsInterval = setInterval(() => {
+        if (currentATS < atsScore) {
+          currentATS += 1;
+          setAnimatedATSScore(currentATS);
+        } else {
+          clearInterval(atsInterval);
+        }
+      }, 20);
+      return () => clearInterval(atsInterval);
+    }
+  }, [atsScore]);
+
   return (
     <div className="grid gap-8">
       <div className="grid md:grid-cols-2 gap-6">
@@ -38,8 +68,8 @@ const ResultList = ({ feedback }: ResultListProps) => {
             <h3 className="text-xl font-bold text-gray-900">Relevance Score</h3>
           </div>
           <div className="flex items-center gap-3">
-            <span className={`text-5xl font-bold ${getScoreClass(feedback.score)}`}>
-              {feedback.score}
+            <span className={`text-5xl font-bold ${getScoreClass(animatedScore)}`}>
+              {animatedScore}
             </span>
             <span className="text-2xl text-gray-500">/100</span>
           </div>
@@ -51,15 +81,15 @@ const ResultList = ({ feedback }: ResultListProps) => {
               : "Low match. Significant changes recommended to align with this role."}
           </p>
         </div>
-        
+
         <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
           <div className="flex items-center gap-3 mb-4">
             <FileSearch className="h-6 w-6 text-blue-600" />
             <h3 className="text-xl font-bold text-gray-900">ATS Readiness</h3>
           </div>
           <div className="flex items-center gap-3">
-            <span className={`text-5xl font-bold ${getScoreClass(atsScore)}`}>
-              {atsScore}
+            <span className={`text-5xl font-bold ${getScoreClass(animatedATSScore)}`}>
+              {animatedATSScore}
             </span>
             <span className="text-2xl text-gray-500">/100</span>
           </div>
@@ -80,9 +110,9 @@ const ResultList = ({ feedback }: ResultListProps) => {
           feedback.missingKeywords && feedback.missingKeywords.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {feedback.missingKeywords.map((keyword: string, i: number) => (
-                <div key={i} className="flex items-center gap-2 bg-blue-50 px-3 py-1.5 rounded-lg">
-                  <AlertCircle className="h-4 w-4 text-amber-600" />
-                  <span className="text-slate-700 font-medium">{keyword}</span>
+                <div key={i} className="flex items-center gap-2 bg-red-50 px-3 py-1.5 rounded-lg">
+                  <span className="text-2xl text-red-600">❌</span>
+                  <span className="text-slate-700 font-semibold">{keyword}</span>
                 </div>
               ))}
             </div>
