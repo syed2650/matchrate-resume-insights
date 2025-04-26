@@ -1,15 +1,13 @@
 
 import React, { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Copy, FileText, Check, FileType } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Badge } from "@/components/ui/badge";
 import { jsPDF } from "jspdf";
 import { getATSScoreExplanation, getATSScoreDetail, getATSScoreFromCache } from "./utils";
 import { useResumeVersion } from "./hooks/useResumeVersion";
 import { generateDocument } from "./utils/docGenerator";
 import { ExportInfo } from "./components/ExportInfo";
-import InterviewReadyIndicator from "./components/InterviewReadyIndicator";
+import ResumeHeader from "./components/ResumeHeader";
+import ResumeContent from "./components/ResumeContent";
 
 interface ResumeRewriteProps {
   rewrittenResume: any;
@@ -30,9 +28,8 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
   jobContext
 }) => {
   const { toast } = useToast();
-  const [copied, setCopied] = useState(false);
   const [stableAtsScores, setStableAtsScores] = useState<Record<string, number>>(atsScores);
-
+  
   const { 
     currentResume, 
     generatedTimestamp 
@@ -60,21 +57,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
 
   const handleCopyToClipboard = () => {
     if (currentResume) {
-      navigator.clipboard.writeText(currentResume).then(() => {
-        setCopied(true);
-        toast({
-          title: "Success",
-          description: "Resume copied to clipboard",
-        });
-        
-        setTimeout(() => setCopied(false), 2000);
-      }).catch(() => {
-        toast({
-          title: "Error",
-          description: "Failed to copy resume to clipboard",
-          variant: "destructive"
-        });
-      });
+      navigator.clipboard.writeText(currentResume);
     }
   };
 
@@ -181,62 +164,6 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
     }
   };
 
-  const getAtsScoreBadge = (score: number) => {
-    if (score >= 80) {
-      return <Badge className="bg-green-600 hover:bg-green-700 ml-2">ATS Score: {score}</Badge>;
-    } else if (score >= 60) {
-      return <Badge className="bg-amber-600 hover:bg-amber-700 ml-2">ATS Score: {score}</Badge>;
-    } else {
-      return <Badge className="bg-red-600 hover:bg-red-700 ml-2">ATS Score: {score}</Badge>;
-    }
-  };
-
-  const renderJobContext = () => {
-    if (!jobContext || (!jobContext.keywords?.length && !jobContext.industry)) {
-      return null;
-    }
-    
-    return (
-      <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-6">
-        <h4 className="text-sm font-semibold text-blue-800 mb-2">Job Context Used to Optimize Resume</h4>
-        {jobContext.industry && (
-          <div className="mb-2">
-            <span className="text-xs font-medium text-blue-700">Industry:</span> 
-            <span className="text-xs ml-1">{jobContext.industry}</span>
-          </div>
-        )}
-        {jobContext.tone && (
-          <div className="mb-2">
-            <span className="text-xs font-medium text-blue-700">Tone:</span> 
-            <span className="text-xs ml-1">{jobContext.tone}</span>
-          </div>
-        )}
-        {jobContext.keywords?.length > 0 && (
-          <div className="mb-2">
-            <span className="text-xs font-medium text-blue-700">Key Skills:</span>
-            <div className="flex flex-wrap gap-1 mt-1">
-              {jobContext.keywords.map((keyword, idx) => (
-                <Badge key={idx} variant="outline" className="text-xs bg-white">
-                  {keyword}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        )}
-        {jobContext.responsibilities?.length > 0 && (
-          <div>
-            <span className="text-xs font-medium text-blue-700">Core Responsibilities:</span>
-            <ul className="text-xs mt-1 list-disc list-inside">
-              {jobContext.responsibilities.map((resp, idx) => (
-                <li key={idx}>{resp}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </div>
-    );
-  };
-
   if (!rewrittenResume) {
     return (
       <div className="py-8 text-center">
@@ -247,70 +174,20 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h3 className="text-2xl font-bold text-slate-900 flex items-center">
-            ATS-Optimized Resume
-            {currentAtsScore > 0 && getAtsScoreBadge(currentAtsScore)}
-          </h3>
-          
-          {roleSummary && (
-            <div className="mt-1 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-md px-3 py-1 inline-block">
-              {roleSummary}
-            </div>
-          )}
-
-          {generatedTimestamp && (
-            <div className="mt-1 text-xs text-slate-500">
-              Generated on {generatedTimestamp}
-            </div>
-          )}
-        </div>
-        
-        <div className="flex flex-wrap items-center gap-3">
-          <Button variant="outline" onClick={handleCopyToClipboard}>
-            {copied ? (
-              <>
-                <Check className="h-4 w-4 mr-2 text-green-500" />
-                Copied!
-              </>
-            ) : (
-              <>
-                <Copy className="h-4 w-4 mr-2" />
-                Copy
-              </>
-            )}
-          </Button>
-          
-          <Button 
-            variant="outline" 
-            onClick={handleDownloadDocx}
-            className="border-blue-200 text-blue-600 hover:bg-blue-50"
-          >
-            <FileText className="h-4 w-4 mr-2" />
-            Download .docx
-          </Button>
-          
-          <Button 
-            variant="outline" 
-            onClick={handleDownloadPdf}
-            className="border-blue-200 text-blue-600 hover:bg-blue-50"
-          >
-            <FileType className="h-4 w-4 mr-2" />
-            Download .pdf
-          </Button>
-        </div>
-      </div>
+      <ResumeHeader
+        currentAtsScore={currentAtsScore}
+        roleSummary={roleSummary}
+        generatedTimestamp={generatedTimestamp}
+        isInterviewReady={isInterviewReady}
+        onCopy={handleCopyToClipboard}
+        onDownloadDocx={handleDownloadDocx}
+        onDownloadPdf={handleDownloadPdf}
+      />
       
-      <InterviewReadyIndicator isReady={isInterviewReady} score={currentAtsScore} />
-      
-      {renderJobContext()}
-      
-      <div className="border rounded-xl p-6 bg-white shadow-md overflow-auto max-h-[600px]">
-        <pre className="whitespace-pre-wrap text-slate-700 font-sans text-sm leading-relaxed">
-          {currentResume}
-        </pre>
-      </div>
+      <ResumeContent
+        currentResume={currentResume}
+        jobContext={jobContext}
+      />
       
       <ExportInfo />
       
