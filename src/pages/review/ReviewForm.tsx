@@ -17,9 +17,10 @@ interface ReviewFormProps {
     jobTitle?: string
   ) => void;
   isLoading: boolean;
+  isDisabled?: boolean; // Added isDisabled prop
 }
 
-const ReviewForm = ({ onSubmit, isLoading }: ReviewFormProps) => {
+const ReviewForm = ({ onSubmit, isLoading, isDisabled = false }: ReviewFormProps) => {
   const {
     resume,
     setResume,
@@ -96,13 +97,14 @@ const ReviewForm = ({ onSubmit, isLoading }: ReviewFormProps) => {
               placeholder="e.g., Product Manager, Software Engineer"
               value={jobTitle}
               onChange={(e) => setJobTitle(e.target.value)}
+              disabled={isDisabled}
             />
           </div>
 
           <div className="flex justify-center">
             <Button
               type="submit"
-              disabled={isLoading || !resume || (!jobDescription && !jobUrl)}
+              disabled={isLoading || isDisabled || !resume || (!jobDescription && !jobUrl)}
               className="px-8 py-6 text-lg"
             >
               {isLoading ? (

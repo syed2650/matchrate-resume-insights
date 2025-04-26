@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Check, X } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -6,7 +5,22 @@ import { useEffect, useRef } from "react";
 import { getUsageStats, setUserPlan } from "@/pages/review/utils";
 import { Link } from "react-router-dom";
 
-const pricingPlans = [
+interface PlanFeature {
+  name: string;
+  available: boolean;
+  note?: string;
+}
+
+interface PricingPlan {
+  name: string;
+  price: string;
+  period: string | null;
+  description: string;
+  features: PlanFeature[];
+  popular?: boolean;
+}
+
+const pricingPlans: PricingPlan[] = [
   {
     name: "Free",
     price: "0",
@@ -70,7 +84,6 @@ const Pricing = () => {
     };
   }, []);
 
-  // Demo function to upgrade plan (in real app would trigger payment flow)
   const handleUpgrade = (planName: string) => {
     if (planName === "Free") {
       setUserPlan('free');
@@ -83,7 +96,6 @@ const Pricing = () => {
 
   return (
     <section id="pricing" className="py-20 md:py-28 relative" ref={pricingRef}>
-      {/* Background effects */}
       <div className="absolute top-0 left-0 w-full h-40 bg-gradient-to-b from-white to-transparent"></div>
       
       <div className="container max-w-6xl mx-auto px-4 relative z-10">
