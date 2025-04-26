@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Copy, FileText, Check, FileType } from "lucide-react";
@@ -5,13 +6,10 @@ import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { jsPDF } from "jspdf";
 import { getATSScoreExplanation, getATSScoreDetail, getATSScoreFromCache } from "./utils";
-import VersionSelector from "./components/VersionSelector";
-import SuggestedBullets from "./components/SuggestedBullets";
 import { useResumeVersion } from "./hooks/useResumeVersion";
 import { generateDocument } from "./utils/docGenerator";
 import { ExportInfo } from "./components/ExportInfo";
 import InterviewReadyIndicator from "./components/InterviewReadyIndicator";
-import BulletRewriteSuggestions from "./components/BulletRewriteSuggestions";
 
 interface ResumeRewriteProps {
   rewrittenResume: any;
@@ -23,28 +21,22 @@ interface ResumeRewriteProps {
     industry: string;
     tone: string;
   };
-  jobSector?: string;
 }
 
 const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ 
   rewrittenResume, 
   atsScores = {},
   scoreHash = null,
-  jobContext,
-  jobSector = "general"
+  jobContext
 }) => {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
-  const [activeVersion, setActiveVersion] = useState<string>(jobSector || "startup");
   const [stableAtsScores, setStableAtsScores] = useState<Record<string, number>>(atsScores);
-  const [originalBullets, setOriginalBullets] = useState<string[]>([]);
 
   const { 
-    hasMultipleVersions, 
     currentResume, 
-    suggestedBulletPoints, 
     generatedTimestamp 
-  } = useResumeVersion({ rewrittenResume, activeVersion });
+  } = useResumeVersion({ rewrittenResume, activeVersion: "general" });
   
   useEffect(() => {
     if (scoreHash) {
@@ -59,25 +51,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
     }
   }, [scoreHash, atsScores]);
 
-  useEffect(() => {
-    const extractBullets = (text: string): string[] => {
-      const bulletPattern = /^(?:\*|\-)\s+(.+?)$/gm;
-      const bullets: string[] = [];
-      let match;
-      
-      while ((match = bulletPattern.exec(text)) !== null) {
-        if (match[1]) bullets.push(match[1]);
-      }
-      
-      return bullets.slice(0, 5);
-    };
-    
-    setOriginalBullets(extractBullets(currentResume));
-  }, [currentResume]);
-
-  const currentAtsScore = hasMultipleVersions
-    ? stableAtsScores[activeVersion] || 0
-    : (typeof stableAtsScores === 'object' && Object.values(stableAtsScores)[0]) || 0;
+  const currentAtsScore = (typeof stableAtsScores === 'object' && Object.values(stableAtsScores)[0]) || 0;
     
   const roleSummaryMatch = currentResume.match(/This resume is optimized for(?: a)?:? (.*?)(\n|$)/);
   const roleSummary = roleSummaryMatch ? roleSummaryMatch[1].trim() : "";
@@ -113,15 +87,14 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
         roleSummary,
         currentAtsScore,
         generatedTimestamp,
-        activeVersion,
-        hasMultipleVersions
+        "general",
+        false
       );
       
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
-      const versionLabel = hasMultipleVersions ? `-${activeVersion}` : '';
       link.href = url;
-      link.download = `matchrate-optimized-resume${versionLabel}.docx`;
+      link.download = `optimized-resume.docx`;
       link.click();
       URL.revokeObjectURL(url);
 
@@ -192,8 +165,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
         doc.text(`Generated on ${generatedTimestamp}`, 20, 290);
       }
       
-      const versionLabel = hasMultipleVersions ? `-${activeVersion}` : '';
-      doc.save(`matchrate-optimized-resume${versionLabel}.pdf`);
+      doc.save(`optimized-resume.pdf`);
       
       toast({
         title: "Success",
@@ -278,9 +250,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h3 className="text-2xl font-bold text-slate-900 flex items-center">
-            {hasMultipleVersions 
-              ? "Tailored Resume Versions" 
-              : "Resume Analysis"}
+            ATS-Optimized Resume
             {currentAtsScore > 0 && getAtsScoreBadge(currentAtsScore)}
           </h3>
           
@@ -332,14 +302,6 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
         </div>
       </div>
       
-      {hasMultipleVersions && (
-        <VersionSelector 
-          activeVersion={activeVersion}
-          atsScores={stableAtsScores}
-          onVersionChange={setActiveVersion}
-        />
-      )}
-      
       <InterviewReadyIndicator isReady={isInterviewReady} score={currentAtsScore} />
       
       {renderJobContext()}
@@ -351,13 +313,6 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
       </div>
       
       <ExportInfo />
-      
-      <BulletRewriteSuggestions 
-        originalBullets={originalBullets} 
-        suggestedBullets={suggestedBulletPoints} 
-      />
-      
-      <SuggestedBullets bullets={suggestedBulletPoints} />
       
       {currentAtsScore > 0 && (
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 shadow-sm">
@@ -380,23 +335,9 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
           )}
           <div className="mt-3 p-3 bg-white rounded border border-blue-100 text-xs text-slate-600">
             <p>
-              <strong>About ATS Scores:</strong> AI analysis is based on your most recent inputs. ATS compatibility reflects structure, keywords, and formatting. Score won't change unless your resume does.
+              <strong>About ATS Scores:</strong> AI analysis is based on keyword matching between your resume and the job description. The score reflects how well your resume aligns with the key requirements in the job posting.
             </p>
           </div>
-        </div>
-      )}
-      
-      {hasMultipleVersions && (
-        <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 shadow-sm">
-          <h4 className="font-semibold text-slate-800 mb-2">About This Version</h4>
-          <p className="text-slate-700 text-sm">
-            {activeVersion === 'startup' && 'Optimized for startup environments. Emphasizes versatility, hands-on execution, and cross-functional skills.'}
-            {activeVersion === 'enterprise' && 'Tailored for enterprise roles. Highlights process knowledge, scalability expertise, and enterprise-level impact.'}
-            {activeVersion === 'consulting' && 'Crafted for consulting positions. Focuses on client management, adaptability, and structured problem-solving.'}
-            {activeVersion === 'saas' && 'Customized for SaaS companies. Emphasizes product knowledge, user experience, and growth metrics.'}
-            {activeVersion === 'public' && 'Formatted for public sector positions. Highlights compliance, policy knowledge, and stakeholder management.'}
-            {activeVersion === 'general' && 'Standard professional format suitable for most industries. Balanced emphasis on skills, experience, and achievements.'}
-          </p>
         </div>
       )}
     </div>

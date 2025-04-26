@@ -8,26 +8,18 @@ import { JobDescriptionSection } from "./components/JobDescriptionSection";
 import { ExtractionStatus } from "./types";
 import { useJobDescription } from "./hooks/useJobDescription";
 import { useResumeUpload } from "./hooks/useResumeUpload";
-import { CompanySection } from "./components/CompanySection";
-import { OutputOptionsSection } from "./components/OutputOptionsSection";
-import CompanySectorInput from "./components/CompanySectorInput";
 
 interface ReviewFormProps {
   onSubmit: (
     resume: string,
     jobDescription: string,
     jobUrl?: string, 
-    jobTitle?: string,
-    companyType?: string,
-    generateRewrite?: boolean,
-    multiVersion?: boolean
+    jobTitle?: string
   ) => void;
   isLoading: boolean;
-  jobSector: "saas" | "enterprise" | "public" | "startup" | "consulting" | "general";
-  setJobSector: (sector: "saas" | "enterprise" | "public" | "startup" | "consulting" | "general") => void;
 }
 
-const ReviewForm = ({ onSubmit, isLoading, jobSector, setJobSector }: ReviewFormProps) => {
+const ReviewForm = ({ onSubmit, isLoading }: ReviewFormProps) => {
   const {
     resume,
     setResume,
@@ -47,8 +39,6 @@ const ReviewForm = ({ onSubmit, isLoading, jobSector, setJobSector }: ReviewForm
   } = useJobDescription();
 
   const [jobTitle, setJobTitle] = useState<string>("");
-  const [generateRewrite, setGenerateRewrite] = useState<boolean>(true);
-  const [multiVersion, setMultiVersion] = useState<boolean>(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,10 +48,7 @@ const ReviewForm = ({ onSubmit, isLoading, jobSector, setJobSector }: ReviewForm
         resume, 
         jobDescription, 
         jobUrl,
-        jobTitle,
-        jobSector,
-        generateRewrite,
-        multiVersion
+        jobTitle
       );
     }
   };
@@ -93,25 +80,24 @@ const ReviewForm = ({ onSubmit, isLoading, jobSector, setJobSector }: ReviewForm
             onExtract={handleUrlPaste}
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <CompanySection
-              jobTitle={jobTitle}
-              setJobTitle={setJobTitle}
-              companyType={jobSector}
-              setCompanyType={setJobSector}
-            />
-            <CompanySectorInput
-              selectedSector={jobSector}
-              onSectorChange={setJobSector}
+          <div className="mb-6">
+            <div className="mb-2">
+              <label htmlFor="jobTitle" className="block text-sm font-medium text-gray-700">
+                Job Title (Optional)
+              </label>
+              <p className="text-xs text-gray-500 mb-2">
+                Adding a job title helps personalize the analysis
+              </p>
+            </div>
+            <input
+              id="jobTitle"
+              type="text"
+              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g., Product Manager, Software Engineer"
+              value={jobTitle}
+              onChange={(e) => setJobTitle(e.target.value)}
             />
           </div>
-
-          <OutputOptionsSection
-            generateRewrite={generateRewrite}
-            setGenerateRewrite={setGenerateRewrite}
-            multiVersion={multiVersion}
-            setMultiVersion={setMultiVersion}
-          />
 
           <div className="flex justify-center">
             <Button

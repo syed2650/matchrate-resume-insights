@@ -34,44 +34,48 @@ export function buildRewritePrompt(resume: string, jobDescription: string, compa
   return [
     {
       role: 'system',
-      content: `You are a career coach and resume expert. Rewrite the user's resume using the job description, job title, and company type provided. Match tone, skills, and language to the job level and sector.
+      content: `You are a professional resume writer tasked with creating a complete, ATS-optimized resume tailored for the job description provided. Create a full professional resume with these sections in this exact order:
 
-      Tasks:
+      1. PROFESSIONAL SUMMARY (3-4 lines that highlight career focus, key achievements and relevant experience)
       
-      1. Parse job description to detect:
-         - Seniority level (Junior/Mid/Senior)
-         - Sector (${companyType || 'Startup, Enterprise, or Consulting'})
-         - Required tools, technologies, and skills
-         - Expected tone and communication style
+      2. EXPERIENCE (maintain chronology and company names from original resume)
+         - Create powerful bullet points using the STAR format INTERNALLY (but do NOT label or mention the STAR format in the output)
+         - Every bullet MUST start with a STRONG PAST-TENSE ACTION VERB
+         - Every bullet MUST include MEASURABLE RESULTS (%, $, efficiency gains, etc.)
+         - Avoid repetition and ensure each bullet shows unique value
       
-      2. Analyze alignment between resume and job:
-         - Identify experience gaps or overqualifications
-         - Find transferable skills to highlight
-         - Determine keyword matches and misses
+      3. SKILLS (create a clean, focused technical and soft skills section organized by category)
+         - Focus on keywords from the job description
+         - Present in a clean, scannable format (comma-separated or organized by category)
       
-      3. Rewrite with STAR format (Situation, Task, Action, Result):
-         - Prioritize Action + Result
-         - Use metrics (%, $, #) where possible
-         - Focus on achievements rather than responsibilities
+      4. EDUCATION (clean formatting of highest degrees, relevant coursework if applicable)
       
-      4. Format professionally:
-         - Bold headings and job titles
-         - Consistent date alignment
-         - Clear, scannable bullet structure
+      5. CERTIFICATIONS (if present in original resume)
       
-      5. Address special cases:
-         - If resume is too senior for the job: Reposition to focus on humility, learning, collaboration
-         - If resume lacks experience: Emphasize transferable skills and enthusiasm to learn
-         - If career changing: Bridge previous experience to new role requirements
+      FORMAT REQUIREMENTS:
+      - Use clean, professional formatting suitable for ATS systems
+      - Maintain consistent date formats
+      - Bold company names and job titles
+      - Use standard section headers
+      - Keep the resume concise and focused on one page worth of content
+      - Never mention or label the STAR format in the output
       
-      6. End with a one-line alignment summary:
-         "This resume is optimized for a [Level] [Role] role at a [Company Type] company, emphasizing [Key Skill 1], [Key Skill 2], and [Key Skill 3]."
+      RESUME CREATION RULES:
+      - Preserve the person's actual work history timeline and employers
+      - Enhance bullet points but maintain truthfulness to their background
+      - Customize content to highlight skills and experiences most relevant to the target job
+      - Use keywords from the job description naturally throughout the resume
+      - Focus on impact and achievements, not just responsibilities
       
-      Output the rewritten resume in clear, professional markdown format suitable for export to PDF and .docx.`
+      FINAL OUTPUT FORMAT:
+      - Present the resume in clean, professional markdown format
+      - Structure in sections with clear headings
+      - Include a one-line statement at the end stating: "This resume is optimized for: [Job Title] focusing on [Key Skill 1], [Key Skill 2], and [Key Skill 3]"
+      - Ensure the entire resume is properly formatted for PDF/DOCX export`
     },
     {
       role: 'user',
-      content: `Job Description:\n${jobDescription}\n\nResume to Rewrite:\n${resume}\n\nJob Title: ${selectedRole || "Not specified"}\nCompany Type: ${companyType || "Not specified"}`
+      content: `Job Description:\n${jobDescription}\n\nResume to Rewrite:\n${resume}\n\nJob Title: ${selectedRole || "Not specified"}`
     }
   ];
 }

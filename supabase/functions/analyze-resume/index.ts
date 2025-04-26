@@ -1,8 +1,9 @@
+
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { callOpenAIForAnalysis, generateFullResumeRewrite } from "./api.ts";
-import { buildAnalysisPrompt } from "./prompts.ts";
-import { parseAndValidateAnalysis, calculateATSScore } from "./utils.ts";
+import { callOpenAIForAnalysis } from "./api.ts";
+import { buildAnalysisPrompt, buildRewritePrompt } from "./prompts.ts";
+import { parseAndValidateAnalysis } from "./utils.ts";
 
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
 
@@ -10,6 +11,71 @@ const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Function to calculate ATS score based on keyword matching
+function calculateATSScore(resumeText: string, jobDescriptionText: string): number {
+  if (!resumeText || !jobDescriptionText) {
+    return 0;
+  }
+  
+  // Extract keywords from job description and resume
+  const jobKeywords = extractKeywords(jobDescriptionText);
+  const resumeKeywords = new Set(extractKeywords(resumeText));
+  
+  // Count matches
+  let matches = 0;
+  jobKeywords.forEach(keyword => {
+    if (resumeKeywords.has(keyword)) {
+      matches++;
+    }
+  });
+  
+  // Calculate score as percentage of matches
+  const totalKeywords = jobKeywords.length;
+  const score = totalKeywords > 0 ? Math.round((matches / totalKeywords) * 100) : 0;
+  
+  // Ensure score is within 0-100 range
+  return Math.min(100, Math.max(0, score));
+}
+
+// Extract keywords from text
+function extractKeywords(text: string): string[] {
+  // Convert to lowercase and remove special characters
+  const cleanedText = text.toLowerCase().replace(/[^\w\s]/g, ' ');
+  
+  // Split into words and remove common stop words
+  const words = cleanedText.split(/\s+/);
+  const stopWords = new Set([
+    'a', 'an', 'the', 'and', 'or', 'but', 'is', 'are', 'was', 'were', 
+    'be', 'been', 'being', 'in', 'on', 'at', 'to', 'for', 'with', 
+    'by', 'about', 'against', 'between', 'into', 'through', 'during',
+    'before', 'after', 'above', 'below', 'from', 'up', 'down', 'of',
+    'off', 'over', 'under', 'again', 'further', 'then', 'once', 'here',
+    'there', 'when', 'where', 'why', 'how', 'all', 'any', 'both', 'each',
+    'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not',
+    'only', 'own', 'same', 'so', 'than', 'too', 'very', 'can', 'will',
+    'just', 'should', 'now', 'you', 'your', 'we', 'our', 'i', 'my'
+  ]);
+  
+  // Filter out stop words and short words
+  const filteredWords = words.filter(word => 
+    word.length > 2 && !stopWords.has(word)
+  );
+
+  // Count frequency of each word
+  const wordFrequency: {[key: string]: number} = {};
+  filteredWords.forEach(word => {
+    wordFrequency[word] = (wordFrequency[word] || 0) + 1;
+  });
+  
+  // Sort by frequency and get top keywords
+  const sortedKeywords = Object.entries(wordFrequency)
+    .sort((a, b) => b[1] - a[1])
+    .map(entry => entry[0]);
+  
+  // Return up to 50 most common words as keywords
+  return sortedKeywords.slice(0, 50);
+}
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -23,9 +89,7 @@ serve(async (req) => {
       jobDescription, 
       jobUrl, 
       selectedRole, 
-      companyType, 
       generateRewrite, 
-      multiVersion,
       skipATSCalculation = false,
       scoreHash = null
     } = await req.json();
@@ -55,7 +119,7 @@ serve(async (req) => {
     let toneSuggestion = "";
     
     // Only extract this information if we're going to generate a rewrite
-    if (generateRewrite || multiVersion) {
+    if (generateRewrite) {
       try {
         console.log("Extracting key information from job description...");
         const extractionPrompt = [
@@ -128,142 +192,10 @@ serve(async (req) => {
       let rewrittenResume = null;
       let atsScores = {};
       
-      if (multiVersion) {
-        // Generate all versions for company types
+      if (generateRewrite) {
+        // Generate full professional resume
         try {
-          const companyTypes = ["startup", "enterprise", "consulting"];
-          rewrittenResume = {};
-          atsScores = {};
-          
-          for (const type of companyTypes) {
-            // Enhanced prompt with extracted job information and better STAR formatting
-            const extractionPrompt = [
-              { role: "system", content: `You are an elite resume writer who specializes in creating high-impact, achievement-focused bullets for ${type} companies. 
-                Your expertise is creating bullets that follow the STAR format perfectly:
-                
-                - Situation: Brief context (1-2 words max)
-                - Task: What was required (1-2 words max)
-                - Action: SPECIFICALLY what YOU did (strong verb + details)
-                - Result: Quantified outcome (%, $, time saved, etc.)
-                
-                KEY JOB INFORMATION:
-                - Industry: ${industryContext || "Not specified"}
-                - Required tone: ${toneSuggestion || "Professional and results-oriented"}
-                - Key skills: ${jobKeywords.join(', ')}
-                - Core responsibilities: ${coreResponsibilities.join(', ')}
-                
-                CREATE 8 POWERFUL BULLETS THAT:
-                1. Start with strong action verbs in past tense (Launched, Executed, Spearheaded)
-                2. Focus 70% on YOUR ACTIONS and RESULTS, minimal on situation/task
-                3. Include AT LEAST ONE NUMBER in EVERY bullet (%, $, scale, time)
-                4. Keep each bullet 1-2 lines maximum
-                5. Use concrete, specific language with zero fluff
-                6. Demonstrate outcomes and impact, not just responsibilities
-                7. Match language to ${selectedRole || "professional"} in ${type} environments
-                8. Follow this exact format: "Action verb + specific task + measurable results"
-                
-                WHAT TO AVOID:
-                - Generic language like "responsible for" or "worked on"
-                - First person pronouns (I, my, we)
-                - Present tense for past experiences
-                - Bullets without metrics
-                - Vague accomplishments
-                - Soft skills without examples` },
-                
-              { role: "user", content: `Job Description: ${effectiveJobDescription}
-                Resume: ${resume}
-                
-                Please create 8 powerful STAR-format bullet points specifically tailored for a ${selectedRole || "professional"} at a ${type} company.
-                Each bullet MUST have quantifiable metrics and demonstrate clear impact.
-                BE EXTREMELY SPECIFIC about what action was taken and what resulted.` }
-            ];
-            
-            const response = await fetch('https://api.openai.com/v1/chat/completions', {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${openAIApiKey}`,
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                model: 'gpt-4o',
-                messages: extractionPrompt,
-                temperature: 0, // Set temperature to 0 for more consistent results
-              }),
-            });
-            
-            const data = await response.json();
-            if (data.error) {
-              throw new Error(`OpenAI API error: ${data.error.message}`);
-            }
-            
-            // Extract the bullet points from the response
-            const bulletPoints = data.choices[0].message.content;
-            
-            // Add header with context information
-            const headerText = `# Resume Upgrade Suggestions for ${selectedRole || "Professional"} (${type} Focus)\n\n`;
-            const contextInfo = `Industry: ${industryContext || type}\nTone: ${toneSuggestion || "Professional"}\n\n`;
-            const roleContext = `This resume is optimized for: ${selectedRole || "Professional"} at a ${type} company focusing on ${jobKeywords.slice(0, 3).join(', ')}\n\n`;
-            
-            rewrittenResume[type] = `${headerText}${roleContext}${contextInfo}${bulletPoints}`;
-            
-            // Only calculate ATS scores if not skipped
-            if (!skipATSCalculation) {
-              // Use the score hash as part of the calculation to ensure deterministic results
-              const scoreSeed = `${bulletPoints}-${scoreHash || 'default'}-${type}`;
-              atsScores[type] = calculateATSScore(scoreSeed, effectiveJobDescription);
-            }
-          }
-        } catch (error) {
-          console.error("Error generating multi-version rewrites:", error);
-          rewrittenResume = {
-            error: "Failed to generate bullet point suggestions",
-            detail: error.message
-          };
-        }
-      } else if (generateRewrite) {
-        // Generate one version with enhanced context
-        try {
-          // Enhanced prompt with extracted job information and better STAR guidance
-          const extractionPrompt = [
-            { role: "system", content: `You are an elite resume writer who specializes in creating high-impact, achievement-focused bullets for ${companyType || "various"} companies. 
-              Your expertise is creating bullets that follow the STAR format perfectly:
-              
-              - Situation: Brief context (1-2 words max)
-              - Task: What was required (1-2 words max)
-              - Action: SPECIFICALLY what YOU did (strong verb + details)
-              - Result: Quantified outcome (%, $, time saved, etc.)
-              
-              KEY JOB INFORMATION:
-              - Industry: ${industryContext || "Not specified"}
-              - Required tone: ${toneSuggestion || "Professional and results-oriented"}
-              - Key skills: ${jobKeywords.join(', ')}
-              - Core responsibilities: ${coreResponsibilities.join(', ')}
-              
-              CREATE 8 POWERFUL BULLETS THAT:
-              1. Start with strong action verbs in past tense (Launched, Executed, Spearheaded)
-              2. Focus 70% on YOUR ACTIONS and RESULTS, minimal on situation/task
-              3. Include AT LEAST ONE NUMBER in EVERY bullet (%, $, scale, time)
-              4. Keep each bullet 1-2 lines maximum
-              5. Use concrete, specific language with zero fluff
-              6. Demonstrate outcomes and impact, not just responsibilities
-              7. Match language to ${selectedRole || "professional"} roles
-              8. Follow this exact format: "Action verb + specific task + measurable results"
-              
-              WHAT TO AVOID:
-              - Generic language like "responsible for" or "worked on"
-              - First person pronouns (I, my, we)
-              - Present tense for past experiences
-              - Bullets without metrics
-              - Vague accomplishments
-              - Soft skills without examples` },
-              
-            { role: "user", content: `Job Description: ${effectiveJobDescription}
-              Resume: ${resume}
-              
-              Please create 8 powerful STAR-format bullet points specifically tailored for a ${selectedRole || "role"} at a ${companyType || "typical"} company.
-              Each bullet MUST have quantifiable metrics and demonstrate clear impact.
-              BE EXTREMELY SPECIFIC about what action was taken and what resulted.` }
-          ];
+          const rewriteMessages = buildRewritePrompt(resume, effectiveJobDescription, "general", selectedRole);
           
           const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
@@ -273,7 +205,7 @@ serve(async (req) => {
             },
             body: JSON.stringify({
               model: 'gpt-4o',
-              messages: extractionPrompt,
+              messages: rewriteMessages,
               temperature: 0, // Set temperature to 0 for more consistent results
             }),
           });
@@ -283,26 +215,17 @@ serve(async (req) => {
             throw new Error(`OpenAI API error: ${data.error.message}`);
           }
           
-          // Extract the bullet points from the response
-          const bulletPoints = data.choices[0].message.content;
+          // Extract the rewritten resume from the response
+          rewrittenResume = data.choices[0].message.content;
           
-          // Add header with context information
-          const headerText = `# Resume Upgrade Suggestions for ${selectedRole || "Professional"}\n\n`;
-          const contextInfo = `Industry: ${industryContext || companyType || "General"}\nTone: ${toneSuggestion || "Professional"}\n\n`;
-          const skillsHighlight = `Key skills focus: ${jobKeywords.slice(0, 3).join(', ')}\n\n`;
-          const roleContext = `This resume is optimized for: ${selectedRole || "Professional"} at a ${companyType || "typical"} company\n\n`;
-          
-          rewrittenResume = `${headerText}${roleContext}${contextInfo}${skillsHighlight}${bulletPoints}`;
-          
-          // Only calculate ATS scores if not skipped
+          // Calculate ATS score using our deterministic algorithm
           if (!skipATSCalculation) {
-            // Use the score hash as part of the calculation to ensure deterministic results
-            const scoreSeed = `${bulletPoints}-${scoreHash || 'default'}-${companyType || "general"}`;
-            atsScores = { [companyType || "general"]: calculateATSScore(scoreSeed, effectiveJobDescription) };
+            const atsScore = calculateATSScore(rewrittenResume, effectiveJobDescription);
+            atsScores = { "general": atsScore };
           }
         } catch (error) {
-          console.error("Error generating single rewrite:", error);
-          rewrittenResume = "Failed to generate bullet point suggestions: " + error.message;
+          console.error("Error generating resume rewrite:", error);
+          rewrittenResume = "Failed to generate resume rewrite: " + error.message;
         }
       }
 

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,7 +32,6 @@ const Review = () => {
   const [activeTab, setActiveTab] = useState<'analysis' | 'rewrite'>('analysis');
   const [cachedAtsScores, setCachedAtsScores] = useState<CachedATSScore[]>([]);
   const [currentScoreHash, setCurrentScoreHash] = useState<string | null>(null);
-  const [jobSector, setJobSector] = useState<"saas" | "enterprise" | "public" | "startup" | "consulting" | "general">("general");
   const { toast } = useToast();
   const { user } = useAuthUser();
   const [exportError, setExportError] = useState<string | null>(null);
@@ -52,10 +50,7 @@ const Review = () => {
     resume: string, 
     jobDescription: string, 
     jobUrl?: string, 
-    jobTitle?: string,
-    companyType?: string,
-    generateRewrite?: boolean,
-    multiVersion?: boolean
+    jobTitle?: string
   ) => {
     setIsLoading(true);
     setExportError(null);
@@ -63,10 +58,7 @@ const Review = () => {
       resumeLength: resume?.length, 
       jobDescriptionLength: jobDescription?.length,
       jobUrl, 
-      jobTitle,
-      companyType: companyType || jobSector,
-      generateRewrite,
-      multiVersion
+      jobTitle
     });
 
     try {
@@ -77,47 +69,28 @@ const Review = () => {
       const cachedScore = getATSScoreFromCache(inputHash);
       console.log("Cached score found:", !!cachedScore);
 
-      //const { data, error } = await supabase.functions.invoke("analyze-resume", {
-       // body: { 
-         // resume, 
-         // jobDescription, 
-         // jobUrl, 
-         // selectedRole: jobTitle || "General",
-         // companyType: companyType || jobSector,
-         // generateRewrite,
-         // multiVersion,
-         // skipATSCalculation: !!cachedScore,
-         // scoreHash: inputHash
-      //  }
-      // });
-
       const response = await fetch('https://rodkrpeqxgqizngdypbl.functions.supabase.co/analyze-resume', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'Authorization': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJvZGtycGVxeGdxaXpuZ2R5cGJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNDY5ODEsImV4cCI6MjA2MDcyMjk4MX0.ECPKii1lST8GcNt0M8SGXKLeeyJSL6vtIpoXVH5SZYA', // Replace with your real anon key
-  },
-  body: JSON.stringify({
-    resume,
-    jobDescription,
-    jobUrl,
-    selectedRole: jobTitle || "General",
-    companyType: companyType || jobSector,
-    generateRewrite,
-    multiVersion,
-    skipATSCalculation: !!cachedScore,
-    scoreHash: inputHash,
-  }),
-});
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJvZGtycGVxeGdxaXpuZ2R5cGJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNDY5ODEsImV4cCI6MjA2MDcyMjk4MX0.ECPKii1lST8GcNt0M8SGXKLeeyJSL6vtIpoXVH5SZYA',
+        },
+        body: JSON.stringify({
+          resume,
+          jobDescription,
+          jobUrl,
+          selectedRole: jobTitle || "General",
+          generateRewrite: true,
+          skipATSCalculation: !!cachedScore,
+          scoreHash: inputHash,
+        }),
+      });
 
-const data = await response.json();
+      const data = await response.json();
 
       if (!response.ok) {
-  throw new Error(`Error from Supabase Function: ${data.error || 'Unknown error'}`);
-}
-      //if (error) {
-        //throw new Error(error.message);
-      //}
+        throw new Error(`Error from Supabase Function: ${data.error || 'Unknown error'}`);
+      }
 
       console.log("Received analysis result:", data);
 
@@ -138,8 +111,7 @@ const data = await response.json();
           job_url: jobUrl,
           selected_role: jobTitle as any,
           feedback_results: data,
-          user_id: user?.id ?? null,
-          job_sector: jobSector
+          user_id: user?.id ?? null
         })
         .select('id')
         .single();
@@ -234,8 +206,6 @@ const data = await response.json();
         <ReviewForm 
           onSubmit={handleFormSubmit} 
           isLoading={isLoading}
-          jobSector={jobSector}
-          setJobSector={setJobSector} 
         />
       ) : (
         <Card className="p-6 shadow-md rounded-xl">
@@ -257,8 +227,7 @@ const data = await response.json();
             {activeTab === 'analysis' ? (
               <>
                 <ResultList feedback={feedback} />
-                {/* 🎯 Skill Gap Checklist */}
-{feedback?.missingKeywords && feedback.missingKeywords.length > 0 && (
+                {feedback?.missingKeywords && feedback.missingKeywords.length > 0 && (
   <div className="p-4 bg-white rounded-xl shadow-md my-6">
     <h2 className="text-xl font-semibold mb-2">Skill Gap Checklist</h2>
     <ul className="list-disc pl-5">
@@ -271,7 +240,6 @@ const data = await response.json();
   </div>
 )}
 
-{/* 🎯 Tone Suggestions */}
 {feedback?.toneSuggestions && (
   <div className="p-4 bg-white rounded-xl shadow-md my-6">
     <h2 className="text-xl font-semibold mb-2">Tone & Writing Style Feedback</h2>
@@ -279,7 +247,6 @@ const data = await response.json();
   </div>
 )}
 
-{/* 🎯 Resume Match Score */}
 {feedback?.score && (
   <div className="p-6 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-2xl text-center my-6">
     <h2 className="text-3xl font-bold mb-2">Your Resume Match Score</h2>
@@ -302,7 +269,6 @@ const data = await response.json();
                 atsScores={feedback.atsScores}
                 scoreHash={currentScoreHash}
                 jobContext={feedback.jobContext}
-                jobSector={jobSector}
               />
             )}
 

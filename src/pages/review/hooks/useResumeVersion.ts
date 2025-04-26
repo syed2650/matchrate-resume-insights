@@ -10,7 +10,7 @@ interface UseResumeVersionProps {
 
 export const useResumeVersion = ({ 
   rewrittenResume, 
-  activeVersion = "startup",
+  activeVersion = "general",
   scoreHash = null
 }: UseResumeVersionProps) => {
   const [suggestedBulletPoints, setSuggestedBulletPoints] = useState<string[]>([]);
@@ -34,46 +34,19 @@ export const useResumeVersion = ({
     }
   }, [rewrittenResume, generatedTimestamp, scoreHash, sessionHash]);
 
-  useEffect(() => {
-    if (rewrittenResume) {
-      const extractBullets = (text: string): string[] => {
-        const bulletPattern = /^(?:\*|\-)\s+(.+?)$/gm;
-        const bullets: string[] = [];
-        let match;
-        
-        while ((match = bulletPattern.exec(text)) !== null) {
-          if (match[1]) bullets.push(match[1]);
-        }
-        
-        return bullets.slice(0, 8);
-      };
-      
-      const hasMultipleVersions = typeof rewrittenResume === 'object' && 
-                             rewrittenResume !== null &&
-                             !Array.isArray(rewrittenResume) &&
-                             Object.keys(rewrittenResume).length > 1;
-      
-      const currentResumeText = hasMultipleVersions 
-        ? rewrittenResume[activeVersion] || ''
-        : (typeof rewrittenResume === 'string' ? rewrittenResume : '');
-      
-      setSuggestedBulletPoints(extractBullets(currentResumeText));
-    }
-  }, [rewrittenResume, activeVersion]);
-
-  const hasMultipleVersions = typeof rewrittenResume === 'object' && 
-                             rewrittenResume !== null &&
-                             !Array.isArray(rewrittenResume) &&
-                             Object.keys(rewrittenResume).length > 1;
+  // Simplify the implementation to only support a single version
+  const hasMultipleVersions = false;
   
-  const currentResume = hasMultipleVersions 
-    ? rewrittenResume[activeVersion] || ''
-    : typeof rewrittenResume === 'string' ? rewrittenResume : '';
+  const currentResume = typeof rewrittenResume === 'string' 
+    ? rewrittenResume 
+    : (typeof rewrittenResume === 'object' && rewrittenResume !== null && !Array.isArray(rewrittenResume)
+        ? rewrittenResume[activeVersion] || ''
+        : '');
 
   return {
     hasMultipleVersions,
     currentResume,
-    suggestedBulletPoints,
+    suggestedBulletPoints: [],
     generatedTimestamp,
     activeScoreHash: scoreHash || sessionHash
   };
