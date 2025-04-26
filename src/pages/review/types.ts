@@ -1,4 +1,3 @@
-
 export interface Feedback {
   score: number;
   missingKeywords: string[];
@@ -6,10 +5,9 @@ export interface Feedback {
   weakBullets: { original: string; improved: string }[];
   toneSuggestions: string;
   wouldInterview: string;
-  rewrittenResume?: any; // Can be string or object with version keys
+  rewrittenResume?: any;
   atsScores?: Record<string, number>;
   jobContext?: JobContext;
-  // Add missing fields for Supabase storage
   resume?: string;
   jobDescription?: string;
   jobUrl?: string;

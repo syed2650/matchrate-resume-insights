@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -21,9 +20,8 @@ const Review = () => {
     setHelpfulFeedback(null);
 
     try {
-      // Convert the feedback results to a format compatible with JSON
-      // This helps solve the TypeScript error with complex objects
-      const feedbackResultsForDb = {
+      // Convert feedback results to a JSON-compatible format
+      const feedbackResultsForDb = JSON.parse(JSON.stringify({
         score: data.score,
         missingKeywords: data.missingKeywords,
         sectionFeedback: data.sectionFeedback,
@@ -32,14 +30,13 @@ const Review = () => {
         wouldInterview: data.wouldInterview,
         rewrittenResume: data.rewrittenResume,
         atsScores: data.atsScores,
-        // Convert JobContext to a plain object
         jobContext: data.jobContext ? {
           keywords: data.jobContext.keywords,
           responsibilities: data.jobContext.responsibilities,
           industry: data.jobContext.industry,
           tone: data.jobContext.tone
         } : undefined
-      };
+      }));
 
       const { data: submissionData, error: submissionError } = await supabase
         .from('submissions')
@@ -47,7 +44,7 @@ const Review = () => {
           resume_text: data.resume || "",
           job_description: data.jobDescription || "",
           job_url: data.jobUrl || null,
-          selected_role: data.jobTitle as any || null,
+          selected_role: data.jobTitle || null,
           feedback_results: feedbackResultsForDb,
           user_id: user?.id ?? null
         })
@@ -56,11 +53,25 @@ const Review = () => {
 
       if (submissionError) {
         console.error("Error storing submission:", submissionError);
+        toast({
+          title: "Error storing feedback",
+          description: "Your feedback was generated but couldn't be saved",
+          variant: "destructive"
+        });
       } else if (submissionData) {
         setSubmissionId(submissionData.id);
+        toast({
+          title: "Analysis complete",
+          description: "Your resume has been analyzed successfully",
+        });
       }
     } catch (error) {
       console.error("Error storing submission:", error);
+      toast({
+        title: "Error",
+        description: "Failed to store analysis results",
+        variant: "destructive"
+      });
     }
   };
 
@@ -100,7 +111,11 @@ const Review = () => {
       ) : (
         <AnalysisResults 
           feedback={feedback}
-          onReset={() => setFeedback(null)}
+          onReset={() => {
+            setFeedback(null);
+            setSubmissionId(null);
+            setHelpfulFeedback(null);
+          }}
           helpfulFeedback={helpfulFeedback}
           onFeedbackSubmit={handleFeedbackSubmit}
         />
