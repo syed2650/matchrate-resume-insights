@@ -22,9 +22,9 @@ const ResultList = ({ feedback }: ResultListProps) => {
   const [animatedATSScore, setAnimatedATSScore] = useState(0);
 
   const getScoreClass = (score: number) => {
-    if (score >= 80) return "score-high";
-    if (score >= 60) return "score-medium";
-    return "score-low";
+    if (score >= 80) return "text-green-600";
+    if (score >= 60) return "text-yellow-500";
+    return "text-red-500";
   };
 
   const atsScore = Math.min(95, Math.max(40, feedback.score + Math.floor(Math.random() * 15) - 5));
@@ -39,7 +39,7 @@ const ResultList = ({ feedback }: ResultListProps) => {
         } else {
           clearInterval(interval);
         }
-      }, 20);
+      }, 15);
       return () => clearInterval(interval);
     }
   }, [feedback?.score]);
@@ -54,23 +54,26 @@ const ResultList = ({ feedback }: ResultListProps) => {
         } else {
           clearInterval(atsInterval);
         }
-      }, 20);
+      }, 15);
       return () => clearInterval(atsInterval);
     }
   }, [atsScore]);
 
   const ProgressBar = ({ value }: { value: number }) => (
-    <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden mt-2">
+    <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden mt-3">
       <div 
-        className="bg-gradient-to-r from-blue-500 to-purple-600 h-full transition-all duration-500 ease-out" 
+        className={`h-full transition-all duration-700 ease-out rounded-full ${
+          value >= 80 ? "bg-green-500" : value >= 60 ? "bg-yellow-400" : "bg-red-500"
+        }`}
         style={{ width: `${value}%` }}
-      ></div>
+      />
     </div>
   );
 
   return (
     <div className="grid gap-8">
       <div className="grid md:grid-cols-2 gap-6">
+        {/* Relevance Score */}
         <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
           <div className="flex items-center gap-3 mb-4">
             <Target className="h-6 w-6 text-blue-600" />
@@ -83,7 +86,7 @@ const ResultList = ({ feedback }: ResultListProps) => {
             <span className="text-2xl text-gray-500">/100</span>
           </div>
           <ProgressBar value={animatedScore} />
-          <p className="mt-2 text-gray-600">
+          <p className="mt-3 text-gray-600">
             {feedback.score >= 80 
               ? "Great match! Your resume aligns well with this position."
               : feedback.score >= 60 
@@ -92,6 +95,7 @@ const ResultList = ({ feedback }: ResultListProps) => {
           </p>
         </div>
 
+        {/* ATS Readiness Score */}
         <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
           <div className="flex items-center gap-3 mb-4">
             <FileSearch className="h-6 w-6 text-blue-600" />
@@ -104,7 +108,7 @@ const ResultList = ({ feedback }: ResultListProps) => {
             <span className="text-2xl text-gray-500">/100</span>
           </div>
           <ProgressBar value={animatedATSScore} />
-          <p className="mt-2 text-gray-600">
+          <p className="mt-3 text-gray-600">
             {atsScore >= 80 
               ? "Your resume is ATS-friendly and likely to pass automated screening."
               : atsScore >= 60 
@@ -114,7 +118,8 @@ const ResultList = ({ feedback }: ResultListProps) => {
         </div>
       </div>
 
-      {/* Other sections unchanged, you already did beautifully! */}
+      {/* Your other sections (missing keywords, feedback, bullets, etc.) stay the same — they are perfect already. */}
+      
       <ResultSection
         title="Missing Keywords & Skills"
         icon={<Key className="h-6 w-6 text-blue-600" />}
