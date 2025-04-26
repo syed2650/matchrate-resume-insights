@@ -1,13 +1,15 @@
+
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { jsPDF } from "jspdf";
 import { Badge } from "@/components/ui/badge";
-import { getATSScoreExplanation, getATSScoreDetail, getATSScoreFromCache } from "./utils";
+import { getATSScoreExplanation, getATSScoreDetail, getATSScoreFromCache, canUseRewrite, trackRewriteUsage } from "./utils";
 import { useResumeVersion } from "./hooks/useResumeVersion";
 import { generateDocument } from "./utils/docGenerator";
 import { ExportInfo } from "./components/ExportInfo";
 import ResumeHeader from "./components/ResumeHeader";
 import ResumeContent from "./components/ResumeContent";
+import UpgradeBanner from "./components/UpgradeBanner";
 
 interface ResumeRewriteProps {
   rewrittenResume: any;
@@ -29,6 +31,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
 }) => {
   const { toast } = useToast();
   const [stableAtsScores, setStableAtsScores] = useState<Record<string, number>>(atsScores);
+  const [canRewrite, setCanRewrite] = useState<boolean>(canUseRewrite());
   
   const { 
     currentResume, 
@@ -46,6 +49,9 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
     } else if (Object.keys(atsScores).length > 0) {
       setStableAtsScores(atsScores);
     }
+    
+    // Check if user can use rewrite feature
+    setCanRewrite(canUseRewrite());
   }, [scoreHash, atsScores]);
 
   const currentAtsScore = (typeof stableAtsScores === 'object' && Object.values(stableAtsScores)[0]) || 0;
@@ -56,15 +62,39 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
   const isInterviewReady = currentAtsScore >= 75;
 
   const handleCopyToClipboard = () => {
+    if (!canRewrite) {
+      toast({
+        title: "Premium Feature",
+        description: "Resume rewriting is available on the paid plan",
+        variant: "default"
+      });
+      return;
+    }
+    
     if (currentResume) {
       navigator.clipboard.writeText(currentResume);
+      trackRewriteUsage();
+      toast({
+        title: "Success",
+        description: "Resume copied to clipboard",
+      });
     }
   };
 
   const handleDownloadDocx = async () => {
+    if (!canRewrite) {
+      toast({
+        title: "Premium Feature",
+        description: "Resume exporting is available on the paid plan",
+        variant: "default"
+      });
+      return;
+    }
+    
     if (!currentResume) return;
     
     try {
+      trackRewriteUsage();
       const blob = await generateDocument(
         currentResume,
         roleSummary,
@@ -96,9 +126,19 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
   };
   
   const handleDownloadPdf = () => {
+    if (!canRewrite) {
+      toast({
+        title: "Premium Feature",
+        description: "Resume exporting is available on the paid plan",
+        variant: "default"
+      });
+      return;
+    }
+    
     if (!currentResume) return;
     
     try {
+      trackRewriteUsage();
       const doc = new jsPDF();
       
       doc.setFontSize(16);
@@ -174,6 +214,8 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
 
   return (
     <div className="space-y-6">
+      {!canRewrite && <UpgradeBanner feature="resume rewriting" limit="15 rewrites per month" />}
+      
       <ResumeHeader
         currentAtsScore={currentAtsScore}
         roleSummary={roleSummary}
@@ -182,14 +224,24 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
         onCopy={handleCopyToClipboard}
         onDownloadDocx={handleDownloadDocx}
         onDownloadPdf={handleDownloadPdf}
+        isPremiumLocked={!canRewrite}
       />
       
       <ResumeContent
         currentResume={currentResume}
         jobContext={jobContext}
+        isPremiumBlurred={!canRewrite}
       />
       
-      <ExportInfo />
+      {canRewrite ? <ExportInfo /> : (
+        <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg">
+          <h3 className="font-medium text-amber-800">Premium Feature</h3>
+          <p className="text-sm text-amber-700 mt-1">
+            Resume rewriting is available on our paid plan with 15 rewrites per month.
+            Upgrade to access this feature.
+          </p>
+        </div>
+      )}
       
       {currentAtsScore > 0 && (
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 shadow-sm">

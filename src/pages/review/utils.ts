@@ -3,24 +3,12 @@
  * Utility functions for resume reviews
  */
 
-// Hash generation function for caching ATS scores
-export function generateHash(resume: string, jobDescription: string): string {
-  // Simple hash function for string combination
-  const str = `${resume}::${jobDescription}`;
-  let hash = 0;
-  if (str.length === 0) return hash.toString();
-  
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32bit integer
+// Extract keywords from text with improved algorithm
+function extractKeywords(text: string): string[] {
+  if (!text || typeof text !== 'string') {
+    return [];
   }
   
-  return Math.abs(hash).toString(16);
-}
-
-// Extract keywords from text
-function extractKeywords(text: string): string[] {
   // Convert to lowercase and remove special characters
   const cleanedText = text.toLowerCase().replace(/[^\w\s]/g, ' ');
   
@@ -58,7 +46,22 @@ function extractKeywords(text: string): string[] {
   return sortedKeywords.slice(0, 50);
 }
 
-// Calculate ATS score based on keyword matching
+// Generate a stable hash for caching
+export function generateHash(resume: string, jobDescription: string): string {
+  const str = `${resume?.substring(0, 1000) || ''}::${jobDescription?.substring(0, 1000) || ''}`;
+  let hash = 0;
+  if (str.length === 0) return hash.toString();
+  
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  
+  return Math.abs(hash).toString(16);
+}
+
+// Improved ATS score calculation based on keyword matching
 export function calculateATSScore(resumeText: string, jobDescriptionText: string): number {
   if (!resumeText || !jobDescriptionText) {
     return 0;
@@ -66,12 +69,12 @@ export function calculateATSScore(resumeText: string, jobDescriptionText: string
   
   // Extract keywords from job description and resume
   const jobKeywords = extractKeywords(jobDescriptionText);
-  const resumeKeywords = new Set(extractKeywords(resumeText));
+  const resumeContent = resumeText.toLowerCase();
   
-  // Count matches
+  // Count matches - check if each keyword appears in the resume
   let matches = 0;
   jobKeywords.forEach(keyword => {
-    if (resumeKeywords.has(keyword)) {
+    if (resumeContent.includes(keyword)) {
       matches++;
     }
   });
@@ -81,6 +84,7 @@ export function calculateATSScore(resumeText: string, jobDescriptionText: string
   const score = totalKeywords > 0 ? Math.round((matches / totalKeywords) * 100) : 0;
   
   // Ensure score is within 0-100 range
+  console.log(`Calculated ATS score: ${score} from ${matches} matches out of ${totalKeywords} keywords`);
   return Math.min(100, Math.max(0, score));
 }
 
@@ -109,7 +113,7 @@ export function getATSScoreDetail(score: number): string {
   }
 }
 
-// Cache management functions for ATS scores with improved error handling
+// Improved cache management functions for ATS scores with enhanced consistency
 export function saveATSScoreToCache(hash: string, scores: Record<string, number>) {
   try {
     // Get existing cache
@@ -197,4 +201,135 @@ export function storeActiveResumeATSScore(resumeJobHash: string) {
 
 export function getActiveResumeATSHash() {
   return sessionStorage.getItem('activeResumeATSHash');
+}
+
+// Usage tracking functions for subscription model
+export interface UsageStats {
+  daily: {
+    count: number,
+    date: string
+  };
+  monthly: {
+    feedbacks: number,
+    rewrites: number,
+    resetDate: string
+  };
+  plan: 'free' | 'paid';
+}
+
+// Get current usage stats
+export function getUsageStats(): UsageStats {
+  const defaultStats: UsageStats = {
+    daily: {
+      count: 0,
+      date: new Date().toISOString().split('T')[0]
+    },
+    monthly: {
+      feedbacks: 0,
+      rewrites: 0,
+      resetDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toISOString()
+    },
+    plan: 'free'
+  };
+
+  try {
+    const storedStats = localStorage.getItem('usageStats');
+    if (!storedStats) return defaultStats;
+    
+    const stats: UsageStats = JSON.parse(storedStats);
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Reset daily count if it's a new day
+    if (stats.daily.date !== today) {
+      stats.daily.count = 0;
+      stats.daily.date = today;
+    }
+    
+    // Reset monthly count if we're past reset date
+    const resetDate = new Date(stats.monthly.resetDate);
+    if (new Date() > resetDate) {
+      stats.monthly.feedbacks = 0;
+      stats.monthly.rewrites = 0;
+      stats.monthly.resetDate = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toISOString();
+    }
+    
+    return stats;
+  } catch (error) {
+    console.error("Error retrieving usage stats:", error);
+    return defaultStats;
+  }
+}
+
+// Track a feedback usage
+export function trackFeedbackUsage(): boolean {
+  try {
+    const stats = getUsageStats();
+    
+    // Update counts
+    stats.daily.count += 1;
+    stats.monthly.feedbacks += 1;
+    
+    // Store updated stats
+    localStorage.setItem('usageStats', JSON.stringify(stats));
+    return true;
+  } catch (error) {
+    console.error("Error tracking feedback usage:", error);
+    return false;
+  }
+}
+
+// Track a rewrite usage
+export function trackRewriteUsage(): boolean {
+  try {
+    const stats = getUsageStats();
+    
+    // Update monthly rewrite count (only applies to paid users)
+    if (stats.plan === 'paid') {
+      stats.monthly.rewrites += 1;
+    }
+    
+    // Store updated stats
+    localStorage.setItem('usageStats', JSON.stringify(stats));
+    return true;
+  } catch (error) {
+    console.error("Error tracking rewrite usage:", error);
+    return false;
+  }
+}
+
+// Check if user can perform more feedback operations
+export function canUseFeedback(): boolean {
+  const stats = getUsageStats();
+  
+  if (stats.plan === 'free') {
+    // Free plan: 1 per day
+    return stats.daily.count < 1;
+  } else {
+    // Paid plan: 30 per month
+    return stats.monthly.feedbacks < 30;
+  }
+}
+
+// Check if user can perform more rewrite operations
+export function canUseRewrite(): boolean {
+  const stats = getUsageStats();
+  
+  if (stats.plan === 'free') {
+    // Free plan: no rewrites
+    return false;
+  } else {
+    // Paid plan: 15 per month
+    return stats.monthly.rewrites < 15;
+  }
+}
+
+// Set user plan
+export function setUserPlan(plan: 'free' | 'paid'): void {
+  try {
+    const stats = getUsageStats();
+    stats.plan = plan;
+    localStorage.setItem('usageStats', JSON.stringify(stats));
+  } catch (error) {
+    console.error("Error setting user plan:", error);
+  }
 }

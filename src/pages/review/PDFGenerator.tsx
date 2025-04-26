@@ -18,13 +18,8 @@ export const generatePDF = (feedback: Feedback): jsPDF => {
   });
 
   try {
-    // Configure document styles and add standard fonts
+    // Configure document styles for professional output
     configurePDFStyles(doc);
-    
-    // Use standard fonts with correct arguments
-    // The addFont function requires a fontName and style as minimum parameters
-    doc.setFont("helvetica");
-    doc.setFontSize(styles.fontSize.normal);
     
     // Calculate usable width
     const pageWidth = doc.internal.pageSize.width;
@@ -67,7 +62,7 @@ export const generatePDF = (feedback: Feedback): jsPDF => {
     doc.setFontSize(12);
     doc.setTextColor(0, 0, 0);
     doc.text("Please try again or contact support if the issue persists.", 20, 30);
-    doc.text("Error details: " + (error.message || "Unknown error"), 20, 40);
+    doc.text("Error details: " + ((error as Error).message || "Unknown error"), 20, 40);
     return doc;
   }
 };

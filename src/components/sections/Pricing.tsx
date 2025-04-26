@@ -1,7 +1,10 @@
+
 import { Button } from "@/components/ui/button";
 import { Check, X } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEffect, useRef } from "react";
+import { getUsageStats, setUserPlan } from "@/pages/review/utils";
+import { Link } from "react-router-dom";
 
 const pricingPlans = [
   {
@@ -21,42 +24,27 @@ const pricingPlans = [
     ]
   },
   {
-    name: "Standard",
+    name: "Premium",
     price: "7",
-    period: "weekly",
+    period: "monthly",
     description: "For focused job seekers actively applying.",
     features: [
-      { name: "Unlimited resume reviews", available: true },
+      { name: "30 resume reviews per month", available: true },
       { name: "Keyword matching", available: true },
       { name: "Section-by-section feedback", available: true },
       { name: "Relevance & ATS Score", available: true },
       { name: "STAR bullet suggestions", available: true },
-      { name: "Resume rewrite credits", available: true, note: "(7 credits)" },
-      { name: "Export reports (.pdf/.docx)", available: true },
-      { name: "Multiple version rewrites", available: false },
-    ],
-    popular: true
-  },
-  {
-    name: "Pro",
-    price: "25",
-    period: "lifetime",
-    description: "For career pivoters or long-term job seekers.",
-    features: [
-      { name: "Unlimited resume reviews", available: true },
-      { name: "Keyword matching", available: true },
-      { name: "Section-by-section feedback", available: true },
-      { name: "Relevance & ATS Score", available: true },
-      { name: "STAR bullet suggestions", available: true },
-      { name: "Resume rewrite credits", available: true, note: "(25 credits)" },
+      { name: "15 Resume rewrites per month", available: true },
       { name: "Export reports (.pdf/.docx)", available: true },
       { name: "Multiple version rewrites", available: true },
-    ]
+    ],
+    popular: true
   }
 ];
 
 const Pricing = () => {
   const pricingRef = useRef<HTMLDivElement>(null);
+  const stats = getUsageStats();
   
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -82,6 +70,17 @@ const Pricing = () => {
     };
   }, []);
 
+  // Demo function to upgrade plan (in real app would trigger payment flow)
+  const handleUpgrade = (planName: string) => {
+    if (planName === "Free") {
+      setUserPlan('free');
+      alert("You're now on the Free plan with 1 resume review per day.");
+    } else {
+      setUserPlan('paid');
+      alert("You're now on the Premium plan with 30 reviews and 15 rewrites per month!");
+    }
+  };
+
   return (
     <section id="pricing" className="py-20 md:py-28 relative" ref={pricingRef}>
       {/* Background effects */}
@@ -96,6 +95,20 @@ const Pricing = () => {
           <p className="mt-4 text-lg text-slate-600 max-w-3xl">
             Get the feedback you need to land interviews, with plans designed for every job seeker's budget and goals.
           </p>
+          
+          {stats.plan === 'paid' && (
+            <div className="mt-6 p-4 bg-emerald-50 border border-emerald-200 rounded-lg inline-flex items-center gap-2">
+              <div className="bg-emerald-100 p-1 rounded-full">
+                <Check className="h-5 w-5 text-emerald-600" />
+              </div>
+              <span className="font-medium text-emerald-800">
+                You're currently on the Premium Plan!
+              </span>
+              <span className="text-sm text-emerald-700">
+                {30 - stats.monthly.feedbacks} reviews and {15 - stats.monthly.rewrites} rewrites remaining this month.
+              </span>
+            </div>
+          )}
         </div>
         
         <div className="max-w-4xl mx-auto fade-in pricing-animated">
@@ -108,17 +121,23 @@ const Pricing = () => {
             </div>
             
             <TabsContent value="plans" className="mt-0">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {pricingPlans.map((plan, index) => (
                   <div 
                     key={index} 
                     className={`flex flex-col rounded-2xl glassmorphism transition-all duration-300 hover:shadow-premium-hover px-7 py-9 relative ${
                       plan.popular ? 'border-warm-accent ring-2 ring-warm-accent/20 translate-y-[-8px]' : 'border-slate-100'
-                    }`}
+                    } ${stats.plan === plan.name.toLowerCase() ? 'border-emerald-300 ring-2 ring-emerald-100' : ''}`}
                   >
                     {plan.popular && (
                       <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 inline-block px-4 py-1 text-xs font-medium text-white bg-warm-accent rounded-full shadow-md">
                         Most Popular
+                      </div>
+                    )}
+                    
+                    {stats.plan === plan.name.toLowerCase() && (
+                      <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 inline-block px-4 py-1 text-xs font-medium text-white bg-emerald-600 rounded-full shadow-md">
+                        Your Current Plan
                       </div>
                     )}
                     
@@ -136,8 +155,11 @@ const Pricing = () => {
                           : "bg-white text-warm-text border border-slate-200 hover:bg-slate-50"
                       }`}
                       variant={plan.popular ? "default" : "outline"}
+                      onClick={() => handleUpgrade(plan.name)}
+                      disabled={stats.plan === plan.name.toLowerCase()}
                     >
-                      {plan.name === "Free" ? "Try Now" : "Get Started"}
+                      {stats.plan === plan.name.toLowerCase() ? 'Current Plan' : 
+                        plan.name === "Free" ? "Try Now" : "Get Started"}
                     </Button>
                     
                     <div className="space-y-3">
@@ -238,8 +260,8 @@ const Pricing = () => {
           
           <div className="mt-12 text-center fade-in pricing-animated" style={{ animationDelay: '300ms' }}>
             <p className="text-slate-500 mb-4">Need a custom solution for your team?</p>
-            <Button variant="outline" className="glassmorphism hover:bg-white/80">
-              Contact Us for Enterprise Plans
+            <Button variant="outline" className="glassmorphism hover:bg-white/80" asChild>
+              <Link to="/contact">Contact Us for Enterprise Plans</Link>
             </Button>
           </div>
         </div>

@@ -1,3 +1,4 @@
+
 import {
   Document,
   Paragraph,
@@ -6,7 +7,12 @@ import {
   Packer,
   AlignmentType,
   LevelFormat,
-  convertInchesToTwip
+  convertInchesToTwip,
+  BorderStyle,
+  WidthType,
+  PageNumber,
+  Footer,
+  Header
 } from "docx";
 
 interface Section {
@@ -20,14 +26,19 @@ const RESUME_STYLES = {
   },
   fontSize: {
     heading: 16,
-    subheading: 14,
+    subheading: 13,
     normal: 11,
-    small: 10
+    small: 9
   },
   spacing: {
     afterSection: 400,
     afterParagraph: 200,
-    afterHeading: 300
+    afterHeading: 240
+  },
+  colors: {
+    dark: "222222",
+    accent: "2563eb",
+    light: "666666"
   }
 };
 
@@ -61,7 +72,7 @@ export const generateDocument = async (
   const paragraphs = [];
   
   // Add name with larger font and bold
-  const name = currentResume.split('\n')[0].replace('#', '').trim();
+  const name = currentResume.split('\n')[0].replace(/^#+ /, '').trim();
   paragraphs.push(
     new Paragraph({
       children: [
@@ -76,6 +87,29 @@ export const generateDocument = async (
       alignment: AlignmentType.CENTER
     })
   );
+  
+  // Add contact info if available
+  if (sections.header && sections.header.length > 0) {
+    const contactInfo = sections.header
+      .filter(line => line.includes('@') || line.includes('linkedin.com') || line.includes('phone'))
+      .join(' | ');
+    
+    if (contactInfo) {
+      paragraphs.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: contactInfo,
+              size: RESUME_STYLES.fontSize.normal * 2,
+              font: RESUME_STYLES.fonts.main
+            })
+          ],
+          spacing: { after: RESUME_STYLES.spacing.afterParagraph },
+          alignment: AlignmentType.CENTER
+        })
+      );
+    }
+  }
   
   // Add role summary if available
   if (roleSummary) {
@@ -107,7 +141,8 @@ export const generateDocument = async (
             text: sectionName.toUpperCase(),
             bold: true,
             size: RESUME_STYLES.fontSize.heading * 2,
-            font: RESUME_STYLES.fonts.heading
+            font: RESUME_STYLES.fonts.heading,
+            color: RESUME_STYLES.colors.dark
           })
         ],
         heading: HeadingLevel.HEADING_1,
@@ -117,7 +152,7 @@ export const generateDocument = async (
             color: "auto", 
             size: 6, 
             space: 1,
-            style: 'single' 
+            style: BorderStyle.SINGLE
           } 
         }
       })
@@ -188,22 +223,6 @@ export const generateDocument = async (
     );
   });
 
-  // Add footer with ATS score and timestamp
-  paragraphs.push(
-    new Paragraph({
-      children: [
-        new TextRun({
-          text: `ATS Score: ${currentAtsScore}/100 - Generated on ${generatedTimestamp}`,
-          size: RESUME_STYLES.fontSize.small * 2,
-          color: "666666",
-          font: RESUME_STYLES.fonts.main
-        })
-      ],
-      spacing: { before: RESUME_STYLES.spacing.afterSection },
-      alignment: AlignmentType.LEFT
-    })
-  );
-
   // Create document with proper margins
   const doc = new Document({
     sections: [
@@ -211,12 +230,59 @@ export const generateDocument = async (
         properties: {
           page: {
             margin: {
-              top: convertInchesToTwip(1),
-              right: convertInchesToTwip(1),
-              bottom: convertInchesToTwip(1),
-              left: convertInchesToTwip(1)
+              top: convertInchesToTwip(0.8),
+              right: convertInchesToTwip(0.8),
+              bottom: convertInchesToTwip(0.8),
+              left: convertInchesToTwip(0.8)
             }
           }
+        },
+        footers: {
+          default: new Footer({
+            children: [
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: `ATS Score: ${currentAtsScore}/100 | Generated on ${generatedTimestamp}`,
+                    size: RESUME_STYLES.fontSize.small * 2,
+                    color: RESUME_STYLES.colors.light,
+                    font: RESUME_STYLES.fonts.main
+                  }),
+                  new TextRun({
+                    text: "                                                       ",
+                    size: RESUME_STYLES.fontSize.small * 2
+                  }),
+                  new TextRun({
+                    children: [PageNumber.CURRENT],
+                    size: RESUME_STYLES.fontSize.small * 2,
+                    color: RESUME_STYLES.colors.light,
+                    font: RESUME_STYLES.fonts.main
+                  }),
+                  new TextRun({
+                    text: " of ",
+                    size: RESUME_STYLES.fontSize.small * 2,
+                    color: RESUME_STYLES.colors.light,
+                    font: RESUME_STYLES.fonts.main
+                  }),
+                  new TextRun({
+                    children: [PageNumber.TOTAL_PAGES],
+                    size: RESUME_STYLES.fontSize.small * 2,
+                    color: RESUME_STYLES.colors.light,
+                    font: RESUME_STYLES.fonts.main
+                  }),
+                ],
+                alignment: AlignmentType.JUSTIFIED,
+                border: {
+                  top: {
+                    color: RESUME_STYLES.colors.light,
+                    space: 1,
+                    style: BorderStyle.SINGLE,
+                    size: 1,
+                  },
+                },
+              }),
+            ],
+          }),
         },
         children: paragraphs
       }

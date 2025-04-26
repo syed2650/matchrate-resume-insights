@@ -4,15 +4,19 @@ import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Feedback } from "../types";
 import ReviewForm from "../ReviewForm";
-import AnalysisResults from "./AnalysisResults";
+import { canUseFeedback } from "../utils";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 interface ResumeAnalyzerProps {
   onAnalysisComplete: (feedback: Feedback) => void;
   isLoading: boolean;
+  isDisabled?: boolean;
 }
 
-const ResumeAnalyzer = ({ onAnalysisComplete, isLoading }: ResumeAnalyzerProps) => {
+const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, isDisabled = false }: ResumeAnalyzerProps) => {
   const { toast } = useToast();
+  const [showLimitWarning, setShowLimitWarning] = useState(!canUseFeedback());
 
   const handleFormSubmit = async (
     resume: string,
@@ -20,6 +24,17 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading }: ResumeAnalyzerProps) 
     jobUrl?: string,
     jobTitle?: string
   ) => {
+    // Check if user can use the feature
+    if (!canUseFeedback()) {
+      toast({
+        title: "Usage Limit Reached",
+        description: "You've reached your usage limit for the day. Please try again tomorrow or upgrade your plan.",
+        variant: "destructive"
+      });
+      setShowLimitWarning(true);
+      return;
+    }
+
     try {
       const response = await fetch('https://rodkrpeqxgqizngdypbl.functions.supabase.co/analyze-resume', {
         method: 'POST',
@@ -60,9 +75,22 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading }: ResumeAnalyzerProps) 
 
   return (
     <Card className="p-6">
+      {showLimitWarning && (
+        <div className="mb-6 bg-amber-50 border border-amber-200 rounded-md p-4 text-amber-800">
+          <h3 className="text-lg font-medium mb-2">Usage Limit Reached</h3>
+          <p className="mb-4">
+            You've reached your usage limit for resume reviews. Free plan users get 1 review per day.
+          </p>
+          <Button asChild>
+            <Link to="/pricing">Upgrade to Paid Plan</Link>
+          </Button>
+        </div>
+      )}
+      
       <ReviewForm 
         onSubmit={handleFormSubmit} 
         isLoading={isLoading}
+        isDisabled={isDisabled}
       />
     </Card>
   );

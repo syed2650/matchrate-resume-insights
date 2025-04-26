@@ -5,7 +5,7 @@ import { jsPDF } from "jspdf";
 export const PDF_STYLES = {
   margins: {
     side: 15,
-    top: 30,
+    top: 20,
   },
   colors: {
     white: '#FFFFFF',
@@ -19,29 +19,28 @@ export const PDF_STYLES = {
     }
   },
   fonts: {
-    regular: 'Inter',
-    bold: 'Inter-bold',
+    regular: 'Arial',
+    bold: 'Arial-Bold',
   },
   fontSize: {
-    small: 10,
-    normal: 12,
-    large: 14,
-    title: 20,
+    small: 9,
+    normal: 10,
+    large: 12,
+    title: 16,
   },
   backgrounds: {
     header: [30, 41, 59] as [number, number, number], // Dark blue
     lightGray: [248, 250, 252] as [number, number, number],
     lightBlue: [239, 246, 255] as [number, number, number],
-  }
+  },
+  lineHeight: 1.5
 };
 
 export function configurePDFStyles(doc: jsPDF) {
-  // Set fonts for a more professional look
-  doc.addFont('https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiJ.ttf', 'Inter', 'normal');
-  doc.addFont('https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuFuYAZ9hiJ.ttf', 'Inter', 'bold');
+  // Configure document for professional output
+  doc.setFont('Arial');
+  doc.setFontSize(PDF_STYLES.fontSize.normal);
+  doc.setLineHeightFactor(PDF_STYLES.lineHeight);
   
-  // Set default font
-  doc.setFont('Inter');
-
   return doc;
 }

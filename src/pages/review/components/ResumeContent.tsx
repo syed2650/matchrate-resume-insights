@@ -1,69 +1,72 @@
 
 import React from "react";
-import { JobContext } from "../types";
-import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { LockIcon } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 interface ResumeContentProps {
   currentResume: string;
-  jobContext?: JobContext;
+  jobContext?: {
+    keywords: string[];
+    responsibilities: string[];
+    industry: string;
+    tone: string;
+  };
+  isPremiumBlurred?: boolean;
 }
 
-const ResumeContent = ({ currentResume, jobContext }: ResumeContentProps) => {
-  const renderJobContext = () => {
-    if (!jobContext || (!jobContext.keywords?.length && !jobContext.industry)) {
-      return null;
+const ResumeContent: React.FC<ResumeContentProps> = ({ currentResume, jobContext, isPremiumBlurred = false }) => {
+  if (!currentResume) return null;
+  
+  const renderContent = () => {
+    if (isPremiumBlurred) {
+      return (
+        <div className="relative">
+          <div 
+            className="absolute inset-0 flex items-center justify-center z-10 bg-white/80 backdrop-blur-[2px]"
+          >
+            <div className="text-center p-6 max-w-md">
+              <div className="mx-auto bg-amber-100 w-12 h-12 rounded-full flex items-center justify-center mb-4">
+                <LockIcon className="h-6 w-6 text-amber-600" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Premium Feature</h3>
+              <p className="text-slate-600 mb-4">
+                Resume rewriting is available on our paid plan.
+                Upgrade now to access this feature.
+              </p>
+              <Button asChild>
+                <Link to="/pricing">Upgrade to Paid Plan</Link>
+              </Button>
+            </div>
+          </div>
+          <div className="blur-sm opacity-60">
+            <pre className="whitespace-pre-wrap font-mono text-sm leading-relaxed p-4 h-[500px] overflow-auto">
+              {currentResume}
+            </pre>
+          </div>
+        </div>
+      );
     }
     
     return (
-      <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-6">
-        <h4 className="text-sm font-semibold text-blue-800 mb-2">Job Context Used to Optimize Resume</h4>
-        {jobContext.industry && (
-          <div className="mb-2">
-            <span className="text-xs font-medium text-blue-700">Industry:</span> 
-            <span className="text-xs ml-1">{jobContext.industry}</span>
-          </div>
-        )}
-        {jobContext.tone && (
-          <div className="mb-2">
-            <span className="text-xs font-medium text-blue-700">Tone:</span> 
-            <span className="text-xs ml-1">{jobContext.tone}</span>
-          </div>
-        )}
-        {jobContext.keywords?.length > 0 && (
-          <div className="mb-2">
-            <span className="text-xs font-medium text-blue-700">Key Skills:</span>
-            <div className="flex flex-wrap gap-1 mt-1">
-              {jobContext.keywords.map((keyword, idx) => (
-                <Badge key={idx} variant="outline" className="text-xs bg-white">
-                  {keyword}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        )}
-        {jobContext.responsibilities?.length > 0 && (
-          <div>
-            <span className="text-xs font-medium text-blue-700">Core Responsibilities:</span>
-            <ul className="text-xs mt-1 list-disc list-inside">
-              {jobContext.responsibilities.map((resp, idx) => (
-                <li key={idx}>{resp}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </div>
+      <pre className="whitespace-pre-wrap font-mono text-sm leading-relaxed p-4 max-h-[500px] overflow-auto">
+        {currentResume}
+      </pre>
     );
   };
 
   return (
-    <>
-      {renderJobContext()}
-      <div className="border rounded-xl p-6 bg-white shadow-md overflow-auto max-h-[600px]">
-        <pre className="whitespace-pre-wrap text-slate-700 font-sans text-sm leading-relaxed">
-          {currentResume}
-        </pre>
-      </div>
-    </>
+    <Card className="overflow-hidden">
+      {jobContext && (
+        <div className="bg-slate-50 p-3 border-b border-slate-100 text-xs text-slate-600 flex flex-wrap gap-2">
+          <span className="font-semibold">Industry:</span> {jobContext.industry}
+          <span className="mx-1">•</span>
+          <span className="font-semibold">Tone:</span> {jobContext.tone}
+        </div>
+      )}
+      {renderContent()}
+    </Card>
   );
 };
 
