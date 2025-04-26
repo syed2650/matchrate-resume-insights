@@ -21,8 +21,9 @@ const Review = () => {
     setHelpfulFeedback(null);
 
     try {
-      // Prepare feedback_results to match supabase Json type
-      const feedbackResults = {
+      // Convert the feedback results to a format compatible with JSON
+      // This helps solve the TypeScript error with complex objects
+      const feedbackResultsForDb = {
         score: data.score,
         missingKeywords: data.missingKeywords,
         sectionFeedback: data.sectionFeedback,
@@ -31,7 +32,13 @@ const Review = () => {
         wouldInterview: data.wouldInterview,
         rewrittenResume: data.rewrittenResume,
         atsScores: data.atsScores,
-        jobContext: data.jobContext
+        // Convert JobContext to a plain object
+        jobContext: data.jobContext ? {
+          keywords: data.jobContext.keywords,
+          responsibilities: data.jobContext.responsibilities,
+          industry: data.jobContext.industry,
+          tone: data.jobContext.tone
+        } : undefined
       };
 
       const { data: submissionData, error: submissionError } = await supabase
@@ -41,7 +48,7 @@ const Review = () => {
           job_description: data.jobDescription || "",
           job_url: data.jobUrl || null,
           selected_role: data.jobTitle as any || null,
-          feedback_results: feedbackResults,
+          feedback_results: feedbackResultsForDb,
           user_id: user?.id ?? null
         })
         .select('id')
