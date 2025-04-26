@@ -91,7 +91,7 @@ const Review = () => {
       //  }
       // });
 
-      const response = await fetch('https://<your-supabase-project-id>.functions.supabase.co/analyze-resume', {
+      const response = await fetch('https://rodkrpeqxgqizngdypbl.functions.supabase.co/analyze-resume', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
