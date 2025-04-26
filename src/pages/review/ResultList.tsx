@@ -59,6 +59,15 @@ const ResultList = ({ feedback }: ResultListProps) => {
     }
   }, [atsScore]);
 
+  const ProgressBar = ({ value }: { value: number }) => (
+    <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden mt-2">
+      <div 
+        className="bg-gradient-to-r from-blue-500 to-purple-600 h-full transition-all duration-500 ease-out" 
+        style={{ width: `${value}%` }}
+      ></div>
+    </div>
+  );
+
   return (
     <div className="grid gap-8">
       <div className="grid md:grid-cols-2 gap-6">
@@ -73,6 +82,7 @@ const ResultList = ({ feedback }: ResultListProps) => {
             </span>
             <span className="text-2xl text-gray-500">/100</span>
           </div>
+          <ProgressBar value={animatedScore} />
           <p className="mt-2 text-gray-600">
             {feedback.score >= 80 
               ? "Great match! Your resume aligns well with this position."
@@ -93,6 +103,7 @@ const ResultList = ({ feedback }: ResultListProps) => {
             </span>
             <span className="text-2xl text-gray-500">/100</span>
           </div>
+          <ProgressBar value={animatedATSScore} />
           <p className="mt-2 text-gray-600">
             {atsScore >= 80 
               ? "Your resume is ATS-friendly and likely to pass automated screening."
@@ -103,6 +114,7 @@ const ResultList = ({ feedback }: ResultListProps) => {
         </div>
       </div>
 
+      {/* Other sections unchanged, you already did beautifully! */}
       <ResultSection
         title="Missing Keywords & Skills"
         icon={<Key className="h-6 w-6 text-blue-600" />}
