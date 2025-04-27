@@ -111,21 +111,23 @@ function setImmediateLoadingState() {
 
           <div className="flex justify-center">
             <Button
-              type="submit"
-              disabled={isLoading || isDisabled || !resume || (!jobDescription && !jobUrl)}
-              className={`px-8 py-6 text-lg font-semibold transition-all duration-300 ${
-                isLoading ? "opacity-70 cursor-not-allowed" : "hover:scale-105"
-              }`}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Analyzing Resume...
-                </>
-              ) : (
-                "Analyze My Resume"
-              )}
-            </Button>
+  type="submit"
+  disabled={isLoading || isDisabled || !resume || (!jobDescription && !jobUrl)}
+  className="px-8 py-6 text-lg"
+  onClick={() => {
+    const event = new CustomEvent("set-loading-true");
+    window.dispatchEvent(event);
+  }}
+>
+  {isLoading ? (
+    <>
+      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+      Analyzing Resume...
+    </>
+  ) : (
+    "Analyze My Resume"
+  )}
+</Button>
           </div>
         </div>
       </form>
