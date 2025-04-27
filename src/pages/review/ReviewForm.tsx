@@ -42,21 +42,25 @@ const ReviewForm = ({ onSubmit, isLoading, isDisabled = false }: ReviewFormProps
   const [jobTitle, setJobTitle] = useState<string>("");
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    // Prevent multiple submissions if already loading
-    if (isLoading) return;
+  if (resume && (jobDescription || jobUrl)) {
+    // Immediately show loading spinner!
+    setImmediateLoadingState();
 
-    // Check if resume and job description/url are available
-    if (resume && (jobDescription || jobUrl)) {
-      onSubmit(
-        resume, 
-        jobDescription, 
-        jobUrl,
-        jobTitle
-      );
-    }
-  };
+    onSubmit(
+      resume, 
+      jobDescription, 
+      jobUrl,
+      jobTitle
+    );
+  }
+};
+
+function setImmediateLoadingState() {
+  const event = new CustomEvent("set-loading-true");
+  window.dispatchEvent(event);
+}
 
   const handleResumeTextChange = (text: string) => {
     // Optional: Add any additional logic for text change if needed
