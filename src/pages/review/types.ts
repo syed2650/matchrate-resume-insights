@@ -1,3 +1,4 @@
+
 export interface Feedback {
   score: number;
   missingKeywords: string[];
@@ -12,6 +13,7 @@ export interface Feedback {
   jobDescription?: string;
   jobUrl?: string;
   jobTitle?: string;
+  resumeText?: string; // For backward compatibility
 }
 
 export interface JobContext {

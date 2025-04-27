@@ -12,7 +12,8 @@ import {
   MessageSquare,
   CheckCheck
 } from "lucide-react";
-import { calculateATSScore, getATSScoreExplanation } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { calculateATSScore, getATSScoreExplanation } from "./utils/atsScoring";
 
 interface ResultListProps {
   feedback: Feedback;
@@ -28,7 +29,7 @@ const ResultList = ({ feedback }: ResultListProps) => {
     return "text-red-500";
   };
 
-  const resumeText = feedback.resumeText || "";
+  const resumeText = feedback.resume || "";
   const jobDescriptionText = feedback.jobDescription || "";
   const atsScore = calculateATSScore(resumeText, jobDescriptionText);
 
