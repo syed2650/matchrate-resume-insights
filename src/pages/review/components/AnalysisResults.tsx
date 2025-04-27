@@ -8,6 +8,7 @@ import ResumeRewrite from "../ResumeRewrite";
 import { useState } from "react";
 import { Progress } from "@/components/ui/progress";
 import { FileText, CheckCheck, FileSearch } from "lucide-react";
+import { calculateATSScore } from "../utils/atsScoring";
 
 interface AnalysisResultsProps {
   feedback: Feedback;
