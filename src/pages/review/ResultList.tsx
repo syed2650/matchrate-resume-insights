@@ -76,7 +76,19 @@ const ResultList = ({ feedback }: ResultListProps) => {
       </div>
 
       <MissingKeywords keywords={feedback.missingKeywords} />
-      <SectionFeedback feedback={feedback.sectionFeedback} />
+      {feedback.sectionFeedback && Object.keys(feedback.sectionFeedback).length > 0 ? (
+  <SectionFeedback feedback={feedback.sectionFeedback} />
+) : (
+  <ResultSection
+    title="Section-by-Section Feedback"
+    icon={<FileSearch className="h-6 w-6 text-blue-600" />}
+    content={
+      <div className="bg-white border border-gray-100 rounded-lg p-4 shadow-sm">
+        <p className="text-slate-600">No section feedback available.</p>
+      </div>
+    }
+  />
+)}
       <BulletImprovements bullets={feedback.weakBullets} />
 
       <ResultSection
