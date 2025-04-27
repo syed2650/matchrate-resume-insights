@@ -43,7 +43,11 @@ const ReviewForm = ({ onSubmit, isLoading, isDisabled = false }: ReviewFormProps
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
+    // Prevent multiple submissions if already loading
+    if (isLoading) return;
+
+    // Check if resume and job description/url are available
     if (resume && (jobDescription || jobUrl)) {
       onSubmit(
         resume, 
@@ -57,21 +61,6 @@ const ReviewForm = ({ onSubmit, isLoading, isDisabled = false }: ReviewFormProps
   const handleResumeTextChange = (text: string) => {
     // Optional: Add any additional logic for text change if needed
   };
-
-  const handleSubmit = (e: React.FormEvent) => {
-  e.preventDefault();
-
-  if (isLoading) return; // 🔥 Prevent double clicks even if user hacks manually
-
-  if (resume && (jobDescription || jobUrl)) {
-    onSubmit(
-      resume, 
-      jobDescription, 
-      jobUrl,
-      jobTitle
-    );
-  }
-};
 
   return (
     <Card className="p-6">
@@ -117,22 +106,22 @@ const ReviewForm = ({ onSubmit, isLoading, isDisabled = false }: ReviewFormProps
           </div>
 
           <div className="flex justify-center">
-         <Button
-  type="submit"
-  disabled={isLoading || isDisabled || !resume || (!jobDescription && !jobUrl)}
-  className={`px-8 py-6 text-lg font-semibold transition-all duration-300 ${
-    isLoading ? "opacity-70 cursor-not-allowed" : "hover:scale-105"
-  }`}
->
-  {isLoading ? (
-    <>
-      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-      Analyzing Resume...
-    </>
-  ) : (
-    "Analyze My Resume"
-  )}
-</Button>
+            <Button
+              type="submit"
+              disabled={isLoading || isDisabled || !resume || (!jobDescription && !jobUrl)}
+              className={`px-8 py-6 text-lg font-semibold transition-all duration-300 ${
+                isLoading ? "opacity-70 cursor-not-allowed" : "hover:scale-105"
+              }`}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  Analyzing Resume...
+                </>
+              ) : (
+                "Analyze My Resume"
+              )}
+            </Button>
           </div>
         </div>
       </form>
