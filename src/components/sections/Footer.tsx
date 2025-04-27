@@ -1,4 +1,6 @@
 
+import { Link } from "react-router-dom";
+
 const Footer = () => {
   return (
     <footer className="py-16 bg-warm-section border-t border-slate-200">
@@ -10,31 +12,30 @@ const Footer = () => {
               AI-powered resume feedback tailored to tech job seekers — from PMs to Engineers and beyond.
             </p>
             <p className="text-slate-500 text-sm mt-4">
-              Built with GPT-4o. Trusted by job seekers in tech.
+              Built with GPT-4. Trusted by job seekers in tech.
             </p>
           </div>
           <div>
             <h4 className="font-semibold text-warm-text mb-3">Product</h4>
             <ul className="space-y-2">
-              <li><a href="#features" className="text-slate-600 hover:text-warm-accent transition-colors duration-200">Features</a></li>
-              <li><a href="#pricing" className="text-slate-600 hover:text-warm-accent transition-colors duration-200">Pricing</a></li>
-              <li><a href="#" className="text-slate-600 hover:text-warm-accent transition-colors duration-200">FAQ</a></li>
+              <li><Link to="/#features" className="text-slate-600 hover:text-warm-accent transition-colors duration-200">Features</Link></li>
+              <li><Link to="/#pricing" className="text-slate-600 hover:text-warm-accent transition-colors duration-200">Pricing</Link></li>
+              <li><Link to="/faq" className="text-slate-600 hover:text-warm-accent transition-colors duration-200">FAQ</Link></li>
             </ul>
           </div>
           <div>
             <h4 className="font-semibold text-warm-text mb-3">Company</h4>
             <ul className="space-y-2">
-              <li><a href="#" className="text-slate-600 hover:text-warm-accent transition-colors duration-200">About</a></li>
-              <li><a href="#" className="text-slate-600 hover:text-warm-accent transition-colors duration-200">Blog</a></li>
-              <li><a href="#" className="text-slate-600 hover:text-warm-accent transition-colors duration-200">Careers</a></li>
+              <li><Link to="/about" className="text-slate-600 hover:text-warm-accent transition-colors duration-200">About</Link></li>
+              <li><Link to="/blog" className="text-slate-600 hover:text-warm-accent transition-colors duration-200">Blog</Link></li>
             </ul>
           </div>
           <div>
             <h4 className="font-semibold text-warm-text mb-3">Legal</h4>
             <ul className="space-y-2">
-              <li><a href="#" className="text-slate-600 hover:text-warm-accent transition-colors duration-200">Privacy</a></li>
-              <li><a href="#" className="text-slate-600 hover:text-warm-accent transition-colors duration-200">Terms</a></li>
-              <li><a href="#" className="text-slate-600 hover:text-warm-accent transition-colors duration-200">Cookie Policy</a></li>
+              <li><Link to="/privacy" className="text-slate-600 hover:text-warm-accent transition-colors duration-200">Privacy</Link></li>
+              <li><Link to="/terms" className="text-slate-600 hover:text-warm-accent transition-colors duration-200">Terms</Link></li>
+              <li><Link to="/cookie-policy" className="text-slate-600 hover:text-warm-accent transition-colors duration-200">Cookie Policy</Link></li>
             </ul>
           </div>
         </div>

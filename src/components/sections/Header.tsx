@@ -35,6 +35,13 @@ const Header = () => {
             <a href="#testimonials" className="text-slate-600 hover:text-slate-800 transition-colors duration-200 hidden md:inline-block">Testimonials</a>
             <a href="#pricing" className="text-slate-600 hover:text-slate-800 transition-colors duration-200 hidden md:inline-block">Pricing</a>
             <Button 
+              variant="outline"
+              className="text-slate-600"
+              onClick={() => navigate("/auth")}
+            >
+              Log in
+            </Button>
+            <Button 
               variant="default"
               className="cta-gradient text-white px-6"
               onClick={() => navigate("/review")}
