@@ -14,6 +14,7 @@ export interface Feedback {
   jobUrl?: string;
   jobTitle?: string;
   resumeText?: string; // For backward compatibility
+  error?: string; // Added error property
 }
 
 export interface JobContext {

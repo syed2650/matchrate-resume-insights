@@ -13,7 +13,7 @@ import { getUsageStats } from "../utils";
 import { Link } from "react-router-dom";
 
 interface UsageLimitModalProps {
-  isOpen: boolean;
+  isOpen: boolean; // Required prop
   onClose: () => void;
 }
 

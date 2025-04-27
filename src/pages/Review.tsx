@@ -144,7 +144,10 @@ const Review = () => {
       )}
 
       {showLimitModal && (
-        <UsageLimitModal onClose={handleCloseLimitModal} />
+        <UsageLimitModal 
+          isOpen={showLimitModal} 
+          onClose={handleCloseLimitModal} 
+        />
       )}
     </div>
   );
