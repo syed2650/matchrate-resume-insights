@@ -58,6 +58,21 @@ const ReviewForm = ({ onSubmit, isLoading, isDisabled = false }: ReviewFormProps
     // Optional: Add any additional logic for text change if needed
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+  e.preventDefault();
+
+  if (isLoading) return; // 🔥 Prevent double clicks even if user hacks manually
+
+  if (resume && (jobDescription || jobUrl)) {
+    onSubmit(
+      resume, 
+      jobDescription, 
+      jobUrl,
+      jobTitle
+    );
+  }
+};
+
   return (
     <Card className="p-6">
       <form onSubmit={handleSubmit}>
