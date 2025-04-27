@@ -2,9 +2,9 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Feedback } from "../types";
-import ReviewForm from "../ReviewForm";
-import { canUseFeedback } from "../utils";
+import { Feedback } from "./types";
+import ReviewForm from "./ReviewForm";
+import { canUseFeedback } from "./utils";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Loader2 } from "lucide-react";

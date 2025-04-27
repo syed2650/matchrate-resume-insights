@@ -17,7 +17,7 @@ interface ReviewFormProps {
     jobTitle?: string
   ) => void;
   isLoading: boolean;
-  isDisabled?: boolean; // Added isDisabled prop
+  isDisabled?: boolean;
 }
 
 const ReviewForm = ({ onSubmit, isLoading, isDisabled = false }: ReviewFormProps) => {

@@ -151,8 +151,9 @@ export function storeActiveResumeATSScore(resumeJobHash: string) {
   }
 }
 
-export function getActiveResumeATSHash() {
-  return sessionStorage.setItem('activeResumeATSHash', '');
+export function getActiveResumeATSHash(): string | null {
+  // Fixed to return the value from sessionStorage instead of setting it
+  return sessionStorage.getItem('activeResumeATSHash');
 }
 
 // Usage tracking functions for subscription model

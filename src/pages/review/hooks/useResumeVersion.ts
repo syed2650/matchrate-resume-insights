@@ -21,7 +21,7 @@ export const useResumeVersion = ({
     // Try to get hash from session if not provided
     if (!scoreHash) {
       const activeHash = getActiveResumeATSHash();
-      if (activeHash) {
+      if (activeHash !== null) { // Changed from testing for truthiness to explicit check
         setSessionHash(activeHash);
       }
     } else if (scoreHash !== sessionHash) {

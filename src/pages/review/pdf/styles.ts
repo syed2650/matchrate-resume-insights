@@ -68,50 +68,50 @@ export function addProfessionalHeader(doc: jsPDF, title: string, subtitle?: stri
   const pageWidth = doc.internal.pageSize.width;
   
   // Add gradient header background
-  const headerColor = styles.backgrounds.header;
+  const headerColor = PDF_STYLES.backgrounds.header;
   doc.setFillColor(headerColor[0], headerColor[1], headerColor[2]);
   doc.rect(0, 0, pageWidth, 30, 'F');
   
   // Add logo/branding
-  doc.setTextColor(styles.colors.white);
-  doc.setFontSize(styles.fontSize.header);
-  doc.setFont(styles.fonts.heading);
-  doc.text(title, styles.margins.side, 20);
+  doc.setTextColor(PDF_STYLES.colors.white);
+  doc.setFontSize(PDF_STYLES.fontSize.header);
+  doc.setFont(PDF_STYLES.fonts.heading);
+  doc.text(title, PDF_STYLES.margins.side, 20);
   
   // Add subtitle if provided
   if (subtitle) {
-    doc.setFontSize(styles.fontSize.normal);
-    doc.setFont(styles.fonts.regular);
-    doc.text(subtitle, styles.margins.side, 26);
+    doc.setFontSize(PDF_STYLES.fontSize.normal);
+    doc.setFont(PDF_STYLES.fonts.regular);
+    doc.text(subtitle, PDF_STYLES.margins.side, 26);
   }
   
   // Reset text color for the document body
-  doc.setTextColor(styles.colors.black);
+  doc.setTextColor(PDF_STYLES.colors.black);
 }
 
 export function formatSectionTitle(doc: jsPDF, title: string, yPos: number) {
-  doc.setFontSize(styles.fontSize.large);
-  doc.setFont(styles.fonts.heading);
-  doc.setTextColor(styles.colors.blue[700]);
+  doc.setFontSize(PDF_STYLES.fontSize.large);
+  doc.setFont(PDF_STYLES.fonts.heading);
+  doc.setTextColor(PDF_STYLES.colors.blue[700]);
   
   const pageWidth = doc.internal.pageSize.width;
   
   // Add subtle background
-  const bgColor = styles.backgrounds.accent;
+  const bgColor = PDF_STYLES.backgrounds.accent;
   doc.setFillColor(bgColor[0], bgColor[1], bgColor[2]);
-  doc.roundedRect(styles.margins.side - 2, yPos - 6, pageWidth - (styles.margins.side * 2) + 4, 12, 1, 1, 'F');
+  doc.roundedRect(PDF_STYLES.margins.side - 2, yPos - 6, pageWidth - (PDF_STYLES.margins.side * 2) + 4, 12, 1, 1, 'F');
   
-  doc.text(title, styles.margins.side, yPos);
+  doc.text(title, PDF_STYLES.margins.side, yPos);
   
   // Add underline
-  doc.setDrawColor(styles.colors.blue[700]);
+  doc.setDrawColor(PDF_STYLES.colors.blue[700]);
   doc.setLineWidth(0.5);
-  doc.line(styles.margins.side, yPos + 2, pageWidth - styles.margins.side, yPos + 2);
+  doc.line(PDF_STYLES.margins.side, yPos + 2, pageWidth - PDF_STYLES.margins.side, yPos + 2);
   
   // Reset styles
-  doc.setFont(styles.fonts.regular);
-  doc.setFontSize(styles.fontSize.normal);
-  doc.setTextColor(styles.colors.black);
+  doc.setFont(PDF_STYLES.fonts.regular);
+  doc.setFontSize(PDF_STYLES.fontSize.normal);
+  doc.setTextColor(PDF_STYLES.colors.black);
   
-  return yPos + styles.spacing.section;
+  return yPos + PDF_STYLES.spacing.section;
 }
