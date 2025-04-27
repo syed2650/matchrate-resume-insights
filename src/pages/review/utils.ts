@@ -1,4 +1,3 @@
-
 /**
  * Utility functions for resume reviews
  */
@@ -260,28 +259,12 @@ export function trackRewriteUsage(): boolean {
 
 // Check if user can perform more feedback operations
 export function canUseFeedback(): boolean {
-  const stats = getUsageStats();
-  
-  if (stats.plan === 'free') {
-    // Free plan: 1 per day
-    return stats.daily.count < 1;
-  } else {
-    // Paid plan: 30 per month
-    return stats.monthly.feedbacks < 30;
-  }
+  return true; // Temporarily disabled usage limits for testing
 }
 
 // Check if user can perform more rewrite operations
 export function canUseRewrite(): boolean {
-  const stats = getUsageStats();
-  
-  if (stats.plan === 'free') {
-    // Free plan: no rewrites
-    return false;
-  } else {
-    // Paid plan: 15 per month
-    return stats.monthly.rewrites < 15;
-  }
+  return true; // Temporarily disabled usage limits for testing
 }
 
 // Set user plan

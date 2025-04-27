@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -129,7 +128,6 @@ const Review = () => {
         <ResumeAnalyzer 
           onAnalysisComplete={handleAnalysisComplete}
           isLoading={isLoading}
-          isDisabled={!canUseFeedback()}
         />
       ) : (
         <AnalysisResults 
@@ -143,11 +141,6 @@ const Review = () => {
           onFeedbackSubmit={handleFeedbackSubmit}
         />
       )}
-
-      <UsageLimitModal 
-        isOpen={showLimitModal} 
-        onClose={handleCloseLimitModal} 
-      />
     </div>
   );
 };
