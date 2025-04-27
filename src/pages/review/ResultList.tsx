@@ -17,15 +17,18 @@ const ResultList = ({ feedback }: ResultListProps) => {
   const [animatedScore, setAnimatedScore] = useState(0);
   const [animatedATSScore, setAnimatedATSScore] = useState(0);
 
-  const resumeText = feedback.resume || "";
-  const jobDescriptionText = feedback.jobDescription || "";
+  const resumeText = feedback?.resume || "";
+  const jobDescriptionText = feedback?.jobDescription || "";
   const atsScore = calculateATSScore(resumeText, jobDescriptionText);
+  
+  // Ensure score has a default value if feedback.score is undefined
+  const score = feedback?.score !== undefined ? feedback.score : 0;
 
   useEffect(() => {
-    if (feedback?.score) {
+    if (score) {
       let current = 0;
       const interval = setInterval(() => {
-        if (current < feedback.score) {
+        if (current < score) {
           current += 1;
           setAnimatedScore(current);
         } else {
@@ -34,10 +37,10 @@ const ResultList = ({ feedback }: ResultListProps) => {
       }, 15);
       return () => clearInterval(interval);
     }
-  }, [feedback?.score]);
+  }, [score]);
 
   useEffect(() => {
-    if (atsScore) {
+    if (atsScore > 0) {
       let currentATS = 0;
       const atsInterval = setInterval(() => {
         if (currentATS < atsScore) {
@@ -51,6 +54,24 @@ const ResultList = ({ feedback }: ResultListProps) => {
     }
   }, [atsScore]);
 
+  // Check if there was an API error
+  const hasError = feedback.error !== undefined;
+  const errorMessage = feedback.error || "An unknown error occurred during analysis.";
+
+  if (hasError) {
+    return (
+      <div className="grid gap-8">
+        <div className="bg-red-50 border-l-4 border-red-500 p-6 rounded-md">
+          <h3 className="text-xl font-bold text-red-700 mb-2">Analysis Error</h3>
+          <p className="text-red-600">{errorMessage}</p>
+          <p className="mt-4 text-slate-700">
+            Please try again later or contact support if this issue persists.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="grid gap-8">
       <div className="grid md:grid-cols-2 gap-6">
@@ -59,9 +80,9 @@ const ResultList = ({ feedback }: ResultListProps) => {
           score={animatedScore}
           icon={Target}
           explanation={
-            feedback.score >= 80
+            score >= 80
               ? "Great match! Your resume aligns well with this position."
-              : feedback.score >= 60
+              : score >= 60
               ? "Moderate match. Consider tailoring your resume further."
               : "Low match. Significant changes recommended to align with this role."
           }
@@ -75,28 +96,36 @@ const ResultList = ({ feedback }: ResultListProps) => {
         />
       </div>
 
-      <MissingKeywords keywords={feedback.missingKeywords} />
-      {feedback.sectionFeedback && Object.keys(feedback.sectionFeedback).length > 0 ? (
-  <SectionFeedback feedback={feedback.sectionFeedback} />
-) : (
-  <ResultSection
-    title="Section-by-Section Feedback"
-    icon={<FileSearch className="h-6 w-6 text-blue-600" />}
-    content={
-      <div className="bg-white border border-gray-100 rounded-lg p-4 shadow-sm">
-        <p className="text-slate-600">No section feedback available.</p>
-      </div>
-    }
-  />
-)}
-      <BulletImprovements bullets={feedback.weakBullets} />
+      <MissingKeywords 
+        keywords={Array.isArray(feedback.missingKeywords) ? feedback.missingKeywords : []} 
+      />
+      
+      {feedback.sectionFeedback && Object.keys(feedback.sectionFeedback || {}).length > 0 ? (
+        <SectionFeedback feedback={feedback.sectionFeedback} />
+      ) : (
+        <ResultSection
+          title="Section-by-Section Feedback"
+          icon={<FileSearch className="h-6 w-6 text-blue-600" />}
+          content={
+            <div className="bg-white border border-gray-100 rounded-lg p-4 shadow-sm">
+              <p className="text-slate-600">No section feedback available.</p>
+            </div>
+          }
+        />
+      )}
+      
+      <BulletImprovements 
+        bullets={Array.isArray(feedback.weakBullets) ? feedback.weakBullets : []} 
+      />
 
       <ResultSection
         title="Tone & Clarity Suggestions"
         icon={<MessageSquare className="h-6 w-6 text-blue-600" />}
         content={
           <div className="bg-white border border-gray-100 rounded-lg p-4 shadow-sm">
-            <p className="text-slate-600 whitespace-pre-line">{feedback.toneSuggestions}</p>
+            <p className="text-slate-600 whitespace-pre-line">
+              {feedback.toneSuggestions || "No tone suggestions available."}
+            </p>
           </div>
         }
       />
@@ -107,7 +136,7 @@ const ResultList = ({ feedback }: ResultListProps) => {
         content={
           <div className="bg-white border border-gray-100 rounded-lg p-4 shadow-sm">
             <p className="text-slate-800 font-medium whitespace-pre-line">
-              {feedback.wouldInterview}
+              {feedback.wouldInterview || "No interview recommendation available."}
             </p>
           </div>
         }

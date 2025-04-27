@@ -20,7 +20,7 @@ export async function callOpenAIForAnalysis(messages: any[], openAIApiKey: strin
         messages,
         temperature: 0.2,
         max_tokens: 1500,
-        response_format: { type: "json_object" },
+        response_format: { "type": "json_object" }, // Fixed: Object instead of string
       }),
     });
 

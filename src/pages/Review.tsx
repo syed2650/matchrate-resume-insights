@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -25,8 +26,8 @@ const Review = () => {
   }, [feedback]);
 
   const handleAnalysisComplete = async (data: Feedback) => {
-    setFeedback(data);
     setIsLoading(false);
+    setFeedback(data);
     setHelpfulFeedback(null);
 
     // Track feedback usage
@@ -140,6 +141,10 @@ const Review = () => {
           helpfulFeedback={helpfulFeedback}
           onFeedbackSubmit={handleFeedbackSubmit}
         />
+      )}
+
+      {showLimitModal && (
+        <UsageLimitModal onClose={handleCloseLimitModal} />
       )}
     </div>
   );

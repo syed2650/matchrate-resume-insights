@@ -40,31 +40,26 @@ const ReviewForm = ({ onSubmit, isLoading, isDisabled = false }: ReviewFormProps
   } = useJobDescription();
 
   const [jobTitle, setJobTitle] = useState<string>("");
+  const [submitting, setSubmitting] = useState<boolean>(false);
 
   const handleSubmit = (e: React.FormEvent) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  if (resume && (jobDescription || jobUrl)) {
-    // Immediately show loading spinner!
-    setImmediateLoadingState();
+    if (resume && (jobDescription || jobUrl)) {
+      // Immediately show loading spinner
+      setSubmitting(true);
 
-    onSubmit(
-      resume, 
-      jobDescription, 
-      jobUrl,
-      jobTitle
-    );
-  }
-};
-
-function setImmediateLoadingState() {
-  const event = new CustomEvent("set-loading-true");
-  window.dispatchEvent(event);
-}
-
-  const handleResumeTextChange = (text: string) => {
-    // Optional: Add any additional logic for text change if needed
+      onSubmit(
+        resume, 
+        jobDescription, 
+        jobUrl,
+        jobTitle
+      );
+    }
   };
+
+  // Use either the prop loading state or our local submitting state
+  const isSubmitting = isLoading || submitting;
 
   return (
     <Card className="p-6">
@@ -74,7 +69,7 @@ function setImmediateLoadingState() {
             resumeText={resume}
             setResumeText={setResume}
             onFileUpload={handleFileUpload}
-            onTextChange={handleResumeTextChange}
+            onTextChange={() => {}}
             isParsingResume={isParsingResume}
             resumeFile={resumeFile}
             onClear={clearResume}
@@ -105,29 +100,25 @@ function setImmediateLoadingState() {
               placeholder="e.g., Product Manager, Software Engineer"
               value={jobTitle}
               onChange={(e) => setJobTitle(e.target.value)}
-              disabled={isDisabled}
+              disabled={isSubmitting || isDisabled}
             />
           </div>
 
           <div className="flex justify-center">
             <Button
-  type="submit"
-  disabled={isLoading || isDisabled || !resume || (!jobDescription && !jobUrl)}
-  className="px-8 py-6 text-lg"
-  onClick={() => {
-    const event = new CustomEvent("set-loading-true");
-    window.dispatchEvent(event);
-  }}
->
-  {isLoading ? (
-    <>
-      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-      Analyzing Resume...
-    </>
-  ) : (
-    "Analyze My Resume"
-  )}
-</Button>
+              type="submit"
+              disabled={isSubmitting || isDisabled || !resume || (!jobDescription && !jobUrl)}
+              className="px-8 py-6 text-lg relative"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  Analyzing Resume...
+                </>
+              ) : (
+                "Analyze My Resume"
+              )}
+            </Button>
           </div>
         </div>
       </form>

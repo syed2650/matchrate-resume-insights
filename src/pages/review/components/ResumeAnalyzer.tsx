@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Feedback } from "../types";
@@ -7,6 +7,7 @@ import ReviewForm from "../ReviewForm";
 import { canUseFeedback } from "../utils";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { Loader2 } from "lucide-react";
 
 interface ResumeAnalyzerProps {
   onAnalysisComplete: (feedback: Feedback) => void;
@@ -17,6 +18,26 @@ interface ResumeAnalyzerProps {
 const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, isDisabled = false }: ResumeAnalyzerProps) => {
   const { toast } = useToast();
   const [showLimitWarning, setShowLimitWarning] = useState(!canUseFeedback());
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Listen for loading state changes
+  useEffect(() => {
+    const listener = () => {
+      setIsSubmitting(true);
+    };
+    window.addEventListener("set-loading-true", listener);
+
+    return () => {
+      window.removeEventListener("set-loading-true", listener);
+    };
+  }, []);
+
+  // Reset submitting state when isLoading changes to false
+  useEffect(() => {
+    if (!isLoading && isSubmitting) {
+      setIsSubmitting(false);
+    }
+  }, [isLoading]);
 
   const handleFormSubmit = async (
     resume: string,
@@ -36,6 +57,8 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, isDisabled = false }: R
     }
 
     try {
+      setIsSubmitting(true);
+
       const response = await fetch('https://rodkrpeqxgqizngdypbl.functions.supabase.co/analyze-resume', {
         method: 'POST',
         headers: {
@@ -70,11 +93,23 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, isDisabled = false }: R
         description: error instanceof Error ? error.message : "Failed to analyze resume",
         variant: "destructive"
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
+  const showOverlay = isLoading || isSubmitting;
+
   return (
-    <Card className="p-6">
+    <Card className="p-6 relative">
+      {showOverlay && (
+        <div className="absolute inset-0 bg-slate-50/80 flex flex-col items-center justify-center z-10 rounded-lg">
+          <Loader2 className="h-12 w-12 animate-spin text-blue-600 mb-4" />
+          <p className="text-lg font-medium text-slate-800">Analyzing your resume...</p>
+          <p className="text-sm text-slate-600 mt-2">This may take up to 30 seconds</p>
+        </div>
+      )}
+      
       {showLimitWarning && (
         <div className="mb-6 bg-amber-50 border border-amber-200 rounded-md p-4 text-amber-800">
           <h3 className="text-lg font-medium mb-2">Usage Limit Reached</h3>
@@ -89,7 +124,7 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, isDisabled = false }: R
       
       <ReviewForm 
         onSubmit={handleFormSubmit} 
-        isLoading={isLoading}
+        isLoading={showOverlay}
         isDisabled={isDisabled}
       />
     </Card>
