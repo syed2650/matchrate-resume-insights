@@ -6,42 +6,50 @@ import { Feedback } from "../types";
 export function drawHeader(doc: jsPDF, pageWidth: number) {
   const headerColor = styles.backgrounds.header;
   doc.setFillColor(headerColor[0], headerColor[1], headerColor[2]);
-  doc.rect(0, 0, pageWidth, 25, 'F');
+  doc.rect(0, 0, pageWidth, 28, 'F');
   
   doc.setTextColor(styles.colors.white);
   doc.setFontSize(styles.fontSize.title);
-  doc.setFont(styles.fonts.regular, 'bold');
-  doc.text("Resume Analysis Report", styles.margins.side, 15);
+  doc.setFont(styles.fonts.heading);
+  doc.text("Resume Analysis Report", styles.margins.side, 18);
+  
+  doc.setFontSize(styles.fontSize.small);
+  doc.setFont(styles.fonts.regular);
+  doc.text("Powered by AI & Recruiter Insights", pageWidth - styles.margins.side, 18, { align: 'right' });
   
   doc.setTextColor(styles.colors.black);
 }
 
 export function drawMetadata(doc: jsPDF, yPos: number) {
+  const today = new Date();
+  const formattedDate = today.toLocaleDateString('en-US', { 
+    year: 'numeric', month: 'long', day: 'numeric' 
+  });
+  
   doc.setFontSize(styles.fontSize.small);
   doc.setTextColor(styles.colors.slate[500]);
-  const today = new Date();
-  doc.text(`Generated on ${today.toLocaleDateString()}`, styles.margins.side, yPos);
+  doc.text(`Generated on ${formattedDate}`, styles.margins.side, yPos);
   
-  yPos += 8;
+  yPos += 10;
   doc.setFontSize(styles.fontSize.normal);
-  doc.setFont(styles.fonts.regular, 'bold');
+  doc.setFont(styles.fonts.heading);
   doc.setTextColor(styles.colors.blue[600]);
-  doc.text("RESUME FEEDBACK REPORT", styles.margins.side, yPos);
-  doc.setFont(styles.fonts.regular, 'normal');
+  doc.text("PROFESSIONAL RESUME FEEDBACK", styles.margins.side, yPos);
+  doc.setFont(styles.fonts.regular);
   doc.setTextColor(styles.colors.black);
   
-  return yPos + 12;
+  return yPos + 14;
 }
 
 export function drawScores(doc: jsPDF, feedback: Feedback, pageWidth: number, yPos: number) {
   const lightGrayColor = styles.backgrounds.lightGray;
   doc.setFillColor(lightGrayColor[0], lightGrayColor[1], lightGrayColor[2]);
-  const scoreHeight = 25;
-  doc.rect(styles.margins.side, yPos, pageWidth - (styles.margins.side * 2), scoreHeight, 'F');
+  const scoreHeight = 35;
+  doc.roundedRect(styles.margins.side, yPos, pageWidth - (styles.margins.side * 2), scoreHeight, 2, 2, 'F');
   
   doc.setFontSize(styles.fontSize.large);
-  doc.setFont(styles.fonts.regular, 'bold');
-  doc.text("Relevance Score:", styles.margins.side + 5, yPos + 8);
+  doc.setFont(styles.fonts.heading);
+  doc.text("Relevance Score:", styles.margins.side + 5, yPos + 10);
   
   // Color code the score
   const score = feedback.score;
@@ -53,35 +61,35 @@ export function drawScores(doc: jsPDF, feedback: Feedback, pageWidth: number, yP
     doc.setTextColor('#DC2626'); // Red
   }
   
-  doc.text(`${score}/100`, styles.margins.side + 45, yPos + 8);
+  doc.text(`${score}/100`, styles.margins.side + 50, yPos + 10);
   doc.setTextColor(styles.colors.black);
   
-  // Add ATS score
-  let atsScore = 0;
-  if (feedback.atsScores && typeof feedback.atsScores === 'object') {
-    const scores = Object.values(feedback.atsScores);
-    if (scores.length > 0) {
-      atsScore = scores[0];
-    }
-  }
+  // Add visual score indicator
+  const barWidth = 120;
+  const barHeight = 6;
+  const startX = pageWidth - styles.margins.side - barWidth;
+  const startY = yPos + 8;
   
-  doc.text("ATS Readiness:", styles.margins.side + 85, yPos + 8);
+  // Background bar
+  doc.setFillColor(220, 220, 220);
+  doc.roundedRect(startX, startY, barWidth, barHeight, 3, 3, 'F');
   
-  if (atsScore >= 80) {
-    doc.setTextColor('#16A34A');
-  } else if (atsScore >= 60) {
-    doc.setTextColor('#D97706');
+  // Score bar
+  const fillWidth = (score / 100) * barWidth;
+  if (score >= 80) {
+    doc.setFillColor(22, 163, 74); // Green
+  } else if (score >= 60) {
+    doc.setFillColor(217, 119, 6); // Orange
   } else {
-    doc.setTextColor('#DC2626');
+    doc.setFillColor(220, 38, 38); // Red
   }
-  
-  doc.text(`${atsScore}/100`, styles.margins.side + 125, yPos + 8);
-  doc.setTextColor(styles.colors.black);
+  doc.roundedRect(startX, startY, fillWidth, barHeight, 3, 3, 'F');
   
   // Add Job title if available
   if (feedback.jobTitle) {
     doc.setFontSize(styles.fontSize.normal);
-    doc.text(`Target Role: ${feedback.jobTitle}`, styles.margins.side + 5, yPos + 18);
+    doc.setFont(styles.fonts.regular);
+    doc.text(`Target Role: ${feedback.jobTitle}`, styles.margins.side + 5, yPos + 24);
   }
   
   return yPos + scoreHeight + 10;

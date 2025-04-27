@@ -3,6 +3,11 @@
  * Utility functions for resume reviews
  */
 
+import { calculateATSScore as computeATSScore, getATSScoreExplanation, getATSScoreDetail } from './utils/atsScoring';
+
+// Re-export the ATS score explanation functions for easier access
+export { getATSScoreExplanation, getATSScoreDetail };
+
 // Extract keywords from text with improved algorithm
 function extractKeywords(text: string): string[] {
   if (!text || typeof text !== 'string') {
@@ -42,7 +47,7 @@ function extractKeywords(text: string): string[] {
     .sort((a, b) => b[1] - a[1])
     .map(entry => entry[0]);
   
-  // Return up to 50 most common words as keywords
+  // Return top keywords
   return sortedKeywords.slice(0, 50);
 }
 
@@ -61,59 +66,12 @@ export function generateHash(resume: string, jobDescription: string): string {
   return Math.abs(hash).toString(16);
 }
 
-// Improved ATS score calculation based on keyword matching
+// Export the ATS score calculation function
 export function calculateATSScore(resumeText: string, jobDescriptionText: string): number {
-  if (!resumeText || !jobDescriptionText) {
-    return 0;
-  }
-  
-  // Extract keywords from job description and resume
-  const jobKeywords = extractKeywords(jobDescriptionText);
-  const resumeContent = resumeText.toLowerCase();
-  
-  // Count matches - check if each keyword appears in the resume
-  let matches = 0;
-  jobKeywords.forEach(keyword => {
-    if (resumeContent.includes(keyword)) {
-      matches++;
-    }
-  });
-  
-  // Calculate score as percentage of matches
-  const totalKeywords = jobKeywords.length;
-  const score = totalKeywords > 0 ? Math.round((matches / totalKeywords) * 100) : 0;
-  
-  // Ensure score is within 0-100 range
-  console.log(`Calculated ATS score: ${score} from ${matches} matches out of ${totalKeywords} keywords`);
-  return Math.min(100, Math.max(0, score));
+  return computeATSScore(resumeText, jobDescriptionText);
 }
 
-export function getATSScoreExplanation(score: number): string {
-  if (score >= 90) {
-    return "This resume is highly optimized for ATS systems with excellent keyword matching, clear structure, and professional formatting.";
-  } else if (score >= 80) {
-    return "This resume has good ATS compatibility with strong keyword usage and proper section formatting.";
-  } else if (score >= 70) {
-    return "This resume has adequate ATS compatibility but could improve keyword alignment and section structure.";
-  } else {
-    return "This resume needs optimization for ATS systems, including better keyword matching and clearer section formatting.";
-  }
-}
-
-// Detailed calculation explanation for transparency
-export function getATSScoreDetail(score: number): string {
-  if (score >= 90) {
-    return "Score calculated based on excellent keyword density, proper section headings, and ATS-friendly formatting. Minimal improvements needed.";
-  } else if (score >= 80) {
-    return "Score reflects good keyword alignment with job requirements and clear section structure, though some formatting improvements could further optimize scanning.";
-  } else if (score >= 70) {
-    return "Score indicates adequate keyword presence but suboptimal section organization and formatting that could be improved for better ATS performance.";
-  } else {
-    return "Score shows significant gaps in keyword alignment, improper formatting, or missing crucial sections that ATS systems require for successful scanning.";
-  }
-}
-
-// Improved cache management functions for ATS scores with enhanced consistency
+// Cache management functions for ATS scores
 export function saveATSScoreToCache(hash: string, scores: Record<string, number>) {
   try {
     // Get existing cache
@@ -125,7 +83,7 @@ export function saveATSScoreToCache(hash: string, scores: Record<string, number>
       cachedScores[existingIndex] = {
         hash,
         scores,
-        timestamp: new Date().toISOString() // Use ISO string format for better consistency
+        timestamp: new Date().toISOString()
       };
     } else {
       cachedScores.push({
@@ -154,7 +112,6 @@ export function getATSScoresFromCache() {
   try {
     const storedScores = localStorage.getItem('cachedATSScores');
     const parsedScores = storedScores ? JSON.parse(storedScores) : [];
-    console.log(`Retrieved ${parsedScores.length} cached ATS scores`);
     return parsedScores;
   } catch (error) {
     console.error("Error loading cached scores:", error);
@@ -166,11 +123,6 @@ export function getATSScoreFromCache(hash: string) {
   try {
     const cachedScores = getATSScoresFromCache();
     const result = cachedScores.find(item => item.hash === hash);
-    if (result) {
-      console.log(`Found cached ATS scores for hash: ${hash} from ${result.timestamp}`);
-    } else {
-      console.log(`No cached ATS scores found for hash: ${hash}`);
-    }
     return result;
   } catch (error) {
     console.error("Error retrieving ATS score from cache:", error);
@@ -200,7 +152,7 @@ export function storeActiveResumeATSScore(resumeJobHash: string) {
 }
 
 export function getActiveResumeATSHash() {
-  return sessionStorage.getItem('activeResumeATSHash');
+  return sessionStorage.setItem('activeResumeATSHash', '');
 }
 
 // Usage tracking functions for subscription model
@@ -250,7 +202,15 @@ export function getUsageStats(): UsageStats {
     if (new Date() > resetDate) {
       stats.monthly.feedbacks = 0;
       stats.monthly.rewrites = 0;
-      stats.monthly.resetDate = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toISOString();
+      
+      // Set next reset date to first day of next month
+      const nextMonth = new Date();
+      nextMonth.setMonth(nextMonth.getMonth() + 1);
+      nextMonth.setDate(1);
+      stats.monthly.resetDate = nextMonth.toISOString();
+      
+      // Save the updated stats with reset counters
+      localStorage.setItem('usageStats', JSON.stringify(stats));
     }
     
     return stats;
@@ -331,5 +291,24 @@ export function setUserPlan(plan: 'free' | 'paid'): void {
     localStorage.setItem('usageStats', JSON.stringify(stats));
   } catch (error) {
     console.error("Error setting user plan:", error);
+  }
+}
+
+// Get remaining usage counts
+export function getRemainingUsage(): { feedbacks: number; rewrites: number } {
+  const stats = getUsageStats();
+  
+  if (stats.plan === 'free') {
+    // Free plan: 1 per day, no rewrites
+    return {
+      feedbacks: Math.max(0, 1 - stats.daily.count),
+      rewrites: 0
+    };
+  } else {
+    // Paid plan: 30 feedbacks, 15 rewrites per month
+    return {
+      feedbacks: Math.max(0, 30 - stats.monthly.feedbacks),
+      rewrites: Math.max(0, 15 - stats.monthly.rewrites)
+    };
   }
 }

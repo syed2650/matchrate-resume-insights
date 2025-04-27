@@ -1,4 +1,3 @@
-
 import {
   Document,
   Paragraph,
@@ -12,7 +11,11 @@ import {
   WidthType,
   PageNumber,
   Footer,
-  Header
+  Header,
+  Table,
+  TableRow,
+  TableCell,
+  VerticalAlign
 } from "docx";
 
 interface Section {
@@ -72,7 +75,9 @@ export const generateDocument = async (
   const paragraphs = [];
   
   // Add name with larger font and bold
-  const name = currentResume.split('\n')[0].replace(/^#+ /, '').trim();
+  const nameMatch = currentResume.match(/^(?:#{1,2}\s+)?([A-Za-z\s.]+)/);
+  const name = nameMatch ? nameMatch[1].trim() : "Resume";
+  
   paragraphs.push(
     new Paragraph({
       children: [
@@ -90,11 +95,19 @@ export const generateDocument = async (
   
   // Add contact info if available
   if (sections.header && sections.header.length > 0) {
-    const contactInfo = sections.header
-      .filter(line => line.includes('@') || line.includes('linkedin.com') || line.includes('phone'))
-      .join(' | ');
+    const contactLines = sections.header
+      .slice(0, 3)
+      .filter(line => 
+        line.includes('@') || 
+        line.includes('linkedin.com') || 
+        line.includes('phone') ||
+        line.match(/\d{3}[-.\s]?\d{3}[-.\s]?\d{4}/) ||
+        line.includes('github.com')
+      );
     
-    if (contactInfo) {
+    if (contactLines.length > 0) {
+      const contactInfo = contactLines.join(' | ');
+      
       paragraphs.push(
         new Paragraph({
           children: [
@@ -120,6 +133,7 @@ export const generateDocument = async (
             text: `${roleSummary}`,
             italics: true,
             size: RESUME_STYLES.fontSize.subheading * 2,
+            color: RESUME_STYLES.colors.accent,
             font: RESUME_STYLES.fonts.main
           })
         ],
@@ -129,11 +143,296 @@ export const generateDocument = async (
     );
   }
 
-  // Add sections with proper formatting
+  // Process Professional Summary first if it exists
+  if (sections["PROFESSIONAL SUMMARY"] || sections["Professional Summary"] || sections["SUMMARY"] || sections["Summary"]) {
+    const summaryKey = Object.keys(sections).find(key => 
+      key.toLowerCase().includes('summary') || key.toLowerCase().includes('profile')
+    );
+    
+    if (summaryKey) {
+      paragraphs.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: "PROFESSIONAL SUMMARY",
+              bold: true,
+              size: RESUME_STYLES.fontSize.heading * 2,
+              font: RESUME_STYLES.fonts.heading,
+              color: RESUME_STYLES.colors.dark
+            })
+          ],
+          heading: HeadingLevel.HEADING_1,
+          spacing: { after: RESUME_STYLES.spacing.afterHeading },
+          border: { 
+            bottom: { 
+              color: "auto", 
+              size: 6, 
+              space: 1,
+              style: BorderStyle.SINGLE
+            } 
+          }
+        })
+      );
+      
+      sections[summaryKey].forEach(line => {
+        paragraphs.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: line,
+                size: RESUME_STYLES.fontSize.normal * 2,
+                font: RESUME_STYLES.fonts.main
+              })
+            ],
+            spacing: { after: RESUME_STYLES.spacing.afterParagraph }
+          })
+        );
+      });
+      
+      paragraphs.push(
+        new Paragraph({
+          spacing: { after: RESUME_STYLES.spacing.afterSection }
+        })
+      );
+      
+      delete sections[summaryKey];
+    }
+  }
+
+  // Process Skills section next if it exists
+  const skillsKey = Object.keys(sections).find(key => 
+    key.toLowerCase().includes('skill') || key.toLowerCase().includes('competenc')
+  );
+  
+  if (skillsKey) {
+    paragraphs.push(
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: "KEY SKILLS",
+            bold: true,
+            size: RESUME_STYLES.fontSize.heading * 2,
+            font: RESUME_STYLES.fonts.heading,
+            color: RESUME_STYLES.colors.dark
+          })
+        ],
+        heading: HeadingLevel.HEADING_1,
+        spacing: { after: RESUME_STYLES.spacing.afterHeading },
+        border: { 
+          bottom: { 
+            color: "auto", 
+            size: 6, 
+            space: 1,
+            style: BorderStyle.SINGLE
+          } 
+        }
+      })
+    );
+    
+    const skillsText = sections[skillsKey].join(' ');
+    
+    if (skillsText.includes(',')) {
+      const skills = skillsText
+        .split(',')
+        .map(s => s.trim())
+        .filter(s => s.length > 0);
+      
+      const rows = Math.ceil(skills.length / 2);
+      for (let i = 0; i < rows; i++) {
+        const row = [];
+        
+        if (i * 2 < skills.length) {
+          row.push(
+            new TextRun({
+              text: `• ${skills[i * 2]}`,
+              size: RESUME_STYLES.fontSize.normal * 2,
+              font: RESUME_STYLES.fonts.main
+            })
+          );
+        }
+        
+        if (i * 2 + 1 < skills.length) {
+          row.push(
+            new TextRun({
+              text: `• ${skills[i * 2 + 1]}`,
+              size: RESUME_STYLES.fontSize.normal * 2,
+              font: RESUME_STYLES.fonts.main
+            })
+          );
+        }
+        
+        paragraphs.push(
+          new Paragraph({
+            children: row,
+            spacing: { after: RESUME_STYLES.spacing.afterParagraph }
+          })
+        );
+      }
+    } else {
+      sections[skillsKey].forEach(line => {
+        if (line.startsWith('•') || line.startsWith('-') || line.startsWith('*')) {
+          const skillText = line.replace(/^[•\-*]\s?/, '');
+          paragraphs.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: `• ${skillText}`,
+                  size: RESUME_STYLES.fontSize.normal * 2,
+                  font: RESUME_STYLES.fonts.main
+                })
+              ],
+              spacing: { after: RESUME_STYLES.spacing.afterParagraph }
+            })
+          );
+        } else {
+          paragraphs.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: line,
+                  size: RESUME_STYLES.fontSize.normal * 2,
+                  font: RESUME_STYLES.fonts.main
+                })
+              ],
+              spacing: { after: RESUME_STYLES.spacing.afterParagraph }
+            })
+          );
+        }
+      });
+    }
+    
+    paragraphs.push(
+      new Paragraph({
+        spacing: { after: RESUME_STYLES.spacing.afterSection }
+      })
+    );
+    
+    delete sections[skillsKey];
+  }
+  
+  // Process Experience section next
+  const experienceKey = Object.keys(sections).find(key => 
+    key.toLowerCase().includes('experience') || key.toLowerCase().includes('employment') || key.toLowerCase().includes('work')
+  );
+  
+  if (experienceKey) {
+    paragraphs.push(
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: "PROFESSIONAL EXPERIENCE",
+            bold: true,
+            size: RESUME_STYLES.fontSize.heading * 2,
+            font: RESUME_STYLES.fonts.heading,
+            color: RESUME_STYLES.colors.dark
+          })
+        ],
+        heading: HeadingLevel.HEADING_1,
+        spacing: { after: RESUME_STYLES.spacing.afterHeading },
+        border: { 
+          bottom: { 
+            color: "auto", 
+            size: 6, 
+            space: 1,
+            style: BorderStyle.SINGLE
+          } 
+        }
+      })
+    );
+    
+    let inJobEntry = false;
+    
+    sections[experienceKey].forEach(line => {
+      if (line.match(/^[A-Za-z ]+\s+\|\s+/) || (line.match(/^[A-Za-z ]+$/) && !line.startsWith('•') && !line.startsWith('-'))) {
+        inJobEntry = true;
+        
+        let title = line;
+        let company = '';
+        
+        if (line.includes(' | ')) {
+          [title, company] = line.split(' | ');
+        }
+        
+        paragraphs.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: title,
+                bold: true,
+                size: RESUME_STYLES.fontSize.normal * 2,
+                font: RESUME_STYLES.fonts.main
+              }),
+              ...(company ? [
+                new TextRun({
+                  text: ` | ${company}`,
+                  size: RESUME_STYLES.fontSize.normal * 2,
+                  font: RESUME_STYLES.fonts.main
+                })
+              ] : [])
+            ],
+            spacing: { after: RESUME_STYLES.spacing.afterParagraph }
+          })
+        );
+      } else if (line.match(/^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}\s+(-|–|to)\s+/i)) {
+        paragraphs.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: line,
+                italics: true,
+                size: RESUME_STYLES.fontSize.normal * 2,
+                font: RESUME_STYLES.fonts.main,
+                color: RESUME_STYLES.colors.light
+              })
+            ],
+            spacing: { after: RESUME_STYLES.spacing.afterParagraph }
+          })
+        );
+      } else if (line.startsWith('•') || line.startsWith('-') || line.startsWith('*')) {
+        const bulletText = line.replace(/^[•\-*]\s?/, '');
+        paragraphs.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: bulletText,
+                size: RESUME_STYLES.fontSize.normal * 2,
+                font: RESUME_STYLES.fonts.main
+              })
+            ],
+            bullet: {
+              level: 0
+            },
+            spacing: { after: RESUME_STYLES.spacing.afterParagraph }
+          })
+        );
+      } else if (inJobEntry && line.trim()) {
+        paragraphs.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: line,
+                size: RESUME_STYLES.fontSize.normal * 2,
+                font: RESUME_STYLES.fonts.main
+              })
+            ],
+            spacing: { after: RESUME_STYLES.spacing.afterParagraph }
+          })
+        );
+      }
+    });
+    
+    paragraphs.push(
+      new Paragraph({
+        spacing: { after: RESUME_STYLES.spacing.afterSection }
+      })
+    );
+    
+    delete sections[experienceKey];
+  }
+
   Object.entries(sections).forEach(([sectionName, lines]) => {
     if (sectionName === 'header') return;
     
-    // Add section heading
     paragraphs.push(
       new Paragraph({
         children: [
@@ -159,9 +458,8 @@ export const generateDocument = async (
     );
     
     lines.forEach(line => {
-      if (line.startsWith('* ') || line.startsWith('- ')) {
-        // Format bullet points
-        const bulletText = line.replace(/^[*-]\s/, '');
+      if (line.startsWith('•') || line.startsWith('-') || line.startsWith('*')) {
+        const bulletText = line.replace(/^[•\-*]\s?/, '');
         paragraphs.push(
           new Paragraph({
             children: [
@@ -178,7 +476,6 @@ export const generateDocument = async (
           })
         );
       } else if (line.match(/^[A-Za-z ]+\s+\|\s+/)) {
-        // Format job titles and companies
         const [title, rest] = line.split(' | ');
         paragraphs.push(
           new Paragraph({
@@ -199,7 +496,6 @@ export const generateDocument = async (
           })
         );
       } else {
-        // Regular text
         paragraphs.push(
           new Paragraph({
             children: [
@@ -215,7 +511,6 @@ export const generateDocument = async (
       }
     });
     
-    // Add extra space after sections
     paragraphs.push(
       new Paragraph({
         spacing: { after: RESUME_STYLES.spacing.afterSection }
@@ -223,17 +518,16 @@ export const generateDocument = async (
     );
   });
 
-  // Create document with proper margins
   const doc = new Document({
     sections: [
       {
         properties: {
           page: {
             margin: {
-              top: convertInchesToTwip(0.8),
-              right: convertInchesToTwip(0.8),
-              bottom: convertInchesToTwip(0.8),
-              left: convertInchesToTwip(0.8)
+              top: convertInchesToTwip(0.7),
+              right: convertInchesToTwip(0.7),
+              bottom: convertInchesToTwip(0.7),
+              left: convertInchesToTwip(0.7)
             }
           }
         },

@@ -4,19 +4,33 @@ import { PDF_STYLES as styles } from "./styles";
 import { Feedback } from "../types";
 
 function checkPageBreak(doc: jsPDF, yPos: number, margin: number = 20): number {
-  if (yPos > 250) {
+  const pageHeight = doc.internal.pageSize.height;
+  if (yPos > pageHeight - margin) {
     doc.addPage();
-    return margin;
+    return margin + 10;
   }
   return yPos;
 }
 
 export function drawMissingKeywords(doc: jsPDF, feedback: Feedback, pageWidth: number, yPos: number): number {
-  doc.setFont(styles.fonts.regular, 'bold');
+  yPos = checkPageBreak(doc, yPos);
+  
+  // Add section title with professional formatting
+  doc.setFont(styles.fonts.heading);
   doc.setFontSize(styles.fontSize.large);
-  doc.text("Missing Keywords & Skills:", styles.margins.side, yPos);
-  yPos += 8;
-  doc.setFont(styles.fonts.regular, 'normal');
+  doc.setTextColor(styles.colors.blue[600]);
+  doc.text("MISSING KEYWORDS & SKILLS", styles.margins.side, yPos);
+  
+  // Add subtle section divider
+  doc.setDrawColor(styles.colors.gray[200]);
+  doc.setLineWidth(0.5);
+  doc.line(styles.margins.side, yPos + 2, pageWidth - styles.margins.side, yPos + 2);
+  
+  doc.setTextColor(styles.colors.black);
+  yPos += 10;
+  
+  // Reset styles for content
+  doc.setFont(styles.fonts.regular);
   doc.setFontSize(styles.fontSize.normal);
   
   if (feedback.missingKeywords && feedback.missingKeywords.length > 0) {
@@ -52,10 +66,19 @@ export function drawMissingKeywords(doc: jsPDF, feedback: Feedback, pageWidth: n
 export function drawSectionFeedback(doc: jsPDF, feedback: Feedback, pageWidth: number, yPos: number): number {
   yPos = checkPageBreak(doc, yPos);
   
+  // Section title with professional formatting
   doc.setFontSize(styles.fontSize.large);
-  doc.setFont(styles.fonts.regular, 'bold');
-  doc.text("Section-by-Section Feedback:", styles.margins.side, yPos);
-  yPos += 8;
+  doc.setFont(styles.fonts.heading);
+  doc.setTextColor(styles.colors.blue[600]);
+  doc.text("SECTION-BY-SECTION FEEDBACK", styles.margins.side, yPos);
+  
+  // Add subtle section divider
+  doc.setDrawColor(styles.colors.gray[200]);
+  doc.setLineWidth(0.5);
+  doc.line(styles.margins.side, yPos + 2, pageWidth - styles.margins.side, yPos + 2);
+  
+  doc.setTextColor(styles.colors.black);
+  yPos += 10;
 
   if (feedback.sectionFeedback) {
     doc.setFontSize(styles.fontSize.normal);
@@ -65,12 +88,12 @@ export function drawSectionFeedback(doc: jsPDF, feedback: Feedback, pageWidth: n
       // Add section name with background
       const lightGrayColor = styles.backgrounds.lightGray;
       doc.setFillColor(lightGrayColor[0], lightGrayColor[1], lightGrayColor[2]);
-      doc.rect(styles.margins.side, yPos - 5, pageWidth - (styles.margins.side * 2), 10, 'F');
-      doc.setFont(styles.fonts.regular, 'bold');
+      doc.roundedRect(styles.margins.side, yPos - 5, pageWidth - (styles.margins.side * 2), 10, 1, 1, 'F');
+      doc.setFont(styles.fonts.heading);
       doc.text(`${section.charAt(0).toUpperCase() + section.slice(1)}:`, styles.margins.side + 2, yPos);
-      yPos += 7;
+      yPos += 8;
       
-      doc.setFont(styles.fonts.regular, 'normal');
+      doc.setFont(styles.fonts.regular);
       const splitText = doc.splitTextToSize(text, pageWidth - (styles.margins.side * 2) - 4);
       doc.text(splitText, styles.margins.side + 2, yPos);
       yPos += splitText.length * 6 + 10;
@@ -83,10 +106,19 @@ export function drawSectionFeedback(doc: jsPDF, feedback: Feedback, pageWidth: n
 export function drawWeakBullets(doc: jsPDF, feedback: Feedback, pageWidth: number, yPos: number): number {
   yPos = checkPageBreak(doc, yPos);
 
+  // Section title with professional formatting
   doc.setFontSize(styles.fontSize.large);
-  doc.setFont(styles.fonts.regular, 'bold');
-  doc.text("STAR Format Bullet Improvements:", styles.margins.side, yPos);
-  yPos += 8;
+  doc.setFont(styles.fonts.heading);
+  doc.setTextColor(styles.colors.blue[600]);
+  doc.text("BULLET POINT IMPROVEMENTS", styles.margins.side, yPos);
+  
+  // Add subtle section divider
+  doc.setDrawColor(styles.colors.gray[200]);
+  doc.setLineWidth(0.5);
+  doc.line(styles.margins.side, yPos + 2, pageWidth - styles.margins.side, yPos + 2);
+  
+  doc.setTextColor(styles.colors.black);
+  yPos += 10;
   
   if (feedback.weakBullets && feedback.weakBullets.length > 0) {
     doc.setFontSize(styles.fontSize.normal);
@@ -98,14 +130,14 @@ export function drawWeakBullets(doc: jsPDF, feedback: Feedback, pageWidth: numbe
         const lightGrayColor = styles.backgrounds.lightGray;
         doc.setFillColor(lightGrayColor[0], lightGrayColor[1], lightGrayColor[2]);
         const origHeight = doc.getTextDimensions(bullet.original, { maxWidth: pageWidth - (styles.margins.side * 2) - 8 }).h;
-        doc.rect(styles.margins.side, yPos - 4, pageWidth - (styles.margins.side * 2), 6 + origHeight, 'F');
+        doc.roundedRect(styles.margins.side, yPos - 4, pageWidth - (styles.margins.side * 2), 6 + origHeight, 1, 1, 'F');
         
-        doc.setFont(styles.fonts.regular, 'bold');
-        doc.setTextColor(styles.colors.slate[500]);
+        doc.setFont(styles.fonts.heading);
+        doc.setTextColor(styles.colors.slate[600]);
         doc.text("Original:", styles.margins.side + 2, yPos);
         yPos += 6;
         
-        doc.setFont(styles.fonts.regular, 'normal');
+        doc.setFont(styles.fonts.regular);
         doc.setTextColor(styles.colors.slate[600]);
         const origText = doc.splitTextToSize(bullet.original, pageWidth - (styles.margins.side * 2) - 8);
         doc.text(origText, styles.margins.side + 4, yPos);
@@ -115,18 +147,18 @@ export function drawWeakBullets(doc: jsPDF, feedback: Feedback, pageWidth: numbe
         const lightBlueColor = styles.backgrounds.lightBlue;
         doc.setFillColor(lightBlueColor[0], lightBlueColor[1], lightBlueColor[2]);
         const imprHeight = doc.getTextDimensions(bullet.improved, { maxWidth: pageWidth - (styles.margins.side * 2) - 8 }).h;
-        doc.rect(styles.margins.side, yPos - 4, pageWidth - (styles.margins.side * 2), 6 + imprHeight, 'F');
+        doc.roundedRect(styles.margins.side, yPos - 4, pageWidth - (styles.margins.side * 2), 6 + imprHeight, 1, 1, 'F');
         
-        doc.setFont(styles.fonts.regular, 'bold');
+        doc.setFont(styles.fonts.heading);
         doc.setTextColor(styles.colors.blue[600]);
         doc.text("Improved:", styles.margins.side + 2, yPos);
         yPos += 6;
         
-        doc.setFont(styles.fonts.regular, 'normal');
+        doc.setFont(styles.fonts.regular);
         doc.setTextColor(styles.colors.black);
         const imprText = doc.splitTextToSize(bullet.improved, pageWidth - (styles.margins.side * 2) - 8);
         doc.text(imprText, styles.margins.side + 4, yPos);
-        yPos += imprText.length * 5 + 8;
+        yPos += imprText.length * 5 + 10;
       }
     });
   }
@@ -139,35 +171,58 @@ export function drawFinalSection(doc: jsPDF, feedback: Feedback, pageWidth: numb
 
   // Add tone suggestions
   doc.setFontSize(styles.fontSize.large);
-  doc.setFont(styles.fonts.regular, 'bold');
-  doc.text("Tone & Clarity Suggestions:", styles.margins.side, yPos);
-  yPos += 8;
+  doc.setFont(styles.fonts.heading);
+  doc.setTextColor(styles.colors.blue[600]);
+  doc.text("TONE & CLARITY SUGGESTIONS", styles.margins.side, yPos);
+  
+  // Add subtle section divider
+  doc.setDrawColor(styles.colors.gray[200]);
+  doc.setLineWidth(0.5);
+  doc.line(styles.margins.side, yPos + 2, pageWidth - styles.margins.side, yPos + 2);
+  
+  doc.setTextColor(styles.colors.black);
+  yPos += 10;
   
   if (feedback.toneSuggestions) {
     doc.setFontSize(styles.fontSize.normal);
-    doc.setFont(styles.fonts.regular, 'normal');
+    doc.setFont(styles.fonts.regular);
     const toneSplit = doc.splitTextToSize(feedback.toneSuggestions, pageWidth - (styles.margins.side * 2));
     doc.text(toneSplit, styles.margins.side, yPos);
-    yPos += toneSplit.length * 5 + 8;
+    yPos += toneSplit.length * 5 + 12;
   }
 
   yPos = checkPageBreak(doc, yPos);
 
-  // Add interview recommendation
-  doc.setFillColor(30, 41, 59, 0.05);
-  doc.rect(styles.margins.side, yPos, pageWidth - (styles.margins.side * 2), 40, 'F');
+  // Add interview recommendation in a highlighted box
+  const boxMargin = 5;
+  const boxPadding = 8;
+  doc.setFillColor(236, 252, 243); // Light green background
+  doc.setDrawColor(34, 197, 94); // Green border
+  doc.setLineWidth(0.5);
+  doc.roundedRect(
+    styles.margins.side - boxMargin, 
+    yPos - boxMargin, 
+    pageWidth - (styles.margins.side * 2) + (boxMargin * 2), 
+    50, 
+    3, 3, 'FD');
 
   doc.setFontSize(styles.fontSize.large);
-  doc.setFont(styles.fonts.regular, 'bold');
-  doc.text("Final Verdict: Would I Interview?", styles.margins.side + 2, yPos + 8);
-  yPos += 14;
+  doc.setFont(styles.fonts.heading);
+  doc.setTextColor(styles.colors.slate[800]);
+  doc.text("FINAL VERDICT: WOULD I INTERVIEW?", 
+    styles.margins.side + boxPadding, yPos + boxPadding);
+  yPos += boxPadding * 2 + 4;
   
   if (feedback.wouldInterview) {
     doc.setFontSize(styles.fontSize.normal);
-    doc.setFont(styles.fonts.regular, 'normal');
-    const interviewSplit = doc.splitTextToSize(feedback.wouldInterview, pageWidth - (styles.margins.side * 2) - 4);
-    doc.text(interviewSplit, styles.margins.side + 2, yPos);
+    doc.setFont(styles.fonts.regular);
+    doc.setTextColor(styles.colors.slate[600]);
+    const interviewSplit = doc.splitTextToSize(
+      feedback.wouldInterview, 
+      pageWidth - (styles.margins.side * 2) - (boxPadding * 2)
+    );
+    doc.text(interviewSplit, styles.margins.side + boxPadding, yPos);
   }
 
-  return yPos;
+  return yPos + 40;
 }
