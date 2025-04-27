@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { jsPDF } from "jspdf";
 import { Badge } from "@/components/ui/badge";
+import { CheckCircle, ArrowUp } from "lucide-react";
 import { getATSScoreExplanation, getATSScoreDetail, getATSScoreFromCache, canUseRewrite, trackRewriteUsage } from "./utils";
 import { useResumeVersion } from "./hooks/useResumeVersion";
 import { generateDocument } from "./utils/docGenerator";
@@ -10,6 +11,7 @@ import { ExportInfo } from "./components/ExportInfo";
 import ResumeHeader from "./components/ResumeHeader";
 import ResumeContent from "./components/ResumeContent";
 import UpgradeBanner from "./components/UpgradeBanner";
+import { Progress } from "@/components/ui/progress";
 
 interface ResumeRewriteProps {
   rewrittenResume: any;
@@ -21,17 +23,23 @@ interface ResumeRewriteProps {
     industry: string;
     tone: string;
   };
+  originalResume?: string;
+  jobDescription?: string;
+  originalATSScore?: number;
 }
 
 const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ 
   rewrittenResume, 
   atsScores = {},
   scoreHash = null,
-  jobContext
+  jobContext,
+  originalResume,
+  jobDescription,
+  originalATSScore = 0
 }) => {
   const { toast } = useToast();
   const [stableAtsScores, setStableAtsScores] = useState<Record<string, number>>(atsScores);
-  const [canRewrite, setCanRewrite] = useState<boolean>(canUseRewrite());
+  const [canRewrite, setCanRewrite] = useState<boolean>(true); // Setting to true to disable premium restrictions
   
   const { 
     currentResume, 
@@ -50,12 +58,13 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
       setStableAtsScores(atsScores);
     }
     
-    // Check if user can use rewrite feature
-    setCanRewrite(canUseRewrite());
+    // Always allow rewrite for now
+    setCanRewrite(true);
   }, [scoreHash, atsScores]);
 
   const currentAtsScore = (typeof stableAtsScores === 'object' && Object.values(stableAtsScores)[0]) || 0;
-    
+  const scoreDifference = currentAtsScore - originalATSScore;
+  
   const roleSummaryMatch = currentResume.match(/This resume is optimized for(?: a)?:? (.*?)(\n|$)/);
   const roleSummary = roleSummaryMatch ? roleSummaryMatch[1].trim() : "";
 
@@ -164,10 +173,6 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
       let yPosition = 55;
       
       textLines.forEach(line => {
-        if (line.startsWith("* ") || line.startsWith("- ")) {
-          line = "• " + line.substring(2);
-        }
-        
         const splitLines = doc.splitTextToSize(line, 170);
         doc.text(splitLines, 20, yPosition);
         yPosition += 7 * splitLines.length;
@@ -216,6 +221,66 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
     <div className="space-y-6">
       {!canRewrite && <UpgradeBanner feature="resume rewriting" limit="15 rewrites per month" />}
       
+      <div className="bg-green-50 border border-green-100 rounded-xl p-5 shadow-sm">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="bg-green-100 p-2 rounded-full">
+            <CheckCircle className="h-6 w-6 text-green-600" />
+          </div>
+          <h3 className="text-lg font-semibold text-green-800">Resume Successfully Optimized</h3>
+        </div>
+        
+        <p className="text-green-700 mb-4">
+          Your resume has been rewritten to improve your chances of getting an interview. The optimized version addresses the feedback
+          from the analysis and is formatted to be ATS-friendly.
+        </p>
+        
+        <div className="grid md:grid-cols-2 gap-4">
+          <div className="bg-white p-3 rounded-lg border border-green-100">
+            <div className="text-sm text-slate-600 mb-1">ATS Compatibility Score</div>
+            <div className="flex items-center gap-2">
+              <div className="text-2xl font-bold text-slate-800">{currentAtsScore}/100</div>
+              {scoreDifference > 0 && (
+                <div className="flex items-center text-green-600 text-sm">
+                  <ArrowUp className="h-4 w-4" />
+                  +{scoreDifference} improvement
+                </div>
+              )}
+            </div>
+            <div className="mt-1 mb-2 w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className="bg-green-500 h-2 rounded-full" 
+                style={{ width: `${currentAtsScore}%` }}
+              ></div>
+            </div>
+            <div className="text-xs text-slate-500">
+              {isInterviewReady ? 'Your resume is now interview-ready!' : 'Significant improvement from your original resume'}
+            </div>
+          </div>
+          
+          <div className="bg-white p-3 rounded-lg border border-green-100">
+            <div className="text-sm text-slate-600 mb-1">Key Improvements</div>
+            <ul className="text-xs text-slate-700 space-y-1">
+              <li className="flex items-center gap-1">
+                <CheckCircle className="h-3 w-3 text-green-500" />
+                Enhanced professional summary
+              </li>
+              <li className="flex items-center gap-1">
+                <CheckCircle className="h-3 w-3 text-green-500" />
+                Added relevant keywords for ATS optimization
+              </li>
+              <li className="flex items-center gap-1">
+                <CheckCircle className="h-3 w-3 text-green-500" />
+                Strengthened bullet points with quantifiable achievements
+              </li>
+              <li className="flex items-center gap-1">
+                <CheckCircle className="h-3 w-3 text-green-500" />
+                Improved formatting for better readability
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      
       <ResumeHeader
         currentAtsScore={currentAtsScore}
         roleSummary={roleSummary}
@@ -240,33 +305,6 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
             Resume rewriting is available on our paid plan with 15 rewrites per month.
             Upgrade to access this feature.
           </p>
-        </div>
-      )}
-      
-      {currentAtsScore > 0 && (
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 shadow-sm">
-          <div className="flex items-center mb-2">
-            <h4 className="font-semibold text-blue-800">ATS Compatibility: {currentAtsScore}/100</h4>
-            <Badge className="ml-2 bg-blue-200 text-blue-800 hover:bg-blue-300">
-              🔒 Score locked until resume changes
-            </Badge>
-          </div>
-          <p className="text-blue-700 text-sm">
-            {getATSScoreExplanation(currentAtsScore)}
-          </p>
-          <p className="text-blue-600 text-xs mt-2">
-            {getATSScoreDetail(currentAtsScore)}
-          </p>
-          {generatedTimestamp && (
-            <div className="mt-3 text-xs text-blue-500 italic">
-              Score generated on {generatedTimestamp}
-            </div>
-          )}
-          <div className="mt-3 p-3 bg-white rounded border border-blue-100 text-xs text-slate-600">
-            <p>
-              <strong>About ATS Scores:</strong> AI analysis is based on keyword matching between your resume and the job description. The score reflects how well your resume aligns with the key requirements in the job posting.
-            </p>
-          </div>
         </div>
       )}
     </div>

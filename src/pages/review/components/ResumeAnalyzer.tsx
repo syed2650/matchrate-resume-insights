@@ -12,15 +12,15 @@ import { Loader2 } from "lucide-react";
 interface ResumeAnalyzerProps {
   onAnalysisComplete: (feedback: Feedback) => void;
   isLoading: boolean;
+  setIsLoading: (isLoading: boolean) => void;
   isDisabled?: boolean;
 }
 
-const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, isDisabled = false }: ResumeAnalyzerProps) => {
+const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, setIsLoading, isDisabled = false }: ResumeAnalyzerProps) => {
   const { toast } = useToast();
-  const [showLimitWarning, setShowLimitWarning] = useState(!canUseFeedback());
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Listen for loading state changes
+  const [analysisProgress, setAnalysisProgress] = useState(0);
+  
   useEffect(() => {
     const listener = () => {
       setIsSubmitting(true);
@@ -36,8 +36,33 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, isDisabled = false }: R
   useEffect(() => {
     if (!isLoading && isSubmitting) {
       setIsSubmitting(false);
+      setAnalysisProgress(0);
     }
   }, [isLoading]);
+  
+  // Simulate progress updates while analysis is running
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval>;
+    
+    if (isSubmitting) {
+      setAnalysisProgress(10); // Start at 10%
+      
+      interval = setInterval(() => {
+        setAnalysisProgress(prev => {
+          // Gradually increase but never reach 100%
+          if (prev < 20) return prev + 5;
+          if (prev < 50) return prev + 3;
+          if (prev < 70) return prev + 1;
+          if (prev < 85) return prev + 0.5;
+          return prev;
+        });
+      }, 800);
+    }
+    
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isSubmitting]);
 
   const handleFormSubmit = async (
     resume: string,
@@ -52,12 +77,12 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, isDisabled = false }: R
         description: "You've reached your usage limit for the day. Please try again tomorrow or upgrade your plan.",
         variant: "destructive"
       });
-      setShowLimitWarning(true);
       return;
     }
 
     try {
       setIsSubmitting(true);
+      setIsLoading(true);
 
       const response = await fetch('https://rodkrpeqxgqizngdypbl.functions.supabase.co/analyze-resume', {
         method: 'POST',
@@ -74,6 +99,11 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, isDisabled = false }: R
         }),
       });
 
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Server error: ${response.status}`);
+      }
+
       const data = await response.json();
       
       // Add required properties for storage
@@ -85,7 +115,14 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, isDisabled = false }: R
         jobTitle
       };
       
-      onAnalysisComplete(enhancedData);
+      // Set analysis progress to 100% to indicate success before calling onAnalysisComplete
+      setAnalysisProgress(100);
+      
+      // Small delay to allow user to see 100% completion
+      setTimeout(() => {
+        onAnalysisComplete(enhancedData);
+      }, 500);
+      
     } catch (error) {
       console.error("Error analyzing resume:", error);
       toast({
@@ -93,7 +130,7 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, isDisabled = false }: R
         description: error instanceof Error ? error.message : "Failed to analyze resume",
         variant: "destructive"
       });
-    } finally {
+      setIsLoading(false);
       setIsSubmitting(false);
     }
   };
@@ -106,19 +143,20 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, isDisabled = false }: R
         <div className="absolute inset-0 bg-slate-50/80 flex flex-col items-center justify-center z-10 rounded-lg">
           <Loader2 className="h-12 w-12 animate-spin text-blue-600 mb-4" />
           <p className="text-lg font-medium text-slate-800">Analyzing your resume...</p>
-          <p className="text-sm text-slate-600 mt-2">This may take up to 30 seconds</p>
-        </div>
-      )}
-      
-      {showLimitWarning && (
-        <div className="mb-6 bg-amber-50 border border-amber-200 rounded-md p-4 text-amber-800">
-          <h3 className="text-lg font-medium mb-2">Usage Limit Reached</h3>
-          <p className="mb-4">
-            You've reached your usage limit for resume reviews. Free plan users get 1 review per day.
+          
+          <div className="w-64 mt-4 mb-2 bg-slate-200 rounded-full h-2.5">
+            <div 
+              className="bg-blue-600 h-2.5 rounded-full transition-all duration-300" 
+              style={{width: `${analysisProgress}%`}}
+            ></div>
+          </div>
+          
+          <p className="text-sm text-slate-600">
+            {analysisProgress < 30 && "Extracting job requirements..."}
+            {analysisProgress >= 30 && analysisProgress < 60 && "Analyzing resume content..."}
+            {analysisProgress >= 60 && analysisProgress < 90 && "Generating recommendations..."}
+            {analysisProgress >= 90 && "Finalizing results..."}
           </p>
-          <Button asChild>
-            <Link to="/pricing">Upgrade to Paid Plan</Link>
-          </Button>
         </div>
       )}
       

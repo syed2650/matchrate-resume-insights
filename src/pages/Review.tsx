@@ -53,7 +53,6 @@ const Review = () => {
       }));
 
       // Ensure the selected_role is null if not a valid option
-      // This fixes TypeScript error by explicitly handling the value
       const role = data.jobTitle || null;
 
       const { data: submissionData, error: submissionError } = await supabase
@@ -62,7 +61,7 @@ const Review = () => {
           resume_text: data.resume || "",
           job_description: data.jobDescription || "",
           job_url: data.jobUrl || null,
-          selected_role: role as any, // Type assertion as any to avoid TypeScript error
+          selected_role: role as any,
           feedback_results: feedbackResultsForDb,
           user_id: user?.id ?? null
         })
@@ -129,6 +128,7 @@ const Review = () => {
         <ResumeAnalyzer 
           onAnalysisComplete={handleAnalysisComplete}
           isLoading={isLoading}
+          setIsLoading={setIsLoading}
         />
       ) : (
         <AnalysisResults 

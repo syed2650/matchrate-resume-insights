@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from "react";
-import { FileSearch, MessageSquare, CheckCheck, Target } from "lucide-react";
+import { FileSearch, MessageSquare, CheckCheck, Target, FileText, ArrowUp } from "lucide-react";
 import { Feedback } from "./types";
 import { calculateATSScore, getATSScoreExplanation } from "./utils/atsScoring";
 import ResultSection from "./ResultSection";
@@ -7,12 +8,14 @@ import ScoreCard from "./components/ScoreCard";
 import MissingKeywords from "./components/MissingKeywords";
 import SectionFeedback from "./components/SectionFeedback";
 import BulletImprovements from "./components/BulletImprovements";
+import { Button } from "@/components/ui/button";
 
 interface ResultListProps {
   feedback: Feedback;
+  onRequestRewrite?: () => void;
 }
 
-const ResultList = ({ feedback }: ResultListProps) => {
+const ResultList = ({ feedback, onRequestRewrite }: ResultListProps) => {
   const [animatedScore, setAnimatedScore] = useState(0);
   const [animatedATSScore, setAnimatedATSScore] = useState(0);
 
@@ -22,6 +25,11 @@ const ResultList = ({ feedback }: ResultListProps) => {
   
   // Ensure score has a default value if feedback.score is undefined
   const score = feedback?.score !== undefined ? feedback.score : 0;
+
+  const atsScoreLow = atsScore < 75;
+  const relevanceScoreLow = score < 80;
+  const hasMissingKeywords = Array.isArray(feedback.missingKeywords) && feedback.missingKeywords.length > 0;
+  const needsImprovement = atsScoreLow || relevanceScoreLow || hasMissingKeywords;
 
   useEffect(() => {
     if (score) {
@@ -85,6 +93,7 @@ const ResultList = ({ feedback }: ResultListProps) => {
               ? "Moderate match. Consider tailoring your resume further."
               : "Low match. Significant changes recommended to align with this role."
           }
+          isLow={relevanceScoreLow}
         />
 
         <ScoreCard
@@ -92,6 +101,7 @@ const ResultList = ({ feedback }: ResultListProps) => {
           score={animatedATSScore}
           icon={FileSearch}
           explanation={getATSScoreExplanation(atsScore)}
+          isLow={atsScoreLow}
         />
       </div>
 
@@ -141,6 +151,51 @@ const ResultList = ({ feedback }: ResultListProps) => {
         }
         isHighlighted={true}
       />
+
+      {needsImprovement && onRequestRewrite && (
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-xl p-6 shadow-md">
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-4 justify-between">
+            <div>
+              <h3 className="text-xl font-bold text-blue-800 flex items-center gap-2">
+                <ArrowUp className="h-5 w-5" />
+                Optimize Your Resume
+              </h3>
+              <p className="text-blue-700 mt-2">
+                Your resume could use improvements to increase your chances of getting an interview. 
+                Our AI can rewrite your resume to address the issues above, incorporate missing keywords, 
+                and improve your ATS compatibility score.
+              </p>
+              
+              {atsScoreLow && (
+                <div className="mt-2 text-sm text-blue-600">
+                  • Increase your ATS compatibility score (currently {atsScore}/100)
+                </div>
+              )}
+              
+              {relevanceScoreLow && (
+                <div className="text-sm text-blue-600">
+                  • Improve your relevance score (currently {score}/100)
+                </div>
+              )}
+              
+              {hasMissingKeywords && (
+                <div className="text-sm text-blue-600">
+                  • Incorporate {feedback.missingKeywords.length} missing keywords
+                </div>
+              )}
+            </div>
+            
+            <Button 
+              onClick={onRequestRewrite} 
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md font-medium flex items-center gap-2"
+              size="lg"
+            >
+              <FileText className="h-5 w-5" />
+              Rewrite My Resume
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

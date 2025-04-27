@@ -1,7 +1,7 @@
 
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { callOpenAIForAnalysis } from "./api.ts";
+import { callOpenAIForAnalysis, generateFullResumeRewrite } from "./api.ts";
 import { buildAnalysisPrompt, buildRewritePrompt } from "./prompts.ts";
 import { parseAndValidateAnalysis } from "./utils.ts";
 
@@ -149,31 +149,34 @@ serve(async (req) => {
             model: 'gpt-4o',
             messages: extractionPrompt,
             temperature: 0.4,
+            response_format: { type: "json_object" }
           }),
         });
         
-        const data = await response.json();
-        if (data.error) {
-          throw new Error(`OpenAI API error: ${data.error.message}`);
-        }
-        
-        // Parse the extracted information
-        const extractedContent = data.choices[0].message.content;
-        try {
-          const parsed = JSON.parse(extractedContent);
-          jobKeywords = parsed.keywords || [];
-          coreResponsibilities = parsed.responsibilities || [];
-          industryContext = parsed.industry || "";
-          toneSuggestion = parsed.tone || "";
+        if (!response.ok) {
+          const error = await response.json();
+          console.error("Error extracting job information:", error);
+        } else {
+          const data = await response.json();
           
-          console.log("Successfully extracted job information:", {
-            keywords: jobKeywords,
-            responsibilities: coreResponsibilities,
-            industry: industryContext,
-            tone: toneSuggestion
-          });
-        } catch (parseError) {
-          console.error("Error parsing extracted job information:", parseError);
+          // Parse the extracted information
+          const content = data.choices[0].message.content;
+          try {
+            const parsed = JSON.parse(content);
+            jobKeywords = parsed.keywords || [];
+            coreResponsibilities = parsed.responsibilities || [];
+            industryContext = parsed.industry || "";
+            toneSuggestion = parsed.tone || "";
+            
+            console.log("Successfully extracted job information:", {
+              keywords: jobKeywords,
+              responsibilities: coreResponsibilities,
+              industry: industryContext,
+              tone: toneSuggestion
+            });
+          } catch (parseError) {
+            console.error("Error parsing extracted job information:", parseError);
+          }
         }
       } catch (extractionError) {
         console.error("Error extracting job information:", extractionError);
@@ -195,33 +198,22 @@ serve(async (req) => {
       if (generateRewrite) {
         // Generate full professional resume
         try {
-          const rewriteMessages = buildRewritePrompt(resume, effectiveJobDescription, "general", selectedRole);
-          
-          const response = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${openAIApiKey}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              model: 'gpt-4o',
-              messages: rewriteMessages,
-              temperature: 0, // Set temperature to 0 for more consistent results
-            }),
-          });
-          
-          const data = await response.json();
-          if (data.error) {
-            throw new Error(`OpenAI API error: ${data.error.message}`);
-          }
+          // Pass the analysis to the rewrite function to incorporate feedback
+          const rewriteResult = await generateFullResumeRewrite(
+            resume, 
+            effectiveJobDescription, 
+            "general", 
+            selectedRole,
+            openAIApiKey,
+            analysis // Pass the analysis for targeted improvements
+          );
           
           // Extract the rewritten resume from the response
-          rewrittenResume = data.choices[0].message.content;
+          rewrittenResume = rewriteResult.text;
           
-          // Calculate ATS score using our deterministic algorithm
+          // Use the calculated ATS score
           if (!skipATSCalculation) {
-            const atsScore = calculateATSScore(rewrittenResume, effectiveJobDescription);
-            atsScores = { "general": atsScore };
+            atsScores = { "general": rewriteResult.atsScore };
           }
         } catch (error) {
           console.error("Error generating resume rewrite:", error);

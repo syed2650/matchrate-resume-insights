@@ -15,6 +15,7 @@ export interface Feedback {
   jobTitle?: string;
   resumeText?: string; // For backward compatibility
   error?: string; // Added error property
+  rewriteRequested?: boolean; // Flag to track if rewrite was requested
 }
 
 export interface JobContext {
@@ -35,4 +36,12 @@ export interface ResumeFile {
   url?: string;
   type?: string;
   size?: number;
+}
+
+export interface AnalysisStep {
+  id: number;
+  name: string;
+  description: string;
+  isComplete: boolean;
+  isCurrent: boolean;
 }

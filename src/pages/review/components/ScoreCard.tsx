@@ -7,9 +7,10 @@ interface ScoreCardProps {
   score: number;
   icon: LucideIcon;
   explanation: string;
+  isLow?: boolean;
 }
 
-const ScoreCard = ({ title, score, icon: Icon, explanation }: ScoreCardProps) => {
+const ScoreCard = ({ title, score, icon: Icon, explanation, isLow = false }: ScoreCardProps) => {
   const getScoreClass = (score: number) => {
     if (score >= 80) return "text-green-600";
     if (score >= 60) return "text-yellow-500";
@@ -17,10 +18,18 @@ const ScoreCard = ({ title, score, icon: Icon, explanation }: ScoreCardProps) =>
   };
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
+    <div className={cn(
+      "bg-white rounded-xl border p-6 shadow-sm transition-all duration-300",
+      isLow ? "border-red-200" : "border-gray-100"
+    )}>
       <div className="flex items-center gap-3 mb-4">
-        <Icon className="h-6 w-6 text-blue-600" />
+        <Icon className={cn("h-6 w-6", isLow ? "text-red-500" : "text-blue-600")} />
         <h3 className="text-xl font-bold text-gray-900">{title}</h3>
+        {isLow && (
+          <span className="bg-red-100 text-red-700 text-xs px-2 py-1 rounded-full">
+            Needs Improvement
+          </span>
+        )}
       </div>
       <div className="flex items-center gap-3">
         <span className={`text-5xl font-bold ${getScoreClass(score)}`}>

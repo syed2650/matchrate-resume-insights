@@ -42,13 +42,34 @@ export async function generateFullResumeRewrite(
   jobDescription: string, 
   companyType: string, 
   selectedRole: string,
-  openAIApiKey: string
+  openAIApiKey: string,
+  analysis: any = null
 ): Promise<{ text: string; atsScore: number }> {
   console.log("Generating full resume rewrite...");
+  
+  // Prepare enhanced prompt based on analysis if available
+  let enhancedPrompt = buildRewritePrompt(resume, jobDescription, companyType, selectedRole);
+  
+  // If we have analysis data, enhance the prompt with specific improvement areas
+  if (analysis) {
+    const missingKeywords = Array.isArray(analysis.missingKeywords) ? analysis.missingKeywords : [];
+    const weakBullets = Array.isArray(analysis.weakBullets) ? analysis.weakBullets : [];
+    const feedbackAreas = analysis.sectionFeedback || {};
+    
+    // Add specific guidance based on analysis
+    enhancedPrompt[0].content += `\n\n✅ Additional Optimization Instructions:
+    
+1. Incorporate these missing keywords naturally: ${missingKeywords.join(', ')}
+
+2. Address the following section improvement needs:
+${Object.entries(feedbackAreas).map(([section, feedback]) => `- ${section}: ${feedback}`).join('\n')}
+
+3. Create stronger bullet points that show clear achievements and metrics.
+
+4. Ensure the resume achieves a high ATS compatibility score by using industry-standard formatting, relevant keywords, and clear section headers.`;
+  }
 
   try {
-    const messages = buildRewritePrompt(resume, jobDescription, companyType, selectedRole);
-    
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -57,7 +78,7 @@ export async function generateFullResumeRewrite(
       },
       body: JSON.stringify({
         model: 'gpt-4o',
-        messages,
+        messages: enhancedPrompt,
         temperature: 0.3,
       }),
     });
@@ -70,11 +91,16 @@ export async function generateFullResumeRewrite(
     const data = await response.json();
     const content = data.choices[0].message.content;
     
-    // Use deterministic ATS scoring based on input hash
+    // Calculate improved ATS score based on the rewritten resume
     const atsScore = calculateATSScore(content, jobDescription);
     
+    // Clean up the rewritten resume - remove asterisks
+    const cleanedContent = content
+      .replace(/^\* /gm, '') // Remove asterisks at the beginning of lines
+      .replace(/^\- /gm, ''); // Remove dashes at the beginning of lines
+    
     return {
-      text: content,
+      text: cleanedContent,
       atsScore
     };
   } catch (error) {
