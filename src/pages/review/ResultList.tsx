@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from "react";
 import ResultSection from "./ResultSection";
 import { Feedback } from "./types";
-import { 
-  CheckCircle, 
+import {
+  CheckCircle,
   AlertCircle,
-  Target, 
-  FileSearch, 
-  Key, 
-  FileText, 
-  List, 
-  MessageSquare, 
-  CheckCheck 
+  Target,
+  FileSearch,
+  Key,
+  FileText,
+  List,
+  MessageSquare,
+  CheckCheck
 } from "lucide-react";
+import { calculateATSScore, getATSScoreExplanation } from "@/lib/utils";
 
 interface ResultListProps {
   feedback: Feedback;
@@ -27,7 +28,9 @@ const ResultList = ({ feedback }: ResultListProps) => {
     return "text-red-500";
   };
 
-  const atsScore = Math.min(95, Math.max(40, feedback.score + Math.floor(Math.random() * 15) - 5));
+  const resumeText = feedback.resumeText || "";
+  const jobDescriptionText = feedback.jobDescription || "";
+  const atsScore = calculateATSScore(resumeText, jobDescriptionText);
 
   useEffect(() => {
     if (feedback?.score) {
@@ -61,7 +64,7 @@ const ResultList = ({ feedback }: ResultListProps) => {
 
   const ProgressBar = ({ value }: { value: number }) => (
     <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden mt-3">
-      <div 
+      <div
         className={`h-full transition-all duration-700 ease-out rounded-full ${
           value >= 80 ? "bg-green-500" : value >= 60 ? "bg-yellow-400" : "bg-red-500"
         }`}
@@ -87,9 +90,9 @@ const ResultList = ({ feedback }: ResultListProps) => {
           </div>
           <ProgressBar value={animatedScore} />
           <p className="mt-3 text-gray-600">
-            {feedback.score >= 80 
+            {feedback.score >= 80
               ? "Great match! Your resume aligns well with this position."
-              : feedback.score >= 60 
+              : feedback.score >= 60
               ? "Moderate match. Consider tailoring your resume further."
               : "Low match. Significant changes recommended to align with this role."}
           </p>
@@ -109,17 +112,12 @@ const ResultList = ({ feedback }: ResultListProps) => {
           </div>
           <ProgressBar value={animatedATSScore} />
           <p className="mt-3 text-gray-600">
-            {atsScore >= 80 
-              ? "Your resume is ATS-friendly and likely to pass automated screening."
-              : atsScore >= 60 
-              ? "Your resume may pass ATS but could benefit from formatting improvements."
-              : "ATS issues detected. Consider simplifying formatting and structure."}
+            {getATSScoreExplanation(atsScore)}
           </p>
         </div>
       </div>
 
-      {/* Your other sections (missing keywords, feedback, bullets, etc.) stay the same — they are perfect already. */}
-      
+      {/* Remaining Sections */}
       <ResultSection
         title="Missing Keywords & Skills"
         icon={<Key className="h-6 w-6 text-blue-600" />}
