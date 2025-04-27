@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Feedback } from "./types";
@@ -17,6 +18,16 @@ interface ResumeAnalyzerProps {
 const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, isDisabled = false }: ResumeAnalyzerProps) => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  useEffect(() => {
+  const listener = () => {
+    setIsSubmitting(true); // 🔥 Set loading TRUE immediately on click
+  };
+  window.addEventListener("set-loading-true", listener);
+
+  return () => {
+    window.removeEventListener("set-loading-true", listener);
+  };
+}, []);
 
   const handleFormSubmit = async (
     resume: string,
