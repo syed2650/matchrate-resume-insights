@@ -4,7 +4,7 @@ import { PDF_STYLES as styles } from "./styles";
 import { Feedback } from "../types";
 
 function checkPageBreak(doc: jsPDF, yPos: number, margin: number = 20): number {
-  const pageHeight = doc.internal.pageSize.height;
+  const pageHeight = doc.internal.pageSize.getHeight();
   if (yPos > pageHeight - margin) {
     doc.addPage();
     return margin + 10;
@@ -129,7 +129,11 @@ export function drawWeakBullets(doc: jsPDF, feedback: Feedback, pageWidth: numbe
         // Original bullet
         const lightGrayColor = styles.backgrounds.lightGray;
         doc.setFillColor(lightGrayColor[0], lightGrayColor[1], lightGrayColor[2]);
-        const origHeight = doc.getTextDimensions(bullet.original, { maxWidth: pageWidth - (styles.margins.side * 2) - 8 }).h;
+        
+        // Get the height based on text wrapping
+        const origText = doc.splitTextToSize(bullet.original, pageWidth - (styles.margins.side * 2) - 8);
+        const origHeight = origText.length * 5 + 4;
+        
         doc.roundedRect(styles.margins.side, yPos - 4, pageWidth - (styles.margins.side * 2), 6 + origHeight, 1, 1, 'F');
         
         doc.setFont(styles.fonts.heading);
@@ -139,14 +143,17 @@ export function drawWeakBullets(doc: jsPDF, feedback: Feedback, pageWidth: numbe
         
         doc.setFont(styles.fonts.regular);
         doc.setTextColor(styles.colors.slate[600]);
-        const origText = doc.splitTextToSize(bullet.original, pageWidth - (styles.margins.side * 2) - 8);
         doc.text(origText, styles.margins.side + 4, yPos);
-        yPos += origText.length * 5 + 4;
+        yPos += origHeight + 4;
         
         // Improved bullet
         const lightBlueColor = styles.backgrounds.lightBlue;
         doc.setFillColor(lightBlueColor[0], lightBlueColor[1], lightBlueColor[2]);
-        const imprHeight = doc.getTextDimensions(bullet.improved, { maxWidth: pageWidth - (styles.margins.side * 2) - 8 }).h;
+        
+        // Get the height based on text wrapping
+        const imprText = doc.splitTextToSize(bullet.improved, pageWidth - (styles.margins.side * 2) - 8);
+        const imprHeight = imprText.length * 5 + 4;
+        
         doc.roundedRect(styles.margins.side, yPos - 4, pageWidth - (styles.margins.side * 2), 6 + imprHeight, 1, 1, 'F');
         
         doc.setFont(styles.fonts.heading);
@@ -156,9 +163,8 @@ export function drawWeakBullets(doc: jsPDF, feedback: Feedback, pageWidth: numbe
         
         doc.setFont(styles.fonts.regular);
         doc.setTextColor(styles.colors.black);
-        const imprText = doc.splitTextToSize(bullet.improved, pageWidth - (styles.margins.side * 2) - 8);
         doc.text(imprText, styles.margins.side + 4, yPos);
-        yPos += imprText.length * 5 + 10;
+        yPos += imprHeight + 10;
       }
     });
   }

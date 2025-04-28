@@ -22,7 +22,7 @@ export const generatePDF = (feedback: Feedback): jsPDF => {
     configurePDFStyles(doc);
     
     // Calculate usable width
-    const pageWidth = doc.internal.pageSize.width;
+    const pageWidth = doc.internal.pageSize.getWidth();
     
     // Add header
     drawHeader(doc, pageWidth);

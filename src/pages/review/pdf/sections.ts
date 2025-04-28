@@ -52,7 +52,7 @@ export function drawScores(doc: jsPDF, feedback: Feedback, pageWidth: number, yP
   doc.text("Relevance Score:", styles.margins.side + 5, yPos + 10);
   
   // Color code the score
-  const score = feedback.score;
+  const score = feedback.score || 0;
   if (score >= 80) {
     doc.setTextColor('#16A34A'); // Green
   } else if (score >= 60) {
@@ -97,8 +97,8 @@ export function drawScores(doc: jsPDF, feedback: Feedback, pageWidth: number, yP
 
 export function addFooters(doc: jsPDF) {
   const pageCount = doc.getNumberOfPages();
-  const pageWidth = doc.internal.pageSize.width;
-  const pageHeight = doc.internal.pageSize.height;
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
   
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);

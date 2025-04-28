@@ -28,6 +28,29 @@ interface ResumeRewriteProps {
   originalATSScore?: number;
 }
 
+const formatResumeContent = (content: string): string => {
+  if (!content) return "";
+  
+  // Remove asterisks and format resume properly
+  let formattedContent = content
+    // Remove asterisks from headings and text
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/\*(.*?)\*/g, '$1')
+    
+    // Ensure section headings are properly capitalized
+    .replace(/^(#+\s*)(.*?)$/gm, (match, hash, title) => {
+      return `${hash}${title.toUpperCase()}`;
+    })
+    
+    // Replace markdown style bullets with proper bullet points
+    .replace(/^\s*-\s+/gm, '• ')
+    
+    // Fix horizontal rules to be consistent
+    .replace(/^---$/gm, '--------------------');
+    
+  return formattedContent;
+};
+
 const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ 
   rewrittenResume, 
   atsScores = {},
@@ -42,9 +65,12 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
   const [canRewrite, setCanRewrite] = useState<boolean>(true); // Setting to true to disable premium restrictions
   
   const { 
-    currentResume, 
+    currentResume: rawResume, 
     generatedTimestamp 
   } = useResumeVersion({ rewrittenResume, activeVersion: "general" });
+  
+  // Format the resume to remove asterisks and improve formatting
+  const currentResume = formatResumeContent(rawResume);
   
   useEffect(() => {
     if (scoreHash) {
