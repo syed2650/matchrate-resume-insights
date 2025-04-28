@@ -179,6 +179,65 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
       setIsProcessing(true);
       trackRewriteUsage();
       
+      const docBlob = await generateDocument(
+        currentResume,
+        roleSummary,
+        currentAtsScore,
+        generatedTimestamp || new Date().toLocaleString(),
+        "general",
+        false
+      );
+      
+      if (!docBlob) {
+        throw new Error("Failed to generate DOCX document");
+      }
+      
+      const url = URL.createObjectURL(docBlob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `interview-ready-resume.docx`;
+      link.click();
+      URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Success",
+        description: "Resume downloaded as DOCX",
+      });
+    } catch (error) {
+      console.error("DOCX generation error:", error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to generate DOCX file",
+        variant: "destructive"
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+  
+  const handleDownloadPdf = async () => {
+    if (!canRewrite) {
+      toast({
+        title: "Premium Feature",
+        description: "Resume exporting is available on the paid plan",
+        variant: "default"
+      });
+      return;
+    }
+    
+    if (!currentResume) {
+      toast({
+        title: "Error",
+        description: "No resume content available to download",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    try {
+      setIsProcessing(true);
+      trackRewriteUsage();
+      
       const parsedResume = await parseResumeForPdf(currentResume);
       
       if (!parsedResume) {
@@ -195,20 +254,12 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
       console.error("PDF generation error:", error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to generate PDF file. Please try DOCX download instead.",
+        description: error instanceof Error ? error.message : "Failed to generate PDF file",
         variant: "destructive"
       });
     } finally {
       setIsProcessing(false);
     }
-  };
-  
-  const handleDownloadPdf = async () => {
-    toast({
-      title: "Feature Not Available",
-      description: "PDF download is temporarily disabled. Please use DOCX download instead.",
-      variant: "destructive"
-    });
   };
 
   if (!rewrittenResume) {
