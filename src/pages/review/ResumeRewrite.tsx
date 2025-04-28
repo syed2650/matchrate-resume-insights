@@ -13,6 +13,7 @@ import ResumeContent from "./components/ResumeContent";
 import UpgradeBanner from "./components/UpgradeBanner";
 import { Progress } from "@/components/ui/progress";
 import { downloadResumeAsPdf } from "../utils/downloadResumeAsPdf";
+import { parseResumeForPdf } from "../utils/parseResumeForPdf"; // add this import at the top
 
 interface ResumeRewriteProps {
   rewrittenResume: any;
@@ -258,46 +259,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
     setIsProcessing(true);
     trackRewriteUsage();
 
-    const resumeData = {
-      name: "John Doe", // Replace these fields later dynamically
-      contact: "New York, NY • (123) 456-7890 • john.doe@example.com • linkedin.com/in/johndoe",
-      summary: [
-        "Seasoned Software Engineer with 8+ years in backend and frontend development.",
-        "Expert in React, Node.js, and cloud-native architectures.",
-        "Proven track record of delivering scalable SaaS applications on-time."
-      ],
-      skills: [
-        "JavaScript", "React.js", "Node.js", "AWS", "Docker",
-        "Kubernetes", "PostgreSQL", "CI/CD Pipelines", "GraphQL", "TypeScript"
-      ],
-      experiences: [
-        {
-          company: "TechCorp Inc.",
-          location: "New York",
-          dates: "Jan 2020 – Present",
-          title: "Senior Software Engineer",
-          bullets: [
-            "Led the migration of monolithic architecture to microservices resulting in 30% faster deployments.",
-            "Optimized React app performance, improving load time by 25%.",
-            "Mentored 5 junior engineers, enhancing team productivity."
-          ]
-        },
-        {
-          company: "Startup Labs",
-          location: "Boston",
-          dates: "Aug 2016 – Dec 2019",
-          title: "Full Stack Developer",
-          bullets: [
-            "Built core modules for a B2B SaaS platform used by 500+ clients.",
-            "Integrated Stripe payment APIs, increasing checkout success rate by 20%.",
-            "Collaborated with design team to implement mobile-first UX strategies."
-          ]
-        }
-      ],
-      education: [
-        "B.Sc. in Computer Science | University of Boston • 2016"
-      ]
-    };
+    const resumeData = parseResumeForPdf(currentResume);
 
     await downloadResumeAsPdf(resumeData);
 
