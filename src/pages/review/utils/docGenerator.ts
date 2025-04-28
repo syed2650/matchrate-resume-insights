@@ -1,4 +1,3 @@
-
 import {
   Document,
   Paragraph,
@@ -436,110 +435,108 @@ export const generateDocument = async (
         })
       );
       
-      let inJobEntry = false;
-      
+      // Fixed the syntax issue - removed the nested forEach and fixed the logic
       if (sections[experienceKey] && sections[experienceKey].length > 0) {
+        let isWaitingForJobTitle = false;
+        
         sections[experienceKey].forEach(line => {
-          let isWaitingForJobTitle = false;
+          if (!line || !line.trim()) return;
 
-sections[experienceKey].forEach(line => {
-  if (!line || !line.trim()) return;
+          if (line.includes('•')) {
+            const parts = line.split('•').map(p => p.trim());
 
-  if (line.includes('•')) {
-  const parts = line.split('•').map(p => p.trim());
+            const companyName = parts[0] || '';
+            const locationAndDate = parts[1] || '';
 
-  const companyName = parts[0] || '';
-  const locationAndDate = parts[1] || '';
+            let location = locationAndDate;
+            let dates = '';
 
-  let location = locationAndDate;
-  let dates = '';
+            // Try splitting location and date if possible
+            if (locationAndDate.includes('|')) {
+              const locParts = locationAndDate.split('|').map(p => p.trim());
+              location = locParts[0];
+              dates = locParts[1] || '';
+            }
 
-  // Try splitting location and date if possible
-  if (locationAndDate.includes('|')) {
-    const locParts = locationAndDate.split('|').map(p => p.trim());
-    location = locParts[0];
-    dates = locParts[1] || '';
-  }
-
-  paragraphs.push(
-    new Paragraph({
-      children: [
-        new TextRun({
-          text: companyName,
-          bold: true,
-          size: RESUME_STYLES.fontSize.normal * 2,
-          font: RESUME_STYLES.fonts.main,
-        }),
-        ...(location ? [
-          new TextRun({
-            text: ` • ${location}`,
-            size: RESUME_STYLES.fontSize.normal * 2,
-            font: RESUME_STYLES.fonts.main,
-            color: RESUME_STYLES.colors.light,
-          })
-        ] : []),
-        ...(dates ? [
-          new TextRun({
-            text: dates,
-            size: RESUME_STYLES.fontSize.small * 2,
-            font: RESUME_STYLES.fonts.main,
-            color: RESUME_STYLES.colors.light,
-          })
-        ] : [])
-      ],
-      spacing: { after: RESUME_STYLES.spacing.afterParagraph },
-      alignment: AlignmentType.JUSTIFY, // Important: align it nicely
-    })
-  );
-  isWaitingForJobTitle = true;
-} else if (isWaitingForJobTitle) {
-    // This line is Job Title
-    paragraphs.push(
-      new Paragraph({
-        children: [
-          new TextRun({
-            text: line.trim(),
-            bold: true,
-            size: RESUME_STYLES.fontSize.normal * 2,
-            font: RESUME_STYLES.fonts.main,
-          }),
-        ],
-        spacing: { after: RESUME_STYLES.spacing.afterParagraph }
-      })
-    );
-    isWaitingForJobTitle = false; // Reset
-  } else if (line.startsWith('•') || line.startsWith('-') || line.startsWith('*')) {
-    // Bullet points
-    const bulletText = line.replace(/^[-*]\s*/, '').replace(/^•\s*/, '');
-    paragraphs.push(
-      new Paragraph({
-        children: [
-          new TextRun({
-            text: bulletText,
-            size: RESUME_STYLES.fontSize.normal * 2,
-            font: RESUME_STYLES.fonts.main,
-          }),
-        ],
-        bullet: { level: 0 },
-        spacing: { after: RESUME_STYLES.spacing.afterParagraph }
-      })
-    );
-  } else {
-    // Other random text (fallback)
-    paragraphs.push(
-      new Paragraph({
-        children: [
-          new TextRun({
-            text: line,
-            size: RESUME_STYLES.fontSize.normal * 2,
-            font: RESUME_STYLES.fonts.main,
-          }),
-        ],
-        spacing: { after: RESUME_STYLES.spacing.afterParagraph }
-      })
-    );
-  }
-});
+            paragraphs.push(
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: companyName,
+                    bold: true,
+                    size: RESUME_STYLES.fontSize.normal * 2,
+                    font: RESUME_STYLES.fonts.main,
+                  }),
+                  ...(location ? [
+                    new TextRun({
+                      text: ` • ${location}`,
+                      size: RESUME_STYLES.fontSize.normal * 2,
+                      font: RESUME_STYLES.fonts.main,
+                      color: RESUME_STYLES.colors.light,
+                    })
+                  ] : []),
+                  ...(dates ? [
+                    new TextRun({
+                      text: dates,
+                      size: RESUME_STYLES.fontSize.small * 2,
+                      font: RESUME_STYLES.fonts.main,
+                      color: RESUME_STYLES.colors.light,
+                    })
+                  ] : [])
+                ],
+                spacing: { after: RESUME_STYLES.spacing.afterParagraph },
+                alignment: AlignmentType.JUSTIFY, // Important: align it nicely
+              })
+            );
+            isWaitingForJobTitle = true;
+          } else if (isWaitingForJobTitle) {
+            // This line is Job Title
+            paragraphs.push(
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: line.trim(),
+                    bold: true,
+                    size: RESUME_STYLES.fontSize.normal * 2,
+                    font: RESUME_STYLES.fonts.main,
+                  }),
+                ],
+                spacing: { after: RESUME_STYLES.spacing.afterParagraph }
+              })
+            );
+            isWaitingForJobTitle = false; // Reset
+          } else if (line.startsWith('•') || line.startsWith('-') || line.startsWith('*')) {
+            // Bullet points
+            const bulletText = line.replace(/^[-*]\s*/, '').replace(/^•\s*/, '');
+            paragraphs.push(
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: bulletText,
+                    size: RESUME_STYLES.fontSize.normal * 2,
+                    font: RESUME_STYLES.fonts.main,
+                  }),
+                ],
+                bullet: { level: 0 },
+                spacing: { after: RESUME_STYLES.spacing.afterParagraph }
+              })
+            );
+          } else {
+            // Other random text (fallback)
+            paragraphs.push(
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: line,
+                    size: RESUME_STYLES.fontSize.normal * 2,
+                    font: RESUME_STYLES.fonts.main,
+                  }),
+                ],
+                spacing: { after: RESUME_STYLES.spacing.afterParagraph }
+              })
+            );
+          }
+        });
       } else {
         // No experience content
         paragraphs.push(
