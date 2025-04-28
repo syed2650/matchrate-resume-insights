@@ -53,7 +53,7 @@ const AnalysisResults = ({
 
   // Calculate the current step
   let currentStep = 1;
-  if (activeTab === 'rewrite') {
+  if (activeTab === 'rewrite' && isRewriteRequested) {
     currentStep = 3;
   } else if (isRewriteRequested || feedback.rewrittenResume) {
     currentStep = 2;
@@ -116,8 +116,14 @@ const AnalysisResults = ({
           onReset={onReset} 
           onExportPDF={handleExportPDF}
           activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          hasRewrite={!!feedback.rewrittenResume}
+          setActiveTab={(tab) => {
+            // Only allow switching to rewrite tab if it has been requested
+            if (tab === 'rewrite' && !isRewriteRequested) {
+              return;
+            }
+            setActiveTab(tab);
+          }}
+          hasRewrite={isRewriteRequested && !!feedback.rewrittenResume}
         />
 
         {exportError && (
@@ -132,14 +138,16 @@ const AnalysisResults = ({
             onRequestRewrite={!isRewriteRequested ? handleRewriteRequest : undefined} 
           />
         ) : (
-          <ResumeRewrite 
-            rewrittenResume={feedback.rewrittenResume} 
-            atsScores={feedback.atsScores}
-            jobContext={feedback.jobContext}
-            originalResume={feedback.resume}
-            jobDescription={feedback.jobDescription}
-            originalATSScore={calculateATSScore(feedback.resume || '', feedback.jobDescription || '')}
-          />
+          isRewriteRequested && (
+            <ResumeRewrite 
+              rewrittenResume={feedback.rewrittenResume} 
+              atsScores={feedback.atsScores}
+              jobContext={feedback.jobContext}
+              originalResume={feedback.resume}
+              jobDescription={feedback.jobDescription}
+              originalATSScore={calculateATSScore(feedback.resume || '', feedback.jobDescription || '')}
+            />
+          )
         )}
 
         <FeedbackForm 

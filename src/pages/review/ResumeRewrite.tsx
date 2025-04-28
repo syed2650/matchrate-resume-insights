@@ -46,7 +46,11 @@ const formatResumeContent = (content: string): string => {
     .replace(/^\s*-\s+/gm, '• ')
     
     // Fix horizontal rules to be consistent
-    .replace(/^---$/gm, '--------------------');
+    .replace(/^---$/gm, '--------------------')
+    
+    // Remove "Optimized Resume" text if present
+    .replace(/^Optimized Resume(\n|$)/g, '')
+    .replace(/^This resume is optimized for(?: a)?:? (.*?)(\n|$)/g, '');
     
   return formattedContent;
 };
@@ -91,7 +95,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
   const currentAtsScore = (typeof stableAtsScores === 'object' && Object.values(stableAtsScores)[0]) || 0;
   const scoreDifference = currentAtsScore - originalATSScore;
   
-  const roleSummaryMatch = currentResume.match(/This resume is optimized for(?: a)?:? (.*?)(\n|$)/);
+  const roleSummaryMatch = rawResume.match(/This resume is optimized for(?: a)?:? (.*?)(\n|$)/);
   const roleSummary = roleSummaryMatch ? roleSummaryMatch[1].trim() : "";
 
   const isInterviewReady = currentAtsScore >= 75;
@@ -142,7 +146,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `optimized-resume.docx`;
+      link.download = `interview-ready-resume.docx`;
       link.click();
       URL.revokeObjectURL(url);
 
@@ -178,7 +182,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
       
       doc.setFontSize(16);
       doc.setFont("helvetica", "bold");
-      doc.text("Optimized Resume", 20, 20);
+      doc.text("Interview-Ready Resume", 20, 20);
       
       if (roleSummary) {
         doc.setFontSize(12);
@@ -219,7 +223,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
         doc.text(`Generated on ${generatedTimestamp}`, 20, 290);
       }
       
-      doc.save(`optimized-resume.pdf`);
+      doc.save(`interview-ready-resume.pdf`);
       
       toast({
         title: "Success",
