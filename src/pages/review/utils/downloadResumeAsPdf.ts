@@ -2,6 +2,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, pdf } from "@react-pdf/renderer";
 import { ResumeData } from "../components/ResumePdfTemplate";
+import ResumePdfTemplate from "../pages/review/components/ResumePdfTemplate";
 
 // Create styles
 const styles = StyleSheet.create({
@@ -118,7 +119,7 @@ export async function downloadResumeAsPdf(resumeData: ResumeData) {
   try {
     // Fixed: We use React.createElement instead of JSX
     const pdfDocument = React.createElement(ResumePDF, { data: resumeData });
-    const blob = await pdf(pdfDocument).toBlob();
+    const blob = await pdf(<ResumePdfTemplate data={resumeData} />).toBlob();
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
