@@ -485,7 +485,7 @@ export const generateDocument = async (
                   ] : [])
                 ],
                 spacing: { after: RESUME_STYLES.spacing.afterParagraph },
-                alignment: AlignmentType.JUSTIFY, // Important: align it nicely
+                alignment: AlignmentType.BOTH, // Changed from JUSTIFY to BOTH
               })
             );
             isWaitingForJobTitle = true;
