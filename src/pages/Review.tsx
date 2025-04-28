@@ -35,41 +35,51 @@ const Review = () => {
 
     try {
       // Convert feedback results to a JSON-compatible format
-      const feedbackResultsForDb = JSON.parse(JSON.stringify({
+      const feedbackResultsForDb = {
         score: data.score,
-        missingKeywords: data.missingKeywords,
-        sectionFeedback: data.sectionFeedback,
-        weakBullets: data.weakBullets,
-        toneSuggestions: data.toneSuggestions,
-        wouldInterview: data.wouldInterview,
-        rewrittenResume: data.rewrittenResume,
-        atsScores: data.atsScores,
+        missingKeywords: data.missingKeywords || [],
+        sectionFeedback: data.sectionFeedback || {},
+        weakBullets: data.weakBullets || [],
+        toneSuggestions: data.toneSuggestions || "",
+        wouldInterview: data.wouldInterview || "",
+        rewrittenResume: data.rewrittenResume || "",
+        atsScores: data.atsScores || {},
         jobContext: data.jobContext ? {
-          keywords: data.jobContext.keywords,
-          responsibilities: data.jobContext.responsibilities,
-          industry: data.jobContext.industry,
-          tone: data.jobContext.tone
-        } : undefined
-      }));
+          keywords: data.jobContext.keywords || [],
+          responsibilities: data.jobContext.responsibilities || [],
+          industry: data.jobContext.industry || "",
+          tone: data.jobContext.tone || ""
+        } : null
+      };
 
-      // Ensure the selected_role is null if not a valid option
+      // Ensure the selected_role is null if not provided
       const role = data.jobTitle || null;
 
+      // Insert into submissions table
       const { data: submissionData, error: submissionError } = await supabase
         .from('submissions')
         .insert({
           resume_text: data.resume || "",
           job_description: data.jobDescription || "",
           job_url: data.jobUrl || null,
-          selected_role: role as any,
+          selected_role: role,
           feedback_results: feedbackResultsForDb,
-          user_id: user?.id ?? null
+          user_id: user?.id || null
         })
         .select('id')
         .single();
 
       if (submissionError) {
         console.error("Error storing submission:", submissionError);
+        
+        // More detailed error logging
+        if (submissionError.details) {
+          console.error("Error details:", submissionError.details);
+        }
+        if (submissionError.hint) {
+          console.error("Error hint:", submissionError.hint);
+        }
+        
         toast({
           title: "Error storing feedback",
           description: "Your feedback was generated but couldn't be saved",
