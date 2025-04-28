@@ -8,6 +8,8 @@ import {
   StyleSheet,
   Font
 } from "@react-pdf/renderer";
+import type { DocumentProps } from "@react-pdf/renderer";
+
 
 // Register font (use safe fonts)
 Font.register({
@@ -73,8 +75,8 @@ export interface ResumeData {
 }
 
 // The ResumePdfTemplate component returns a Document component as its root element
-const ResumePdfTemplate: React.FC<{ data: ResumeData }> = ({ data }) => (
-  <Document>
+const ResumePdfTemplate = ({ data, ...props }: { data: ResumeData } & DocumentProps) => (
+  <Document {...props}>
     <Page size="A4" style={styles.page}>
       {/* Header */}
       <Text style={styles.headerName}>{data.name}</Text>
