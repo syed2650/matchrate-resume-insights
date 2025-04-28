@@ -46,61 +46,77 @@ const styles = StyleSheet.create({
   }
 });
 
-// Create PDF Document component
-const ResumePDF = ({ data }: { data: ResumeData }) => (
-  <Document>
-    <Page size="A4" style={styles.page}>
-      {/* Header */}
-      <Text style={styles.header}>{data.name}</Text>
-      <Text style={{ fontSize: 12, textAlign: 'center', marginBottom: 20 }}>{data.contact}</Text>
+// Create PDF Document component - using createElement instead of JSX
+const ResumePDF = ({ data }: { data: ResumeData }) => {
+  return React.createElement(
+    Document,
+    null,
+    React.createElement(
+      Page,
+      { size: "A4", style: styles.page },
+      // Header
+      React.createElement(Text, { style: styles.header }, data.name),
+      React.createElement(Text, { style: { fontSize: 12, textAlign: 'center', marginBottom: 20 } }, data.contact),
       
-      {/* Summary */}
-      <View style={styles.section}>
-        <Text style={styles.heading}>PROFESSIONAL SUMMARY</Text>
-        {data.summary.map((line, i) => (
-          <Text key={i} style={styles.text}>{line}</Text>
-        ))}
-      </View>
+      // Summary
+      React.createElement(
+        View,
+        { style: styles.section },
+        React.createElement(Text, { style: styles.heading }, "PROFESSIONAL SUMMARY"),
+        ...data.summary.map((line, i) =>
+          React.createElement(Text, { key: i, style: styles.text }, line)
+        )
+      ),
       
-      {/* Skills */}
-      <View style={styles.section}>
-        <Text style={styles.heading}>KEY SKILLS</Text>
-        {data.skills.map((skill, i) => (
-          <Text key={i} style={styles.bullet}>• {skill}</Text>
-        ))}
-      </View>
+      // Skills
+      React.createElement(
+        View,
+        { style: styles.section },
+        React.createElement(Text, { style: styles.heading }, "KEY SKILLS"),
+        ...data.skills.map((skill, i) =>
+          React.createElement(Text, { key: i, style: styles.bullet }, `• ${skill}`)
+        )
+      ),
       
-      {/* Experience */}
-      <View style={styles.section}>
-        <Text style={styles.heading}>PROFESSIONAL EXPERIENCE</Text>
-        {data.experiences.map((exp, i) => (
-          <View key={i} style={{ marginBottom: 15 }}>
-            <View style={styles.row}>
-              <Text style={{ fontSize: 14, fontWeight: 'bold' }}>{exp.company}</Text>
-              <Text style={{ fontSize: 12 }}>{exp.dates}</Text>
-            </View>
-            <Text style={{ fontSize: 13, fontWeight: 'bold', marginBottom: 5 }}>{exp.title}</Text>
-            {exp.bullets.map((bullet, j) => (
-              <Text key={j} style={styles.bullet}>• {bullet}</Text>
-            ))}
-          </View>
-        ))}
-      </View>
+      // Experience
+      React.createElement(
+        View,
+        { style: styles.section },
+        React.createElement(Text, { style: styles.heading }, "PROFESSIONAL EXPERIENCE"),
+        ...data.experiences.map((exp, i) =>
+          React.createElement(
+            View,
+            { key: i, style: { marginBottom: 15 } },
+            React.createElement(
+              View,
+              { style: styles.row },
+              React.createElement(Text, { style: { fontSize: 14, fontWeight: 'bold' } }, exp.company),
+              React.createElement(Text, { style: { fontSize: 12 } }, exp.dates)
+            ),
+            React.createElement(Text, { style: { fontSize: 13, fontWeight: 'bold', marginBottom: 5 } }, exp.title),
+            ...exp.bullets.map((bullet, j) =>
+              React.createElement(Text, { key: j, style: styles.bullet }, `• ${bullet}`)
+            )
+          )
+        )
+      ),
       
-      {/* Education */}
-      <View style={styles.section}>
-        <Text style={styles.heading}>EDUCATION</Text>
-        {data.education.map((edu, i) => (
-          <Text key={i} style={styles.text}>{edu}</Text>
-        ))}
-      </View>
-    </Page>
-  </Document>
-);
+      // Education
+      React.createElement(
+        View,
+        { style: styles.section },
+        React.createElement(Text, { style: styles.heading }, "EDUCATION"),
+        ...data.education.map((edu, i) =>
+          React.createElement(Text, { key: i, style: styles.text }, edu)
+        )
+      )
+    )
+  );
+};
 
 export async function downloadResumeAsPdf(resumeData: ResumeData) {
   try {
-    const blob = await pdf(<ResumePDF data={resumeData} />).toBlob();
+    const blob = await pdf(React.createElement(ResumePDF, { data: resumeData })).toBlob();
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
