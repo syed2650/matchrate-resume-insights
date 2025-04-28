@@ -8,7 +8,8 @@ export async function downloadResumeAsPdf(resumeData: ResumeData) {
   try {
     // Use React.createElement instead of JSX syntax
     const element = React.createElement(ResumePdfTemplate, { data: resumeData });
-    const blob = await pdf(<ResumePdfTemplate data={resumeData} />).toBlob();
+    // Use the element variable we created with React.createElement
+    const blob = await pdf(element).toBlob();
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
