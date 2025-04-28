@@ -12,6 +12,7 @@ import ResumeHeader from "./components/ResumeHeader";
 import ResumeContent from "./components/ResumeContent";
 import UpgradeBanner from "./components/UpgradeBanner";
 import { Progress } from "@/components/ui/progress";
+import { downloadResumeAsPdf } from "../utils/downloadResumeAsPdf";
 
 interface ResumeRewriteProps {
   rewrittenResume: any;
@@ -234,103 +235,87 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
     }
   };
   
-  const handleDownloadPdf = () => {
-    if (!canRewrite) {
-      toast({
-        title: "Premium Feature",
-        description: "Resume exporting is available on the paid plan",
-        variant: "default"
-      });
-      return;
-    }
-    
-    if (!currentResume) {
-      toast({
-        title: "Error",
-        description: "No resume content available to download",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    try {
-      setIsProcessing(true);
-      trackRewriteUsage();
-      const doc = new jsPDF();
-      
-      doc.setFontSize(16);
-      doc.setFont("helvetica", "bold");
-      doc.text("Interview-Ready Resume", 20, 20);
-      
-      if (roleSummary) {
-        doc.setFontSize(12);
-        doc.setFont("helvetica", "italic");
-        doc.text(`Optimized for: ${roleSummary}`, 20, 30);
-      }
-      
-      doc.setFontSize(12);
-      doc.setFont("helvetica", "normal");
-      doc.text(`ATS Compatibility Score: ${currentAtsScore}/100`, 20, 40);
-      
-      doc.setFontSize(11);
-      const cleanedContent = currentResume.replace(/#{1,3}\s+/g, "");
-      const textLines = cleanedContent
-        .split("\n")
-        .filter(line => line.trim() !== "");
-      
-      if (textLines.length === 0) {
-        doc.setTextColor(255, 0, 0);
-        doc.text("Error: No content available to generate PDF", 20, 55);
-      } else {
-        let yPosition = 55;
-        
-        textLines.forEach(line => {
-          if (!line) return;
+  const handleDownloadPdf = async () => {
+  if (!canRewrite) {
+    toast({
+      title: "Premium Feature",
+      description: "Resume exporting is available on the paid plan",
+      variant: "default"
+    });
+    return;
+  }
+  
+  if (!currentResume) {
+    toast({
+      title: "Error",
+      description: "No resume content available to download",
+      variant: "destructive"
+    });
+    return;
+  }
+  
+  try {
+    setIsProcessing(true);
+    trackRewriteUsage();
 
-          try {
-            const splitLines = doc.splitTextToSize(line, 170);
-            doc.text(splitLines, 20, yPosition);
-            yPosition += 7 * splitLines.length;
-            
-            if (line === line.toUpperCase() && line.length < 30) {
-              yPosition += 3;
-            }
-            
-            if (yPosition > 280) {
-              doc.addPage();
-              yPosition = 20;
-            }
-          } catch (lineError) {
-            console.error("Error processing line:", lineError, line);
-            // Skip problematic line but continue with the rest
-          }
-        });
-      }
-      
-      if (generatedTimestamp) {
-        doc.setFontSize(8);
-        doc.setTextColor(100, 100, 100);
-        doc.text(`Generated on ${generatedTimestamp}`, 20, 290);
-      }
-      
-      doc.save(`interview-ready-resume.pdf`);
-      
-      toast({
-        title: "Success",
-        description: "Resume downloaded as PDF",
-      });
-    } catch (error) {
-      console.error("PDF generation error:", error);
-      toast({
-        title: "Error",
-        description: "Failed to generate PDF. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsProcessing(false);
-    }
-  };
+    const resumeData = {
+      name: "John Doe", // Replace these fields later dynamically
+      contact: "New York, NY • (123) 456-7890 • john.doe@example.com • linkedin.com/in/johndoe",
+      summary: [
+        "Seasoned Software Engineer with 8+ years in backend and frontend development.",
+        "Expert in React, Node.js, and cloud-native architectures.",
+        "Proven track record of delivering scalable SaaS applications on-time."
+      ],
+      skills: [
+        "JavaScript", "React.js", "Node.js", "AWS", "Docker",
+        "Kubernetes", "PostgreSQL", "CI/CD Pipelines", "GraphQL", "TypeScript"
+      ],
+      experiences: [
+        {
+          company: "TechCorp Inc.",
+          location: "New York",
+          dates: "Jan 2020 – Present",
+          title: "Senior Software Engineer",
+          bullets: [
+            "Led the migration of monolithic architecture to microservices resulting in 30% faster deployments.",
+            "Optimized React app performance, improving load time by 25%.",
+            "Mentored 5 junior engineers, enhancing team productivity."
+          ]
+        },
+        {
+          company: "Startup Labs",
+          location: "Boston",
+          dates: "Aug 2016 – Dec 2019",
+          title: "Full Stack Developer",
+          bullets: [
+            "Built core modules for a B2B SaaS platform used by 500+ clients.",
+            "Integrated Stripe payment APIs, increasing checkout success rate by 20%.",
+            "Collaborated with design team to implement mobile-first UX strategies."
+          ]
+        }
+      ],
+      education: [
+        "B.Sc. in Computer Science | University of Boston • 2016"
+      ]
+    };
 
+    await downloadResumeAsPdf(resumeData);
+
+    toast({
+      title: "Success",
+      description: "Resume downloaded as PDF",
+    });
+  } catch (error) {
+    console.error("PDF generation error:", error);
+    toast({
+      title: "Error",
+      description: "Failed to generate PDF. Please try again.",
+      variant: "destructive"
+    });
+  } finally {
+    setIsProcessing(false);
+  }
+};
   if (!rewrittenResume) {
     return (
       <div className="py-8 text-center">
