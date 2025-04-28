@@ -1,6 +1,6 @@
+
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { jsPDF } from "jspdf";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, ArrowUp } from "lucide-react";
 import { getATSScoreExplanation, getATSScoreDetail, getATSScoreFromCache, canUseRewrite, trackRewriteUsage } from "./utils";
@@ -11,7 +11,6 @@ import ResumeHeader from "./components/ResumeHeader";
 import ResumeContent from "./components/ResumeContent";
 import UpgradeBanner from "./components/UpgradeBanner";
 import { Progress } from "@/components/ui/progress";
-import { downloadResumeAsPdf } from "./utils/downloadResumeAsPdf";
 import { parseResumeForPdf } from "./utils/parseResumeForPdf";
 
 interface ResumeRewriteProps {
@@ -221,46 +220,11 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
   };
   
   const handleDownloadPdf = async () => {
-    if (!canRewrite) {
-      toast({
-        title: "Premium Feature",
-        description: "Resume exporting is available on the paid plan",
-        variant: "default"
-      });
-      return;
-    }
-    
-    if (!currentResume) {
-      toast({
-        title: "Error",
-        description: "No resume content available to download",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    try {
-      setIsProcessing(true);
-      trackRewriteUsage();
-
-      const resumeData = parseResumeForPdf(currentResume);
-
-      await downloadResumeAsPdf(resumeData);
-
-      toast({
-        title: "Success",
-        description: "Resume downloaded as PDF",
-      });
-    } catch (error) {
-      console.error("PDF generation error:", error);
-      toast({
-        title: "Error",
-        description: "Failed to generate PDF. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsProcessing(false);
-    }
+    toast({
+      title: "Feature Not Available",
+      description: "PDF download is temporarily disabled. Please use DOCX download instead.",
+      variant: "destructive"
+    });
   };
 
   if (!rewrittenResume) {

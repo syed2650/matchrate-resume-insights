@@ -1,3 +1,4 @@
+
 import {
   Document,
   Paragraph,
@@ -121,6 +122,7 @@ export const generateDocument = async (
     const nameMatch = currentResume.match(/^(?:#{1,2}\s+)?([A-Za-z\s.]+)/);
     const name = nameMatch && nameMatch[1].trim() ? nameMatch[1].trim() : "Resume";
     
+    // Only add name once
     paragraphs.push(
       new Paragraph({
         children: [
@@ -138,13 +140,24 @@ export const generateDocument = async (
     
     // Add contact info if available
     if (sections.header && sections.header.length > 0) {
+      // Extract location from header to avoid duplication later
+      let location = "";
+      const locationMatch = sections.header.find(line => 
+        line.includes('Harrow') || line.includes('London') || line.includes('United Kingdom')
+      );
+      
+      if (locationMatch) {
+        location = locationMatch;
+      }
+      
       const contactLines = sections.header
         .filter(line => 
           line.includes('@') || 
           line.includes('linkedin.com') || 
           line.includes('phone') ||
           line.match(/\d{3}[-.\s]?\d{3}[-.\s]?\d{4}/) ||
-          line.includes('github.com')
+          line.includes('github.com') ||
+          (location && line === location) // Include location only here
         );
       
       if (contactLines.length > 0) {
@@ -435,27 +448,21 @@ export const generateDocument = async (
         })
       );
       
-      // Fixed the syntax issue - removed the nested forEach and fixed the logic
       if (sections[experienceKey] && sections[experienceKey].length > 0) {
         let isWaitingForJobTitle = false;
         
         sections[experienceKey].forEach(line => {
           if (!line || !line.trim()) return;
 
+          // Check if this line contains both company name and location
           if (line.includes('•')) {
             const parts = line.split('•').map(p => p.trim());
-
             const companyName = parts[0] || '';
-            const locationAndDate = parts[1] || '';
-
-            let location = locationAndDate;
-            let dates = '';
-
-            // Try splitting location and date if possible
-            if (locationAndDate.includes('|')) {
-              const locParts = locationAndDate.split('|').map(p => p.trim());
-              location = locParts[0];
-              dates = locParts[1] || '';
+            
+            // Skip adding location if it contains "Harrow" to avoid duplication
+            let locationPart = "";
+            if (parts.length > 1 && !parts[1].includes("Harrow")) {
+              locationPart = ` • ${parts[1]}`;
             }
 
             paragraphs.push(
@@ -467,25 +474,16 @@ export const generateDocument = async (
                     size: RESUME_STYLES.fontSize.normal * 2,
                     font: RESUME_STYLES.fonts.main,
                   }),
-                  ...(location ? [
+                  ...(locationPart ? [
                     new TextRun({
-                      text: ` • ${location}`,
+                      text: locationPart,
                       size: RESUME_STYLES.fontSize.normal * 2,
-                      font: RESUME_STYLES.fonts.main,
-                      color: RESUME_STYLES.colors.light,
-                    })
-                  ] : []),
-                  ...(dates ? [
-                    new TextRun({
-                      text: dates,
-                      size: RESUME_STYLES.fontSize.small * 2,
                       font: RESUME_STYLES.fonts.main,
                       color: RESUME_STYLES.colors.light,
                     })
                   ] : [])
                 ],
-                spacing: { after: RESUME_STYLES.spacing.afterParagraph },
-                alignment: AlignmentType.BOTH, // Changed from JUSTIFY to BOTH
+                spacing: { after: RESUME_STYLES.spacing.afterParagraph }
               })
             );
             isWaitingForJobTitle = true;
@@ -593,6 +591,11 @@ export const generateDocument = async (
       if (lines && lines.length > 0) {
         lines.forEach(line => {
           if (!line || !line.trim()) return;
+          
+          // Skip lines that contain "Harrow" to avoid duplication except in header
+          if (line.includes("Harrow") && sectionName !== 'header') {
+            return;
+          }
           
           if (line.startsWith('•') || line.startsWith('-') || line.startsWith('*')) {
             const bulletText = line.replace(/^[•\-*]\s?/, '');
