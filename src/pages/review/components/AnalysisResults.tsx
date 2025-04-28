@@ -9,6 +9,7 @@ import { useState } from "react";
 import { Progress } from "@/components/ui/progress";
 import { FileText, CheckCheck, FileSearch } from "lucide-react";
 import { calculateATSScore } from "../utils/atsScoring";
+import { useToast } from "@/hooks/use-toast";
 
 interface AnalysisResultsProps {
   feedback: Feedback;
@@ -27,16 +28,38 @@ const AnalysisResults = ({
   const [exportError, setExportError] = useState<string | null>(null);
   const [isRewriteRequested, setIsRewriteRequested] = useState(false);
   const [rewriteLoading, setRewriteLoading] = useState(false);
+  const { toast } = useToast();
 
-  const handleExportPDF = async () => {
+  const handleExportFeedback = async () => {
     try {
-      const { generatePDF } = await import("../PDFGenerator");
-      const doc = generatePDF(feedback);
-      doc.save("matchrate-feedback-report.pdf");
+      // Import the DOCX generator and necessary helper functions
+      const { generateFeedbackDocx } = await import("../utils/feedbackDocxGenerator");
+      const { Packer } = await import("docx");
+
+      const doc = generateFeedbackDocx(feedback);
+      const blob = await Packer.toBlob(doc);
+      
+      // Create a download link
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "matchrate-feedback-report.docx";
+      link.click();
+      URL.revokeObjectURL(url);
+      
       setExportError(null);
+      toast({
+        title: "Success",
+        description: "Feedback report downloaded as DOCX",
+      });
     } catch (error) {
-      console.error("Error exporting PDF:", error);
-      setExportError("Failed to generate PDF: " + (error instanceof Error ? error.message : "Unknown error"));
+      console.error("Error exporting feedback report:", error);
+      setExportError("Failed to generate feedback report: " + (error instanceof Error ? error.message : "Unknown error"));
+      toast({
+        title: "Error",
+        description: "Failed to generate feedback report",
+        variant: "destructive"
+      });
     }
   };
 
@@ -114,7 +137,7 @@ const AnalysisResults = ({
 
         <AnalysisHeader 
           onReset={onReset} 
-          onExportPDF={handleExportPDF}
+          onExportPDF={handleExportFeedback}
           activeTab={activeTab}
           setActiveTab={(tab) => {
             // Only allow switching to rewrite tab if it has been requested

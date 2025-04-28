@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +11,7 @@ import ResumeContent from "./components/ResumeContent";
 import UpgradeBanner from "./components/UpgradeBanner";
 import { Progress } from "@/components/ui/progress";
 import { parseResumeForPdf } from "./utils/parseResumeForPdf";
+import { downloadResumeAsPdf } from "./utils/downloadResumeAsPdf";
 
 interface ResumeRewriteProps {
   rewrittenResume: any;
@@ -179,39 +179,27 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
       setIsProcessing(true);
       trackRewriteUsage();
       
-      console.log("Starting DOCX generation with content length:", currentResume.length);
-      
-      const blob = await generateDocument(
-        currentResume,
+      const parsedResume = await parseResumeForPdf(
+        currentResume, 
         roleSummary,
-        currentAtsScore,
-        generatedTimestamp || new Date().toLocaleDateString(),
-        "general",
-        false
+        generatedTimestamp || new Date().toLocaleDateString()
       );
       
-      if (!blob) {
-        throw new Error("Failed to generate document");
+      if (!parsedResume) {
+        throw new Error("Failed to parse resume content");
       }
       
-      console.log("DOCX blob generated successfully, size:", blob.size);
+      await downloadResumeAsPdf(parsedResume);
       
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `interview-ready-resume.docx`;
-      link.click();
-      URL.revokeObjectURL(url);
-
       toast({
         title: "Success",
-        description: "Resume downloaded as DOCX",
+        description: "Resume downloaded as PDF",
       });
     } catch (error) {
-      console.error("DOCX generation error:", error);
+      console.error("PDF generation error:", error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to generate DOCX file. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to generate PDF file. Please try DOCX download instead.",
         variant: "destructive"
       });
     } finally {
