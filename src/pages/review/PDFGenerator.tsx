@@ -18,6 +18,11 @@ export const generatePDF = (feedback: Feedback): jsPDF => {
   });
 
   try {
+    // Validate feedback object
+    if (!feedback) {
+      throw new Error("No feedback data provided");
+    }
+    
     // Configure document styles for professional output
     configurePDFStyles(doc);
     
@@ -55,6 +60,7 @@ export const generatePDF = (feedback: Feedback): jsPDF => {
     return doc;
   } catch (error) {
     console.error("Error generating PDF:", error);
+    
     // Create a basic error PDF instead of failing completely
     doc.setFontSize(16);
     doc.setTextColor(255, 0, 0);
@@ -63,6 +69,17 @@ export const generatePDF = (feedback: Feedback): jsPDF => {
     doc.setTextColor(0, 0, 0);
     doc.text("Please try again or contact support if the issue persists.", 20, 30);
     doc.text("Error details: " + ((error as Error).message || "Unknown error"), 20, 40);
+    
+    // Still add basic score information if available
+    if (feedback && typeof feedback.score !== 'undefined') {
+      doc.text(`Your score: ${feedback.score}/100`, 20, 60);
+    }
+    
+    // Add some information about the resume if available
+    if (feedback && feedback.jobTitle) {
+      doc.text(`Target role: ${feedback.jobTitle}`, 20, 70);
+    }
+    
     return doc;
   }
 };

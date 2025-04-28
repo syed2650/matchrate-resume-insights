@@ -3,6 +3,10 @@ import { jsPDF } from "jspdf";
 import { PDF_STYLES as styles } from "./styles";
 import { Feedback } from "../types";
 
+function safeBound(value: number, min: number = 0, max: number = 100): number {
+  return Math.max(min, Math.min(max, value));
+}
+
 export function drawHeader(doc: jsPDF, pageWidth: number) {
   const headerColor = styles.backgrounds.header;
   doc.setFillColor(headerColor[0], headerColor[1], headerColor[2]);
@@ -42,76 +46,102 @@ export function drawMetadata(doc: jsPDF, yPos: number) {
 }
 
 export function drawScores(doc: jsPDF, feedback: Feedback, pageWidth: number, yPos: number) {
-  const lightGrayColor = styles.backgrounds.lightGray;
-  doc.setFillColor(lightGrayColor[0], lightGrayColor[1], lightGrayColor[2]);
-  const scoreHeight = 35;
-  doc.roundedRect(styles.margins.side, yPos, pageWidth - (styles.margins.side * 2), scoreHeight, 2, 2, 'F');
-  
-  doc.setFontSize(styles.fontSize.large);
-  doc.setFont(styles.fonts.heading);
-  doc.text("Relevance Score:", styles.margins.side + 5, yPos + 10);
-  
-  // Color code the score
-  const score = feedback.score || 0;
-  if (score >= 80) {
-    doc.setTextColor('#16A34A'); // Green
-  } else if (score >= 60) {
-    doc.setTextColor('#D97706'); // Orange
-  } else {
-    doc.setTextColor('#DC2626'); // Red
+  try {
+    const lightGrayColor = styles.backgrounds.lightGray;
+    doc.setFillColor(lightGrayColor[0], lightGrayColor[1], lightGrayColor[2]);
+    const scoreHeight = 35;
+    doc.roundedRect(styles.margins.side, yPos, pageWidth - (styles.margins.side * 2), scoreHeight, 2, 2, 'F');
+    
+    doc.setFontSize(styles.fontSize.large);
+    doc.setFont(styles.fonts.heading);
+    doc.text("Relevance Score:", styles.margins.side + 5, yPos + 10);
+    
+    // Get score value and ensure it's valid
+    let score = 0;
+    if (typeof feedback.score === 'number') {
+      score = safeBound(feedback.score);
+    } else if (typeof feedback.score === 'string') {
+      score = safeBound(parseInt(feedback.score, 10));
+      if (isNaN(score)) score = 0;
+    }
+    
+    // Color code the score
+    if (score >= 80) {
+      doc.setTextColor('#16A34A'); // Green
+    } else if (score >= 60) {
+      doc.setTextColor('#D97706'); // Orange
+    } else {
+      doc.setTextColor('#DC2626'); // Red
+    }
+    
+    doc.text(`${score}/100`, styles.margins.side + 50, yPos + 10);
+    doc.setTextColor(styles.colors.black);
+    
+    // Add visual score indicator
+    const barWidth = 120;
+    const barHeight = 6;
+    const startX = pageWidth - styles.margins.side - barWidth;
+    const startY = yPos + 8;
+    
+    // Background bar
+    doc.setFillColor(220, 220, 220);
+    doc.roundedRect(startX, startY, barWidth, barHeight, 3, 3, 'F');
+    
+    // Score bar
+    const fillWidth = (score / 100) * barWidth;
+    if (score >= 80) {
+      doc.setFillColor(22, 163, 74); // Green
+    } else if (score >= 60) {
+      doc.setFillColor(217, 119, 6); // Orange
+    } else {
+      doc.setFillColor(220, 38, 38); // Red
+    }
+    doc.roundedRect(startX, startY, fillWidth, barHeight, 3, 3, 'F');
+    
+    // Add Job title if available
+    if (feedback.jobTitle) {
+      doc.setFontSize(styles.fontSize.normal);
+      doc.setFont(styles.fonts.regular);
+      doc.text(`Target Role: ${feedback.jobTitle}`, styles.margins.side + 5, yPos + 24);
+    }
+    
+    return yPos + scoreHeight + 10;
+  } catch (error) {
+    console.error("Error drawing scores:", error);
+    
+    // Fallback simple presentation
+    doc.setFontSize(styles.fontSize.large);
+    doc.text("Resume Relevance Score", styles.margins.side, yPos + 10);
+    
+    const score = typeof feedback.score === 'number' ? feedback.score : 0;
+    doc.text(`${score}/100`, styles.margins.side, yPos + 20);
+    
+    return yPos + 30;
   }
-  
-  doc.text(`${score}/100`, styles.margins.side + 50, yPos + 10);
-  doc.setTextColor(styles.colors.black);
-  
-  // Add visual score indicator
-  const barWidth = 120;
-  const barHeight = 6;
-  const startX = pageWidth - styles.margins.side - barWidth;
-  const startY = yPos + 8;
-  
-  // Background bar
-  doc.setFillColor(220, 220, 220);
-  doc.roundedRect(startX, startY, barWidth, barHeight, 3, 3, 'F');
-  
-  // Score bar
-  const fillWidth = (score / 100) * barWidth;
-  if (score >= 80) {
-    doc.setFillColor(22, 163, 74); // Green
-  } else if (score >= 60) {
-    doc.setFillColor(217, 119, 6); // Orange
-  } else {
-    doc.setFillColor(220, 38, 38); // Red
-  }
-  doc.roundedRect(startX, startY, fillWidth, barHeight, 3, 3, 'F');
-  
-  // Add Job title if available
-  if (feedback.jobTitle) {
-    doc.setFontSize(styles.fontSize.normal);
-    doc.setFont(styles.fonts.regular);
-    doc.text(`Target Role: ${feedback.jobTitle}`, styles.margins.side + 5, yPos + 24);
-  }
-  
-  return yPos + scoreHeight + 10;
 }
 
 export function addFooters(doc: jsPDF) {
-  const pageCount = doc.getNumberOfPages();
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const pageHeight = doc.internal.pageSize.getHeight();
-  
-  for (let i = 1; i <= pageCount; i++) {
-    doc.setPage(i);
+  try {
+    const pageCount = doc.getNumberOfPages();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
     
-    const lightGrayColor = styles.backgrounds.lightGray;
-    doc.setFillColor(lightGrayColor[0], lightGrayColor[1], lightGrayColor[2]);
-    doc.rect(0, pageHeight - 15, pageWidth, 15, 'F');
-    
-    doc.setTextColor(styles.colors.slate[500]);
-    doc.setFontSize(styles.fontSize.small);
-    doc.text(`Resume Analysis & Optimization - Professional Report`, 
-      styles.margins.side, pageHeight - 8);
-    doc.text(`Page ${i} of ${pageCount}`, 
-      pageWidth - styles.margins.side, pageHeight - 8, { align: 'right' });
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      
+      const lightGrayColor = styles.backgrounds.lightGray;
+      doc.setFillColor(lightGrayColor[0], lightGrayColor[1], lightGrayColor[2]);
+      doc.rect(0, pageHeight - 15, pageWidth, 15, 'F');
+      
+      doc.setTextColor(styles.colors.slate[500]);
+      doc.setFontSize(styles.fontSize.small);
+      doc.text(`Resume Analysis & Optimization - Professional Report`, 
+        styles.margins.side, pageHeight - 8);
+      doc.text(`Page ${i} of ${pageCount}`, 
+        pageWidth - styles.margins.side, pageHeight - 8, { align: 'right' });
+    }
+  } catch (error) {
+    console.error("Error adding footers:", error);
+    // If footer fails, continue without footers - don't crash the document
   }
 }

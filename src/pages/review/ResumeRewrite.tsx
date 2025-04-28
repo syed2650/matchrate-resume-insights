@@ -31,28 +31,42 @@ interface ResumeRewriteProps {
 const formatResumeContent = (content: string): string => {
   if (!content) return "";
   
-  // Remove asterisks and format resume properly
-  let formattedContent = content
-    // Remove asterisks from headings and text
-    .replace(/\*\*(.*?)\*\*/g, '$1')
-    .replace(/\*(.*?)\*/g, '$1')
+  try {
+    // Clean the content first
+    let formattedContent = content;
     
-    // Ensure section headings are properly capitalized
-    .replace(/^(#+\s*)(.*?)$/gm, (match, hash, title) => {
-      return `${hash}${title.toUpperCase()}`;
-    })
-    
-    // Replace markdown style bullets with proper bullet points
-    .replace(/^\s*-\s+/gm, '• ')
-    
-    // Fix horizontal rules to be consistent
-    .replace(/^---$/gm, '--------------------')
-    
-    // Remove "Optimized Resume" text if present
-    .replace(/^Optimized Resume(\n|$)/g, '')
-    .replace(/^This resume is optimized for(?: a)?:? (.*?)(\n|$)/g, '');
-    
-  return formattedContent;
+    // Remove asterisks and format resume properly
+    formattedContent = formattedContent
+      // Remove asterisks from headings and text
+      .replace(/\*\*(.*?)\*\*/g, '$1')
+      .replace(/\*(.*?)\*/g, '$1')
+      
+      // Ensure section headings are properly capitalized
+      .replace(/^(#+\s*)(.*?)$/gm, (match, hash, title) => {
+        return `${hash}${title.toUpperCase()}`;
+      })
+      
+      // Replace markdown style bullets with proper bullet points
+      .replace(/^\s*-\s+/gm, '• ')
+      
+      // Fix horizontal rules to be consistent
+      .replace(/^---$/gm, '--------------------')
+      
+      // Remove "Optimized Resume" text if present
+      .replace(/^Optimized Resume(\n|$)/g, '')
+      .replace(/^This resume is optimized for(?: a)?:? (.*?)(\n|$)/g, '');
+      
+    // If output is valid, return it
+    if (formattedContent && typeof formattedContent === 'string') {
+      return formattedContent;
+    } else {
+      console.error("Invalid formatted content:", formattedContent);
+      return content || ""; // Return original if there's a problem
+    }
+  } catch (error) {
+    console.error("Error formatting resume content:", error);
+    return content || ""; // Return original on error
+  }
 };
 
 const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ 
@@ -67,6 +81,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
   const { toast } = useToast();
   const [stableAtsScores, setStableAtsScores] = useState<Record<string, number>>(atsScores);
   const [canRewrite, setCanRewrite] = useState<boolean>(true); // Setting to true to disable premium restrictions
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
   
   const { 
     currentResume: rawResume, 
@@ -92,12 +107,42 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
     setCanRewrite(true);
   }, [scoreHash, atsScores]);
 
+  // Check if we have valid resume content
+  useEffect(() => {
+    if (rawResume === null || rawResume === undefined) {
+      console.warn("No resume content available");
+    } else if (rawResume.length < 10) {
+      console.warn("Resume content too short:", rawResume);
+    }
+  }, [rawResume]);
+
   const currentAtsScore = (typeof stableAtsScores === 'object' && Object.values(stableAtsScores)[0]) || 0;
   const scoreDifference = currentAtsScore - originalATSScore;
   
-  const roleSummaryMatch = rawResume.match(/This resume is optimized for(?: a)?:? (.*?)(\n|$)/);
-  const roleSummary = roleSummaryMatch ? roleSummaryMatch[1].trim() : "";
-
+  // Extract role summary from different possible formats
+  const extractRoleSummary = () => {
+    if (!rawResume) return "";
+    
+    // Pattern 1: "This resume is optimized for: Software Engineer"
+    const pattern1 = /This resume is optimized for(?: a)?:? (.*?)(\n|$)/;
+    // Pattern 2: "Optimized for: Software Engineer"
+    const pattern2 = /Optimized for(?: a)?:? (.*?)(\n|$)/;
+    // Pattern 3: Just look for a job title that might be there
+    const pattern3 = /^(Software Engineer|Product Manager|Data Analyst|UX Designer|Consultant)(\n|$)/;
+    
+    const match1 = rawResume.match(pattern1);
+    if (match1) return match1[1].trim();
+    
+    const match2 = rawResume.match(pattern2);
+    if (match2) return match2[1].trim();
+    
+    const match3 = rawResume.match(pattern3);
+    if (match3) return match3[1].trim();
+    
+    return "";
+  };
+  
+  const roleSummary = extractRoleSummary();
   const isInterviewReady = currentAtsScore >= 75;
 
   const handleCopyToClipboard = () => {
@@ -117,6 +162,12 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
         title: "Success",
         description: "Resume copied to clipboard",
       });
+    } else {
+      toast({
+        title: "Error",
+        description: "No resume content available to copy",
+        variant: "destructive"
+      });
     }
   };
 
@@ -130,18 +181,35 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
       return;
     }
     
-    if (!currentResume) return;
+    if (!currentResume) {
+      toast({
+        title: "Error",
+        description: "No resume content available to download",
+        variant: "destructive"
+      });
+      return;
+    }
     
     try {
+      setIsProcessing(true);
       trackRewriteUsage();
+      
+      console.log("Starting DOCX generation with content length:", currentResume.length);
+      
       const blob = await generateDocument(
         currentResume,
         roleSummary,
         currentAtsScore,
-        generatedTimestamp,
+        generatedTimestamp || new Date().toLocaleDateString(),
         "general",
         false
       );
+      
+      if (!blob) {
+        throw new Error("Failed to generate document");
+      }
+      
+      console.log("DOCX blob generated successfully, size:", blob.size);
       
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -161,6 +229,8 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
         description: error instanceof Error ? error.message : "Failed to generate DOCX file. Please try again.",
         variant: "destructive"
       });
+    } finally {
+      setIsProcessing(false);
     }
   };
   
@@ -174,9 +244,17 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
       return;
     }
     
-    if (!currentResume) return;
+    if (!currentResume) {
+      toast({
+        title: "Error",
+        description: "No resume content available to download",
+        variant: "destructive"
+      });
+      return;
+    }
     
     try {
+      setIsProcessing(true);
       trackRewriteUsage();
       const doc = new jsPDF();
       
@@ -195,27 +273,39 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
       doc.text(`ATS Compatibility Score: ${currentAtsScore}/100`, 20, 40);
       
       doc.setFontSize(11);
-      const textLines = currentResume
-        .replace(/#{1,3}\s+/g, "")
+      const cleanedContent = currentResume.replace(/#{1,3}\s+/g, "");
+      const textLines = cleanedContent
         .split("\n")
         .filter(line => line.trim() !== "");
       
-      let yPosition = 55;
-      
-      textLines.forEach(line => {
-        const splitLines = doc.splitTextToSize(line, 170);
-        doc.text(splitLines, 20, yPosition);
-        yPosition += 7 * splitLines.length;
+      if (textLines.length === 0) {
+        doc.setTextColor(255, 0, 0);
+        doc.text("Error: No content available to generate PDF", 20, 55);
+      } else {
+        let yPosition = 55;
         
-        if (line === line.toUpperCase() && line.length < 30) {
-          yPosition += 3;
-        }
-        
-        if (yPosition > 280) {
-          doc.addPage();
-          yPosition = 20;
-        }
-      });
+        textLines.forEach(line => {
+          if (!line) return;
+
+          try {
+            const splitLines = doc.splitTextToSize(line, 170);
+            doc.text(splitLines, 20, yPosition);
+            yPosition += 7 * splitLines.length;
+            
+            if (line === line.toUpperCase() && line.length < 30) {
+              yPosition += 3;
+            }
+            
+            if (yPosition > 280) {
+              doc.addPage();
+              yPosition = 20;
+            }
+          } catch (lineError) {
+            console.error("Error processing line:", lineError, line);
+            // Skip problematic line but continue with the rest
+          }
+        });
+      }
       
       if (generatedTimestamp) {
         doc.setFontSize(8);
@@ -236,6 +326,8 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
         description: "Failed to generate PDF. Please try again.",
         variant: "destructive"
       });
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -321,6 +413,23 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
         onDownloadPdf={handleDownloadPdf}
         isPremiumLocked={!canRewrite}
       />
+      
+      {isProcessing && (
+        <div className="bg-blue-50 p-4 border border-blue-100 rounded-lg mb-4">
+          <h4 className="text-blue-800 font-medium mb-2">Processing Your Resume</h4>
+          <Progress value={50} className="h-2 mb-2" />
+          <p className="text-blue-700 text-sm">Please wait while we prepare your document...</p>
+        </div>
+      )}
+      
+      {(!currentResume || currentResume.length < 10) && (
+        <div className="bg-amber-50 p-4 border border-amber-100 rounded-lg mb-4">
+          <h4 className="text-amber-800 font-medium">Resume Content Issue</h4>
+          <p className="text-amber-700 text-sm mt-1">
+            There seems to be an issue with the resume content. Please try refreshing the page or resubmitting your resume for analysis.
+          </p>
+        </div>
+      )}
       
       <ResumeContent
         currentResume={currentResume}
