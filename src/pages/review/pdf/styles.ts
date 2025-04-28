@@ -49,6 +49,11 @@ export const PDF_STYLES = {
     section: 15,
     paragraph: 8,
     item: 5,
+  },
+  widths: {
+    pageContent: 180,
+    contentMaxWidth: 170,
+    columnGap: 10,
   }
 };
 
