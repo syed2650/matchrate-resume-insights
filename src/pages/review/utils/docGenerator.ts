@@ -440,89 +440,106 @@ export const generateDocument = async (
       
       if (sections[experienceKey] && sections[experienceKey].length > 0) {
         sections[experienceKey].forEach(line => {
-          if (!line || !line.trim()) return;
-          
-          if (line.match(/^[A-Za-z ]+\s+\|\s+/) || 
-              (line.match(/^[A-Za-z ]+$/) && 
-               !line.startsWith('•') && 
-               !line.startsWith('-'))) {
-            
-            inJobEntry = true;
-            
-            let title = line;
-            let company = '';
-            
-            if (line.includes(' | ')) {
-              [title, company] = line.split(' | ');
-            }
-            
-            paragraphs.push(
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text: title,
-                    bold: true,
-                    size: RESUME_STYLES.fontSize.normal * 2,
-                    font: RESUME_STYLES.fonts.main
-                  }),
-                  ...(company ? [
-                    new TextRun({
-                      text: ` | ${company}`,
-                      size: RESUME_STYLES.fontSize.normal * 2,
-                      font: RESUME_STYLES.fonts.main
-                    })
-                  ] : [])
-                ],
-                spacing: { after: RESUME_STYLES.spacing.afterParagraph }
-              })
-            );
-          } else if (line.match(/^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}\s+(-|–|to)\s+/i)) {
-            paragraphs.push(
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text: line,
-                    italics: true,
-                    size: RESUME_STYLES.fontSize.normal * 2,
-                    font: RESUME_STYLES.fonts.main,
-                    color: RESUME_STYLES.colors.light
-                  })
-                ],
-                spacing: { after: RESUME_STYLES.spacing.afterParagraph }
-              })
-            );
-          } else if (line.startsWith('•') || line.startsWith('-') || line.startsWith('*')) {
-            const bulletText = line.replace(/^[•\-*]\s?/, '');
-            paragraphs.push(
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text: bulletText,
-                    size: RESUME_STYLES.fontSize.normal * 2,
-                    font: RESUME_STYLES.fonts.main
-                  })
-                ],
-                bullet: {
-                  level: 0
-                },
-                spacing: { after: RESUME_STYLES.spacing.afterParagraph }
-              })
-            );
-          } else if (inJobEntry && line.trim()) {
-            paragraphs.push(
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text: line,
-                    size: RESUME_STYLES.fontSize.normal * 2,
-                    font: RESUME_STYLES.fonts.main
-                  })
-                ],
-                spacing: { after: RESUME_STYLES.spacing.afterParagraph }
-              })
-            );
-          }
-        });
+          let isWaitingForJobTitle = false;
+
+sections[experienceKey].forEach(line => {
+  if (!line || !line.trim()) return;
+
+  if (line.includes('•')) {
+  const parts = line.split('•').map(p => p.trim());
+
+  const companyName = parts[0] || '';
+  const locationAndDate = parts[1] || '';
+
+  let location = locationAndDate;
+  let dates = '';
+
+  // Try splitting location and date if possible
+  if (locationAndDate.includes('|')) {
+    const locParts = locationAndDate.split('|').map(p => p.trim());
+    location = locParts[0];
+    dates = locParts[1] || '';
+  }
+
+  paragraphs.push(
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: companyName,
+          bold: true,
+          size: RESUME_STYLES.fontSize.normal * 2,
+          font: RESUME_STYLES.fonts.main,
+        }),
+        ...(location ? [
+          new TextRun({
+            text: ` • ${location}`,
+            size: RESUME_STYLES.fontSize.normal * 2,
+            font: RESUME_STYLES.fonts.main,
+            color: RESUME_STYLES.colors.light,
+          })
+        ] : []),
+        ...(dates ? [
+          new TextRun({
+            text: dates,
+            size: RESUME_STYLES.fontSize.small * 2,
+            font: RESUME_STYLES.fonts.main,
+            color: RESUME_STYLES.colors.light,
+          })
+        ] : [])
+      ],
+      spacing: { after: RESUME_STYLES.spacing.afterParagraph },
+      alignment: AlignmentType.JUSTIFY, // Important: align it nicely
+    })
+  );
+  isWaitingForJobTitle = true;
+} else if (isWaitingForJobTitle) {
+    // This line is Job Title
+    paragraphs.push(
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: line.trim(),
+            bold: true,
+            size: RESUME_STYLES.fontSize.normal * 2,
+            font: RESUME_STYLES.fonts.main,
+          }),
+        ],
+        spacing: { after: RESUME_STYLES.spacing.afterParagraph }
+      })
+    );
+    isWaitingForJobTitle = false; // Reset
+  } else if (line.startsWith('•') || line.startsWith('-') || line.startsWith('*')) {
+    // Bullet points
+    const bulletText = line.replace(/^[-*]\s*/, '').replace(/^•\s*/, '');
+    paragraphs.push(
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: bulletText,
+            size: RESUME_STYLES.fontSize.normal * 2,
+            font: RESUME_STYLES.fonts.main,
+          }),
+        ],
+        bullet: { level: 0 },
+        spacing: { after: RESUME_STYLES.spacing.afterParagraph }
+      })
+    );
+  } else {
+    // Other random text (fallback)
+    paragraphs.push(
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: line,
+            size: RESUME_STYLES.fontSize.normal * 2,
+            font: RESUME_STYLES.fonts.main,
+          }),
+        ],
+        spacing: { after: RESUME_STYLES.spacing.afterParagraph }
+      })
+    );
+  }
+});
       } else {
         // No experience content
         paragraphs.push(
