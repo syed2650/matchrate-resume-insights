@@ -1,3 +1,4 @@
+
 import { pdf } from "@react-pdf/renderer";
 import ResumePdfTemplate from "../components/ResumePdfTemplate"; // Adjust the path if needed
 import { ResumeData } from "../components/ResumePdfTemplate"; // Import type if you want type safety

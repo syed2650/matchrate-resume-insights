@@ -1,3 +1,4 @@
+
 import React from "react";
 import {
   Page,
@@ -56,7 +57,7 @@ const styles = StyleSheet.create({
   }
 });
 
-interface ResumeData {
+export interface ResumeData {
   name: string;
   contact: string;
   summary: string[];
@@ -98,7 +99,6 @@ const ResumePdfTemplate: React.FC<{ data: ResumeData }> = ({ data }) => (
 
       {/* Experience */}
       <View style={{ marginTop: 16 }}>
-        <Text style={{ fontSize: 16, fontWeight: "bold", color: "#2563eb", marginBottom: 6 }}>
         <Text style={styles.sectionTitle}>Professional Experience</Text>
         {data.experiences.map((exp, idx) => (
           <View key={idx} style={{ marginBottom: 8 }}>

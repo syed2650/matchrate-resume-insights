@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { jsPDF } from "jspdf";
@@ -12,8 +11,8 @@ import ResumeHeader from "./components/ResumeHeader";
 import ResumeContent from "./components/ResumeContent";
 import UpgradeBanner from "./components/UpgradeBanner";
 import { Progress } from "@/components/ui/progress";
-import { downloadResumeAsPdf } from "../utils/downloadResumeAsPdf";
-import { parseResumeForPdf } from "../utils/parseResumeForPdf"; // add this import at the top
+import { downloadResumeAsPdf } from "./utils/downloadResumeAsPdf";
+import { parseResumeForPdf } from "./utils/parseResumeForPdf";
 
 interface ResumeRewriteProps {
   rewrittenResume: any;
@@ -34,40 +33,32 @@ const formatResumeContent = (content: string): string => {
   if (!content) return "";
   
   try {
-    // Clean the content first
     let formattedContent = content;
     
-    // Remove asterisks and format resume properly
     formattedContent = formattedContent
-      // Remove asterisks from headings and text
       .replace(/\*\*(.*?)\*\*/g, '$1')
       .replace(/\*(.*?)\*/g, '$1')
       
-      // Ensure section headings are properly capitalized
       .replace(/^(#+\s*)(.*?)$/gm, (match, hash, title) => {
         return `${hash}${title.toUpperCase()}`;
       })
       
-      // Replace markdown style bullets with proper bullet points
       .replace(/^\s*-\s+/gm, '• ')
       
-      // Fix horizontal rules to be consistent
       .replace(/^---$/gm, '--------------------')
       
-      // Remove "Optimized Resume" text if present
       .replace(/^Optimized Resume(\n|$)/g, '')
       .replace(/^This resume is optimized for(?: a)?:? (.*?)(\n|$)/g, '');
       
-    // If output is valid, return it
     if (formattedContent && typeof formattedContent === 'string') {
       return formattedContent;
     } else {
       console.error("Invalid formatted content:", formattedContent);
-      return content || ""; // Return original if there's a problem
+      return content || "";
     }
   } catch (error) {
     console.error("Error formatting resume content:", error);
-    return content || ""; // Return original on error
+    return content || "";
   }
 };
 
@@ -82,7 +73,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
 }) => {
   const { toast } = useToast();
   const [stableAtsScores, setStableAtsScores] = useState<Record<string, number>>(atsScores);
-  const [canRewrite, setCanRewrite] = useState<boolean>(true); // Setting to true to disable premium restrictions
+  const [canRewrite, setCanRewrite] = useState<boolean>(true);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   
   const { 
@@ -90,7 +81,6 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
     generatedTimestamp 
   } = useResumeVersion({ rewrittenResume, activeVersion: "general" });
   
-  // Format the resume to remove asterisks and improve formatting
   const currentResume = formatResumeContent(rawResume);
   
   useEffect(() => {
@@ -105,11 +95,9 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
       setStableAtsScores(atsScores);
     }
     
-    // Always allow rewrite for now
     setCanRewrite(true);
   }, [scoreHash, atsScores]);
 
-  // Check if we have valid resume content
   useEffect(() => {
     if (rawResume === null || rawResume === undefined) {
       console.warn("No resume content available");
@@ -121,15 +109,11 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
   const currentAtsScore = (typeof stableAtsScores === 'object' && Object.values(stableAtsScores)[0]) || 0;
   const scoreDifference = currentAtsScore - originalATSScore;
   
-  // Extract role summary from different possible formats
   const extractRoleSummary = () => {
     if (!rawResume) return "";
     
-    // Pattern 1: "This resume is optimized for: Software Engineer"
     const pattern1 = /This resume is optimized for(?: a)?:? (.*?)(\n|$)/;
-    // Pattern 2: "Optimized for: Software Engineer"
     const pattern2 = /Optimized for(?: a)?:? (.*?)(\n|$)/;
-    // Pattern 3: Just look for a job title that might be there
     const pattern3 = /^(Software Engineer|Product Manager|Data Analyst|UX Designer|Consultant)(\n|$)/;
     
     const match1 = rawResume.match(pattern1);
@@ -237,47 +221,48 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
   };
   
   const handleDownloadPdf = async () => {
-  if (!canRewrite) {
-    toast({
-      title: "Premium Feature",
-      description: "Resume exporting is available on the paid plan",
-      variant: "default"
-    });
-    return;
-  }
-  
-  if (!currentResume) {
-    toast({
-      title: "Error",
-      description: "No resume content available to download",
-      variant: "destructive"
-    });
-    return;
-  }
-  
-  try {
-    setIsProcessing(true);
-    trackRewriteUsage();
+    if (!canRewrite) {
+      toast({
+        title: "Premium Feature",
+        description: "Resume exporting is available on the paid plan",
+        variant: "default"
+      });
+      return;
+    }
+    
+    if (!currentResume) {
+      toast({
+        title: "Error",
+        description: "No resume content available to download",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    try {
+      setIsProcessing(true);
+      trackRewriteUsage();
 
-    const resumeData = parseResumeForPdf(currentResume);
+      const resumeData = parseResumeForPdf(currentResume);
 
-    await downloadResumeAsPdf(resumeData);
+      await downloadResumeAsPdf(resumeData);
 
-    toast({
-      title: "Success",
-      description: "Resume downloaded as PDF",
-    });
-  } catch (error) {
-    console.error("PDF generation error:", error);
-    toast({
-      title: "Error",
-      description: "Failed to generate PDF. Please try again.",
-      variant: "destructive"
-    });
-  } finally {
-    setIsProcessing(false);
-  }
-};
+      toast({
+        title: "Success",
+        description: "Resume downloaded as PDF",
+      });
+    } catch (error) {
+      console.error("PDF generation error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate PDF. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   if (!rewrittenResume) {
     return (
       <div className="py-8 text-center">

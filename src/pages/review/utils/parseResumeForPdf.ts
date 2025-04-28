@@ -1,4 +1,5 @@
-interface ParsedResumeData {
+
+interface ResumeData {
   name: string;
   contact: string;
   summary: string[];
@@ -13,14 +14,14 @@ interface ParsedResumeData {
   education: string[];
 }
 
-export function parseResumeForPdf(currentResume: string): ParsedResumeData {
+export function parseResumeForPdf(currentResume: string): ResumeData {
   const lines = currentResume.split("\n").map(line => line.trim()).filter(Boolean);
 
   let name = "Your Name";
   let contact = "";
   const summary: string[] = [];
   const skills: string[] = [];
-  const experiences: ParsedResumeData["experiences"] = [];
+  const experiences: ResumeData["experiences"] = [];
   const education: string[] = [];
 
   let currentSection = "";
