@@ -12,6 +12,9 @@ import UpgradeBanner from "./components/UpgradeBanner";
 import { Progress } from "@/components/ui/progress";
 import { parseResumeForPdf } from "./utils/parseResumeForPdf";
 import { downloadResumeAsPdf } from "./utils/downloadResumeAsPdf";
+import { pdf } from "@react-pdf/renderer";
+import ResumePdfTemplate from "@/src/pages/review/components/ResumePdfTemplate";
+
 
 interface ResumeRewriteProps {
   rewrittenResume: any;
@@ -216,52 +219,54 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
   };
   
   const handleDownloadPdf = async () => {
-    if (!canRewrite) {
-      toast({
-        title: "Premium Feature",
-        description: "Resume exporting is available on the paid plan",
-        variant: "default"
-      });
-      return;
-    }
-    
-    if (!currentResume) {
-      toast({
-        title: "Error",
-        description: "No resume content available to download",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    try {
-      setIsProcessing(true);
-      trackRewriteUsage();
-      
-      const parsedResume = await parseResumeForPdf(currentResume);
-      
-      if (!parsedResume) {
-        throw new Error("Failed to parse resume content");
-      }
-      
-      await downloadResumeAsPdf(parsedResume);
-      
-      toast({
-        title: "Success",
-        description: "Resume downloaded as PDF",
-      });
-    } catch (error) {
-      console.error("PDF generation error:", error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to generate PDF file",
-        variant: "destructive"
-      });
-    } finally {
-      setIsProcessing(false);
-    }
-  };
+  if (!canRewrite) {
+    toast({
+      title: "Premium Feature",
+      description: "Resume exporting is available on the paid plan",
+      variant: "default"
+    });
+    return;
+  }
 
+  if (!currentResume) {
+    toast({
+      title: "Error",
+      description: "No resume content available to download",
+      variant: "destructive"
+    });
+    return;
+  }
+
+  try {
+    setIsProcessing(true);
+    trackRewriteUsage();
+
+    // Build parsed resumeData dynamically (use same structure)
+    const resumeData = parseResumeIntoData(currentResume);
+
+    const blob = await pdf(<ResumePdfTemplate data={resumeData} />).toBlob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `interview-ready-resume.pdf`;
+    link.click();
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Success",
+      description: "Resume downloaded as PDF",
+    });
+  } catch (error) {
+    console.error("PDF generation error:", error);
+    toast({
+      title: "Error",
+      description: "Failed to generate PDF. Please try again.",
+      variant: "destructive"
+    });
+  } finally {
+    setIsProcessing(false);
+  }
+};
   if (!rewrittenResume) {
     return (
       <div className="py-8 text-center">
