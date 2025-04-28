@@ -1,4 +1,3 @@
-
 import React from "react";
 import {
   Page,
@@ -8,22 +7,23 @@ import {
   StyleSheet,
   Font
 } from "@react-pdf/renderer";
-import type { DocumentProps } from "@react-pdf/renderer";
 
-
-// Register font (use safe fonts)
+// Register Calibri font properly
 Font.register({
-  family: 'Calibri',
-  src: 'https://fonts.gstatic.com/s/calibri/v1/cw.woff' // Optional: Otherwise defaults to standard
+  family: "Calibri",
+  fonts: [
+    { src: "https://fonts.gstatic.com/s/calibri/v1/cw.woff", fontWeight: "normal" },
+    { src: "https://fonts.gstatic.com/s/calibri/v1/cwbd.woff", fontWeight: "bold" }
+  ]
 });
 
 const styles = StyleSheet.create({
   page: {
     padding: 40,
-    fontFamily: "Helvetica", // use Helvetica for now
+    fontFamily: "Calibri",
     fontSize: 11,
     lineHeight: 1.6,
-    color: "#222222"
+    color: "#222"
   },
   sectionTitle: {
     fontSize: 14,
@@ -31,13 +31,16 @@ const styles = StyleSheet.create({
     marginBottom: 6,
     textTransform: "uppercase",
     color: "#1E293B",
-    borderBottom: "1 solid #ccc",
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
+    borderBottomStyle: "solid",
     paddingBottom: 4,
   },
   headerName: {
     fontSize: 22,
     fontWeight: "bold",
     textAlign: "center",
+    marginBottom: 4
   },
   headerContact: {
     fontSize: 10,
@@ -74,15 +77,13 @@ export interface ResumeData {
   education: string[];
 }
 
-// The ResumePdfTemplate component returns a Document component as its root element
-const ResumePdfTemplate = ({ data, ...props }: { data: ResumeData } & DocumentProps) => (
-  <Document {...props}>
+const ResumePdfTemplate: React.FC<{ data: ResumeData }> = ({ data }) => (
+  <Document>
     <Page size="A4" style={styles.page}>
-      {/* Header */}
       <Text style={styles.headerName}>{data.name}</Text>
       <Text style={styles.headerContact}>{data.contact}</Text>
 
-      {/* Summary */}
+      {/* Professional Summary */}
       <View>
         <Text style={styles.sectionTitle}>Professional Summary</Text>
         {data.summary.map((line, idx) => (
@@ -90,7 +91,7 @@ const ResumePdfTemplate = ({ data, ...props }: { data: ResumeData } & DocumentPr
         ))}
       </View>
 
-      {/* Skills */}
+      {/* Key Skills */}
       <View style={{ marginTop: 16 }}>
         <Text style={styles.sectionTitle}>Key Skills</Text>
         <View>
@@ -100,11 +101,11 @@ const ResumePdfTemplate = ({ data, ...props }: { data: ResumeData } & DocumentPr
         </View>
       </View>
 
-      {/* Experience */}
+      {/* Professional Experience */}
       <View style={{ marginTop: 16 }}>
         <Text style={styles.sectionTitle}>Professional Experience</Text>
         {data.experiences.map((exp, idx) => (
-          <View key={idx} style={{ marginBottom: 8 }}>
+          <View key={idx} style={{ marginBottom: 10 }}>
             <View style={styles.row}>
               <Text style={styles.bold}>{exp.company} • {exp.location}</Text>
               <Text>{exp.dates}</Text>
