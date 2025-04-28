@@ -28,6 +28,12 @@ export default function Terms() {
           These Terms govern your access to and use of our services.
         </p>
 
+         <h2 className="text-2xl font-semibold mt-8 mb-4">2. Eligibility</h2>
+        <p className="text-slate-600">
+          You must be at least 16 years old to use our platform.
+By using Matchrate.co, you represent and warrant that you meet this age requirement.
+        </p>
+
         {/* ... continue with other sections ... */}
 
         <h2 className="text-2xl font-semibold mt-8 mb-4">13. Contact Us</h2>
