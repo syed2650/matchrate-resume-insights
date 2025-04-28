@@ -64,6 +64,83 @@ const formatResumeContent = (content: string): string => {
   }
 };
 
+const parseResumeIntoData = (resumeText: string) => {
+  const lines = resumeText.split("\n").map(line => line.trim()).filter(Boolean);
+
+  const resumeData = {
+    name: "",
+    contact: "",
+    summary: [] as string[],
+    skills: [] as string[],
+    experiences: [] as {
+      company: string;
+      location: string;
+      dates: string;
+      title: string;
+      bullets: string[];
+    }[],
+    education: [] as string[],
+  };
+
+  let currentSection = "summary";
+  let currentExperience: any = null;
+
+  for (const line of lines) {
+    if (line.toUpperCase().includes("SKILLS") || line.toUpperCase().includes("KEY SKILLS")) {
+      currentSection = "skills";
+      continue;
+    }
+    if (line.toUpperCase().includes("EXPERIENCE") || line.toUpperCase().includes("PROFESSIONAL EXPERIENCE")) {
+      currentSection = "experience";
+      continue;
+    }
+    if (line.toUpperCase().includes("EDUCATION")) {
+      currentSection = "education";
+      continue;
+    }
+
+    if (currentSection === "summary") {
+      if (!resumeData.name) {
+        resumeData.name = line;
+      } else if (!resumeData.contact && (line.includes("@") || line.includes("linkedin.com") || /\d{3}[-.\s]?\d{3}[-.\s]?\d{4}/.test(line))) {
+        resumeData.contact = line;
+      } else {
+        resumeData.summary.push(line);
+      }
+    } else if (currentSection === "skills") {
+      resumeData.skills.push(...line.replace(/^[-•]\s*/, '').split(",").map(skill => skill.trim()).filter(Boolean));
+    } else if (currentSection === "experience") {
+      if (line.includes("•")) {
+        if (currentExperience) {
+          resumeData.experiences.push(currentExperience);
+        }
+        const [company, location = ""] = line.split("•").map(part => part.trim());
+        currentExperience = {
+          company,
+          location,
+          dates: "",
+          title: "",
+          bullets: [],
+        };
+      } else if (/^\d{4}/.test(line) || /(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)/i.test(line)) {
+        if (currentExperience) currentExperience.dates = line;
+      } else if (line.startsWith("•") || line.startsWith("-") || line.startsWith("*")) {
+        if (currentExperience) currentExperience.bullets.push(line.replace(/^[-•*]\s*/, '').trim());
+      } else {
+        if (currentExperience) currentExperience.title = line;
+      }
+    } else if (currentSection === "education") {
+      resumeData.education.push(line);
+    }
+  }
+
+  if (currentExperience) {
+    resumeData.experiences.push(currentExperience);
+  }
+
+  return resumeData;
+};
+
 const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ 
   rewrittenResume, 
   atsScores = {},
