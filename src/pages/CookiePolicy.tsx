@@ -22,9 +22,50 @@ export default function CookiePolicy() {
           They are widely used to make websites work, or to work more efficiently, as well as to provide reporting information.
         </p>
 
-        {/* ... continue with other sections ... */}
+         <h2 className="text-2xl font-semibold mt-8 mb-4">2. Why We Use Cookies</h2>
+        <p className="text-slate-600">
+          We use cookies for several reasons:
 
-        <h2 className="text-2xl font-semibold mt-8 mb-4">7. Contact Us</h2>
+- Essential Cookies: Necessary for our Website to function properly (e.g., login authentication).
+
+- Analytics Cookies: Help us understand how visitors interact with our Website (e.g., page views, traffic patterns).
+
+- Performance and Functionality Cookies: Enhance the performance and functionality of our Website (e.g., remembering your preferences).
+
+- Advertising Cookies (future feature): Help us deliver relevant advertisements if we decide to run ads in the future.
+        </p>
+
+        <h2 className="text-2xl font-semibold mt-8 mb-4">3. Managing Cookies</h2>
+        <p className="text-slate-600">
+          You can control and/or delete cookies as you wish.
+
+Most browsers allow you to:
+
+- Delete cookies
+
+- Block cookies
+
+- Warn before cookies are stored
+
+Please refer to your browser’s Help section to learn how to manage your cookies settings.
+
+Note: Disabling cookies may affect the functionality of certain parts of the Website.
+        </p>
+
+  <h2 className="text-2xl font-semibold mt-8 mb-4">4. Third-Party Cookies</h2>
+        <p className="text-slate-600">
+          We may allow select partners (like Google Analytics) to set cookies on our Website to help us better understand visitor behavior.
+          Third-party cookies are subject to the privacy policies of these external services.
+        </p>
+
+        <h2 className="text-2xl font-semibold mt-8 mb-4">5. Updates to This Cookies Policy</h2>
+        <p className="text-slate-600">
+         We may update this Cookies Policy occasionally to reflect changes in technology, regulations, or practices.
+         We encourage you to review this page periodically for the latest information.
+        </p>
+        
+
+        <h2 className="text-2xl font-semibold mt-8 mb-4">6. Contact Us</h2>
         <p className="text-slate-600">
           If you have questions about our use of cookies or other tracking technologies:<br/>
           📧 support@matchrate.co
