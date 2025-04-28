@@ -116,9 +116,8 @@ const ResumePDF = ({ data }: { data: ResumeData }) => {
 
 export async function downloadResumeAsPdf(resumeData: ResumeData) {
   try {
-    // Fixed: We use a regular function component instance instead of JSX
-    // and pass it directly to pdf() which expects a ReactElement
-    const pdfDocument = <ResumePDF data={resumeData} />;
+    // Fixed: We use React.createElement instead of JSX
+    const pdfDocument = React.createElement(ResumePDF, { data: resumeData });
     const blob = await pdf(pdfDocument).toBlob();
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
