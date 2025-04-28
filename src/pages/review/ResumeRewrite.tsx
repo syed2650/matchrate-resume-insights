@@ -105,7 +105,14 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
     try {
       setIsProcessing(true);
       trackRewriteUsage();
-      const docBlob = await generateDocument(currentResume, roleSummary, currentAtsScore, generatedTimestamp || new Date().toLocaleString(), "general", false);
+      // Note: Fixing the argument count - using 4 arguments instead of 6
+      const docBlob = await generateDocument(
+        currentResume, 
+        roleSummary, 
+        currentAtsScore,
+        generatedTimestamp || new Date().toLocaleString()
+      );
+      
       if (!docBlob) throw new Error("Failed to generate DOCX document");
       const url = URL.createObjectURL(docBlob);
       const link = document.createElement("a");

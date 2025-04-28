@@ -6,8 +6,11 @@ import ResumePdfTemplate from "../components/ResumePdfTemplate";
 
 export async function downloadResumeAsPdf(resumeData: ResumeData) {
   try {
-    // Use the imported ResumePdfTemplate component directly with the pdf function
-    const blob = await pdf(React.createElement(ResumePdfTemplate, { data: resumeData })).toBlob();
+    // Create the PDF document using the correct Document component and props
+    const blob = await pdf(
+      <ResumePdfTemplate data={resumeData} />
+    ).toBlob();
+    
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
