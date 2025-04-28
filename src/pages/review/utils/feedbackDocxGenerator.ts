@@ -85,8 +85,7 @@ export const generateFeedbackDocx = (feedback: Feedback) => {
               spacing: { before: 200, after: 100 }
             }),
             new Paragraph({
-              text: "Original:",
-              bold: true,
+              children: [new TextRun({ text: "Original:", bold: true })],
               spacing: { after: 100 }
             }),
             new Paragraph({
@@ -94,8 +93,7 @@ export const generateFeedbackDocx = (feedback: Feedback) => {
               spacing: { after: 200 }
             }),
             new Paragraph({
-              text: "Improved:",
-              bold: true,
+              children: [new TextRun({ text: "Improved:", bold: true })],
               spacing: { after: 100 }
             }),
             new Paragraph({

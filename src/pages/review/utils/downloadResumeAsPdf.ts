@@ -116,7 +116,52 @@ const ResumePDF = ({ data }: { data: ResumeData }) => {
 
 export async function downloadResumeAsPdf(resumeData: ResumeData) {
   try {
-    const blob = await pdf(React.createElement(ResumePDF, { data: resumeData })).toBlob();
+    // Fix: Create the PDF document directly instead of using React.createElement
+    const doc = <Document>
+      <Page size="A4" style={styles.page}>
+        <Text style={styles.header}>{resumeData.name}</Text>
+        <Text style={{ fontSize: 12, textAlign: 'center', marginBottom: 20 }}>{resumeData.contact}</Text>
+        
+        <View style={styles.section}>
+          <Text style={styles.heading}>PROFESSIONAL SUMMARY</Text>
+          {resumeData.summary.map((line, i) => (
+            <Text key={i} style={styles.text}>{line}</Text>
+          ))}
+        </View>
+        
+        <View style={styles.section}>
+          <Text style={styles.heading}>KEY SKILLS</Text>
+          {resumeData.skills.map((skill, i) => (
+            <Text key={i} style={styles.bullet}>• {skill}</Text>
+          ))}
+        </View>
+        
+        <View style={styles.section}>
+          <Text style={styles.heading}>PROFESSIONAL EXPERIENCE</Text>
+          {resumeData.experiences.map((exp, i) => (
+            <View key={i} style={{ marginBottom: 15 }}>
+              <View style={styles.row}>
+                <Text style={{ fontSize: 14, fontWeight: 'bold' }}>{exp.company}</Text>
+                <Text style={{ fontSize: 12 }}>{exp.dates}</Text>
+              </View>
+              <Text style={{ fontSize: 13, fontWeight: 'bold', marginBottom: 5 }}>{exp.title}</Text>
+              {exp.bullets.map((bullet, j) => (
+                <Text key={j} style={styles.bullet}>• {bullet}</Text>
+              ))}
+            </View>
+          ))}
+        </View>
+        
+        <View style={styles.section}>
+          <Text style={styles.heading}>EDUCATION</Text>
+          {resumeData.education.map((edu, i) => (
+            <Text key={i} style={styles.text}>{edu}</Text>
+          ))}
+        </View>
+      </Page>
+    </Document>;
+    
+    const blob = await pdf(doc).toBlob();
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;

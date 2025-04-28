@@ -94,7 +94,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
       setStableAtsScores(atsScores);
     }
     
-    setCanRewrite(true);
+    setCanRewrite(canUseRewrite());
   }, [scoreHash, atsScores]);
 
   useEffect(() => {
@@ -179,11 +179,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
       setIsProcessing(true);
       trackRewriteUsage();
       
-      const parsedResume = await parseResumeForPdf(
-        currentResume, 
-        roleSummary,
-        generatedTimestamp || new Date().toLocaleDateString()
-      );
+      const parsedResume = await parseResumeForPdf(currentResume);
       
       if (!parsedResume) {
         throw new Error("Failed to parse resume content");
