@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
   }
 });
 
-// Create PDF Document component - using createElement instead of JSX
+// Create PDF Document component using React.createElement
 const ResumePDF = ({ data }: { data: ResumeData }) => {
   return React.createElement(
     Document,
@@ -116,8 +116,10 @@ const ResumePDF = ({ data }: { data: ResumeData }) => {
 
 export async function downloadResumeAsPdf(resumeData: ResumeData) {
   try {
-    // Create the PDF document using the React.createElement-based component
-    const blob = await pdf(React.createElement(ResumePDF, { data: resumeData })).toBlob();
+    // Fixed: We use a regular function component instance instead of JSX
+    // and pass it directly to pdf() which expects a ReactElement
+    const pdfDocument = <ResumePDF data={resumeData} />;
+    const blob = await pdf(pdfDocument).toBlob();
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
