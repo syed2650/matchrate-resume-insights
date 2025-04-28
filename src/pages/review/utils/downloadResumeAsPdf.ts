@@ -1,6 +1,6 @@
 
 import { pdf } from "@react-pdf/renderer";
-import ResumePdfTemplate from "../components/ResumePdfTemplate"; 
+import ResumePdfTemplate from "../pages/review/components/ResumePdfTemplate";
 import { ResumeData } from "../components/ResumePdfTemplate";
 import React from 'react';
 
@@ -8,7 +8,7 @@ export async function downloadResumeAsPdf(resumeData: ResumeData) {
   try {
     // Use React.createElement instead of JSX syntax
     const element = React.createElement(ResumePdfTemplate, { data: resumeData });
-    const blob = await pdf(element).toBlob();
+    const blob = await pdf(<ResumePdfTemplate data={resumeData} />).toBlob();
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
