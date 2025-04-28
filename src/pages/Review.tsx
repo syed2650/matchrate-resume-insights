@@ -8,6 +8,10 @@ import ResumeAnalyzer from "./review/components/ResumeAnalyzer";
 import AnalysisResults from "./review/components/AnalysisResults";
 import { canUseFeedback, trackFeedbackUsage } from "./review/utils";
 import UsageLimitModal from "./review/components/UsageLimitModal";
+import { Database } from "@/integrations/supabase/types";
+
+type JobRole = Database["public"]["Enums"]["job_role"];
+const validRoles: JobRole[] = ["Product Manager", "UX Designer", "Data Analyst", "Software Engineer", "Consultant"];
 
 const Review = () => {
   const [feedback, setFeedback] = useState<Feedback | null>(null);
@@ -52,8 +56,17 @@ const Review = () => {
         } : null
       };
 
-      // Ensure the selected_role is null if not provided
-      const role = data.jobTitle || null;
+      // Convert jobTitle to a valid role enum or null
+      let selectedRole: JobRole | null = null;
+      if (data.jobTitle) {
+        // Check if the jobTitle matches any of the valid roles
+        const matchedRole = validRoles.find(
+          role => role.toLowerCase() === data.jobTitle?.toLowerCase()
+        );
+        if (matchedRole) {
+          selectedRole = matchedRole;
+        }
+      }
 
       // Insert into submissions table
       const { data: submissionData, error: submissionError } = await supabase
@@ -62,7 +75,7 @@ const Review = () => {
           resume_text: data.resume || "",
           job_description: data.jobDescription || "",
           job_url: data.jobUrl || null,
-          selected_role: role,
+          selected_role: selectedRole,
           feedback_results: feedbackResultsForDb,
           user_id: user?.id || null
         })
