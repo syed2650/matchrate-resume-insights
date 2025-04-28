@@ -72,7 +72,7 @@ export interface ResumeData {
   education: string[];
 }
 
-// The ResumePdfTemplate component now returns a Document component as its root
+// The ResumePdfTemplate component returns a Document component as its root element
 const ResumePdfTemplate: React.FC<{ data: ResumeData }> = ({ data }) => (
   <Document>
     <Page size="A4" style={styles.page}>
