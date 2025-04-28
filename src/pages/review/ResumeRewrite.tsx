@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
@@ -11,7 +12,7 @@ import ResumeContent from "./components/ResumeContent";
 import UpgradeBanner from "./components/UpgradeBanner";
 import { Progress } from "@/components/ui/progress";
 import { pdf } from "@react-pdf/renderer";
-import ResumePdfTemplate from "@/src/pages/review/components/ResumePdfTemplate";
+import ResumePdfTemplate from "./components/ResumePdfTemplate";
 import { parseResumeIntoData } from "./utils/parseResumeIntoData";
 
 interface ResumeRewriteProps {
