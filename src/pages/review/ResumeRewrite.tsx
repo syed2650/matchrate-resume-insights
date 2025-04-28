@@ -14,6 +14,7 @@ import { parseResumeForPdf } from "./utils/parseResumeForPdf";
 import { downloadResumeAsPdf } from "./utils/downloadResumeAsPdf";
 import { pdf } from "@react-pdf/renderer";
 import ResumePdfTemplate from "@/src/pages/review/components/ResumePdfTemplate";
+import { parseResumeIntoData } from "./utils/parseResumeIntoData";
 
 
 interface ResumeRewriteProps {
