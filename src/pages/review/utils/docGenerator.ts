@@ -1,22 +1,20 @@
+// Full TealHQ-Level Resume Generator
+// Final cleaned-up version
 
 import {
   Document,
+  Packer,
   Paragraph,
   TextRun,
-  HeadingLevel,
-  Packer,
   AlignmentType,
-  LevelFormat,
   convertInchesToTwip,
   BorderStyle,
-  WidthType,
-  PageNumber,
   Footer,
-  Header,
+  PageNumber,
+  HeadingLevel,
   Table,
   TableRow,
-  TableCell,
-  VerticalAlign
+  TableCell
 } from "docx";
 
 interface Section {
@@ -32,71 +30,38 @@ const RESUME_STYLES = {
     heading: 16,
     subheading: 13,
     normal: 11,
-    small: 9
+    small: 9,
   },
   spacing: {
     afterSection: 400,
     afterParagraph: 200,
-    afterHeading: 240
+    afterHeading: 240,
   },
   colors: {
     dark: "222222",
     accent: "2563eb",
-    light: "666666"
-  }
+    headingBlue: "1E293B",
+    light: "666666",
+  },
 };
 
-function safeText(text: any): string {
-  if (text === undefined || text === null) {
-    return "";
-  }
-  return typeof text === 'string' ? text : String(text);
-}
-
 export const parseResumeContent = (content: string) => {
-  // Check for empty content
-  if (!content || typeof content !== 'string') {
-    console.error("Invalid resume content provided to parser:", content);
-    return { header: ["Resume content is missing or invalid"] }; 
+  const sections: Section = { header: [] };
+  let currentSection = "header";
+
+  const lines = content.split("\n");
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+
+    if (trimmed.match(/^#{1,3}\s+/) || (trimmed === trimmed.toUpperCase() && trimmed.length > 4)) {
+      currentSection = trimmed.replace(/^#{1,3}\s+/, '').trim();
+      if (!sections[currentSection]) sections[currentSection] = [];
+    } else {
+      sections[currentSection].push(trimmed);
+    }
   }
 
-  const sections: Section = {};
-  let currentSection = "header";
-  sections[currentSection] = [];
-  
-  const lines = content.split('\n');
-  
-  // First pass: identify sections using headings or ALL CAPS
-  lines.forEach(line => {
-    const trimmedLine = line.trim();
-    
-    // Skip empty lines
-    if (!trimmedLine) return;
-    
-    // Check if this is a section header (markdown h1, h2, h3 or ALL CAPS)
-    if (trimmedLine.match(/^#{1,3}\s+/) || 
-        (trimmedLine === trimmedLine.toUpperCase() && trimmedLine.length > 4)) {
-      
-      // Extract section name without the markdown symbols
-      currentSection = trimmedLine.replace(/^#{1,3}\s+/, '').trim();
-      
-      // Initialize section array if it doesn't exist
-      if (!sections[currentSection]) {
-        sections[currentSection] = [];
-      }
-    } else {
-      // Add content to current section
-      sections[currentSection].push(trimmedLine);
-    }
-  });
-  
-  // Handle potential empty sections
-  Object.keys(sections).forEach(key => {
-    if (sections[key].length === 0) {
-      sections[key] = ["No content provided"];
-    }
-  });
-  
   return sections;
 };
 
@@ -104,698 +69,147 @@ export const generateDocument = async (
   currentResume: string,
   roleSummary: string,
   currentAtsScore: number,
-  generatedTimestamp: string,
-  activeVersion: string,
-  hasMultipleVersions: boolean
+  generatedTimestamp: string
 ) => {
   try {
-    // Validate input
-    if (!currentResume || typeof currentResume !== 'string') {
-      throw new Error("Invalid or empty resume content");
-    }
-
-    // Parse resume into sections
     const sections = parseResumeContent(currentResume);
-    const paragraphs = [];
-    
-    // Add name with larger font and bold
-    const nameMatch = currentResume.match(/^(?:#{1,2}\s+)?([A-Za-z\s.]+)/);
-    const name = nameMatch && nameMatch[1].trim() ? nameMatch[1].trim() : "Resume";
-    
-    // Only add name once
-    paragraphs.push(
-      new Paragraph({
-        children: [
-          new TextRun({
-            text: name,
-            bold: true,
-            size: 32,
-            font: RESUME_STYLES.fonts.main
-          })
-        ],
-        spacing: { after: RESUME_STYLES.spacing.afterHeading },
-        alignment: AlignmentType.CENTER
-      })
-    );
-    
-    // Add contact info if available
-    if (sections.header && sections.header.length > 0) {
-      // Extract location from header to avoid duplication later
-      let location = "";
-      const locationMatch = sections.header.find(line => 
-        line.includes('Harrow') || line.includes('London') || line.includes('United Kingdom')
-      );
-      
-      if (locationMatch) {
-        location = locationMatch;
-      }
-      
-      const contactLines = sections.header
-        .filter(line => 
-          line.includes('@') || 
-          line.includes('linkedin.com') || 
-          line.includes('phone') ||
-          line.match(/\d{3}[-.\s]?\d{3}[-.\s]?\d{4}/) ||
-          line.includes('github.com') ||
-          (location && line === location) // Include location only here
-        );
-      
-      if (contactLines.length > 0) {
-        const contactInfo = contactLines.join(' | ');
-        
-        paragraphs.push(
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: contactInfo,
-                size: RESUME_STYLES.fontSize.normal * 2,
-                font: RESUME_STYLES.fonts.main
-              })
-            ],
-            spacing: { after: RESUME_STYLES.spacing.afterParagraph },
-            alignment: AlignmentType.CENTER
-          })
-        );
-      }
-    }
-    
-    // Add role summary if available
-    if (roleSummary) {
-      paragraphs.push(
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: `${roleSummary}`,
-              italics: true,
-              size: RESUME_STYLES.fontSize.subheading * 2,
-              color: RESUME_STYLES.colors.accent,
-              font: RESUME_STYLES.fonts.main
-            })
-          ],
-          spacing: { after: RESUME_STYLES.spacing.afterSection },
+    const paragraphs: Paragraph[] = [];
+
+    // Name Extraction
+    const nameLine = currentResume.split("\n")[0]?.replace(/^#{1,3}\s+/, '') || "Resume";
+    paragraphs.push(new Paragraph({
+      children: [new TextRun({ text: nameLine, bold: true, size: 48, font: RESUME_STYLES.fonts.main })],
+      spacing: { after: RESUME_STYLES.spacing.afterHeading },
+      alignment: AlignmentType.CENTER
+    }));
+
+    // Contact Info
+    if (sections.header) {
+      const contactInfo = sections.header.filter(l => l.includes("@") || l.includes("linkedin.com") || l.includes("github.com") || l.match(/\d{3}[-.\s]?\d{3}[-.\s]?\d{4}/));
+      if (contactInfo.length) {
+        paragraphs.push(new Paragraph({
+          children: [new TextRun({ text: contactInfo.join(" | "), font: RESUME_STYLES.fonts.main, size: 22 })],
+          spacing: { after: RESUME_STYLES.spacing.afterParagraph },
           alignment: AlignmentType.CENTER
-        })
-      );
+        }));
+      }
     }
 
-    // Process Professional Summary first if it exists
-    const summaryKey = Object.keys(sections).find(key => 
-      key.toLowerCase().includes('summary') || key.toLowerCase().includes('profile')
-    );
-    
+    // Role Summary (Italic Blue)
+    if (roleSummary) {
+      paragraphs.push(new Paragraph({
+        children: [new TextRun({ text: roleSummary, italics: true, size: 24, color: RESUME_STYLES.colors.accent })],
+        alignment: AlignmentType.CENTER,
+        spacing: { after: RESUME_STYLES.spacing.afterSection },
+      }));
+    }
+
+    // Helper to add Section Headers
+    const addSectionHeader = (title: string) => paragraphs.push(new Paragraph({
+      children: [new TextRun({ text: title, bold: true, size: 32, color: RESUME_STYLES.colors.headingBlue })],
+      heading: HeadingLevel.HEADING_1,
+      border: { bottom: { color: RESUME_STYLES.colors.headingBlue, size: 12, style: BorderStyle.SINGLE } },
+      spacing: { after: RESUME_STYLES.spacing.afterHeading }
+    }));
+
+    // Process Summary
+    const summaryKey = Object.keys(sections).find(k => k.toLowerCase().includes("summary"));
     if (summaryKey) {
-      paragraphs.push(
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: "PROFESSIONAL SUMMARY",
-              bold: true,
-              size: RESUME_STYLES.fontSize.heading * 2,
-              font: RESUME_STYLES.fonts.heading,
-              color: RESUME_STYLES.colors.dark
-            })
-          ],
-          heading: HeadingLevel.HEADING_1,
-          spacing: { after: RESUME_STYLES.spacing.afterHeading },
-          border: { 
-            bottom: { 
-              color: "auto", 
-              size: 6, 
-              space: 1,
-              style: BorderStyle.SINGLE
-            } 
-          }
-        })
-      );
-      
-      if (sections[summaryKey] && sections[summaryKey].length > 0) {
-        sections[summaryKey].forEach(line => {
-          if (line && line.trim()) {
-            paragraphs.push(
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text: line,
-                    size: RESUME_STYLES.fontSize.normal * 2,
-                    font: RESUME_STYLES.fonts.main
-                  })
-                ],
-                spacing: { after: RESUME_STYLES.spacing.afterParagraph }
-              })
-            );
-          }
-        });
-      } else {
-        paragraphs.push(
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: "No summary provided",
-                size: RESUME_STYLES.fontSize.normal * 2,
-                font: RESUME_STYLES.fonts.main
-              })
-            ],
-            spacing: { after: RESUME_STYLES.spacing.afterParagraph }
-          })
-        );
-      }
-      
-      paragraphs.push(
-        new Paragraph({
-          spacing: { after: RESUME_STYLES.spacing.afterSection }
-        })
-      );
-      
-      delete sections[summaryKey];
-    }
-
-    // Process Skills section next if it exists
-    const skillsKey = Object.keys(sections).find(key => 
-      key.toLowerCase().includes('skill') || key.toLowerCase().includes('competenc')
-    );
-    
-    if (skillsKey) {
-      paragraphs.push(
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: "KEY SKILLS",
-              bold: true,
-              size: RESUME_STYLES.fontSize.heading * 2,
-              font: RESUME_STYLES.fonts.heading,
-              color: RESUME_STYLES.colors.dark
-            })
-          ],
-          heading: HeadingLevel.HEADING_1,
-          spacing: { after: RESUME_STYLES.spacing.afterHeading },
-          border: { 
-            bottom: { 
-              color: "auto", 
-              size: 6, 
-              space: 1,
-              style: BorderStyle.SINGLE
-            } 
-          }
-        })
-      );
-      
-      if (sections[skillsKey] && sections[skillsKey].length > 0) {
-        const skillsText = sections[skillsKey].join(' ');
-        
-        if (skillsText.includes(',')) {
-          // Skills are comma-separated, so make a nice column layout
-          const skills = skillsText
-            .split(',')
-            .map(s => s.trim())
-            .filter(s => s.length > 0);
-          
-          if (skills.length > 0) {
-            const rows = Math.ceil(skills.length / 2);
-            for (let i = 0; i < rows; i++) {
-              const row = [];
-              
-              if (i * 2 < skills.length) {
-                row.push(
-                  new TextRun({
-                    text: `• ${skills[i * 2]}`,
-                    size: RESUME_STYLES.fontSize.normal * 2,
-                    font: RESUME_STYLES.fonts.main
-                  })
-                );
-              }
-              
-              if (i * 2 + 1 < skills.length) {
-                row.push(
-                  new TextRun({
-                    text: `• ${skills[i * 2 + 1]}`,
-                    size: RESUME_STYLES.fontSize.normal * 2,
-                    font: RESUME_STYLES.fonts.main
-                  })
-                );
-              }
-              
-              paragraphs.push(
-                new Paragraph({
-                  children: row,
-                  spacing: { after: RESUME_STYLES.spacing.afterParagraph }
-                })
-              );
-            }
-          } else {
-            // Fallback if no skills found after parsing
-            paragraphs.push(
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text: "No specific skills listed",
-                    size: RESUME_STYLES.fontSize.normal * 2,
-                    font: RESUME_STYLES.fonts.main
-                  })
-                ],
-                spacing: { after: RESUME_STYLES.spacing.afterParagraph }
-              })
-            );
-          }
-        } else {
-          // Skills are formatted as bullet points or text blocks
-          sections[skillsKey].forEach(line => {
-            if (!line || !line.trim()) return;
-            
-            if (line.startsWith('•') || line.startsWith('-') || line.startsWith('*')) {
-              const skillText = line.replace(/^[•\-*]\s?/, '');
-              paragraphs.push(
-                new Paragraph({
-                  children: [
-                    new TextRun({
-                      text: `• ${skillText}`,
-                      size: RESUME_STYLES.fontSize.normal * 2,
-                      font: RESUME_STYLES.fonts.main
-                    })
-                  ],
-                  spacing: { after: RESUME_STYLES.spacing.afterParagraph }
-                })
-              );
-            } else {
-              paragraphs.push(
-                new Paragraph({
-                  children: [
-                    new TextRun({
-                      text: line,
-                      size: RESUME_STYLES.fontSize.normal * 2,
-                      font: RESUME_STYLES.fonts.main
-                    })
-                  ],
-                  spacing: { after: RESUME_STYLES.spacing.afterParagraph }
-                })
-              );
-            }
-          });
-        }
-      } else {
-        // No skills content
-        paragraphs.push(
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: "No skills listed",
-                size: RESUME_STYLES.fontSize.normal * 2,
-                font: RESUME_STYLES.fonts.main
-              })
-            ],
-            spacing: { after: RESUME_STYLES.spacing.afterParagraph }
-          })
-        );
-      }
-      
-      paragraphs.push(
-        new Paragraph({
-          spacing: { after: RESUME_STYLES.spacing.afterSection }
-        })
-      );
-      
-      delete sections[skillsKey];
-    }
-    
-    // Process Experience section next
-    const experienceKey = Object.keys(sections).find(key => 
-      key.toLowerCase().includes('experience') || 
-      key.toLowerCase().includes('employment') || 
-      key.toLowerCase().includes('work')
-    );
-    
-    if (experienceKey) {
-      paragraphs.push(
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: "PROFESSIONAL EXPERIENCE",
-              bold: true,
-              size: RESUME_STYLES.fontSize.heading * 2,
-              font: RESUME_STYLES.fonts.heading,
-              color: RESUME_STYLES.colors.dark
-            })
-          ],
-          heading: HeadingLevel.HEADING_1,
-          spacing: { after: RESUME_STYLES.spacing.afterHeading },
-          border: { 
-            bottom: { 
-              color: "auto", 
-              size: 6, 
-              space: 1,
-              style: BorderStyle.SINGLE
-            } 
-          }
-        })
-      );
-      
-      if (sections[experienceKey] && sections[experienceKey].length > 0) {
-        let isWaitingForJobTitle = false;
-        
-        sections[experienceKey].forEach(line => {
-          if (!line || !line.trim()) return;
-
-          // Check if this line contains both company name and location
-          if (line.includes('•')) {
-            const parts = line.split('•').map(p => p.trim());
-            const companyName = parts[0] || '';
-            
-            // Skip adding location if it contains "Harrow" to avoid duplication
-            let locationPart = "";
-            if (parts.length > 1 && !parts[1].includes("Harrow")) {
-              locationPart = ` • ${parts[1]}`;
-            }
-
-            paragraphs.push(
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text: companyName,
-                    bold: true,
-                    size: RESUME_STYLES.fontSize.normal * 2,
-                    font: RESUME_STYLES.fonts.main,
-                  }),
-                  ...(locationPart ? [
-                    new TextRun({
-                      text: locationPart,
-                      size: RESUME_STYLES.fontSize.normal * 2,
-                      font: RESUME_STYLES.fonts.main,
-                      color: RESUME_STYLES.colors.light,
-                    })
-                  ] : [])
-                ],
-                spacing: { after: RESUME_STYLES.spacing.afterParagraph }
-              })
-            );
-            isWaitingForJobTitle = true;
-          } else if (isWaitingForJobTitle) {
-            // This line is Job Title
-            paragraphs.push(
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text: line.trim(),
-                    bold: true,
-                    size: RESUME_STYLES.fontSize.normal * 2,
-                    font: RESUME_STYLES.fonts.main,
-                  }),
-                ],
-                spacing: { after: RESUME_STYLES.spacing.afterParagraph }
-              })
-            );
-            isWaitingForJobTitle = false; // Reset
-          } else if (line.startsWith('•') || line.startsWith('-') || line.startsWith('*')) {
-            // Bullet points
-            const bulletText = line.replace(/^[-*]\s*/, '').replace(/^•\s*/, '');
-            paragraphs.push(
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text: bulletText,
-                    size: RESUME_STYLES.fontSize.normal * 2,
-                    font: RESUME_STYLES.fonts.main,
-                  }),
-                ],
-                bullet: { level: 0 },
-                spacing: { after: RESUME_STYLES.spacing.afterParagraph }
-              })
-            );
-          } else {
-            // Other random text (fallback)
-            paragraphs.push(
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text: line,
-                    size: RESUME_STYLES.fontSize.normal * 2,
-                    font: RESUME_STYLES.fonts.main,
-                  }),
-                ],
-                spacing: { after: RESUME_STYLES.spacing.afterParagraph }
-              })
-            );
-          }
-        });
-      } else {
-        // No experience content
-        paragraphs.push(
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: "No experience details provided",
-                size: RESUME_STYLES.fontSize.normal * 2,
-                font: RESUME_STYLES.fonts.main
-              })
-            ],
-            spacing: { after: RESUME_STYLES.spacing.afterParagraph }
-          })
-        );
-      }
-      
-      paragraphs.push(
-        new Paragraph({
-          spacing: { after: RESUME_STYLES.spacing.afterSection }
-        })
-      );
-      
-      delete sections[experienceKey];
-    }
-
-    // Process remaining sections
-    Object.entries(sections).forEach(([sectionName, lines]) => {
-      if (sectionName === 'header') return;
-      
-      paragraphs.push(
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: sectionName.toUpperCase(),
-              bold: true,
-              size: RESUME_STYLES.fontSize.heading * 2,
-              font: RESUME_STYLES.fonts.heading,
-              color: RESUME_STYLES.colors.dark
-            })
-          ],
-          heading: HeadingLevel.HEADING_1,
-          spacing: { after: RESUME_STYLES.spacing.afterHeading },
-          border: { 
-            bottom: { 
-              color: "auto", 
-              size: 6, 
-              space: 1,
-              style: BorderStyle.SINGLE
-            } 
-          }
-        })
-      );
-      
-      if (lines && lines.length > 0) {
-        lines.forEach(line => {
-          if (!line || !line.trim()) return;
-          
-          // Skip lines that contain "Harrow" to avoid duplication except in header
-          if (line.includes("Harrow") && sectionName !== 'header') {
-            return;
-          }
-          
-          if (line.startsWith('•') || line.startsWith('-') || line.startsWith('*')) {
-            const bulletText = line.replace(/^[•\-*]\s?/, '');
-            paragraphs.push(
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text: bulletText,
-                    size: RESUME_STYLES.fontSize.normal * 2,
-                    font: RESUME_STYLES.fonts.main
-                  })
-                ],
-                bullet: {
-                  level: 0
-                },
-                spacing: { after: RESUME_STYLES.spacing.afterParagraph }
-              })
-            );
-          } else if (line.match(/^[A-Za-z ]+\s+\|\s+/)) {
-            const [title, rest] = line.split(' | ');
-            paragraphs.push(
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text: title,
-                    bold: true,
-                    size: RESUME_STYLES.fontSize.normal * 2,
-                    font: RESUME_STYLES.fonts.main
-                  }),
-                  new TextRun({
-                    text: ` | ${rest}`,
-                    size: RESUME_STYLES.fontSize.normal * 2,
-                    font: RESUME_STYLES.fonts.main
-                  })
-                ],
-                spacing: { after: RESUME_STYLES.spacing.afterParagraph }
-              })
-            );
-          } else {
-            paragraphs.push(
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text: line,
-                    size: RESUME_STYLES.fontSize.normal * 2,
-                    font: RESUME_STYLES.fonts.main
-                  })
-                ],
-                spacing: { after: RESUME_STYLES.spacing.afterParagraph }
-              })
-            );
-          }
-        });
-      } else {
-        // No content for this section
-        paragraphs.push(
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: `No content provided for ${sectionName}`,
-                size: RESUME_STYLES.fontSize.normal * 2,
-                font: RESUME_STYLES.fonts.main
-              })
-            ],
-            spacing: { after: RESUME_STYLES.spacing.afterParagraph }
-          })
-        );
-      }
-      
-      paragraphs.push(
-        new Paragraph({
-          spacing: { after: RESUME_STYLES.spacing.afterSection }
-        })
-      );
-    });
-    
-    // Ensure we have at least some content
-    if (paragraphs.length === 0) {
-      paragraphs.push(
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: "No resume content was available to generate the document.",
-              size: RESUME_STYLES.fontSize.normal * 2,
-              font: RESUME_STYLES.fonts.main
-            })
-          ],
+      addSectionHeader("Professional Summary");
+      for (const line of sections[summaryKey]) {
+        paragraphs.push(new Paragraph({
+          children: [new TextRun({ text: line, font: RESUME_STYLES.fonts.main, size: 22 })],
           spacing: { after: RESUME_STYLES.spacing.afterParagraph }
-        })
-      );
+        }));
+      }
+    }
+
+    // Skills
+    const skillsKey = Object.keys(sections).find(k => k.toLowerCase().includes("skill"));
+    if (skillsKey) {
+      addSectionHeader("Key Skills");
+      const skills = sections[skillsKey].join(' ').split(',').map(s => s.trim()).filter(Boolean);
+      for (let i = 0; i < skills.length; i += 3) {
+        paragraphs.push(new Paragraph({
+          children: skills.slice(i, i + 3).map(skill => new TextRun({ text: `• ${skill} `, size: 22 })),
+          spacing: { after: RESUME_STYLES.spacing.afterParagraph }
+        }));
+      }
+    }
+
+    // Experience
+    const expKey = Object.keys(sections).find(k => k.toLowerCase().includes("experience") || k.toLowerCase().includes("employment"));
+    if (expKey) {
+      addSectionHeader("Professional Experience");
+      let isJobTitle = false;
+      for (const line of sections[expKey]) {
+        if (line.includes("•")) {
+          const [company, location] = line.split("•").map(s => s.trim());
+          paragraphs.push(new Paragraph({
+            children: [
+              new TextRun({ text: company, bold: true, size: 22 }),
+              new TextRun({ text: ` • ${location}`, size: 22, color: RESUME_STYLES.colors.light })
+            ],
+            spacing: { after: RESUME_STYLES.spacing.afterParagraph }
+          }));
+          isJobTitle = true;
+        } else if (isJobTitle) {
+          paragraphs.push(new Paragraph({
+            children: [new TextRun({ text: line, bold: true, size: 22 })],
+            spacing: { after: RESUME_STYLES.spacing.afterParagraph }
+          }));
+          isJobTitle = false;
+        } else if (line.startsWith("•") || line.startsWith("-")) {
+          paragraphs.push(new Paragraph({
+            children: [new TextRun({ text: line.replace(/^[-•]\s*/, ""), size: 22 })],
+            bullet: { level: 0 },
+            spacing: { after: RESUME_STYLES.spacing.afterParagraph }
+          }));
+        }
+      }
+    }
+
+    // Education
+    const eduKey = Object.keys(sections).find(k => k.toLowerCase().includes("education"));
+    if (eduKey) {
+      addSectionHeader("Education");
+      for (const line of sections[eduKey]) {
+        paragraphs.push(new Paragraph({
+          children: [new TextRun({ text: line, size: 22 })],
+          spacing: { after: RESUME_STYLES.spacing.afterParagraph }
+        }));
+      }
     }
 
     const doc = new Document({
-      sections: [
-        {
-          properties: {
-            page: {
-              margin: {
-                top: convertInchesToTwip(0.7),
-                right: convertInchesToTwip(0.7),
-                bottom: convertInchesToTwip(0.7),
-                left: convertInchesToTwip(0.7)
-              }
-            }
-          },
-          footers: {
-            default: new Footer({
-              children: [
-                new Paragraph({
-                  children: [
-                    new TextRun({
-                      text: `ATS Score: ${currentAtsScore}/100 | Generated on ${generatedTimestamp}`,
-                      size: RESUME_STYLES.fontSize.small * 2,
-                      color: RESUME_STYLES.colors.light,
-                      font: RESUME_STYLES.fonts.main
-                    }),
-                    new TextRun({
-                      text: "                                                       ",
-                      size: RESUME_STYLES.fontSize.small * 2
-                    }),
-                    new TextRun({
-                      children: [PageNumber.CURRENT],
-                      size: RESUME_STYLES.fontSize.small * 2,
-                      color: RESUME_STYLES.colors.light,
-                      font: RESUME_STYLES.fonts.main
-                    }),
-                    new TextRun({
-                      text: " of ",
-                      size: RESUME_STYLES.fontSize.small * 2,
-                      color: RESUME_STYLES.colors.light,
-                      font: RESUME_STYLES.fonts.main
-                    }),
-                    new TextRun({
-                      children: [PageNumber.TOTAL_PAGES],
-                      size: RESUME_STYLES.fontSize.small * 2,
-                      color: RESUME_STYLES.colors.light,
-                      font: RESUME_STYLES.fonts.main
-                    }),
-                  ],
-                  alignment: AlignmentType.JUSTIFIED,
-                  border: {
-                    top: {
-                      color: RESUME_STYLES.colors.light,
-                      space: 1,
-                      style: BorderStyle.SINGLE,
-                      size: 1,
-                    },
-                  },
-                }),
-              ],
-            }),
-          },
-          children: paragraphs
-        }
-      ]
-    });
-
-    return Packer.toBlob(doc);
-  } catch (error) {
-    console.error("Error generating document:", error);
-    
-    // Create a simple error document
-    const errorDoc = new Document({
       sections: [{
-        properties: {},
-        children: [
-          new Paragraph({
+        properties: { page: { margin: { top: 720, right: 720, bottom: 720, left: 720 } } },
+        children: paragraphs,
+        footers: {
+          default: new Footer({
             children: [
-              new TextRun({
-                text: "Error Generating Resume Document",
-                bold: true,
-                size: 32,
-                color: "FF0000",
+              new Paragraph({
+                children: [
+                  new TextRun({ text: `ATS Score: ${currentAtsScore}/100 | Generated on ${generatedTimestamp}`, size: 16, color: RESUME_STYLES.colors.light }),
+                  new TextRun({ text: "         " }),
+                  new TextRun({ children: [PageNumber.CURRENT], size: 16 }),
+                  new TextRun({ text: " of " }),
+                  new TextRun({ children: [PageNumber.TOTAL_PAGES], size: 16 }),
+                ],
+                alignment: AlignmentType.CENTER,
+                spacing: { after: 100 },
+                border: { top: { color: RESUME_STYLES.colors.light, style: BorderStyle.SINGLE, size: 1 } }
               })
-            ],
-            spacing: { after: 400 }
-          }),
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: "There was an error processing your resume. Please try again or contact support.",
-                size: 24
-              })
-            ],
-            spacing: { after: 300 }
-          }),
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: "Error details: " + ((error as Error).message || "Unknown error"),
-                size: 20,
-                italics: true
-              })
-            ],
-            spacing: { after: 300 }
+            ]
           })
-        ]
+        }
       }]
     });
-    
-    return Packer.toBlob(errorDoc);
+
+    return await Packer.toBlob(doc);
+
+  } catch (error) {
+    console.error("Error generating DOCX:", error);
+    throw error;
   }
 };
