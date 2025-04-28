@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { Document, Page, Text, View, StyleSheet, pdf } from "@react-pdf/renderer";
 import { ResumeData } from "../components/ResumePdfTemplate";
 
@@ -45,7 +46,7 @@ const styles = StyleSheet.create({
   }
 });
 
-// Create PDF Document
+// Create PDF Document component
 const ResumePDF = ({ data }: { data: ResumeData }) => (
   <Document>
     <Page size="A4" style={styles.page}>
