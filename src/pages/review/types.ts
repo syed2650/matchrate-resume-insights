@@ -34,4 +34,33 @@ export interface Feedback {
     industry: string;
     tone: string;
   };
+  error?: string; // Add this missing property
+}
+
+export interface JobContext {
+  keywords: string[];
+  responsibilities: string[];
+  industry: string;
+  tone: string;
+}
+
+export type ExtractionStatus = 
+  | { status: 'idle' }
+  | { status: 'loading'; message: string }
+  | { status: 'success'; message: string }
+  | { status: 'error'; message: string };
+
+export interface ResumeFile {
+  name: string;
+  url?: string;
+  type?: string;
+  size?: number;
+}
+
+export interface AnalysisStep {
+  id: number;
+  name: string;
+  description: string;
+  isComplete: boolean;
+  isCurrent: boolean;
 }
