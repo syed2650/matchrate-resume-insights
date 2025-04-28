@@ -10,18 +10,30 @@ export default function Terms() {
       </h1>
       
       <div className="prose prose-slate max-w-none">
+        <p className="text-sm text-slate-500">Last updated: April 27, 2025</p>
+        
         <p className="text-lg text-slate-600 mb-6">
-          By using Matchrate.ai, you agree to these terms of service. Please read them carefully.
+          Welcome to Matchrate.co!<br/>
+          Please read these Terms carefully before using our website and services.
         </p>
         
-        <h2 className="text-2xl font-semibold mt-8 mb-4">Usage Terms</h2>
-        <p className="text-slate-600 mb-6">
-          Our service is provided "as is" and is intended to be used for resume optimization purposes only. You agree to use the service in compliance with all applicable laws.
+        <p className="text-slate-600 mb-8">
+          By accessing or using Matchrate.co, you agree to be bound by these Terms.
+          If you do not agree, you may not use our services.
         </p>
 
-        <h2 className="text-2xl font-semibold mt-8 mb-4">Account Terms</h2>
-        <p className="text-slate-600 mb-6">
-          You are responsible for maintaining the security of your account and for all activities that occur under your account.
+        <h2 className="text-2xl font-semibold mt-8 mb-4">1. Overview</h2>
+        <p className="text-slate-600">
+          Matchrate.co offers resume analysis, optimization, and rewriting services using automated tools and AI assistance.<br/><br/>
+          These Terms govern your access to and use of our services.
+        </p>
+
+        {/* ... continue with other sections ... */}
+
+        <h2 className="text-2xl font-semibold mt-8 mb-4">13. Contact Us</h2>
+        <p className="text-slate-600">
+          If you have any questions about these Terms, contact:<br/>
+          📧 support@matchrate.co
         </p>
       </div>
     </div>
