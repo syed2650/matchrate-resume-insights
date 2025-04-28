@@ -1,5 +1,25 @@
 
+// If this file doesn't exist, we need to create it with the ResumeRewriteProps interface
+export interface ResumeRewriteProps {
+  rewrittenResume: any;
+  atsScores?: Record<string, number>;
+  scoreHash?: string | null;
+  jobContext?: {
+    keywords: string[];
+    responsibilities: string[];
+    industry: string;
+    tone: string;
+  };
+  originalResume?: string;
+  jobDescription?: string;
+  originalATSScore?: number;
+}
+
 export interface Feedback {
+  resume?: string;
+  jobDescription?: string;
+  jobUrl?: string;
+  jobTitle?: string;
   score: number;
   missingKeywords: string[];
   sectionFeedback: Record<string, string>;
@@ -8,40 +28,10 @@ export interface Feedback {
   wouldInterview: string;
   rewrittenResume?: any;
   atsScores?: Record<string, number>;
-  jobContext?: JobContext;
-  resume?: string;
-  jobDescription?: string;
-  jobUrl?: string;
-  jobTitle?: string;
-  resumeText?: string; // For backward compatibility
-  error?: string; // Added error property
-  rewriteRequested?: boolean; // Flag to track if rewrite was requested
-}
-
-export interface JobContext {
-  keywords: string[];
-  responsibilities: string[];
-  industry: string;
-  tone: string;
-}
-
-export type ExtractionStatus = 
-  | { status: 'idle' }
-  | { status: 'loading'; message: string }
-  | { status: 'success'; message: string }
-  | { status: 'error'; message: string };
-
-export interface ResumeFile {
-  name: string;
-  url?: string;
-  type?: string;
-  size?: number;
-}
-
-export interface AnalysisStep {
-  id: number;
-  name: string;
-  description: string;
-  isComplete: boolean;
-  isCurrent: boolean;
+  jobContext?: {
+    keywords: string[];
+    responsibilities: string[];
+    industry: string;
+    tone: string;
+  };
 }
