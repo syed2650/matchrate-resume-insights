@@ -3,7 +3,7 @@ import {
   Document,
   Packer,
 } from "docx";
-import { ResumeData } from "../resume/types";
+import type { ResumeData } from "../resume/types";
 import { MARGINS } from "./constants";
 import {
   generateHeaderSection,

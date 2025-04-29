@@ -1,4 +1,3 @@
-
 import {
   Paragraph,
   TextRun,
@@ -9,7 +8,7 @@ import {
   TableCell,
   WidthType,
 } from "docx";
-import { ResumeData } from "../resume/types";
+import type { ResumeData } from "../resume/types";
 import { COLORS, FONTS, SPACING, TEXT_SIZE, BORDERS } from "./constants";
 
 /**
