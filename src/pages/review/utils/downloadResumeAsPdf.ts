@@ -6,9 +6,10 @@ import ResumePdfTemplate from "../components/ResumePdfTemplate";
 
 export async function downloadResumeAsPdf(resumeData: ResumeData) {
   try {
-    // Create the PDF document using the correct Document component and props
+    // Create the PDF document using React.createElement instead of JSX
+    // since we're in a .ts file not a .tsx file
     const blob = await pdf(
-      <ResumePdfTemplate data={resumeData} />
+      React.createElement(ResumePdfTemplate, { data: resumeData })
     ).toBlob();
     
     const url = URL.createObjectURL(blob);
