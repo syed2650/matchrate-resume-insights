@@ -1,4 +1,3 @@
-// Final, fully corrected docGenerator.ts
 import {
   Document,
   Paragraph,
@@ -6,214 +5,196 @@ import {
   HeadingLevel,
   Packer,
   AlignmentType,
-  BorderStyle,
-  PageNumber,
-  Footer,
   convertInchesToTwip,
+  BorderStyle,
 } from "docx";
 
-interface Section {
-  [key: string]: string[];
-}
+import { ResumeData } from "./parseResumeIntoData";
 
-const RESUME_STYLES = {
-  fonts: {
-    main: "Calibri",
-  },
-  fontSize: {
-    heading: 16,
-    subheading: 13,
-    normal: 11,
-    small: 9,
-  },
-  spacing: {
-    afterSection: 300,
-    afterParagraph: 150,
-    afterHeading: 200,
-  },
-  colors: {
-    dark: "222222",
-    accent: "2563EB",
-    light: "666666",
-  },
+const COLORS = {
+  darkBlue: "1E3A8A",
+  text: "222222",
 };
 
-export async function generateDocument(
-  resumeText: string,
-  roleSummary: string,
-  atsScore: number,
-  generatedTimestamp: string,
-  activeVersion: string,
-  hasMultipleVersions: boolean
-) {
-  const paragraphs: Paragraph[] = [];
+const FONT = {
+  main: "Calibri",
+};
 
-  const lines = resumeText.split("\n").map((l) => l.trim()).filter(Boolean);
-  let currentSection = "";
-  let currentExperience: any = null;
+const SPACING = {
+  sectionSpace: 400, // space after each section
+  headingAfter: 100, // space after heading before content
+  betweenParagraphs: 100,
+};
 
-  // Header: Name
-  const name = lines.shift() || "Candidate Name";
-  paragraphs.push(
-    new Paragraph({
-      children: [
-        new TextRun({ text: name, bold: true, size: 32, font: RESUME_STYLES.fonts.main }),
-      ],
-      alignment: AlignmentType.CENTER,
-      spacing: { after: RESUME_STYLES.spacing.afterHeading },
-    })
-  );
-
-  // Header: Contact
-  const contact = lines.shift() || "Contact Information";
-  paragraphs.push(
-    new Paragraph({
-      children: [new TextRun({ text: contact, size: 18, font: RESUME_STYLES.fonts.main, color: RESUME_STYLES.colors.light })],
-      alignment: AlignmentType.CENTER,
-      spacing: { after: RESUME_STYLES.spacing.afterSection },
-    })
-  );
-
-  for (const line of lines) {
-    const upper = line.toUpperCase();
-
-    if (upper.includes("SUMMARY")) {
-      currentSection = "SUMMARY";
-      paragraphs.push(sectionTitle("Professional Summary"));
-      continue;
-    } else if (upper.includes("SKILLS")) {
-      currentSection = "SKILLS";
-      paragraphs.push(sectionTitle("Key Skills"));
-      continue;
-    } else if (upper.includes("EXPERIENCE")) {
-      currentSection = "EXPERIENCE";
-      paragraphs.push(sectionTitle("Work Experience"));
-      continue;
-    } else if (upper.includes("EDUCATION")) {
-      currentSection = "EDUCATION";
-      paragraphs.push(sectionTitle("Education"));
-      continue;
-    } else if (upper.includes("CERTIFICATION")) {
-      currentSection = "CERTIFICATIONS";
-      paragraphs.push(sectionTitle("Certifications"));
-      continue;
-    }
-
-    if (currentSection === "SUMMARY" || currentSection === "SKILLS" || currentSection === "CERTIFICATIONS") {
-      paragraphs.push(simpleText(line));
-    } else if (currentSection === "EXPERIENCE") {
-      if (line.includes("\u2022")) {
-        paragraphs.push(bulletPoint(line.replace(/^\u2022\s*/, "")));
-      } else if (/^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|\d{2}\/\d{4})/.test(line)) {
-        paragraphs.push(
-          new Paragraph({
-            children: [new TextRun({ text: line, italics: true, font: RESUME_STYLES.fonts.main })],
-            spacing: { after: RESUME_STYLES.spacing.afterParagraph },
-          })
-        );
-      } else if (line.includes("\u2022")) {
-        paragraphs.push(bulletPoint(line.replace(/^\u2022\s*/, "")));
-      } else {
-        const companyName = line.split("\u2022")[0]?.trim() || line.trim();
-        paragraphs.push(companyTitle(companyName));
-      }
-    } else if (currentSection === "EDUCATION") {
-      paragraphs.push(simpleText(line));
-    }
-  }
-
+export const generateDocument = async (data: ResumeData) => {
   const doc = new Document({
     sections: [
       {
         properties: {
           page: {
             margin: {
-              top: convertInchesToTwip(0.8),
-              bottom: convertInchesToTwip(0.8),
-              left: convertInchesToTwip(0.8),
-              right: convertInchesToTwip(0.8),
+              top: convertInchesToTwip(0.7),
+              right: convertInchesToTwip(0.7),
+              bottom: convertInchesToTwip(0.7),
+              left: convertInchesToTwip(0.7),
             },
           },
         },
-        footers: {
-          default: new Footer({
+        children: [
+          // Name (Header)
+          new Paragraph({
             children: [
-              new Paragraph({
-                alignment: AlignmentType.CENTER,
-                children: [
-                  new TextRun({
-                    text: `ATS Score: ${atsScore}/100 | `,
-                    size: RESUME_STYLES.fontSize.small * 2,
-                    color: RESUME_STYLES.colors.light,
-                    font: RESUME_STYLES.fonts.main,
-                  }),
-                  PageNumber.CURRENT,
-                  new TextRun({
-                    text: " of ",
-                    size: RESUME_STYLES.fontSize.small * 2,
-                    color: RESUME_STYLES.colors.light,
-                    font: RESUME_STYLES.fonts.main,
-                  }),
-                  PageNumber.TOTAL_PAGES,
-                  new TextRun({
-                    text: ` | Generated on ${generatedTimestamp}`,
-                    size: RESUME_STYLES.fontSize.small * 2,
-                    color: RESUME_STYLES.colors.light,
-                    font: RESUME_STYLES.fonts.main,
-                  }),
-                ],
+              new TextRun({
+                text: data.name,
+                bold: true,
+                size: 32,
+                font: FONT.main,
               }),
             ],
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 100 },
           }),
-        },
-        children: paragraphs,
+
+          // Contact Info
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: data.contact,
+                size: 20,
+                font: FONT.main,
+              }),
+            ],
+            alignment: AlignmentType.CENTER,
+            spacing: { after: SPACING.sectionSpace },
+          }),
+
+          // SUMMARY
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: "SUMMARY",
+                bold: true,
+                color: COLORS.darkBlue,
+                size: 24,
+                font: FONT.main,
+              }),
+            ],
+            heading: HeadingLevel.HEADING_2,
+            spacing: { after: SPACING.headingAfter },
+          }),
+
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: data.summary.join(" "),
+                font: FONT.main,
+                size: 22,
+              }),
+            ],
+            spacing: { after: SPACING.sectionSpace },
+          }),
+
+          // PROFESSIONAL EXPERIENCE
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: "PROFESSIONAL EXPERIENCE",
+                bold: true,
+                color: COLORS.darkBlue,
+                size: 24,
+                font: FONT.main,
+              }),
+            ],
+            heading: HeadingLevel.HEADING_2,
+            spacing: { after: SPACING.headingAfter },
+          }),
+
+          ...data.experiences.flatMap((exp) => [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: `${exp.title} | ${exp.company}`,
+                  bold: true,
+                  font: FONT.main,
+                  size: 22,
+                }),
+              ],
+              alignment: AlignmentType.LEFT,
+            }),
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: exp.dates,
+                  bold: true,
+                  font: FONT.main,
+                  size: 22,
+                }),
+              ],
+              alignment: AlignmentType.RIGHT,
+              spacing: { after: 100 },
+            }),
+            ...exp.bullets.map(
+              (b) =>
+                new Paragraph({
+                  text: b,
+                  bullet: { level: 0 },
+                  spacing: { after: SPACING.betweenParagraphs },
+                  font: FONT.main,
+                })
+            ),
+            new Paragraph({ spacing: { after: SPACING.sectionSpace } }),
+          ]),
+
+          // KEY SKILLS
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: "KEY SKILLS",
+                bold: true,
+                color: COLORS.darkBlue,
+                size: 24,
+                font: FONT.main,
+              }),
+            ],
+            heading: HeadingLevel.HEADING_2,
+            spacing: { after: SPACING.headingAfter },
+          }),
+          ...data.skills.map((skill) =>
+            new Paragraph({
+              text: skill,
+              bullet: { level: 0 },
+              spacing: { after: SPACING.betweenParagraphs },
+              font: FONT.main,
+            })
+          ),
+          new Paragraph({ spacing: { after: SPACING.sectionSpace } }),
+
+          // EDUCATION
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: "EDUCATION",
+                bold: true,
+                color: COLORS.darkBlue,
+                size: 24,
+                font: FONT.main,
+              }),
+            ],
+            heading: HeadingLevel.HEADING_2,
+            spacing: { after: SPACING.headingAfter },
+          }),
+          ...data.education.map((edu) =>
+            new Paragraph({
+              text: edu,
+              bullet: { level: 0 },
+              spacing: { after: SPACING.betweenParagraphs },
+              font: FONT.main,
+            })
+          ),
+        ],
       },
     ],
   });
 
   return Packer.toBlob(doc);
-}
-
-// Helper functions
-const sectionTitle = (title: string) =>
-  new Paragraph({
-    text: title,
-    heading: HeadingLevel.HEADING_1,
-    thematicBreak: true,
-    spacing: { after: RESUME_STYLES.spacing.afterHeading },
-    style: "Heading1",
-    children: [
-      new TextRun({
-        text: title,
-        bold: true,
-        color: RESUME_STYLES.colors.accent,
-        size: RESUME_STYLES.fontSize.heading * 2,
-      }),
-    ],
-  });
-
-const companyTitle = (company: string) =>
-  new Paragraph({
-    children: [
-      new TextRun({
-        text: company,
-        bold: true,
-        size: RESUME_STYLES.fontSize.normal * 2,
-        font: RESUME_STYLES.fonts.main,
-      }),
-    ],
-    spacing: { after: RESUME_STYLES.spacing.afterParagraph },
-  });
-
-const simpleText = (text: string) =>
-  new Paragraph({
-    children: [new TextRun({ text, size: RESUME_STYLES.fontSize.normal * 2, font: RESUME_STYLES.fonts.main })],
-    spacing: { after: RESUME_STYLES.spacing.afterParagraph },
-  });
-
-const bulletPoint = (text: string) =>
-  new Paragraph({
-    children: [new TextRun({ text, size: RESUME_STYLES.fontSize.normal * 2, font: RESUME_STYLES.fonts.main })],
-    bullet: { level: 0 },
-    spacing: { after: RESUME_STYLES.spacing.afterParagraph },
-  });
+};
