@@ -33,6 +33,19 @@ export default function Privacy() {
         </ul>
         <p className="text-slate-600">We do not collect sensitive information like social security numbers, banking details, or government IDs.</p>
 
+
+
+        <h2 className="text-2xl font-semibold mt-8 mb-4">3. How We Use Your Information</h2>
+        <p className="text-slate-600 mb-4">We use your information to:</p>
+        <ul className="list-disc pl-6 text-slate-600 space-y-2 mb-6">
+          <li>Provide feedback, recommendations, and resume rewriting (if selected).</li>
+          <li>Improve and personalize our services.</li>
+          <li>Respond to inquiries and customer support requests.</li>
+          <li>Send important account or service-related notices.</li>
+        </ul>
+        <p className="text-slate-600">We do NOT sell, rent, or share your personal information with third parties for marketing purposes.</p>
+
+
         {/* ... continue with other sections ... */}
         
         <h2 className="text-2xl font-semibold mt-8 mb-4">10. Contact Us</h2>
