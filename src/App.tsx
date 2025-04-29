@@ -1,8 +1,9 @@
+
 import Index from "@/pages/Index";
 import About from "@/pages/About";
 import Review from "@/pages/Review";
 import Blog from "@/pages/Blog";
-import ImproveResume from "@/pages/ImproveResume";
+import ImproveResume from "@/pages/blog/ImproveResume";
 import FAQ from "@/pages/FAQ";
 import Privacy from "@/pages/Privacy";
 import Terms from "@/pages/Terms";

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuthUser } from "@/hooks/useAuthUser";
@@ -97,86 +98,87 @@ export default function NavBar() {
           </div>
           
           {showMobileMenu && (
-      <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
-        <div className="fixed inset-y-0 right-0 w-full max-w-sm bg-background shadow-lg p-6">
-          <div className="flex items-center justify-between">
-            <Link to="/" className="font-bold text-xl">Matchrate.co</Link>
-            <button
-              onClick={() => setShowMobileMenu(false)}
-              className="p-2 rounded-md hover:bg-muted"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-          <nav className="mt-8 flex flex-col gap-4">
-            <Link
-              to="/"
-              className={`text-base font-medium ${
-                location.pathname === "/" ? "text-foreground" : "text-muted-foreground"
-              }`}
-              onClick={() => setShowMobileMenu(false)}
-            >
-              Home
-            </Link>
-            <Link
-              to="/about"
-              className={`text-base font-medium ${
-                location.pathname === "/about" ? "text-foreground" : "text-muted-foreground"
-              }`}
-              onClick={() => setShowMobileMenu(false)}
-            >
-              About
-            </Link>
-            <Link
-              to="/review"
-              className={`text-base font-medium ${
-                location.pathname === "/review" ? "text-foreground" : "text-muted-foreground"
-              }`}
-              onClick={() => setShowMobileMenu(false)}
-            >
-              Review
-            </Link>
-            <Link
-              to="/blog"
-              className={`text-base font-medium ${
-                location.pathname === "/blog" ? "text-foreground" : "text-muted-foreground"
-              }`}
-              onClick={() => setShowMobileMenu(false)}
-            >
-              Blog
-            </Link>
-            
-            {user && (
-              <Link
-                to="/dashboard"
-                className={`text-base font-medium ${
-                  location.pathname === "/dashboard" ? "text-foreground" : "text-muted-foreground"
-                }`}
-                onClick={() => setShowMobileMenu(false)}
-              >
-                Dashboard
-              </Link>
-            )}
-            
-            {user ? (
-              <Button variant="outline" size="sm" onClick={() => {
-                setShowMobileMenu(false);
-                navigate("/auth");
-              }}>
-                Sign Out
-              </Button>
-            ) : (
-              <Button variant="outline" size="sm" onClick={() => {
-                setShowMobileMenu(false);
-                navigate("/auth");
-              }}>
-                Sign In
-              </Button>
-            )}
-          </nav>
-        </div>
+            <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
+              <div className="fixed inset-y-0 right-0 w-full max-w-sm bg-background shadow-lg p-6">
+                <div className="flex items-center justify-between">
+                  <Link to="/" className="font-bold text-xl">Matchrate.co</Link>
+                  <button
+                    onClick={() => setShowMobileMenu(false)}
+                    className="p-2 rounded-md hover:bg-muted"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+                <nav className="mt-8 flex flex-col gap-4">
+                  <Link
+                    to="/"
+                    className={`text-base font-medium ${
+                      location.pathname === "/" ? "text-foreground" : "text-muted-foreground"
+                    }`}
+                    onClick={() => setShowMobileMenu(false)}
+                  >
+                    Home
+                  </Link>
+                  <Link
+                    to="/about"
+                    className={`text-base font-medium ${
+                      location.pathname === "/about" ? "text-foreground" : "text-muted-foreground"
+                    }`}
+                    onClick={() => setShowMobileMenu(false)}
+                  >
+                    About
+                  </Link>
+                  <Link
+                    to="/review"
+                    className={`text-base font-medium ${
+                      location.pathname === "/review" ? "text-foreground" : "text-muted-foreground"
+                    }`}
+                    onClick={() => setShowMobileMenu(false)}
+                  >
+                    Review
+                  </Link>
+                  <Link
+                    to="/blog"
+                    className={`text-base font-medium ${
+                      location.pathname === "/blog" ? "text-foreground" : "text-muted-foreground"
+                    }`}
+                    onClick={() => setShowMobileMenu(false)}
+                  >
+                    Blog
+                  </Link>
+                  
+                  {user && (
+                    <Link
+                      to="/dashboard"
+                      className={`text-base font-medium ${
+                        location.pathname === "/dashboard" ? "text-foreground" : "text-muted-foreground"
+                      }`}
+                      onClick={() => setShowMobileMenu(false)}
+                    >
+                      Dashboard
+                    </Link>
+                  )}
+                  
+                  {user ? (
+                    <Button variant="outline" size="sm" onClick={() => {
+                      setShowMobileMenu(false);
+                      navigate("/auth");
+                    }}>
+                      Sign Out
+                    </Button>
+                  ) : (
+                    <Button variant="outline" size="sm" onClick={() => {
+                      setShowMobileMenu(false);
+                      navigate("/auth");
+                    }}>
+                      Sign In
+                    </Button>
+                  )}
+                </nav>
+              </div>
+            </div>
+          )}
       </div>
-    )}
     </div>
   );
 }
