@@ -164,6 +164,45 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
     }
   };
 
+  const handleDownloadDocx = async () => {
+    if (!canRewrite || !currentResume) {
+      toast({ title: "Error", description: "No resume content available to download", variant: "destructive" });
+      return;
+    }
+
+    setIsProcessing(true);
+    
+    try {
+      const docBlob = await generateSimpleDocx(currentResume);
+      if (!docBlob) {
+        throw new Error("Failed to generate document");
+      }
+      
+      // Create a download link
+      const url = URL.createObjectURL(docBlob);
+      const a = document.createElement("a");
+      a.href = url;
+      
+      // Set filename - with date and role if available
+      const dateStr = new Date().toISOString().split('T')[0];
+      const roleStr = roleSummary ? `-${roleSummary.replace(/\s+/g, '-')}` : '';
+      a.download = `optimized-resume${roleStr}-${dateStr}.docx`;
+      
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      trackRewriteUsage();
+      toast({ title: "Success", description: "Resume downloaded successfully" });
+    } catch (error) {
+      console.error("Error downloading resume:", error);
+      toast({ title: "Error", description: "Failed to download resume", variant: "destructive" });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   if (!rewrittenResume) {
     return <div className="py-8 text-center"><p className="text-slate-600">No rewritten resume available.</p></div>;
   }
@@ -184,6 +223,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
         generatedTimestamp={generatedTimestamp}
         isInterviewReady={isInterviewReady}
         onCopy={handleCopyToClipboard}
+        onDownload={handleDownloadDocx}
         isPremiumLocked={!canRewrite}
       />
       {isProcessing && <div className="bg-blue-50 p-4 border border-blue-100 rounded-lg"><h4 className="text-blue-800 font-medium mb-2">Processing Your Resume</h4><Progress value={50} className="h-2 mb-2" /><p className="text-blue-700 text-sm">Please wait while we prepare your document...</p></div>}
