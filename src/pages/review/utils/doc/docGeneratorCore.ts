@@ -35,9 +35,6 @@ export const generateDocument = async (data: ResumeData) => {
               bottom: MARGINS.bottom,
               left: MARGINS.left,
             },
-            background: {
-              color: COLORS.background,
-            },
           },
         },
         children: [
