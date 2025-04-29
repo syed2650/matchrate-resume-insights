@@ -2,9 +2,9 @@
 import { convertInchesToTwip, BorderStyle } from "docx";
 
 export const COLORS = {
-  darkBlue: "FFFFFF", // White text for dark background
-  text: "FFFFFF",     // White text
-  background: "000000" // Black background
+  darkBlue: "000000", // Black text for headings
+  text: "000000",     // Black text for content
+  background: "FFFFFF" // White background
 };
 
 export const FONTS = {

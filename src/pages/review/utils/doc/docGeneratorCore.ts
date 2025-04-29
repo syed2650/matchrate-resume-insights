@@ -2,7 +2,6 @@
 import {
   Document,
   Packer,
-  PageBackground,
 } from "docx";
 import type { ResumeData } from "../resume/types";
 import { MARGINS, COLORS } from "./constants";
@@ -36,7 +35,7 @@ export const generateDocument = async (data: ResumeData) => {
               bottom: MARGINS.bottom,
               left: MARGINS.left,
             },
-            pageBackground: {
+            background: {
               color: COLORS.background,
             },
           },
