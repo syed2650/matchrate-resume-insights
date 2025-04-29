@@ -112,7 +112,6 @@ export const generateDocument = async (data: ResumeData) => {
           }),
 
           ...data.experiences.flatMap((exp) => [
-            // Table Row for Job Title + Company and Dates
             new Table({
               width: { size: 100, type: "pct" },
               rows: [
@@ -151,7 +150,6 @@ export const generateDocument = async (data: ResumeData) => {
                 }),
               ],
             }),
-            // Bullets
             ...exp.bullets.map((bullet) =>
               new Paragraph({
                 text: bullet,
