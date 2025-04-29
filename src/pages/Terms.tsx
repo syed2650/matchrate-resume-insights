@@ -67,6 +67,21 @@ We strive for high accuracy but cannot guarantee specific results (such as inter
           - Subscription cancellations mid-cycle.
           Please review your choices carefully before purchasing.
    </p>
+
+        <h2 className="text-2xl font-semibold mt-8 mb-4">7. Intellectual Property</h2>
+        <p className="text-slate-600">
+         All content, including software, branding, and service content, is the property of Matchrate.co and protected by copyright and intellectual property laws.
+Users retain ownership of their uploaded resumes and job descriptions.
+        </p>
+
+
+
+
+
+
+        
+        
+        
         {/* ... continue with other sections ... */}
 
         <h2 className="text-2xl font-semibold mt-8 mb-4">13. Contact Us</h2>
