@@ -1,4 +1,3 @@
-
 export interface ResumeData {
   name: string;
   contact: string;
@@ -12,6 +11,7 @@ export interface ResumeData {
     bullets: string[];
   }>;
   education: string[];
+  recognition?: string[];
 }
 
 export function parseResumeIntoData(content: string): ResumeData {
@@ -23,6 +23,7 @@ export function parseResumeIntoData(content: string): ResumeData {
   const skills: string[] = [];
   const experiences: ResumeData["experiences"] = [];
   const education: string[] = [];
+  const recognition: string[] = [];
 
   let currentSection = "header";
   let currentExperience: any = null;
@@ -31,50 +32,56 @@ export function parseResumeIntoData(content: string): ResumeData {
     const line = lines[i];
     
     // Detect section headers
-    if (line.match(/^SUMMARY$/i) || line.includes("SUMMARY")) {
+    if ((line.toUpperCase().includes("SUMMARY") || line.match(/^\*\*\[SUMMARY\]\{\.underline\}\*\*$/)) && !line.includes("bullet")) {
       currentSection = "summary";
       continue;
-    } else if (line.match(/^KEY SKILLS$/i) || line.includes("KEY SKILLS")) {
+    } else if ((line.toUpperCase().includes("KEY SKILLS") || line.match(/^\*\*\[KEY SKILLS\]\{\.underline\}\*\*$/)) && !line.includes("bullet")) {
       currentSection = "skills";
       continue;
-    } else if (line.match(/^PROFESSIONAL EXPERIENCE$/i) || line.includes("PROFESSIONAL EXPERIENCE")) {
+    } else if ((line.toUpperCase().includes("PROFESSIONAL EXPERIENCE") || line.match(/^\*\*\[PROFESSIONAL EXPERIENCE\]\{\.underline\}\*\*$/)) && !line.includes("bullet")) {
       currentSection = "experience";
       continue;
-    } else if (line.match(/^EDUCATION$/i) || line.includes("EDUCATION")) {
+    } else if ((line.toUpperCase().includes("EDUCATION") || line.match(/^\*\*\[EDUCATION\]\{\.underline\}\*\*$/)) && !line.includes("bullet")) {
       currentSection = "education";
+      continue;
+    } else if ((line.toUpperCase().includes("RECOGNITION") || line.match(/^\*\*\[RECOGNITION\]\{\.underline\}\*\*$/)) && !line.includes("bullet")) {
+      currentSection = "recognition";
       continue;
     }
     
     // Process content based on current section
     if (currentSection === "header") {
-      if (!name) {
-        name = line;
-      } else {
+      if (!name && !line.includes("_")) {
+        name = line.replace(/\*\*/g, "").trim();
+      } else if (!line.includes("_") && !line.includes("SUMMARY") && !line.includes("PROFESSIONAL")) {
         contact += (contact ? " | " : "") + line;
       }
     } else if (currentSection === "summary") {
-      summary.push(line);
+      if (!line.includes("_") && !line.includes("PROFESSIONAL")) {
+        summary.push(line.replace(/\*\*/g, "").trim());
+      }
     } else if (currentSection === "skills") {
       // Check if the line is a bullet point
       if (line.startsWith("•") || line.startsWith("-")) {
-        skills.push(line.replace(/^[•-]\s*/, "").trim());
-      } else {
+        skills.push(line.replace(/^[•>-]\s*/, "").trim());
+      } else if (!line.includes("EXPERIENCE") && !line.includes("EDUCATION")) {
         // Split by commas if it's a comma-separated list
         const skillItems = line.split(/[,;]/).map(s => s.trim()).filter(s => s.length > 0);
         skills.push(...skillItems);
       }
     } else if (currentSection === "experience") {
       // Detect company/role lines - typically they're not bullet points and may contain a date pattern
-      if (!line.startsWith("•") && !line.startsWith("-")) {
+      if (!line.startsWith("•") && !line.startsWith("-") && !line.startsWith(">")) {
         // Check if this might be a new job entry (contains company name or dates)
         if (
-          (i + 1 < lines.length && (lines[i + 1].startsWith("•") || lines[i + 1].startsWith("-"))) ||
+          line.includes("|") || 
           line.match(/\d{1,2}\/\d{4}/) || 
           line.match(/\d{4}\s*-\s*\d{4}/) ||
-          line.match(/\bJan\b|\bFeb\b|\bMar\b|\bApr\b|\bMay\b|\bJun\b|\bJul\b|\bAug\b|\bSep\b|\bOct\b|\bNov\b|\bDec\b/)
+          line.match(/\bJan\b|\bFeb\b|\bMar\b|\bApr\b|\bMay\b|\bJun\b|\bJul\b|\bAug\b|\bSep\b|\bOct\b|\bNov\b|\bDec\b/) ||
+          (i + 1 < lines.length && (lines[i + 1].startsWith("•") || lines[i + 1].startsWith("-")))
         ) {
           // If we have an existing experience object, save it before creating a new one
-          if (currentExperience) {
+          if (currentExperience && currentExperience.company) {
             experiences.push(currentExperience);
           }
           
@@ -84,27 +91,81 @@ export function parseResumeIntoData(content: string): ResumeData {
           let title = "";
           let dates = "";
           
-          // Try to extract dates (MM/YYYY - MM/YYYY format)
-          const dateMatch = line.match(/(\d{1,2}\/\d{4}\s*-\s*\d{1,2}\/\d{4})|(\d{1,2}\/\d{4}\s*-\s*(present|current))|(\d{2}\/\d{4})|(\d{4}\s*-\s*\d{4})/i);
+          const lineCleaned = line.replace(/\*\*/g, "").trim();
+          
+          // Try to extract dates
+          const dateMatch = lineCleaned.match(/(\d{1,2}\/\d{4}\s*-\s*\d{1,2}\/\d{4})|(\d{1,2}\/\d{4}\s*-\s*(present|current|Present))|((Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4}\s*-\s*(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4})|((Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4}\s*-\s*(Present|present|current|Current))/i);
+          
           if (dateMatch) {
             dates = dateMatch[0];
             // The rest is likely company and title
-            const parts = line.replace(dates, "").split(/\s*[|,]\s*/);
+            const remainder = lineCleaned.replace(dates, "");
+            const parts = remainder.split(/\s*[|]\s*/);
+            
             if (parts.length >= 2) {
               title = parts[0].trim();
               company = parts[1].trim();
             } else {
-              company = parts[0].trim();
+              // Try to parse based on common patterns
+              if (remainder.toLowerCase().includes("senior") || 
+                  remainder.toLowerCase().includes("analyst") || 
+                  remainder.toLowerCase().includes("engineer") || 
+                  remainder.toLowerCase().includes("specialist") ||
+                  remainder.toLowerCase().includes("manager") ||
+                  remainder.toLowerCase().includes("director")) {
+                title = remainder.trim();
+              } else {
+                company = remainder.trim();
+              }
             }
           } else {
             // No date found, try to split by separator
-            const parts = line.split(/\s*[|,]\s*/);
+            const parts = lineCleaned.split(/\s*[|]\s*/);
             if (parts.length >= 2) {
-              title = parts[0].trim();
-              company = parts[1].trim();
+              // Look for date patterns in the parts
+              const datePart = parts.find(p => 
+                p.match(/\d{1,2}\/\d{4}/) || 
+                p.match(/\d{4}\s*-\s*\d{4}/) ||
+                p.match(/\bJan\b|\bFeb\b|\bMar\b|\bApr\b|\bMay\b|\bJun\b|\bJul\b|\bAug\b|\bSep\b|\bOct\b|\bNov\b|\bDec\b/)
+              );
+              
+              if (datePart) {
+                dates = datePart;
+                const otherParts = parts.filter(p => p !== datePart);
+                if (otherParts.length >= 2) {
+                  title = otherParts[0].trim();
+                  company = otherParts[1].trim();
+                } else if (otherParts.length === 1) {
+                  // Try to guess if it's a title or company
+                  if (otherParts[0].toLowerCase().includes("senior") || 
+                      otherParts[0].toLowerCase().includes("analyst") || 
+                      otherParts[0].toLowerCase().includes("engineer") || 
+                      otherParts[0].toLowerCase().includes("specialist") ||
+                      otherParts[0].toLowerCase().includes("manager") ||
+                      otherParts[0].toLowerCase().includes("director")) {
+                    title = otherParts[0].trim();
+                  } else {
+                    company = otherParts[0].trim();
+                  }
+                }
+              } else {
+                title = parts[0].trim();
+                company = parts[1].trim();
+              }
             } else {
-              // If can't parse, just use as company name
-              company = line.trim();
+              // If can't parse, just store as is and we'll try to fix it later
+              const unknownPart = lineCleaned.trim();
+              
+              if (unknownPart.toLowerCase().includes("senior") || 
+                  unknownPart.toLowerCase().includes("analyst") || 
+                  unknownPart.toLowerCase().includes("engineer") || 
+                  unknownPart.toLowerCase().includes("specialist") ||
+                  unknownPart.toLowerCase().includes("manager") ||
+                  unknownPart.toLowerCase().includes("director")) {
+                title = unknownPart;
+              } else {
+                company = unknownPart;
+              }
             }
           }
           
@@ -118,29 +179,61 @@ export function parseResumeIntoData(content: string): ResumeData {
         } else if (currentExperience) {
           // This might be additional info about the current experience
           if (!currentExperience.title) {
-            currentExperience.title = line;
+            currentExperience.title = line.replace(/\*\*/g, "").trim();
           } else if (!currentExperience.dates) {
             // Check if this line looks like dates
-            if (line.match(/(\d{1,2}\/\d{4})/) || line.match(/\d{4}\s*-\s*\d{4}/) || 
+            if (line.match(/(\d{1,2}\/\d{4})/) || 
+                line.match(/\d{4}\s*-\s*\d{4}/) || 
                 line.match(/\bJan\b|\bFeb\b|\bMar\b|\bApr\b|\bMay\b|\bJun\b|\bJul\b|\bAug\b|\bSep\b|\bOct\b|\bNov\b|\bDec\b/)) {
-              currentExperience.dates = line;
+              currentExperience.dates = line.replace(/\*\*/g, "").trim();
             }
           }
         }
       } else {
         // This is a bullet point for the current experience
         if (currentExperience) {
-          currentExperience.bullets.push(line.replace(/^[•-]\s*/, "").trim());
+          currentExperience.bullets.push(line.replace(/^[•>-]\s*/, "").replace(/\*\*/g, "").trim());
         }
       }
     } else if (currentSection === "education") {
-      education.push(line.replace(/^[•-]\s*/, "").trim());
+      if (!line.includes("RECOGNITION")) {
+        education.push(line.replace(/^[•>-]\s*/, "").replace(/\*\*/g, "").trim());
+      }
+    } else if (currentSection === "recognition") {
+      recognition.push(line.replace(/^[•>-]\s*/, "").replace(/\*\*/g, "").trim());
     }
   }
 
   // Add the last experience if it exists
-  if (currentExperience) {
+  if (currentExperience && currentExperience.company) {
     experiences.push(currentExperience);
+  }
+
+  // Do some post-processing to fix missing info
+  for (const exp of experiences) {
+    // If title is empty but company is not, try to extract from company
+    if (!exp.title && exp.company) {
+      const parts = exp.company.split(/\s*[,|]\s*/);
+      if (parts.length >= 2) {
+        exp.title = parts[0].trim();
+        exp.company = parts[1].trim();
+      }
+    }
+    
+    // If dates is empty but there's a date in company or title, extract it
+    if (!exp.dates) {
+      const titleDateMatch = exp.title.match(/(\d{1,2}\/\d{4}\s*-\s*\d{1,2}\/\d{4})|(\d{1,2}\/\d{4}\s*-\s*(present|current|Present))|((Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4}\s*-\s*(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4})|((Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4}\s*-\s*(Present|present|current|Current))/i);
+      if (titleDateMatch) {
+        exp.dates = titleDateMatch[0];
+        exp.title = exp.title.replace(exp.dates, "").trim();
+      }
+      
+      const companyDateMatch = exp.company.match(/(\d{1,2}\/\d{4}\s*-\s*\d{1,2}\/\d{4})|(\d{1,2}\/\d{4}\s*-\s*(present|current|Present))|((Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4}\s*-\s*(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4})|((Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4}\s*-\s*(Present|present|current|Current))/i);
+      if (companyDateMatch) {
+        exp.dates = companyDateMatch[0];
+        exp.company = exp.company.replace(exp.dates, "").trim();
+      }
+    }
   }
 
   return {
@@ -156,6 +249,7 @@ export function parseResumeIntoData(content: string): ResumeData {
         bullets: ["Responsibility 1", "Achievement 2"]
       }
     ],
-    education: education.length > 0 ? education : ["Degree, Institution, Year"]
+    education: education.length > 0 ? education : ["Degree, Institution, Year"],
+    recognition: recognition.length > 0 ? recognition : undefined
   };
 }
