@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
@@ -270,8 +269,12 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
             if (isCountry) {
               docChildren.push(
                 new Paragraph({
-                  text: line,
-                  italic: true,
+                  children: [
+                    new TextRun({
+                      text: line,
+                      italics: true,  // Fix: Use TextRun with italics property instead of italic on Paragraph
+                    })
+                  ],
                   spacing: { after: 60 }
                 })
               );
