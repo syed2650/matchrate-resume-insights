@@ -1,3 +1,4 @@
+
 import {
   Document,
   Paragraph,
@@ -59,8 +60,9 @@ export const generateDocument = async (data: ResumeData) => {
             spacing: { after: 80 },
           }),
 
-          // Contact Info
+          // Contact Info - centered below name
           (() => {
+            // Parse contact information (expecting phone, email, location, etc.)
             const contactParts = data.contact.split('|').map(part => part.trim());
             return new Paragraph({
               children: contactParts.map((part, i) => [
@@ -99,7 +101,7 @@ export const generateDocument = async (data: ResumeData) => {
             spacing: { after: SPACING.sectionSpace },
           }),
 
-          // SUMMARY
+          // SUMMARY - Bold heading
           new Paragraph({
             children: [
               new TextRun({
@@ -126,7 +128,7 @@ export const generateDocument = async (data: ResumeData) => {
             spacing: { after: SPACING.sectionSpace },
           }),
 
-          // PROFESSIONAL EXPERIENCE
+          // PROFESSIONAL EXPERIENCE - Bold heading
           new Paragraph({
             children: [
               new TextRun({
@@ -143,7 +145,7 @@ export const generateDocument = async (data: ResumeData) => {
           }),
 
           ...data.experiences.flatMap((exp) => [
-            // Title and company in left, dates in right using a table
+            // Company and role in left, dates in extreme right
             new Table({
               width: { size: 100, type: "pct" },
               borders: {
@@ -163,8 +165,8 @@ export const generateDocument = async (data: ResumeData) => {
                         new Paragraph({
                           children: [
                             new TextRun({
-                              text: `${exp.title} | ${exp.company}`,
-                              bold: true,
+                              text: exp.company, // Just company name without location
+                              bold: true, // Make company name bold
                               size: 22,
                               font: FONT.main,
                             }),
@@ -186,13 +188,41 @@ export const generateDocument = async (data: ResumeData) => {
                           children: [
                             new TextRun({
                               text: exp.dates,
-                              italics: true, // Changed "italic" to "italics"
+                              bold: true, // Make dates bold
                               size: 22,
                               font: FONT.main,
                             }),
                           ],
                         }),
                       ],
+                      borders: {
+                        top: { style: BorderStyle.NONE },
+                        bottom: { style: BorderStyle.NONE },
+                        left: { style: BorderStyle.NONE },
+                        right: { style: BorderStyle.NONE },
+                      },
+                    }),
+                  ],
+                }),
+                // Job title in a separate row
+                new TableRow({
+                  children: [
+                    new TableCell({
+                      width: { size: 100, type: WidthType.PERCENTAGE },
+                      children: [
+                        new Paragraph({
+                          children: [
+                            new TextRun({
+                              text: exp.title,
+                              bold: true, // Make job title bold
+                              size: 22,
+                              font: FONT.main,
+                            }),
+                          ],
+                          spacing: { after: 80 },
+                        }),
+                      ],
+                      columnSpan: 2,
                       borders: {
                         top: { style: BorderStyle.NONE },
                         bottom: { style: BorderStyle.NONE },
@@ -225,7 +255,7 @@ export const generateDocument = async (data: ResumeData) => {
             new Paragraph({ spacing: { after: SPACING.betweenParagraphs } }),
           ]),
 
-          // KEY SKILLS
+          // KEY SKILLS - Bold heading
           new Paragraph({
             children: [
               new TextRun({
@@ -260,7 +290,7 @@ export const generateDocument = async (data: ResumeData) => {
           ),
           new Paragraph({ spacing: { after: SPACING.sectionSpace } }),
 
-          // EDUCATION
+          // EDUCATION - Bold heading
           new Paragraph({
             children: [
               new TextRun({
@@ -275,26 +305,79 @@ export const generateDocument = async (data: ResumeData) => {
             heading: HeadingLevel.HEADING_2,
             spacing: { after: SPACING.headingAfter },
           }),
-          ...data.education.map((edu) =>
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: "• ",
-                  size: 22,
-                  font: FONT.main,
-                }),
-                new TextRun({
-                  text: edu,
-                  size: 22,
-                  font: FONT.main,
-                }),
-              ],
-              indent: { left: 360 },
-              spacing: { after: SPACING.betweenParagraphs, line: 360 },
-            })
-          ),
+          ...data.education.map((edu) => {
+            // Parse education entry to extract degree, institution, country, and year
+            const parts = edu.split('|');
+            const degree = parts[0] ? parts[0].trim() : '';
+            
+            // Extract institution and additional info
+            let institution = '';
+            let country = '';
+            let year = '';
+            
+            if (parts.length > 1) {
+              const institutionParts = parts[1].trim().split('•');
+              institution = institutionParts[0] ? institutionParts[0].trim() : '';
+              
+              if (institutionParts.length > 1) {
+                const locationParts = institutionParts[1].trim().split('–');
+                country = locationParts[0] ? locationParts[0].trim() : '';
+                year = locationParts.length > 1 ? locationParts[1].trim() : '';
+              }
+            }
+            
+            return [
+              // Degree and Institution
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: degree,
+                    bold: true,
+                    size: 22,
+                    font: FONT.main,
+                  }),
+                ],
+                spacing: { after: 80 },
+              }),
+              // Institution
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: institution,
+                    size: 22,
+                    font: FONT.main,
+                  }),
+                ],
+                spacing: { after: 80 },
+              }),
+              // Country on next line
+              country && new Paragraph({
+                children: [
+                  new TextRun({
+                    text: country,
+                    size: 22,
+                    font: FONT.main,
+                    italics: true,
+                  }),
+                ],
+                spacing: { after: 80 },
+              }),
+              // Year on next line
+              year && new Paragraph({
+                children: [
+                  new TextRun({
+                    text: year,
+                    bold: true,
+                    size: 22,
+                    font: FONT.main,
+                  }),
+                ],
+                spacing: { after: SPACING.sectionSpace },
+              }),
+            ];
+          }).flat(),
 
-          // RECOGNITION (if available)
+          // RECOGNITION (if available) - Bold heading
           ...(data.recognition && data.recognition.length > 0
             ? [
                 new Paragraph({
