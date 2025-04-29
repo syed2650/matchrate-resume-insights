@@ -7,7 +7,6 @@ import Pricing from "@/components/sections/Pricing";
 import CallToAction from "@/components/sections/CallToAction";
 import Footer from "@/components/sections/Footer";
 import DashboardPreview from "@/components/sections/DashboardPreview";
-import BuiltWithTech from "@/components/sections/BuiltWithTech";
 import { useEffect } from "react";
 import { ArrowUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -42,7 +41,6 @@ const Index = () => {
       </div>
       <main>
         <Hero />
-        <BuiltWithTech />
         <div className="section-alt py-12 md:py-16 bg-lilac-gradient">
           <div className="container-content">
             <Features />

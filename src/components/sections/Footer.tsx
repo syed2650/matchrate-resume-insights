@@ -7,7 +7,7 @@ const Footer = () => {
       <div className="container max-w-screen-xl mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
           <div>
-            <h3 className="text-xl font-bold text-warm-text mb-3">Matchrate.ai</h3>
+            <h3 className="text-xl font-bold text-warm-text mb-3">Matchrate.co</h3>
             <p className="text-slate-600 text-base">
               AI-powered resume feedback tailored to tech job seekers — from PMs to Engineers and beyond.
             </p>
@@ -40,7 +40,7 @@ const Footer = () => {
           </div>
         </div>
         <div className="border-t border-slate-200 mt-12 pt-8 text-center text-slate-500 text-sm">
-          <p>© {new Date().getFullYear()} Matchrate.ai. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Matchrate.co. All rights reserved.</p>
         </div>
       </div>
     </footer>

@@ -34,7 +34,6 @@ const pricingPlans: PricingPlan[] = [
       { name: "STAR bullet suggestions", available: true, note: "(View-only)" },
       { name: "Full Resume Rewrite", available: false },
       { name: "Export reports", available: false },
-      { name: "Multiple version rewrites", available: false },
     ]
   },
   {
@@ -50,7 +49,6 @@ const pricingPlans: PricingPlan[] = [
       { name: "STAR bullet suggestions", available: true },
       { name: "15 Resume rewrites per month", available: true },
       { name: "Export reports (.pdf/.docx)", available: true },
-      { name: "Multiple version rewrites", available: true },
     ],
     popular: true
   }
@@ -232,7 +230,6 @@ const Pricing = () => {
                       "STAR bullet suggestions",
                       "Resume rewrite credits",
                       "Export reports",
-                      "Multiple version rewrites",
                     ].map((feature, i) => (
                       <tr key={i} className="border-b border-slate-100 last:border-0">
                         <td className="p-4 text-sm text-slate-700">{feature}</td>
