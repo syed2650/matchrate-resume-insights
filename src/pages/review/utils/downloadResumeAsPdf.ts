@@ -1,13 +1,12 @@
 
 import React from 'react';
 import { pdf, Document } from "@react-pdf/renderer";
-import { ResumeData } from "./parseResumeIntoData";
+import { ResumeData } from "./resume/types";
 import ResumePdfTemplate from "../components/ResumePdfTemplate";
 
 export async function downloadResumeAsPdf(resumeData: ResumeData) {
   try {
-    // Create the PDF document using React.createElement 
-    // We need to wrap our component in a Document component from react-pdf
+    // Create the PDF document using React.createElement
     const blob = await pdf(
       React.createElement(Document, {}, 
         React.createElement(ResumePdfTemplate, { data: resumeData })
