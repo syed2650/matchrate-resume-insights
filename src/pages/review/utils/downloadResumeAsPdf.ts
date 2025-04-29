@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { pdf } from "@react-pdf/renderer";
-import { ResumeData } from "../components/ResumePdfTemplate";
+import { ResumeData } from "../utils/parseResumeIntoData";
 import ResumePdfTemplate from "../components/ResumePdfTemplate";
 
 export async function downloadResumeAsPdf(resumeData: ResumeData) {

@@ -1,3 +1,4 @@
+
 import {
   Document,
   Paragraph,
@@ -26,7 +27,7 @@ const SPACING = {
   betweenParagraphs: 100,
 };
 
-export const generateDocument = async (data: ResumeData) => {
+export const generateDocument = async (resumeData: ResumeData) => {
   const doc = new Document({
     sections: [
       {
@@ -45,7 +46,7 @@ export const generateDocument = async (data: ResumeData) => {
           new Paragraph({
             children: [
               new TextRun({
-                text: data.name,
+                text: resumeData.name,
                 bold: true,
                 size: 32,
                 font: FONT.main,
@@ -59,7 +60,7 @@ export const generateDocument = async (data: ResumeData) => {
           new Paragraph({
             children: [
               new TextRun({
-                text: data.contact,
+                text: resumeData.contact,
                 size: 20,
                 font: FONT.main,
               }),
@@ -86,7 +87,7 @@ export const generateDocument = async (data: ResumeData) => {
           new Paragraph({
             children: [
               new TextRun({
-                text: data.summary.join(" "),
+                text: Array.isArray(resumeData.summary) ? resumeData.summary.join(" ") : resumeData.summary,
                 font: FONT.main,
                 size: 22,
               }),
@@ -109,7 +110,7 @@ export const generateDocument = async (data: ResumeData) => {
             spacing: { after: SPACING.headingAfter },
           }),
 
-          ...data.experiences.flatMap((exp) => [
+          ...resumeData.experiences.flatMap((exp) => [
             new Paragraph({
               children: [
                 new TextRun({
@@ -159,7 +160,7 @@ export const generateDocument = async (data: ResumeData) => {
             heading: HeadingLevel.HEADING_2,
             spacing: { after: SPACING.headingAfter },
           }),
-          ...data.skills.map((skill) =>
+          ...(resumeData.skills || []).map((skill) =>
             new Paragraph({
               text: skill,
               bullet: { level: 0 },
@@ -183,7 +184,7 @@ export const generateDocument = async (data: ResumeData) => {
             heading: HeadingLevel.HEADING_2,
             spacing: { after: SPACING.headingAfter },
           }),
-          ...data.education.map((edu) =>
+          ...(resumeData.education || []).map((edu) =>
             new Paragraph({
               text: edu,
               bullet: { level: 0 },

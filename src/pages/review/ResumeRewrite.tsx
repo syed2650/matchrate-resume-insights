@@ -6,13 +6,12 @@ import { CheckCircle, ArrowUp } from "lucide-react";
 import { getATSScoreFromCache, canUseRewrite, trackRewriteUsage } from "./utils";
 import { useResumeVersion } from "./hooks/useResumeVersion";
 import { generateDocument } from "./utils/docGenerator";
+import { downloadResumeAsPdf } from "./utils/downloadResumeAsPdf";
 import { ExportInfo } from "./components/ExportInfo";
 import ResumeHeader from "./components/ResumeHeader";
 import ResumeContent from "./components/ResumeContent";
 import UpgradeBanner from "./components/UpgradeBanner";
 import { Progress } from "@/components/ui/progress";
-import { pdf } from "@react-pdf/renderer";
-import ResumePdfTemplate from "./components/ResumePdfTemplate";
 import { parseResumeIntoData } from "./utils/parseResumeIntoData";
 
 interface ResumeRewriteProps {
@@ -105,13 +104,12 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
     try {
       setIsProcessing(true);
       trackRewriteUsage();
-      // Note: Fixing the argument count - using 4 arguments instead of 6
-      const docBlob = await generateDocument(
-        currentResume, 
-        roleSummary, 
-        currentAtsScore,
-        generatedTimestamp || new Date().toLocaleString()
-      );
+      
+      // Parse the resume content into structured data
+      const resumeData = parseResumeIntoData(currentResume);
+      
+      // Use the structured data to generate the document
+      const docBlob = await generateDocument(resumeData);
       
       if (!docBlob) throw new Error("Failed to generate DOCX document");
       const url = URL.createObjectURL(docBlob);
@@ -138,13 +136,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
       setIsProcessing(true);
       trackRewriteUsage();
       const resumeData = parseResumeIntoData(currentResume);
-      const blob = await pdf(<ResumePdfTemplate data={resumeData} />).toBlob();
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `interview-ready-resume.pdf`;
-      link.click();
-      URL.revokeObjectURL(url);
+      await downloadResumeAsPdf(resumeData);
       toast({ title: "Success", description: "Resume downloaded as PDF" });
     } catch (error) {
       console.error("PDF generation error:", error);
