@@ -16,7 +16,6 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import CookiePolicy from "./pages/CookiePolicy";
 import { AuthProvider } from "@/hooks/useAuthUser";
-import NavBar from "@/components/NavBar";
 
 const queryClient = new QueryClient();
 
@@ -27,7 +26,6 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <NavBar />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/review" element={<Review />} />

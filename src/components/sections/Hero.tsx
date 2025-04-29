@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import AnimatedTextCycle from "@/components/ui/animated-text-cycle";
-import { ArrowRight, ArrowUpRight, Check } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 const Hero = () => {
   const navigate = useNavigate();
@@ -83,7 +83,7 @@ const Hero = () => {
                   <div className="w-3 h-3 rounded-full bg-gray-300"></div>
                   <div className="w-3 h-3 rounded-full bg-gray-300"></div>
                 </div>
-                <div className="mx-auto text-xs text-slate-400">resume-feedback.matchrate.ai</div>
+                <div className="mx-auto text-xs text-slate-400">resume-feedback.matchrate.co</div>
               </div>
               
               {/* Mockup Content */}

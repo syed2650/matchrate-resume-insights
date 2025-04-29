@@ -1,3 +1,4 @@
+
 import Header from "@/components/sections/Header";
 import Hero from "@/components/sections/Hero";
 import Features from "@/components/sections/Features";
@@ -42,18 +43,20 @@ const Index = () => {
       <main>
         <Hero />
         <BuiltWithTech />
-        <div className="section-alt section-padding bg-lilac-gradient">
+        <div className="section-alt py-12 md:py-16 bg-lilac-gradient">
           <div className="container-content">
             <Features />
           </div>
         </div>
-        <DashboardPreview />
-        <div className="section-padding bg-white">
+        <div className="py-12 md:py-16">
+          <DashboardPreview />
+        </div>
+        <div className="py-12 md:py-16 bg-white">
           <div className="container-content">
             <Testimonials />
           </div>
         </div>
-        <div className="section-padding bg-lilac-gradient">
+        <div className="py-12 md:py-16 bg-lilac-gradient">
           <div className="container-content">
             <Pricing />
           </div>

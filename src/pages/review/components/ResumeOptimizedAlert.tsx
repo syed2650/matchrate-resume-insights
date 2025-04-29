@@ -11,7 +11,7 @@ const ResumeOptimizedAlert: React.FC = () => {
         </div>
         <h3 className="text-lg font-semibold text-green-800">Resume Successfully Optimized</h3>
       </div>
-      <p className="text-green-700 mb-4">Your resume has been rewritten to improve your chances of getting an interview.</p>
+      <p className="text-green-700 mb-4">Your resume has been rewritten to improve your chances of getting an interview with Matchrate.co.</p>
     </div>
   );
 };
