@@ -133,6 +133,9 @@ export function parseExperienceEntry(
     const line = lines[i];
     if (line.startsWith("•") || line.startsWith("-")) {
       bullets.push(line.replace(/^[•-]\s*/, "").trim());
+    } else if (line.trim()) {
+      // If not a bullet but not empty, add it anyway
+      bullets.push(line.trim());
     }
   }
 
@@ -153,10 +156,37 @@ export function parseExperienceEntry(
  */
 export function parseEducationSection(lines: string[], startIndex: number, endIndex: number): string[] {
   const education: string[] = [];
+  let currentItem = "";
 
   for (let i = startIndex; i < endIndex; i++) {
-    const line = lines[i];
-    education.push(line.replace(/^[•-]\s*/, "").trim());
+    const line = lines[i].trim();
+    
+    // If this is a bullet point or a new line containing a degree or year
+    if (line.startsWith("•") || line.startsWith("-") || 
+        line.match(/degree|diploma|certificate|bachelor|master|phd|doctor/i) || 
+        line.match(/\b\d{4}\b/)) {
+      
+      // If we already have an item, push it before starting a new one
+      if (currentItem.trim()) {
+        education.push(currentItem.trim());
+        currentItem = "";
+      }
+      
+      // Start a new education item
+      currentItem = line.replace(/^[•-]\s*/, "").trim();
+    } else if (line) {
+      // Continue previous item
+      currentItem += " " + line;
+    } else if (currentItem) {
+      // Empty line and we have a current item - finish it
+      education.push(currentItem.trim());
+      currentItem = "";
+    }
+  }
+  
+  // Don't forget the last item if any
+  if (currentItem.trim()) {
+    education.push(currentItem.trim());
   }
 
   return education;

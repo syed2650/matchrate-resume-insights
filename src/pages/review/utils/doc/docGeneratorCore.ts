@@ -2,9 +2,10 @@
 import {
   Document,
   Packer,
+  PageBackground,
 } from "docx";
 import type { ResumeData } from "../resume/types";
-import { MARGINS } from "./constants";
+import { MARGINS, COLORS } from "./constants";
 import {
   generateHeaderSection,
   generateSummarySection,
@@ -34,6 +35,9 @@ export const generateDocument = async (data: ResumeData) => {
               right: MARGINS.right,
               bottom: MARGINS.bottom,
               left: MARGINS.left,
+            },
+            pageBackground: {
+              color: COLORS.background,
             },
           },
         },

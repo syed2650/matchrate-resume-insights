@@ -1,3 +1,4 @@
+
 import {
   Paragraph,
   TextRun,
@@ -7,6 +8,7 @@ import {
   TableRow,
   TableCell,
   WidthType,
+  UnderlineType,
 } from "docx";
 import type { ResumeData } from "../resume/types";
 import { COLORS, FONTS, SPACING, TEXT_SIZE, BORDERS } from "./constants";
@@ -23,6 +25,7 @@ export function generateHeaderSection(data: ResumeData): Paragraph[] {
           text: data.name.toUpperCase(),
           bold: true,
           size: TEXT_SIZE.name,
+          color: COLORS.darkBlue,
         }),
       ],
       alignment: AlignmentType.CENTER,
@@ -35,6 +38,7 @@ export function generateHeaderSection(data: ResumeData): Paragraph[] {
         new TextRun({
           text: data.contact,
           size: TEXT_SIZE.contact,
+          color: COLORS.darkBlue,
         }),
       ],
       alignment: AlignmentType.CENTER,
@@ -46,6 +50,7 @@ export function generateHeaderSection(data: ResumeData): Paragraph[] {
       children: [
         new TextRun({
           text: "______________________________________________________________________________________________",
+          color: COLORS.darkBlue,
           size: TEXT_SIZE.contact,
         }),
       ],
@@ -68,7 +73,9 @@ export function generateSummarySection(data: ResumeData): Paragraph[] {
           bold: true,
           color: COLORS.darkBlue,
           size: TEXT_SIZE.heading,
-          underline: {},
+          underline: {
+            type: UnderlineType.SINGLE,
+          },
         }),
       ],
       heading: HeadingLevel.HEADING_2,
@@ -81,6 +88,7 @@ export function generateSummarySection(data: ResumeData): Paragraph[] {
         new TextRun({
           text: data.summary.join(" "),
           size: TEXT_SIZE.normal,
+          color: COLORS.text,
         }),
       ],
       spacing: { after: SPACING.sectionSpace },
@@ -109,6 +117,7 @@ export function generateExperienceEntry(exp: ResumeData["experiences"][0]): (Par
                       text: `${exp.title} | ${exp.company}`,
                       bold: true,
                       size: TEXT_SIZE.normal,
+                      color: COLORS.text,
                     }),
                   ],
                 }),
@@ -123,6 +132,7 @@ export function generateExperienceEntry(exp: ResumeData["experiences"][0]): (Par
                     new TextRun({
                       text: exp.dates,
                       size: TEXT_SIZE.normal,
+                      color: COLORS.text,
                     }),
                   ],
                 }),
@@ -141,10 +151,12 @@ export function generateExperienceEntry(exp: ResumeData["experiences"][0]): (Par
             new TextRun({
               text: "• ",
               size: TEXT_SIZE.normal,
+              color: COLORS.text,
             }),
             new TextRun({
               text: bullet,
               size: TEXT_SIZE.normal,
+              color: COLORS.text,
             }),
           ],
           indent: { left: 360 },
@@ -170,7 +182,9 @@ export function generateExperienceSection(data: ResumeData): (Paragraph | Table)
           bold: true,
           color: COLORS.darkBlue,
           size: TEXT_SIZE.heading,
-          underline: {},
+          underline: {
+            type: UnderlineType.SINGLE,
+          },
         }),
       ],
       heading: HeadingLevel.HEADING_2,
@@ -195,7 +209,9 @@ export function generateSkillsSection(data: ResumeData): Paragraph[] {
           bold: true,
           color: COLORS.darkBlue,
           size: TEXT_SIZE.heading,
-          underline: {},
+          underline: {
+            type: UnderlineType.SINGLE,
+          },
         }),
       ],
       heading: HeadingLevel.HEADING_2,
@@ -210,10 +226,12 @@ export function generateSkillsSection(data: ResumeData): Paragraph[] {
             new TextRun({
               text: "• ",
               size: TEXT_SIZE.normal,
+              color: COLORS.text,
             }),
             new TextRun({
               text: skill,
               size: TEXT_SIZE.normal,
+              color: COLORS.text,
             }),
           ],
           indent: { left: 360 },
@@ -239,7 +257,9 @@ export function generateEducationSection(data: ResumeData): Paragraph[] {
           bold: true,
           color: COLORS.darkBlue,
           size: TEXT_SIZE.heading,
-          underline: {},
+          underline: {
+            type: UnderlineType.SINGLE,
+          },
         }),
       ],
       heading: HeadingLevel.HEADING_2,
@@ -254,10 +274,12 @@ export function generateEducationSection(data: ResumeData): Paragraph[] {
             new TextRun({
               text: "• ",
               size: TEXT_SIZE.normal,
+              color: COLORS.text,
             }),
             new TextRun({
               text: edu,
               size: TEXT_SIZE.normal,
+              color: COLORS.text,
             }),
           ],
           indent: { left: 360 },
