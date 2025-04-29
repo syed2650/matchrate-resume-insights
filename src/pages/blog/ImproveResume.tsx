@@ -138,7 +138,7 @@ export default function ImproveResume() {
             One-page resumes are the standard in 2025 — unless you're a senior executive (then 2 pages maximum).
           </p>
           <p className="text-slate-700 ml-6">
-            🔹 Trim old jobs (>10 years ago) unless relevant.<br />
+            🔹 Trim old jobs ({">"} 10 years ago) unless relevant.<br />
             🔹 Focus on the last 5–7 years of experience.
           </p>
 
