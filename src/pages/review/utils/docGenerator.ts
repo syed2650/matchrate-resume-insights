@@ -1,4 +1,3 @@
-
 import {
   Document,
   Paragraph,
@@ -7,7 +6,9 @@ import {
   Packer,
   AlignmentType,
   convertInchesToTwip,
-  BorderStyle,
+  Table,
+  TableRow,
+  TableCell,
 } from "docx";
 
 import { ResumeData } from "./parseResumeIntoData";
@@ -22,12 +23,12 @@ const FONT = {
 };
 
 const SPACING = {
-  sectionSpace: 400, // space after each section
-  headingAfter: 100, // space after heading before content
-  betweenParagraphs: 100,
+  sectionSpace: 400, // Space after sections
+  headingAfter: 100, // Space after heading title
+  betweenParagraphs: 120, // Space between bullet points
 };
 
-export const generateDocument = async (resumeData: ResumeData) => {
+export const generateDocument = async (data: ResumeData) => {
   const doc = new Document({
     sections: [
       {
@@ -42,11 +43,11 @@ export const generateDocument = async (resumeData: ResumeData) => {
           },
         },
         children: [
-          // Name (Header)
+          // Name
           new Paragraph({
             children: [
               new TextRun({
-                text: resumeData.name,
+                text: data.name,
                 bold: true,
                 size: 32,
                 font: FONT.main,
@@ -60,7 +61,7 @@ export const generateDocument = async (resumeData: ResumeData) => {
           new Paragraph({
             children: [
               new TextRun({
-                text: resumeData.contact,
+                text: data.contact,
                 size: 20,
                 font: FONT.main,
               }),
@@ -87,7 +88,7 @@ export const generateDocument = async (resumeData: ResumeData) => {
           new Paragraph({
             children: [
               new TextRun({
-                text: Array.isArray(resumeData.summary) ? resumeData.summary.join(" ") : resumeData.summary,
+                text: data.summary.join(" "),
                 font: FONT.main,
                 size: 22,
               }),
@@ -110,37 +111,54 @@ export const generateDocument = async (resumeData: ResumeData) => {
             spacing: { after: SPACING.headingAfter },
           }),
 
-          ...resumeData.experiences.flatMap((exp) => [
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: `${exp.title} | ${exp.company}`,
-                  bold: true,
-                  font: FONT.main,
-                  size: 22,
+          ...data.experiences.flatMap((exp) => [
+            // Table Row for Job Title + Company and Dates
+            new Table({
+              width: { size: 100, type: "pct" },
+              rows: [
+                new TableRow({
+                  children: [
+                    new TableCell({
+                      children: [
+                        new Paragraph({
+                          children: [
+                            new TextRun({
+                              text: `${exp.title} | ${exp.company}`,
+                              bold: true,
+                              size: 22,
+                              font: FONT.main,
+                            }),
+                          ],
+                        }),
+                      ],
+                    }),
+                    new TableCell({
+                      children: [
+                        new Paragraph({
+                          alignment: AlignmentType.RIGHT,
+                          children: [
+                            new TextRun({
+                              text: exp.dates,
+                              bold: true,
+                              size: 22,
+                              font: FONT.main,
+                            }),
+                          ],
+                        }),
+                      ],
+                    }),
+                  ],
                 }),
               ],
-              alignment: AlignmentType.LEFT,
             }),
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: exp.dates,
-                  bold: true,
-                  font: FONT.main,
-                  size: 22,
-                }),
-              ],
-              alignment: AlignmentType.RIGHT,
-              spacing: { after: 100 },
-            }),
-            ...exp.bullets.map(
-              (b) =>
-                new Paragraph({
-                  text: b,
-                  bullet: { level: 0 },
-                  spacing: { after: SPACING.betweenParagraphs },
-                })
+            // Bullets
+            ...exp.bullets.map((bullet) =>
+              new Paragraph({
+                text: bullet,
+                bullet: { level: 0 },
+                spacing: { after: SPACING.betweenParagraphs },
+                font: FONT.main,
+              })
             ),
             new Paragraph({ spacing: { after: SPACING.sectionSpace } }),
           ]),
@@ -159,11 +177,12 @@ export const generateDocument = async (resumeData: ResumeData) => {
             heading: HeadingLevel.HEADING_2,
             spacing: { after: SPACING.headingAfter },
           }),
-          ...(resumeData.skills || []).map((skill) =>
+          ...data.skills.map((skill) =>
             new Paragraph({
               text: skill,
               bullet: { level: 0 },
               spacing: { after: SPACING.betweenParagraphs },
+              font: FONT.main,
             })
           ),
           new Paragraph({ spacing: { after: SPACING.sectionSpace } }),
@@ -182,11 +201,12 @@ export const generateDocument = async (resumeData: ResumeData) => {
             heading: HeadingLevel.HEADING_2,
             spacing: { after: SPACING.headingAfter },
           }),
-          ...(resumeData.education || []).map((edu) =>
+          ...data.education.map((edu) =>
             new Paragraph({
               text: edu,
               bullet: { level: 0 },
               spacing: { after: SPACING.betweenParagraphs },
+              font: FONT.main,
             })
           ),
         ],
