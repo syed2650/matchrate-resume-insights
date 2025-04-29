@@ -9,7 +9,6 @@ interface ResumeHeaderProps {
   generatedTimestamp: string;
   isInterviewReady: boolean;
   onCopy: () => void;
-  onDownloadDocx: () => void;
   isPremiumLocked?: boolean;
 }
 
@@ -67,6 +66,7 @@ const ResumeHeader: React.FC<ResumeHeaderProps> = ({
           size="sm"
           className="flex-1 sm:flex-none"
           onClick={onCopy}
+          disabled={isPremiumLocked}
         >
           <Copy className="mr-1.5 h-4 w-4" /> Copy
         </Button>

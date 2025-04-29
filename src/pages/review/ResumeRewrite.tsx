@@ -98,16 +98,14 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
     if (!content) return null;
     
     try {
+      // Create document with initial empty section
       const doc = new Document({
-        sections: [{
-          properties: {},
-          children: []
-        }]
+        sections: []
       });
       
       // Split content by sections
       const sections = content.split(/^(#+\s.*|[A-Z\s]{5,})$/m).filter(Boolean);
-      let children = [];
+      const children = [];
       
       for (const section of sections) {
         // Check if this is a heading
@@ -149,11 +147,11 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
             return new Paragraph({ text: '' });
           });
           
-          children = [...children, ...paragraphs];
+          children.push(...paragraphs);
         }
       }
       
-      // Update the sections in the document (using proper Document API)
+      // Create a new section with all the children
       doc.addSection({
         properties: {},
         children: children
@@ -163,34 +161,6 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
     } catch (error) {
       console.error("Error generating simple DOCX:", error);
       return null;
-    }
-  };
-
-  const handleDownloadDocx = async () => {
-    if (!canRewrite || !currentResume) {
-      toast({ title: "Error", description: "No resume content available to download", variant: "destructive" });
-      return;
-    }
-    try {
-      setIsProcessing(true);
-      trackRewriteUsage();
-      
-      // Generate a simple DOCX from the formatted content
-      const docBlob = await generateSimpleDocx(currentResume);
-      
-      if (!docBlob) throw new Error("Failed to generate DOCX document");
-      const url = URL.createObjectURL(docBlob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `interview-ready-resume.docx`;
-      link.click();
-      URL.revokeObjectURL(url);
-      toast({ title: "Success", description: "Resume downloaded as DOCX" });
-    } catch (error) {
-      console.error("DOCX generation error:", error);
-      toast({ title: "Error", description: "Failed to generate DOCX file", variant: "destructive" });
-    } finally {
-      setIsProcessing(false);
     }
   };
 
@@ -214,7 +184,6 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
         generatedTimestamp={generatedTimestamp}
         isInterviewReady={isInterviewReady}
         onCopy={handleCopyToClipboard}
-        onDownloadDocx={handleDownloadDocx}
         isPremiumLocked={!canRewrite}
       />
       {isProcessing && <div className="bg-blue-50 p-4 border border-blue-100 rounded-lg"><h4 className="text-blue-800 font-medium mb-2">Processing Your Resume</h4><Progress value={50} className="h-2 mb-2" /><p className="text-blue-700 text-sm">Please wait while we prepare your document...</p></div>}

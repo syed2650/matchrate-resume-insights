@@ -1,4 +1,3 @@
-
 import { Card } from "@/components/ui/card";
 import { Feedback } from "../types";
 import AnalysisHeader from "../AnalysisHeader";
@@ -34,10 +33,9 @@ const AnalysisResults = ({
     try {
       // Import the DOCX generator and necessary helper functions
       const { generateFeedbackDocx } = await import("../utils/feedbackDocxGenerator");
-      const { Packer } = await import("docx");
-
-      const doc = generateFeedbackDocx(feedback);
-      const blob = await Packer.toBlob(doc);
+      
+      // Generate the document blob - this now returns a Promise<Blob>
+      const blob = await generateFeedbackDocx(feedback);
       
       // Create a download link
       const url = URL.createObjectURL(blob);
