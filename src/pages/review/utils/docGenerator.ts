@@ -186,7 +186,7 @@ export const generateDocument = async (data: ResumeData) => {
                           children: [
                             new TextRun({
                               text: exp.dates,
-                              italic: true,
+                              italics: true, // Changed "italic" to "italics"
                               size: 22,
                               font: FONT.main,
                             }),

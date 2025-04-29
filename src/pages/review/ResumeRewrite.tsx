@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
@@ -99,10 +98,16 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
     if (!content) return null;
     
     try {
-      const doc = new Document();
+      const doc = new Document({
+        sections: [{
+          properties: {},
+          children: []
+        }]
+      });
       
       // Split content by sections
       const sections = content.split(/^(#+\s.*|[A-Z\s]{5,})$/m).filter(Boolean);
+      let children = [];
       
       for (const section of sections) {
         // Check if this is a heading
@@ -114,15 +119,13 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
             .replace(/^#+\s*/g, '')
             .replace(/^\s+|\s+$/g, '');
           
-          doc.addSection({
-            children: [
-              new Paragraph({
-                text: headingText,
-                heading: HeadingLevel.HEADING_1,
-                spacing: { after: 200 }
-              })
-            ]
-          });
+          children.push(
+            new Paragraph({
+              text: headingText,
+              heading: HeadingLevel.HEADING_1,
+              spacing: { after: 200 }
+            })
+          );
         } else {
           // Process content section
           const paragraphs = section.split('\n').map(line => {
@@ -146,11 +149,15 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
             return new Paragraph({ text: '' });
           });
           
-          doc.addSection({
-            children: paragraphs
-          });
+          children = [...children, ...paragraphs];
         }
       }
+      
+      // Update the sections in the document (using proper Document API)
+      doc.addSection({
+        properties: {},
+        children: children
+      });
       
       return await Packer.toBlob(doc);
     } catch (error) {

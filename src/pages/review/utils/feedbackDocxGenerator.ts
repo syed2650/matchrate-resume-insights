@@ -1,5 +1,5 @@
 
-import { Document, Paragraph, TextRun, HeadingLevel, AlignmentType, Table, TableRow, TableCell, BorderStyle } from "docx";
+import { Document, Paragraph, TextRun, HeadingLevel, AlignmentType, Packer } from "docx";
 import { Feedback } from "../types";
 
 export const generateFeedbackDocx = (feedback: Feedback) => {
@@ -125,5 +125,5 @@ export const generateFeedbackDocx = (feedback: Feedback) => {
     ]
   });
   
-  return doc;
+  return Packer.toBlob(doc);
 };
