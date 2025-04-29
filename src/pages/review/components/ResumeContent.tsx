@@ -39,7 +39,9 @@ const ResumeContent: React.FC<ResumeContentProps> = ({ currentResume, jobContext
               .replace(/^\s+|\s+$/g, '');
             
             return (
-              <h2 key={index} className="text-lg font-bold text-slate-800 border-b border-slate-200 pb-1 uppercase">{headingText.toUpperCase()}</h2>
+              <h2 key={index} className="text-lg font-bold text-slate-800 border-b border-slate-200 pb-1">
+                {headingText.toUpperCase()}
+              </h2>
             );
           } else {
             // Process content section
@@ -49,14 +51,16 @@ const ResumeContent: React.FC<ResumeContentProps> = ({ currentResume, jobContext
                 // Check if line is part of header (name) - usually at the very top
                 if (index === 1 && lineIndex === 0) {
                   return (
-                    <div key={lineIndex} className="text-center font-bold text-xl mb-1">
+                    <div key={lineIndex} className="text-center font-bold text-xl mb-2">
                       {line}
                     </div>
                   );
                 }
                 
-                // Check if line is part of contact info (second line of the resume)
-                if (index === 1 && (lineIndex === 1 || lineIndex === 2) && (line.includes('@') || line.includes('|') || line.includes('+') || line.includes('Harrow'))) {
+                // Check if line is part of contact info (usually below the name)
+                if (index === 1 && (lineIndex === 1 || lineIndex === 2) && 
+                    (line.includes('@') || line.includes('|') || line.includes('+') || 
+                     line.includes('Harrow') || line.includes('linkedin'))) {
                   return (
                     <div key={lineIndex} className="text-center mb-1">
                       {line}
@@ -124,7 +128,7 @@ const ResumeContent: React.FC<ResumeContentProps> = ({ currentResume, jobContext
                   return <div key={lineIndex} className="font-bold mb-3">{line}</div>;
                 }
 
-                // Default formatting - not make all summary text bold
+                // Default formatting - don't make all summary text bold
                 return <div key={lineIndex} className="mb-1">{line}</div>;
               });
 
