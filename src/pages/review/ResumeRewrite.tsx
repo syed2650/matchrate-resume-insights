@@ -4,14 +4,12 @@ import { Badge } from "@/components/ui/badge";
 import { CheckCircle, ArrowUp } from "lucide-react";
 import { getATSScoreFromCache, canUseRewrite, trackRewriteUsage } from "./utils";
 import { useResumeVersion } from "./hooks/useResumeVersion";
-import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, Table, TableRow, TableCell, WidthType, BorderStyle } from "docx";
+import { Document, Packer, Paragraph, TextRun } from "docx";
 import { ExportInfo } from "./components/ExportInfo";
 import ResumeHeader from "./components/ResumeHeader";
 import ResumeContent from "./components/ResumeContent";
 import UpgradeBanner from "./components/UpgradeBanner";
 import { Progress } from "@/components/ui/progress";
-import { parseResumeIntoData } from "./utils/parseResumeIntoData";
-import { generateDocument } from "./utils/docGenerator";
 
 interface ResumeRewriteProps {
   rewrittenResume: any;
@@ -95,37 +93,32 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
     toast({ title: "Success", description: "Resume copied to clipboard" });
   };
 
+  // Simplified DOCX generation that uses exactly what's shown in the UI
   const generateSimpleDocx = async (content: string) => {
     if (!content) return null;
     
     try {
-      const resumeData = parseResumeIntoData(content);
-      if (!resumeData) {
-        throw new Error("Could not parse resume data");
-      }
-      
-      // Use the docGenerator utility to create a properly formatted document
-      return await generateDocument(resumeData);
+      // Create a simple document with the raw content
+      const doc = new Document({
+        sections: [{
+          properties: {},
+          children: [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: content,
+                  size: 24
+                })
+              ],
+              spacing: { line: 360 }
+            })
+          ]
+        }]
+      });
+      return await Packer.toBlob(doc);
     } catch (error) {
-      console.error("Error generating enhanced DOCX:", error);
-      // Fallback to simple document creation if parsing fails
-      try {
-        const doc = new Document({
-          sections: [{
-            properties: {},
-            children: [
-              new Paragraph({
-                text: content,
-                spacing: { line: 360 }
-              })
-            ]
-          }]
-        });
-        return await Packer.toBlob(doc);
-      } catch (fallbackError) {
-        console.error("Fallback document generation failed:", fallbackError);
-        return null;
-      }
+      console.error("Error generating DOCX:", error);
+      return null;
     }
   };
 
