@@ -140,7 +140,6 @@ export const generateDocument = async (resumeData: ResumeData) => {
                   text: b,
                   bullet: { level: 0 },
                   spacing: { after: SPACING.betweenParagraphs },
-                  font: FONT.main,
                 })
             ),
             new Paragraph({ spacing: { after: SPACING.sectionSpace } }),
@@ -165,7 +164,6 @@ export const generateDocument = async (resumeData: ResumeData) => {
               text: skill,
               bullet: { level: 0 },
               spacing: { after: SPACING.betweenParagraphs },
-              font: FONT.main,
             })
           ),
           new Paragraph({ spacing: { after: SPACING.sectionSpace } }),
@@ -189,7 +187,6 @@ export const generateDocument = async (resumeData: ResumeData) => {
               text: edu,
               bullet: { level: 0 },
               spacing: { after: SPACING.betweenParagraphs },
-              font: FONT.main,
             })
           ),
         ],
