@@ -33,8 +33,6 @@ export default function Privacy() {
         </ul>
         <p className="text-slate-600">We do not collect sensitive information like social security numbers, banking details, or government IDs.</p>
 
-
-
         <h2 className="text-2xl font-semibold mt-8 mb-4">3. How We Use Your Information</h2>
         <p className="text-slate-600 mb-4">We use your information to:</p>
         <ul className="list-disc pl-6 text-slate-600 space-y-2 mb-6">
@@ -45,59 +43,53 @@ export default function Privacy() {
         </ul>
         <p className="text-slate-600">We do NOT sell, rent, or share your personal information with third parties for marketing purposes.</p>
 
-
-          <h2 className="text-2xl font-semibold mt-8 mb-4">4. Data Retention</h2>
+        <h2 className="text-2xl font-semibold mt-8 mb-4">4. Data Retention</h2>
         <p className="text-slate-600">
-          - Uploaded resumes and job descriptions are deleted automatically after a short retention period unless you explicitly choose to save them.
+          - Uploaded resumes and job descriptions are deleted automatically after a short retention period unless you explicitly choose to save them.<br/>
           - Analytics and usage data may be stored longer for service improvement.
         </p>
 
-        <h2 className="text-2xl font-semibold mt-8 mb-4">5.Cookies</h2>
+        <h2 className="text-2xl font-semibold mt-8 mb-4">5. Cookies</h2>
         <p className="text-slate-600">
-          We use cookies to:
-          - Maintain session information.
-          - Improve your experience on our platform.
-          - Analyze traffic anonymously.
-You can manage or disable cookies through your browser settings.
+          We use cookies to:<br/>
+          - Maintain session information.<br/>
+          - Improve your experience on our platform.<br/>
+          - Analyze traffic anonymously.<br/>
+          You can manage or disable cookies through your browser settings.
         </p>
 
-h2 className="text-2xl font-semibold mt-8 mb-4">6. How We Protect Your Data</h2>
+        <h2 className="text-2xl font-semibold mt-8 mb-4">6. How We Protect Your Data</h2>
         <p className="text-slate-600">
-          We use cookies to:
-          - Industry-standard encryption (HTTPS) is used for all communications.
-          - Resume and job description files are securely handled and deleted.
+          - Industry-standard encryption (HTTPS) is used for all communications.<br/>
+          - Resume and job description files are securely handled and deleted.<br/>
           - Access to your personal data is limited to authorized personnel only.
         </p>
 
- 
-h2 className="text-2xl font-semibold mt-8 mb-4">7. Your Data Protection Rights</h2>
+        <h2 className="text-2xl font-semibold mt-8 mb-4">7. Your Data Protection Rights</h2>
         <p className="text-slate-600">
-          Depending on your location, you may have rights under GDPR and other data protection laws, including:
-         - Right to access
-         - Right to rectify
-         - Right to erase
-         - Right to restrict processing
-         - Right to object to processing
-         - Right to data portability
-
-      To exercise any of these rights, contact us at support@matchrate.co.
-        </p>     
-
-
-    <h2 className="text-2xl font-semibold mt-8 mb-4">8. Children’s Privacy</h2>
-        <p className="text-slate-600">
-        Our services are not intended for individuals under the age of 16.
-        We do not knowingly collect data from children.
+          Depending on your location, you may have rights under GDPR and other data protection laws, including:<br/>
+          - Right to access<br/>
+          - Right to rectify<br/>
+          - Right to erase<br/>
+          - Right to restrict processing<br/>
+          - Right to object to processing<br/>
+          - Right to data portability<br/>
+          <br/>
+          To exercise any of these rights, contact us at support@matchrate.co.
         </p>
 
-
-    <h2 className="text-2xl font-semibold mt-8 mb-4">9. Changes to This Privacy Policy</h2>
+        <h2 className="text-2xl font-semibold mt-8 mb-4">8. Children's Privacy</h2>
         <p className="text-slate-600">
-       We may update this Privacy Policy from time to time.
-       If significant changes are made, we will notify users by posting an updated notice on the platform.
+          Our services are not intended for individuals under the age of 16.<br/>
+          We do not knowingly collect data from children.
+        </p>
+
+        <h2 className="text-2xl font-semibold mt-8 mb-4">9. Changes to This Privacy Policy</h2>
+        <p className="text-slate-600">
+          We may update this Privacy Policy from time to time.<br/>
+          If significant changes are made, we will notify users by posting an updated notice on the platform.<br/>
           Last updated: April 27, 2025
         </p>
-
         
         <h2 className="text-2xl font-semibold mt-8 mb-4">10. Contact Us</h2>
         <p className="text-slate-600">
