@@ -27,7 +27,7 @@ const pricingPlans: PricingPlan[] = [
     period: null,
     description: "For job seekers exploring our resume feedback tool.",
     features: [
-      { name: "1 resume review per day", available: true },
+      { name: "1 resume review", available: true },
       { name: "Keyword matching", available: true },
       { name: "Section-by-section feedback", available: true },
       { name: "Relevance & ATS Score", available: true },
@@ -48,7 +48,7 @@ const pricingPlans: PricingPlan[] = [
       { name: "Relevance & ATS Score", available: true },
       { name: "STAR bullet suggestions", available: true },
       { name: "15 Resume rewrites per month", available: true },
-      { name: "Export reports (.pdf/.docx)", available: true },
+      { name: "Export reports (.docx)", available: true },
     ],
     popular: true
   }
