@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
@@ -98,11 +99,6 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
     if (!content) return null;
     
     try {
-      // Create document with initial empty section
-      const doc = new Document({
-        sections: []
-      });
-      
       // Split content by sections
       const sections = content.split(/^(#+\s.*|[A-Z\s]{5,})$/m).filter(Boolean);
       const children = [];
@@ -151,10 +147,14 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
         }
       }
       
-      // Create a new section with all the children
-      doc.addSection({
-        properties: {},
-        children: children
+      // Create a document with all the children in a single section
+      const doc = new Document({
+        sections: [
+          {
+            properties: {},
+            children: children
+          }
+        ]
       });
       
       return await Packer.toBlob(doc);
