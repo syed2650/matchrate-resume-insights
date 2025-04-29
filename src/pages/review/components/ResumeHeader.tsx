@@ -1,7 +1,5 @@
 
 import React from "react";
-import { Button } from "@/components/ui/button";
-import { Copy, Download } from "lucide-react";
 
 interface ResumeHeaderProps {
   currentAtsScore: number;
@@ -18,8 +16,6 @@ const ResumeHeader: React.FC<ResumeHeaderProps> = ({
   roleSummary,
   generatedTimestamp,
   isInterviewReady,
-  onCopy,
-  onDownload,
   isPremiumLocked = false
 }) => {
   const scoreColorClass = 
@@ -60,30 +56,6 @@ const ResumeHeader: React.FC<ResumeHeaderProps> = ({
             </>
           )}
         </div>
-      </div>
-      
-      <div className="flex gap-2 w-full sm:w-auto">
-        <Button 
-          variant="default" 
-          size="sm"
-          className="flex-1 sm:flex-none"
-          onClick={onCopy}
-          disabled={isPremiumLocked}
-        >
-          <Copy className="mr-1.5 h-4 w-4" /> Copy
-        </Button>
-        
-        {onDownload && (
-          <Button 
-            variant="outline" 
-            size="sm"
-            className="flex-1 sm:flex-none"
-            onClick={onDownload}
-            disabled={isPremiumLocked}
-          >
-            <Download className="mr-1.5 h-4 w-4" /> Download
-          </Button>
-        )}
       </div>
     </div>
   );
