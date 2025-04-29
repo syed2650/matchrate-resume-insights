@@ -39,13 +39,31 @@ const ResumeContent: React.FC<ResumeContentProps> = ({ currentResume, jobContext
               .replace(/^\s+|\s+$/g, '');
             
             return (
-              <h2 key={index} className="text-lg font-bold text-slate-800 border-b border-slate-200 pb-1">{headingText}</h2>
+              <h2 key={index} className="text-lg font-bold text-slate-800 border-b border-slate-200 pb-1 uppercase">{headingText}</h2>
             );
           } else {
             // Process content section
             const processedContent = section
               .split('\n')
               .map((line, lineIndex) => {
+                // Check if line is part of header (name) - usually at the very top
+                if (index === 1 && lineIndex === 0) {
+                  return (
+                    <div key={lineIndex} className="text-center font-bold text-lg mb-1">
+                      {line}
+                    </div>
+                  );
+                }
+                
+                // Check if line is part of contact info (second line of the resume)
+                if (index === 1 && lineIndex === 1 && (line.includes('@') || line.includes('|') || line.includes('+'))) {
+                  return (
+                    <div key={lineIndex} className="text-center mb-4">
+                      {line}
+                    </div>
+                  );
+                }
+                
                 // Check if line is a bullet point
                 if (line.trim().startsWith('•') || line.trim().startsWith('-')) {
                   return (
@@ -55,30 +73,55 @@ const ResumeContent: React.FC<ResumeContentProps> = ({ currentResume, jobContext
                   );
                 }
                 
-                // Check if line is part of contact info or job title (usually at the top)
-                if (index < 4 && (line.includes('@') || line.includes('linkedin.com') || line.includes('+') || 
-                    line.match(/^\s*[A-Z][a-zA-Z\s]+(\||\-|—)/) || line.trim().length === 0)) {
-                  return (
-                    <div key={lineIndex} className={line.trim() ? "mb-1" : "my-3"}>
-                      {line.trim() ? line : <br/>}
-                    </div>
-                  );
-                }
-                
                 // Check if line is empty (spacer)
                 if (!line.trim()) {
                   return <div key={lineIndex} className="h-2"></div>;
                 }
                 
-                // Check if line is a date range or company name
+                // Check if line is a date range (format varies)
                 if (line.match(/^\d{1,2}\/\d{4}\s*-\s*\d{1,2}\/\d{4}/) || 
                     line.match(/^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}/i)) {
-                  return <div key={lineIndex} className="text-slate-500 italic mb-1">{line}</div>;
+                  return (
+                    <div key={lineIndex} className="text-right font-bold mb-1">
+                      {line}
+                    </div>
+                  );
                 }
                 
-                // Check if line is a job title or organization
-                if (line.match(/^[A-Z][a-z]+(\s+[A-Z][a-z]+)*$/)) {
-                  return <div key={lineIndex} className="font-medium mb-1">{line}</div>;
+                // Check if line is a company name (usually followed by dates or job title)
+                // We'll remove any location info after '•' character
+                if ((index > 2 && lineIndex === 0) || 
+                    (line.match(/^[A-Z][a-zA-Z\s]+/) && 
+                    !line.match(/^(EDUCATION|SUMMARY|EXPERIENCE|SKILLS|RECOGNITION|PROJECTS)/i))) {
+                  // Remove location info if present (after the • symbol)
+                  const companyNameOnly = line.split('•')[0].trim();
+                  return <div key={lineIndex} className="font-bold mb-1">{companyNameOnly}</div>;
+                }
+                
+                // Check if line is job title (usually after company name)
+                if (index > 2 && lineIndex === 1 && line.match(/^[A-Z][a-z]+(\s+[A-Z][a-z]+)*/)) {
+                  return <div key={lineIndex} className="font-bold mb-2">{line}</div>;
+                }
+                
+                // Education section special formatting
+                // Check for education degree
+                if (index > 6 && line.match(/^[A-Z][a-zA-Z\s,]+$/) && !line.includes('•')) {
+                  return <div key={lineIndex} className="font-bold mb-1">{line}</div>;
+                }
+                
+                // Check for institution name in education section
+                if (index > 6 && lineIndex === 1) {
+                  return <div key={lineIndex} className="mb-1">{line}</div>;
+                }
+                
+                // Check for country in education (put on next line)
+                if (index > 6 && lineIndex === 2 && line.trim()) {
+                  return <div key={lineIndex} className="italic mb-1">{line}</div>;
+                }
+                
+                // Check for year in education (put on next line)
+                if (index > 6 && lineIndex === 3 && line.trim()) {
+                  return <div key={lineIndex} className="font-bold mb-3">{line}</div>;
                 }
 
                 // Default formatting
