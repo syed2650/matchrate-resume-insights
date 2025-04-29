@@ -76,14 +76,37 @@ Users retain ownership of their uploaded resumes and job descriptions.
 
 
 
+        <h2 className="text-2xl font-semibold mt-8 mb-4">8. Acceptable Use
+</h2>
+        <p className="text-slate-600">
+         You agree not to:
+          - Use our services for illegal purposes.
+          - Attempt to reverse engineer or disrupt the platform.
+          - Misuse or abuse the resume analysis and optimization system.
+        </p>
+
+   <h2 className="text-2xl font-semibold mt-8 mb-4">9. Disclaimer of Warranties</h2>
+        <p className="text-slate-600">
+        Our services are provided "as is" and "as available" without warranties of any kind, either express or implied.
+We do not guarantee the accuracy, reliability, or success of resume outcomes.
+        </p>
 
 
+   <h2 className="text-2xl font-semibold mt-8 mb-4">10. Limitation of Liability</h2>
+        <p className="text-slate-600">
+        In no event shall Matchrate.co be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the service.
+        </p>
 
+      <h2 className="text-2xl font-semibold mt-8 mb-4">11. Modifications to the Service</h2>
+        <p className="text-slate-600">
+        We reserve the right to modify or discontinue any part of the platform at any time without notice.
+        </p>   
+
+ <h2 className="text-2xl font-semibold mt-8 mb-4">12. Governing Law</h2>
+        <p className="text-slate-600">
+These Terms shall be governed by and construed in accordance with the laws of the jurisdiction of our company formation (e.g., United States).
+        </p>   
         
-        
-        
-        {/* ... continue with other sections ... */}
-
         <h2 className="text-2xl font-semibold mt-8 mb-4">13. Contact Us</h2>
         <p className="text-slate-600">
           If you have any questions about these Terms, contact:<br/>
