@@ -1,4 +1,3 @@
-
 import {
   Document,
   Paragraph,
@@ -61,28 +60,42 @@ export const generateDocument = async (data: ResumeData) => {
           }),
 
           // Contact Info
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: data.contact,
-                size: 20,
-                font: FONT.main,
-              }),
-            ],
-            alignment: AlignmentType.CENTER,
-            spacing: { after: SPACING.sectionSpace },
-          }),
+          (() => {
+            const contactParts = data.contact.split('|').map(part => part.trim());
+            return new Paragraph({
+              children: contactParts.map((part, i) => [
+                new TextRun({
+                  text: part,
+                  size: 20,
+                  font: FONT.main,
+                }),
+                i < contactParts.length - 1 ? new TextRun({ text: " | ", size: 20, font: FONT.main }) : new TextRun({ text: "" })
+              ]).flat(),
+              alignment: AlignmentType.CENTER,
+              spacing: { after: SPACING.sectionSpace },
+            });
+          })(),
 
           // Add a horizontal line separator
+          new Table({
+            width: { size: 100, type: "pct" },
+            borders: {
+              top: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+              bottom: { style: BorderStyle.NONE },
+              left: { style: BorderStyle.NONE },
+              right: { style: BorderStyle.NONE },
+              insideHorizontal: { style: BorderStyle.NONE },
+              insideVertical: { style: BorderStyle.NONE },
+            },
+            rows: [new TableRow({
+              children: [new TableCell({
+                children: [new Paragraph({ spacing: { after: 0 } })],
+              })],
+            })],
+          }),
+
+          // Space after horizontal line
           new Paragraph({
-            children: [
-              new TextRun({
-                text: "______________________________________________________________________________________________",
-                size: 20,
-                font: FONT.main,
-              }),
-            ],
-            alignment: AlignmentType.CENTER,
             spacing: { after: SPACING.sectionSpace },
           }),
 
@@ -158,6 +171,12 @@ export const generateDocument = async (data: ResumeData) => {
                           ],
                         }),
                       ],
+                      borders: {
+                        top: { style: BorderStyle.NONE },
+                        bottom: { style: BorderStyle.NONE },
+                        left: { style: BorderStyle.NONE },
+                        right: { style: BorderStyle.NONE },
+                      },
                     }),
                     new TableCell({
                       width: { size: 30, type: WidthType.PERCENTAGE },
@@ -167,12 +186,19 @@ export const generateDocument = async (data: ResumeData) => {
                           children: [
                             new TextRun({
                               text: exp.dates,
+                              italic: true,
                               size: 22,
                               font: FONT.main,
                             }),
                           ],
                         }),
                       ],
+                      borders: {
+                        top: { style: BorderStyle.NONE },
+                        bottom: { style: BorderStyle.NONE },
+                        left: { style: BorderStyle.NONE },
+                        right: { style: BorderStyle.NONE },
+                      },
                     }),
                   ],
                 }),
@@ -267,6 +293,44 @@ export const generateDocument = async (data: ResumeData) => {
               spacing: { after: SPACING.betweenParagraphs, line: 360 },
             })
           ),
+
+          // RECOGNITION (if available)
+          ...(data.recognition && data.recognition.length > 0
+            ? [
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: "RECOGNITION",
+                      bold: true,
+                      color: COLORS.darkBlue,
+                      size: 22,
+                      font: FONT.main,
+                      underline: {},
+                    }),
+                  ],
+                  heading: HeadingLevel.HEADING_2,
+                  spacing: { after: SPACING.headingAfter },
+                }),
+                ...data.recognition.map((item) =>
+                  new Paragraph({
+                    children: [
+                      new TextRun({
+                        text: "• ",
+                        size: 22,
+                        font: FONT.main,
+                      }),
+                      new TextRun({
+                        text: item,
+                        size: 22,
+                        font: FONT.main,
+                      }),
+                    ],
+                    indent: { left: 360 },
+                    spacing: { after: SPACING.betweenParagraphs, line: 360 },
+                  })
+                ),
+              ]
+            : []),
         ],
       },
     ],
