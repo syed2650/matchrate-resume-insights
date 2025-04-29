@@ -46,7 +46,7 @@ export const generateDocument = async (data: ResumeData) => {
           },
         },
         children: [
-          // Name
+          // Name - centered
           new Paragraph({
             children: [
               new TextRun({
@@ -165,7 +165,7 @@ export const generateDocument = async (data: ResumeData) => {
                         new Paragraph({
                           children: [
                             new TextRun({
-                              text: exp.company, // Just company name without location
+                              text: exp.company.split('•')[0].trim(), // Only take company name, remove location
                               bold: true, // Make company name bold
                               size: 22,
                               font: FONT.main,
@@ -305,8 +305,8 @@ export const generateDocument = async (data: ResumeData) => {
             heading: HeadingLevel.HEADING_2,
             spacing: { after: SPACING.headingAfter },
           }),
-          ...data.education.map((edu) => {
-            // Parse education entry to extract degree, institution, country, and year
+          ...data.education.flatMap((edu) => {
+            // Parse education entry
             const parts = edu.split('|');
             const degree = parts[0] ? parts[0].trim() : '';
             
@@ -327,7 +327,7 @@ export const generateDocument = async (data: ResumeData) => {
             }
             
             return [
-              // Degree and Institution
+              // Degree - Bold
               new Paragraph({
                 children: [
                   new TextRun({
@@ -362,12 +362,12 @@ export const generateDocument = async (data: ResumeData) => {
                 ],
                 spacing: { after: 80 },
               }),
-              // Year on next line
+              // Year on next line after country
               year && new Paragraph({
                 children: [
                   new TextRun({
                     text: year,
-                    bold: true,
+                    bold: true, // Make year bold
                     size: 22,
                     font: FONT.main,
                   }),
@@ -375,7 +375,7 @@ export const generateDocument = async (data: ResumeData) => {
                 spacing: { after: SPACING.sectionSpace },
               }),
             ];
-          }).flat(),
+          }),
 
           // RECOGNITION (if available) - Bold heading
           ...(data.recognition && data.recognition.length > 0

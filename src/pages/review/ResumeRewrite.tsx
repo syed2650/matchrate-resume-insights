@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, ArrowUp } from "lucide-react";
 import { getATSScoreFromCache, canUseRewrite, trackRewriteUsage } from "./utils";
 import { useResumeVersion } from "./hooks/useResumeVersion";
-import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } from "docx";
+import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, Table, TableRow, TableCell, WidthType, BorderStyle } from "docx";
 import { ExportInfo } from "./components/ExportInfo";
 import ResumeHeader from "./components/ResumeHeader";
 import ResumeContent from "./components/ResumeContent";
@@ -99,68 +98,422 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
     if (!content) return null;
     
     try {
-      // Split content by sections
-      const sections = content.split(/^(#+\s.*|[A-Z\s]{5,})$/m).filter(Boolean);
-      const children = [];
-      
-      for (const section of sections) {
-        // Check if this is a heading
-        const isHeading = /^(#+\s.*|[A-Z\s]{5,})$/m.test(section);
-        
-        if (isHeading) {
-          // Clean up heading formatting
-          const headingText = section
-            .replace(/^#+\s*/g, '')
-            .replace(/^\s+|\s+$/g, '');
-          
-          children.push(
-            new Paragraph({
-              text: headingText,
-              heading: HeadingLevel.HEADING_1,
-              spacing: { after: 200 }
-            })
-          );
-        } else {
-          // Process content section
-          const paragraphs = section.split('\n').map(line => {
-            // Check if line is a bullet point
-            if (line.trim().startsWith('•') || line.trim().startsWith('-')) {
-              return new Paragraph({
-                text: line.replace(/^[•-]\s*/, ''),
-                bullet: { level: 0 },
-                spacing: { after: 100 }
-              });
-            }
-            
-            // Regular paragraph
-            if (line.trim()) {
-              return new Paragraph({
-                text: line.trim(),
-                spacing: { after: 100 }
-              });
-            }
-            
-            return new Paragraph({ text: '' });
-          });
-          
-          children.push(...paragraphs);
-        }
+      const resumeData = parseResumeIntoData(content);
+      if (!resumeData) {
+        throw new Error("Could not parse resume data");
       }
       
-      // Create a document with all the children in a single section
+      // Define constants for document styling
+      const FONT = { main: "Calibri" };
+      const SPACING = {
+        sectionSpace: 300,
+        headingAfter: 120,
+        betweenParagraphs: 100,
+      };
+      
       const doc = new Document({
         sections: [
           {
-            properties: {},
-            children: children
-          }
-        ]
+            properties: {
+              page: {
+                margin: {
+                  top: 720, // 0.5 inches in twips
+                  right: 1008, // 0.7 inches in twips
+                  bottom: 720, // 0.5 inches in twips
+                  left: 1008, // 0.7 inches in twips
+                },
+              },
+            },
+            children: [
+              // Name - centered
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: resumeData.name.toUpperCase(),
+                    bold: true,
+                    size: 28,
+                    font: FONT.main,
+                  }),
+                ],
+                alignment: AlignmentType.CENTER,
+                spacing: { after: 80 },
+              }),
+              
+              // Contact Info - centered below name
+              (() => {
+                const contactParts = resumeData.contact.split('|').map(part => part.trim());
+                return new Paragraph({
+                  children: contactParts.map((part, i) => [
+                    new TextRun({
+                      text: part,
+                      size: 20,
+                      font: FONT.main,
+                    }),
+                    i < contactParts.length - 1 ? new TextRun({ text: " | ", size: 20, font: FONT.main }) : new TextRun({ text: "" })
+                  ]).flat(),
+                  alignment: AlignmentType.CENTER,
+                  spacing: { after: SPACING.sectionSpace },
+                });
+              })(),
+              
+              // Add a horizontal line separator
+              new Table({
+                width: { size: 100, type: "pct" },
+                borders: {
+                  top: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                  bottom: { style: BorderStyle.NONE },
+                  left: { style: BorderStyle.NONE },
+                  right: { style: BorderStyle.NONE },
+                  insideHorizontal: { style: BorderStyle.NONE },
+                  insideVertical: { style: BorderStyle.NONE },
+                },
+                rows: [new TableRow({
+                  children: [new TableCell({
+                    children: [new Paragraph({ spacing: { after: 0 } })],
+                  })],
+                })],
+              }),
+              
+              // Space after horizontal line
+              new Paragraph({
+                spacing: { after: SPACING.sectionSpace },
+              }),
+              
+              // Summary Section - Bold heading
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: "SUMMARY",
+                    bold: true,
+                    size: 22,
+                    font: FONT.main,
+                    underline: {},
+                  }),
+                ],
+                heading: HeadingLevel.HEADING_2,
+                spacing: { after: SPACING.headingAfter },
+              }),
+              
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: resumeData.summary.join(" "),
+                    font: FONT.main,
+                    size: 22,
+                  }),
+                ],
+                spacing: { after: SPACING.sectionSpace },
+              }),
+              
+              // Professional Experience - Bold heading
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: "PROFESSIONAL EXPERIENCE",
+                    bold: true,
+                    size: 22,
+                    font: FONT.main,
+                    underline: {},
+                  }),
+                ],
+                heading: HeadingLevel.HEADING_2,
+                spacing: { after: SPACING.headingAfter },
+              }),
+              
+              // Experience entries
+              ...resumeData.experiences.flatMap((exp) => [
+                // Company and role in left, dates in extreme right
+                new Table({
+                  width: { size: 100, type: "pct" },
+                  borders: {
+                    top: { style: BorderStyle.NONE },
+                    bottom: { style: BorderStyle.NONE },
+                    left: { style: BorderStyle.NONE },
+                    right: { style: BorderStyle.NONE },
+                    insideHorizontal: { style: BorderStyle.NONE },
+                    insideVertical: { style: BorderStyle.NONE },
+                  },
+                  rows: [
+                    new TableRow({
+                      children: [
+                        new TableCell({
+                          width: { size: 70, type: WidthType.PERCENTAGE },
+                          children: [
+                            new Paragraph({
+                              children: [
+                                new TextRun({
+                                  text: exp.company.split('•')[0].trim(), // Only take company name, remove location
+                                  bold: true, // Make company name bold
+                                  size: 22,
+                                  font: FONT.main,
+                                }),
+                              ],
+                            }),
+                          ],
+                          borders: {
+                            top: { style: BorderStyle.NONE },
+                            bottom: { style: BorderStyle.NONE },
+                            left: { style: BorderStyle.NONE },
+                            right: { style: BorderStyle.NONE },
+                          },
+                        }),
+                        new TableCell({
+                          width: { size: 30, type: WidthType.PERCENTAGE },
+                          children: [
+                            new Paragraph({
+                              alignment: AlignmentType.RIGHT,
+                              children: [
+                                new TextRun({
+                                  text: exp.dates,
+                                  bold: true, // Make dates bold
+                                  size: 22,
+                                  font: FONT.main,
+                                }),
+                              ],
+                            }),
+                          ],
+                          borders: {
+                            top: { style: BorderStyle.NONE },
+                            bottom: { style: BorderStyle.NONE },
+                            left: { style: BorderStyle.NONE },
+                            right: { style: BorderStyle.NONE },
+                          },
+                        }),
+                      ],
+                    }),
+                    // Job title in a separate row
+                    new TableRow({
+                      children: [
+                        new TableCell({
+                          width: { size: 100, type: WidthType.PERCENTAGE },
+                          children: [
+                            new Paragraph({
+                              children: [
+                                new TextRun({
+                                  text: exp.title,
+                                  bold: true, // Make job title bold
+                                  size: 22,
+                                  font: FONT.main,
+                                }),
+                              ],
+                              spacing: { after: 80 },
+                            }),
+                          ],
+                          columnSpan: 2,
+                          borders: {
+                            top: { style: BorderStyle.NONE },
+                            bottom: { style: BorderStyle.NONE },
+                            left: { style: BorderStyle.NONE },
+                            right: { style: BorderStyle.NONE },
+                          },
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                ...exp.bullets.map((bullet) =>
+                  new Paragraph({
+                    children: [
+                      new TextRun({
+                        text: "• ",
+                        size: 22,
+                        font: FONT.main,
+                      }),
+                      new TextRun({
+                        text: bullet,
+                        size: 22,
+                        font: FONT.main,
+                      }),
+                    ],
+                    indent: { left: 360 },
+                    spacing: { after: SPACING.betweenParagraphs, line: 360 },
+                  })
+                ),
+                new Paragraph({ spacing: { after: SPACING.betweenParagraphs } }),
+              ]),
+              
+              // Key Skills - Bold heading
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: "KEY SKILLS",
+                    bold: true,
+                    size: 22,
+                    font: FONT.main,
+                    underline: {},
+                  }),
+                ],
+                heading: HeadingLevel.HEADING_2,
+                spacing: { after: SPACING.headingAfter },
+              }),
+              ...resumeData.skills.map((skill) =>
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: "• ",
+                      size: 22,
+                      font: FONT.main,
+                    }),
+                    new TextRun({
+                      text: skill,
+                      size: 22, 
+                      font: FONT.main,
+                    }),
+                  ],
+                  indent: { left: 360 },
+                  spacing: { after: SPACING.betweenParagraphs, line: 360 },
+                })
+              ),
+              new Paragraph({ spacing: { after: SPACING.sectionSpace } }),
+              
+              // Education - Bold heading
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: "EDUCATION",
+                    bold: true,
+                    size: 22,
+                    font: FONT.main,
+                    underline: {},
+                  }),
+                ],
+                heading: HeadingLevel.HEADING_2,
+                spacing: { after: SPACING.headingAfter },
+              }),
+              ...resumeData.education.flatMap((edu) => {
+                // Parse education entry
+                const parts = edu.split('|');
+                const degree = parts[0] ? parts[0].trim() : '';
+                
+                // Extract institution and additional info
+                let institution = '';
+                let country = '';
+                let year = '';
+                
+                if (parts.length > 1) {
+                  const institutionParts = parts[1].trim().split('•');
+                  institution = institutionParts[0] ? institutionParts[0].trim() : '';
+                  
+                  if (institutionParts.length > 1) {
+                    const locationParts = institutionParts[1].trim().split('–');
+                    country = locationParts[0] ? locationParts[0].trim() : '';
+                    year = locationParts.length > 1 ? locationParts[1].trim() : '';
+                  }
+                }
+                
+                return [
+                  // Degree - Bold
+                  new Paragraph({
+                    children: [
+                      new TextRun({
+                        text: degree,
+                        bold: true,
+                        size: 22,
+                        font: FONT.main,
+                      }),
+                    ],
+                    spacing: { after: 80 },
+                  }),
+                  // Institution
+                  new Paragraph({
+                    children: [
+                      new TextRun({
+                        text: institution,
+                        size: 22,
+                        font: FONT.main,
+                      }),
+                    ],
+                    spacing: { after: 80 },
+                  }),
+                  // Country on next line
+                  country && new Paragraph({
+                    children: [
+                      new TextRun({
+                        text: country,
+                        size: 22,
+                        font: FONT.main,
+                        italics: true,
+                      }),
+                    ],
+                    spacing: { after: 80 },
+                  }),
+                  // Year on next line after country
+                  year && new Paragraph({
+                    children: [
+                      new TextRun({
+                        text: year,
+                        bold: true, // Make year bold
+                        size: 22,
+                        font: FONT.main,
+                      }),
+                    ],
+                    spacing: { after: SPACING.sectionSpace },
+                  }),
+                ];
+              }),
+              
+              // Recognition section if available - Bold heading
+              ...(resumeData.recognition && resumeData.recognition.length > 0
+                ? [
+                    new Paragraph({
+                      children: [
+                        new TextRun({
+                          text: "RECOGNITION",
+                          bold: true,
+                          size: 22,
+                          font: FONT.main,
+                          underline: {},
+                        }),
+                      ],
+                      heading: HeadingLevel.HEADING_2,
+                      spacing: { after: SPACING.headingAfter },
+                    }),
+                    ...resumeData.recognition.map((item) =>
+                      new Paragraph({
+                        children: [
+                          new TextRun({
+                            text: "• ",
+                            size: 22,
+                            font: FONT.main,
+                          }),
+                          new TextRun({
+                            text: item,
+                            size: 22,
+                            font: FONT.main,
+                          }),
+                        ],
+                        indent: { left: 360 },
+                        spacing: { after: SPACING.betweenParagraphs, line: 360 },
+                      })
+                    ),
+                  ]
+                : []),
+            ],
+          },
+        ],
       });
       
       return await Packer.toBlob(doc);
     } catch (error) {
-      console.error("Error generating simple DOCX:", error);
-      return null;
+      console.error("Error generating enhanced DOCX:", error);
+      // Fallback to simple document creation if parsing fails
+      try {
+        const doc = new Document({
+          sections: [{
+            properties: {},
+            children: [
+              new Paragraph({
+                text: content,
+                spacing: { line: 360 }
+              })
+            ]
+          }]
+        });
+        return await Packer.toBlob(doc);
+      } catch (fallbackError) {
+        console.error("Fallback document generation failed:", fallbackError);
+        return null;
+      }
     }
   };
 
