@@ -34,6 +34,39 @@ export default function Terms() {
 By using Matchrate.co, you represent and warrant that you meet this age requirement.
         </p>
 
+        <h2 className="text-2xl font-semibold mt-8 mb-4">3. Services Provided</h2>
+        <p className="text-slate-600">
+          - Resume review and feedback
+          - Resume rewriting (for eligible plans)
+          - Job match insights and ATS readiness analysis
+We strive for high accuracy but cannot guarantee specific results (such as interview calls or job offers).
+        </p>
+
+        <h2 className="text-2xl font-semibold mt-8 mb-4">4. Account Usage</h2>
+        <p className="text-slate-600">
+          If you create an account:
+          - Keep your login credentials secure.
+          - You are responsible for all activity under your account.
+          - Notify us immediately if you suspect unauthorized use.
+        </p>
+
+        
+        <h2 className="text-2xl font-semibold mt-8 mb-4">5. Payment and Billing</h2>
+        <p className="text-slate-600">
+          - Some features are free; others require payment.
+          - Paid plans are billed in advance on a monthly or annual basis.
+          - All prices are listed in USD unless otherwise stated.
+        </p>
+
+           <h2 className="text-2xl font-semibold mt-8 mb-4">6. No Refund Policy</h2>
+        <p className="text-slate-600">
+         All purchases, whether for resume analysis credits, subscription fees, or additional services, are final and non-refundable.
+          ❗ We do not provide refunds under any circumstances, including (but not limited to):
+          - User dissatisfaction with resume feedback or rewritten resumes.
+         - Accidental purchases or unused credits.
+          - Subscription cancellations mid-cycle.
+          Please review your choices carefully before purchasing.
+   </p>
         {/* ... continue with other sections ... */}
 
         <h2 className="text-2xl font-semibold mt-8 mb-4">13. Contact Us</h2>
