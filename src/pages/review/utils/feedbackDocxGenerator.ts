@@ -59,7 +59,7 @@ export const generateFeedbackDocx = (feedback: Feedback) => {
             spacing: { before: 400, after: 200 }
           }),
           
-          ...Object.entries(feedback.sectionFeedback).map(([section, content]) => [
+          ...Object.entries(feedback.sectionFeedback).flatMap(([section, content]) => [
             new Paragraph({
               text: section,
               heading: HeadingLevel.HEADING_2,
@@ -69,7 +69,7 @@ export const generateFeedbackDocx = (feedback: Feedback) => {
               text: content,
               spacing: { after: 100 }
             })
-          ]).flat(),
+          ]),
           
           // Bullet Improvements
           new Paragraph({
@@ -78,7 +78,7 @@ export const generateFeedbackDocx = (feedback: Feedback) => {
             spacing: { before: 400, after: 200 }
           }),
           
-          ...feedback.weakBullets.map((bullet, index) => [
+          ...feedback.weakBullets.flatMap((bullet, index) => [
             new Paragraph({
               text: `Bullet ${index + 1}`,
               heading: HeadingLevel.HEADING_3,
@@ -100,7 +100,7 @@ export const generateFeedbackDocx = (feedback: Feedback) => {
               text: bullet.improved,
               spacing: { after: 300 }
             })
-          ]).flat(),
+          ]),
           
           // Tone Suggestions
           new Paragraph({

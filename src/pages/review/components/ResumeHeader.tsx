@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Download, FileDown, Copy, LockIcon } from "lucide-react";
+import { Copy, FileDown } from "lucide-react";
 
 interface ResumeHeaderProps {
   currentAtsScore: number;
@@ -10,7 +10,6 @@ interface ResumeHeaderProps {
   isInterviewReady: boolean;
   onCopy: () => void;
   onDownloadDocx: () => void;
-  onDownloadPdf: () => void;
   isPremiumLocked?: boolean;
 }
 
@@ -21,15 +20,11 @@ const ResumeHeader: React.FC<ResumeHeaderProps> = ({
   isInterviewReady,
   onCopy,
   onDownloadDocx,
-  onDownloadPdf,
   isPremiumLocked = false
 }) => {
   const scoreColorClass = 
     currentAtsScore >= 80 ? "text-emerald-600" :
     currentAtsScore >= 70 ? "text-amber-600" : "text-red-600";
-  
-  const buttonVariant = isPremiumLocked ? "outline" : "default";
-  const ButtonIcon = isPremiumLocked ? LockIcon : null;
 
   return (
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 bg-slate-50 rounded-lg border border-slate-100">
@@ -67,35 +62,23 @@ const ResumeHeader: React.FC<ResumeHeaderProps> = ({
         </div>
       </div>
       
-      <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+      <div className="flex gap-2 w-full sm:w-auto">
         <Button 
-          variant={buttonVariant} 
-          size="sm" 
+          variant="default" 
+          size="sm"
           className="flex-1 sm:flex-none"
           onClick={onCopy}
         >
-          {ButtonIcon && <ButtonIcon className="mr-1.5 h-4 w-4" />}
           <Copy className="mr-1.5 h-4 w-4" /> Copy
         </Button>
         
         <Button 
-          variant={buttonVariant} 
+          variant="outline" 
           size="sm"
           className="flex-1 sm:flex-none"
           onClick={onDownloadDocx}
         >
-          {ButtonIcon && <ButtonIcon className="mr-1.5 h-4 w-4" />}
-          <FileDown className="mr-1.5 h-4 w-4" /> DOCX
-        </Button>
-        
-        <Button 
-          variant={buttonVariant} 
-          size="sm"
-          className="flex-1 sm:flex-none"
-          onClick={onDownloadPdf}
-        >
-          {ButtonIcon && <ButtonIcon className="mr-1.5 h-4 w-4" />}
-          <Download className="mr-1.5 h-4 w-4" /> PDF
+          <FileDown className="mr-1.5 h-4 w-4" /> Download
         </Button>
       </div>
     </div>

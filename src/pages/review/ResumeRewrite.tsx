@@ -5,8 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { CheckCircle, ArrowUp } from "lucide-react";
 import { getATSScoreFromCache, canUseRewrite, trackRewriteUsage } from "./utils";
 import { useResumeVersion } from "./hooks/useResumeVersion";
-import { generateDocument } from "./utils/docGenerator";
-import { downloadResumeAsPdf } from "./utils/downloadResumeAsPdf";
+import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } from "docx";
 import { ExportInfo } from "./components/ExportInfo";
 import ResumeHeader from "./components/ResumeHeader";
 import ResumeContent from "./components/ResumeContent";
@@ -96,6 +95,70 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
     toast({ title: "Success", description: "Resume copied to clipboard" });
   };
 
+  const generateSimpleDocx = async (content: string) => {
+    if (!content) return null;
+    
+    try {
+      const doc = new Document();
+      
+      // Split content by sections
+      const sections = content.split(/^(#+\s.*|[A-Z\s]{5,})$/m).filter(Boolean);
+      
+      for (const section of sections) {
+        // Check if this is a heading
+        const isHeading = /^(#+\s.*|[A-Z\s]{5,})$/m.test(section);
+        
+        if (isHeading) {
+          // Clean up heading formatting
+          const headingText = section
+            .replace(/^#+\s*/g, '')
+            .replace(/^\s+|\s+$/g, '');
+          
+          doc.addSection({
+            children: [
+              new Paragraph({
+                text: headingText,
+                heading: HeadingLevel.HEADING_1,
+                spacing: { after: 200 }
+              })
+            ]
+          });
+        } else {
+          // Process content section
+          const paragraphs = section.split('\n').map(line => {
+            // Check if line is a bullet point
+            if (line.trim().startsWith('•') || line.trim().startsWith('-')) {
+              return new Paragraph({
+                text: line.replace(/^[•-]\s*/, ''),
+                bullet: { level: 0 },
+                spacing: { after: 100 }
+              });
+            }
+            
+            // Regular paragraph
+            if (line.trim()) {
+              return new Paragraph({
+                text: line.trim(),
+                spacing: { after: 100 }
+              });
+            }
+            
+            return new Paragraph({ text: '' });
+          });
+          
+          doc.addSection({
+            children: paragraphs
+          });
+        }
+      }
+      
+      return await Packer.toBlob(doc);
+    } catch (error) {
+      console.error("Error generating simple DOCX:", error);
+      return null;
+    }
+  };
+
   const handleDownloadDocx = async () => {
     if (!canRewrite || !currentResume) {
       toast({ title: "Error", description: "No resume content available to download", variant: "destructive" });
@@ -105,11 +168,8 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
       setIsProcessing(true);
       trackRewriteUsage();
       
-      // Parse the resume content into structured data
-      const resumeData = parseResumeIntoData(currentResume);
-      
-      // Use the structured data to generate the document
-      const docBlob = await generateDocument(resumeData);
+      // Generate a simple DOCX from the formatted content
+      const docBlob = await generateSimpleDocx(currentResume);
       
       if (!docBlob) throw new Error("Failed to generate DOCX document");
       const url = URL.createObjectURL(docBlob);
@@ -122,25 +182,6 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
     } catch (error) {
       console.error("DOCX generation error:", error);
       toast({ title: "Error", description: "Failed to generate DOCX file", variant: "destructive" });
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const handleDownloadPdf = async () => {
-    if (!canRewrite || !currentResume) {
-      toast({ title: "Error", description: "No resume content available to download", variant: "destructive" });
-      return;
-    }
-    try {
-      setIsProcessing(true);
-      trackRewriteUsage();
-      const resumeData = parseResumeIntoData(currentResume);
-      await downloadResumeAsPdf(resumeData);
-      toast({ title: "Success", description: "Resume downloaded as PDF" });
-    } catch (error) {
-      console.error("PDF generation error:", error);
-      toast({ title: "Error", description: "Failed to generate PDF. Please try again.", variant: "destructive" });
     } finally {
       setIsProcessing(false);
     }
@@ -167,7 +208,6 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
         isInterviewReady={isInterviewReady}
         onCopy={handleCopyToClipboard}
         onDownloadDocx={handleDownloadDocx}
-        onDownloadPdf={handleDownloadPdf}
         isPremiumLocked={!canRewrite}
       />
       {isProcessing && <div className="bg-blue-50 p-4 border border-blue-100 rounded-lg"><h4 className="text-blue-800 font-medium mb-2">Processing Your Resume</h4><Progress value={50} className="h-2 mb-2" /><p className="text-blue-700 text-sm">Please wait while we prepare your document...</p></div>}
