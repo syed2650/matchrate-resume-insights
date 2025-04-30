@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -159,8 +158,8 @@ const Auth = () => {
             required
             disabled={pending}
           />
-          <Button className="w-full" type="submit" isLoading={pending}>
-            {isLogin ? "Sign In" : "Sign Up"}
+          <Button className="w-full" type="submit" disabled={pending}>
+            {pending ? "Processing..." : isLogin ? "Sign In" : "Sign Up"}
           </Button>
         </form>
         <div className="my-3 text-center text-muted-foreground">or</div>

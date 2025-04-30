@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import AnimatedTextCycle from "@/components/ui/animated-text-cycle";
@@ -69,72 +70,122 @@ const Hero = () => {
           </Button>
         </div>
         
-        {/* UI Preview mockup */}
-        <div className="w-full max-w-5xl mx-auto relative animate-float">
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white z-20 h-24 bottom-0 rounded-b-xl"></div>
+        {/* Step-by-step guide instead of video placeholder */}
+        <div className="w-full max-w-5xl mx-auto mt-8">
+          <h2 className="text-2xl font-bold text-center mb-8">How Matchrate Works in 3 Simple Steps</h2>
           
-          <div className="bg-white rounded-xl shadow-premium overflow-hidden border border-slate-200/80 glassmorphism">
-            <div className="w-full flex flex-col">
-              {/* Mockup Header */}
-              <div className="bg-slate-50 border-b border-slate-100 p-3 flex items-center">
-                <div className="flex space-x-1.5">
-                  <div className="w-3 h-3 rounded-full bg-gray-300"></div>
-                  <div className="w-3 h-3 rounded-full bg-gray-300"></div>
-                  <div className="w-3 h-3 rounded-full bg-gray-300"></div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Step 1 */}
+            <div className="bg-white rounded-xl shadow-lg overflow-hidden hover-scale transition-all duration-300">
+              <div className="p-1 bg-gradient-to-r from-warm-accent/80 to-blue-500/80">
+                <div className="bg-white p-2 rounded-t-lg">
+                  <div className="flex space-x-1.5">
+                    <div className="w-3 h-3 rounded-full bg-gray-300"></div>
+                    <div className="w-3 h-3 rounded-full bg-gray-300"></div>
+                    <div className="w-3 h-3 rounded-full bg-gray-300"></div>
+                  </div>
                 </div>
-                <div className="mx-auto text-xs text-slate-400">resume-feedback.matchrate.co</div>
               </div>
-              
-              {/* Mockup Content */}
-              <div className="flex flex-col md:flex-row items-stretch">
-                {/* Sidebar */}
-                <div className="w-full md:w-64 bg-slate-50 border-r border-slate-100 p-4">
-                  <div className="h-6 w-32 bg-slate-200 rounded-md mb-4"></div>
-                  <div className="space-y-2">
-                    {[1, 2, 3, 4].map(i => (
-                      <div key={i} className="flex items-center gap-2">
-                        <div className="w-4 h-4 rounded-full bg-slate-200"></div>
-                        <div className="h-4 bg-slate-200 rounded-md w-24"></div>
-                      </div>
-                    ))}
+              <div className="relative">
+                <img 
+                  src="/lovable-uploads/1c49e19d-2692-4404-83fa-65cb2ca597e3.png" 
+                  alt="Upload your resume" 
+                  className="w-full h-48 object-cover object-top"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end">
+                  <div className="p-4 text-white">
+                    <span className="bg-warm-accent text-white text-xs font-bold px-2 py-1 rounded-full mb-2 inline-block">STEP 1</span>
                   </div>
                 </div>
-                
-                {/* Main content */}
-                <div className="p-5 flex-1">
-                  {/* Header */}
-                  <div className="flex justify-between items-center mb-6">
-                    <div className="space-y-2">
-                      <div className="h-6 w-40 bg-slate-100 rounded-md"></div>
-                      <div className="h-4 w-32 bg-slate-100 rounded-md"></div>
-                    </div>
-                    <div className="h-8 w-24 bg-warm-accent/20 rounded-md"></div>
-                  </div>
-                  
-                  {/* Analysis sections */}
-                  <div className="space-y-6">
-                    {[1, 2].map(section => (
-                      <div key={section} className="border border-slate-100 rounded-lg p-4">
-                        <div className="flex items-center gap-2 mb-3">
-                          <div className="w-6 h-6 rounded-full bg-slate-100"></div>
-                          <div className="h-5 bg-slate-100 rounded-md w-32"></div>
-                        </div>
-                        <div className="space-y-2">
-                          {[1, 2, 3].map(i => (
-                            <div key={i} className="h-3 bg-slate-50 rounded-md w-full"></div>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
+              </div>
+              <div className="p-5">
+                <h3 className="text-lg font-bold mb-2">Upload Your Resume</h3>
+                <p className="text-slate-600 text-sm">Upload your resume and paste the job description you want to apply for. Our AI analyzer will match them together.</p>
+              </div>
+            </div>
+            
+            {/* Step 2 */}
+            <div className="bg-white rounded-xl shadow-lg overflow-hidden hover-scale transition-all duration-300">
+              <div className="p-1 bg-gradient-to-r from-warm-accent/80 to-blue-500/80">
+                <div className="bg-white p-2 rounded-t-lg">
+                  <div className="flex space-x-1.5">
+                    <div className="w-3 h-3 rounded-full bg-gray-300"></div>
+                    <div className="w-3 h-3 rounded-full bg-gray-300"></div>
+                    <div className="w-3 h-3 rounded-full bg-gray-300"></div>
                   </div>
                 </div>
+              </div>
+              <div className="relative">
+                <img 
+                  src="/lovable-uploads/dcf6323c-e4ab-497e-ab67-62cd59ba0171.png" 
+                  alt="AI analyzes your resume" 
+                  className="w-full h-48 object-cover object-top"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end">
+                  <div className="p-4 text-white">
+                    <span className="bg-warm-accent text-white text-xs font-bold px-2 py-1 rounded-full mb-2 inline-block">STEP 2</span>
+                  </div>
+                </div>
+              </div>
+              <div className="p-5">
+                <h3 className="text-lg font-bold mb-2">Get Instant Analysis</h3>
+                <p className="text-slate-600 text-sm">Our AI provides comprehensive feedback including match score, missing keywords, and section-by-section analysis.</p>
+              </div>
+            </div>
+            
+            {/* Step 3 */}
+            <div className="bg-white rounded-xl shadow-lg overflow-hidden hover-scale transition-all duration-300">
+              <div className="p-1 bg-gradient-to-r from-warm-accent/80 to-blue-500/80">
+                <div className="bg-white p-2 rounded-t-lg">
+                  <div className="flex space-x-1.5">
+                    <div className="w-3 h-3 rounded-full bg-gray-300"></div>
+                    <div className="w-3 h-3 rounded-full bg-gray-300"></div>
+                    <div className="w-3 h-3 rounded-full bg-gray-300"></div>
+                  </div>
+                </div>
+              </div>
+              <div className="relative">
+                <img 
+                  src="/lovable-uploads/292d820b-4571-41ab-bf3a-169d112edd89.png" 
+                  alt="Improve your resume" 
+                  className="w-full h-48 object-cover object-top"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end">
+                  <div className="p-4 text-white">
+                    <span className="bg-warm-accent text-white text-xs font-bold px-2 py-1 rounded-full mb-2 inline-block">STEP 3</span>
+                  </div>
+                </div>
+              </div>
+              <div className="p-5">
+                <h3 className="text-lg font-bold mb-2">Improve & Get Hired</h3>
+                <p className="text-slate-600 text-sm">Apply the suggestions to transform your resume. Premium users get AI-powered bullet point rewrites and downloadable reports.</p>
               </div>
             </div>
           </div>
           
-          {/* Decorative elements */}
-          <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-warm-accent/10 rounded-full opacity-50 z-[-1]"></div>
-          <div className="absolute -top-10 -left-10 w-40 h-40 bg-blue-500/5 rounded-full opacity-50 z-[-1]"></div>
+          {/* Advanced features preview */}
+          <div className="bg-white rounded-xl shadow-lg mt-8 overflow-hidden border border-slate-100">
+            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+              <div>
+                <span className="bg-blue-100 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full mb-4 inline-block">PREMIUM FEATURE</span>
+                <h3 className="text-xl font-bold mb-3">Full Resume Rewrites & Expert Feedback</h3>
+                <p className="text-slate-600 mb-4">Premium users get complete AI-powered bullet point rewrites that follow the STAR format, plus expert-level feedback on structure and content.</p>
+                <Button 
+                  className="cta-gradient text-white"
+                  onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}
+                >
+                  Explore Premium Features
+                </Button>
+              </div>
+              <div>
+                <img 
+                  src="/lovable-uploads/3b5ac8ab-9069-4498-a35d-38c4d70f0869.png" 
+                  alt="Premium features screenshot" 
+                  className="w-full h-auto rounded-lg shadow-md border border-slate-200"
+                />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       

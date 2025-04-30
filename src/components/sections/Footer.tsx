@@ -18,8 +18,8 @@ const Footer = () => {
           <div>
             <h4 className="font-semibold text-warm-text mb-3">Product</h4>
             <ul className="space-y-2">
-              <li><Link to="/#features" className="text-slate-600 hover:text-warm-accent transition-colors duration-200">Features</Link></li>
-              <li><Link to="/#pricing" className="text-slate-600 hover:text-warm-accent transition-colors duration-200">Pricing</Link></li>
+              <li><a href="/#features" className="text-slate-600 hover:text-warm-accent transition-colors duration-200">Features</a></li>
+              <li><a href="/#pricing" className="text-slate-600 hover:text-warm-accent transition-colors duration-200">Pricing</a></li>
               <li><Link to="/faq" className="text-slate-600 hover:text-warm-accent transition-colors duration-200">FAQ</Link></li>
             </ul>
           </div>

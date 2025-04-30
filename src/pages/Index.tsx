@@ -24,6 +24,22 @@ const Index = () => {
     
     revealElements.forEach(element => observer.observe(element));
     
+    // Handle hash navigation (e.g., #features) when the page loads
+    const handleHashNavigation = () => {
+      const { hash } = window.location;
+      if (hash) {
+        const element = document.querySelector(hash);
+        if (element) {
+          // Add a slight delay to ensure the page is fully loaded
+          setTimeout(() => {
+            element.scrollIntoView({ behavior: 'smooth' });
+          }, 100);
+        }
+      }
+    };
+
+    handleHashNavigation();
+    
     return () => {
       revealElements.forEach(element => observer.unobserve(element));
     };
