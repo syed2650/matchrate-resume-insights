@@ -11,14 +11,11 @@ import CookiePolicy from "@/pages/CookiePolicy";
 import Auth from "@/pages/Auth";
 import NotFound from "@/pages/NotFound";
 import Dashboard from "@/pages/Dashboard";
+import PaymentSuccess from "@/pages/PaymentSuccess";
 import NavBar from "@/components/NavBar";
 import { AuthProvider } from "@/hooks/useAuthUser";
-import { Toaster } from "@/components/ui/toaster"
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-} from "react-router-dom";
+import { Toaster } from "@/components/ui/toaster";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 function App() {
   return (
@@ -37,6 +34,7 @@ function App() {
           <Route path="/terms" element={<Terms />} />
           <Route path="/cookie-policy" element={<CookiePolicy />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         <Toaster />

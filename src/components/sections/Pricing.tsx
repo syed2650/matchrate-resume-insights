@@ -1,9 +1,13 @@
+
 import { Button } from "@/components/ui/button";
 import { Check, X } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getUsageStats, setUserPlan } from "@/pages/review/utils";
 import { Link } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuthUser } from "@/hooks/useAuthUser";
 
 interface PlanFeature {
   name: string;
@@ -57,6 +61,9 @@ const pricingPlans: PricingPlan[] = [
 const Pricing = () => {
   const pricingRef = useRef<HTMLDivElement>(null);
   const stats = getUsageStats();
+  const [isLoading, setIsLoading] = useState<string | null>(null);
+  const { toast } = useToast();
+  const { user } = useAuthUser();
   
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -82,13 +89,50 @@ const Pricing = () => {
     };
   }, []);
 
-  const handleUpgrade = (planName: string) => {
+  const handleUpgrade = async (planName: string) => {
     if (planName === "Free") {
       setUserPlan('free');
-      alert("You're now on the Free plan with 1 resume review per day.");
+      toast({
+        title: "Free plan activated",
+        description: "You're now on the Free plan with 1 resume review per day."
+      });
     } else {
-      setUserPlan('paid');
-      alert("You're now on the Premium plan with 30 reviews and 15 rewrites per month!");
+      try {
+        setIsLoading(planName);
+        
+        if (!user) {
+          toast({
+            title: "Please sign in",
+            description: "You need to sign in before upgrading to Premium",
+            variant: "destructive"
+          });
+          setIsLoading(null);
+          return;
+        }
+        
+        const { data, error } = await supabase.functions.invoke("create-checkout", {
+          body: { plan: planName.toLowerCase() }
+        });
+        
+        if (error) {
+          throw new Error(error.message);
+        }
+        
+        // Redirect to Stripe Checkout
+        if (data?.url) {
+          window.location.href = data.url;
+        } else {
+          throw new Error("No checkout URL returned");
+        }
+      } catch (error) {
+        console.error("Error creating checkout session:", error);
+        toast({
+          title: "Payment Error",
+          description: "There was an error processing your payment. Please try again.",
+          variant: "destructive"
+        });
+      }
+      setIsLoading(null);
     }
   };
 
@@ -166,7 +210,8 @@ const Pricing = () => {
                       }`}
                       variant={plan.popular ? "default" : "outline"}
                       onClick={() => handleUpgrade(plan.name)}
-                      disabled={stats.plan === plan.name.toLowerCase()}
+                      disabled={stats.plan === plan.name.toLowerCase() || isLoading === plan.name}
+                      isLoading={isLoading === plan.name}
                     >
                       {stats.plan === plan.name.toLowerCase() ? 'Current Plan' : 
                         plan.name === "Free" ? "Try Now" : "Get Started"}
