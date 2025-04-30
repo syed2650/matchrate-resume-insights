@@ -14,9 +14,12 @@ import {
   FileText, 
   Settings, 
   User,
-  History
+  History,
+  Lock
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import UpgradeBanner from "@/pages/review/components/UpgradeBanner";
+import { getUsageStats } from "@/pages/review/utils";
 
 type Submission = {
   id: string;
@@ -32,17 +35,30 @@ export default function Dashboard() {
   const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
   const [fetching, setFetching] = useState(false);
   const [usageStats, setUsageStats] = useState({
-    feedbacks: { used: 0, total: 30 },
-    rewrites: { used: 0, total: 15 }
+    plan: 'free',
+    feedbacks: { used: 0, total: 1 },
+    rewrites: { used: 0, total: 0 }
   });
   const navigate = useNavigate();
   const { toast } = useToast();
+  const isPaid = usageStats.plan === 'paid';
 
   useEffect(() => {
     if (!loading && !user) navigate("/auth");
     if (!loading && user) {
       fetchSubmissions();
-      calculateUsage();
+      const stats = getUsageStats();
+      setUsageStats({
+        plan: stats.plan,
+        feedbacks: { 
+          used: stats.monthly.feedbacks, 
+          total: stats.plan === 'paid' ? 30 : 1 
+        },
+        rewrites: { 
+          used: stats.monthly.rewrites, 
+          total: stats.plan === 'paid' ? 15 : 0 
+        }
+      });
     }
   }, [user, loading, navigate]);
 
@@ -72,20 +88,6 @@ export default function Dashboard() {
     }
   };
 
-  const calculateUsage = () => {
-    // In a real implementation, this would query usage from the database or calculate from submissions
-    // For now, we'll calculate based on submissions
-    if (!submissions) return;
-
-    const feedbackCount = submissions.length;
-    const rewriteCount = submissions.filter(s => s.feedback_results?.rewrittenResume).length;
-
-    setUsageStats({
-      feedbacks: { used: feedbackCount, total: 30 },
-      rewrites: { used: rewriteCount, total: 15 }
-    });
-  };
-
   const handleViewSubmission = (submission: Submission) => {
     setSelectedSubmission(submission);
   };
@@ -93,14 +95,20 @@ export default function Dashboard() {
   const handleDownloadReport = () => {
     if (!selectedSubmission) return;
     
-    // In a real implementation, this would generate and download a PDF report
+    if (!isPaid) {
+      toast({
+        title: "Premium Feature",
+        description: "Upgrade to our premium plan to download reports",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     toast({
       title: "Downloading report",
       description: "Your report is being prepared for download"
     });
     
-    // This would typically call an existing download function
-    // For now, we'll just show a toast
     setTimeout(() => {
       toast({
         title: "Report downloaded",
@@ -110,7 +118,11 @@ export default function Dashboard() {
   };
 
   const handleNewAnalysis = () => {
-    navigate("/");
+    navigate("/review");
+  };
+
+  const handleUpgrade = () => {
+    navigate("/#pricing");
   };
 
   const getSubmissionDate = (dateString: string) => {
@@ -131,7 +143,9 @@ export default function Dashboard() {
 
     const latestScore = submissions[0]?.feedback_results?.score || 0;
 
-    if (mostCommonRole && submissions.length >= 3) {
+    if (!isPaid) {
+      return "Upgrade to Premium to unlock 30 resume reviews and 15 resume rewrites per month, plus additional features like report downloads.";
+    } else if (mostCommonRole && submissions.length >= 3) {
       return `Based on your ${submissions.length} submissions, you seem focused on ${mostCommonRole} roles. Consider optimizing your resume specifically for this career path.`;
     } else if (latestScore < 70 && submissions.length > 0) {
       return "Your latest resume received a score below 70. Consider implementing the feedback suggestions to improve your match rate.";
@@ -153,8 +167,18 @@ export default function Dashboard() {
         </div>
         <Progress value={(usageStats.feedbacks.used / usageStats.feedbacks.total) * 100} className="h-2 mb-2" />
         <p className="text-sm text-muted-foreground">
-          {usageStats.feedbacks.total - usageStats.feedbacks.used} feedback analyses remaining this month
+          {usageStats.feedbacks.total - usageStats.feedbacks.used} feedback analyses remaining {isPaid ? 'this month' : ''}
         </p>
+        {!isPaid && (
+          <Button 
+            onClick={handleUpgrade}
+            variant="outline" 
+            size="sm" 
+            className="mt-3"
+          >
+            Upgrade for 30/month
+          </Button>
+        )}
       </Card>
       
       <Card className="p-6">
@@ -165,9 +189,25 @@ export default function Dashboard() {
           </span>
         </div>
         <Progress value={(usageStats.rewrites.used / usageStats.rewrites.total) * 100} className="h-2 mb-2" />
-        <p className="text-sm text-muted-foreground">
-          {usageStats.rewrites.total - usageStats.rewrites.used} rewrites remaining this month
-        </p>
+        {isPaid ? (
+          <p className="text-sm text-muted-foreground">
+            {usageStats.rewrites.total - usageStats.rewrites.used} rewrites remaining this month
+          </p>
+        ) : (
+          <>
+            <p className="text-sm text-muted-foreground flex items-center gap-1">
+              <Lock className="h-3 w-3" /> Upgrade to unlock resume rewrites
+            </p>
+            <Button 
+              onClick={handleUpgrade}
+              variant="outline" 
+              size="sm" 
+              className="mt-3"
+            >
+              Upgrade to Premium
+            </Button>
+          </>
+        )}
       </Card>
     </div>
   );
@@ -242,7 +282,13 @@ export default function Dashboard() {
             <FileText className="h-5 w-5" />
             Submission Details
           </h3>
-          <Button variant="outline" size="sm" onClick={handleDownloadReport}>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleDownloadReport}
+            disabled={!isPaid}
+          >
+            {!isPaid && <Lock className="h-3 w-3 mr-1" />}
             <Download className="h-4 w-4 mr-2" />
             Download Report
           </Button>
@@ -259,7 +305,10 @@ export default function Dashboard() {
           <Tabs defaultValue="feedback">
             <TabsList className="mb-4">
               <TabsTrigger value="feedback">Feedback Report</TabsTrigger>
-              {hasRewrittenResume && <TabsTrigger value="rewrite">Rewritten Resume</TabsTrigger>}
+              {hasRewrittenResume && <TabsTrigger value="rewrite" disabled={!isPaid}>
+                {!isPaid && <Lock className="h-3 w-3 mr-1" />}
+                Rewritten Resume
+              </TabsTrigger>}
             </TabsList>
             
             <TabsContent value="feedback" className="space-y-4">
@@ -310,9 +359,16 @@ export default function Dashboard() {
             
             {hasRewrittenResume && (
               <TabsContent value="rewrite">
-                <div className="whitespace-pre-wrap border rounded p-4 bg-muted/30 text-sm max-h-[500px] overflow-y-auto">
-                  {feedbackResults.rewrittenResume}
-                </div>
+                {isPaid ? (
+                  <div className="whitespace-pre-wrap border rounded p-4 bg-muted/30 text-sm max-h-[500px] overflow-y-auto">
+                    {feedbackResults.rewrittenResume}
+                  </div>
+                ) : (
+                  <UpgradeBanner
+                    feature="Resume Rewrite"
+                    limit="access to AI-powered resume rewrites"
+                  />
+                )}
               </TabsContent>
             )}
           </Tabs>
@@ -326,12 +382,20 @@ export default function Dashboard() {
     if (!suggestion) return null;
     
     return (
-      <Card className="mt-8 p-6 border-l-4 border-l-blue-500">
+      <Card className={`mt-8 p-6 border-l-4 ${!isPaid ? 'border-l-amber-500' : 'border-l-blue-500'}`}>
         <h3 className="text-lg font-medium mb-2 flex items-center gap-2">
           <User className="h-5 w-5" />
           AI Suggestion
         </h3>
         <p className="text-muted-foreground">{suggestion}</p>
+        {!isPaid && (
+          <Button 
+            onClick={handleUpgrade}
+            className="mt-4 cta-gradient"
+          >
+            Upgrade to Premium
+          </Button>
+        )}
       </Card>
     );
   };
@@ -342,11 +406,18 @@ export default function Dashboard() {
         <div>
           <h1 className="text-3xl font-bold">My Dashboard</h1>
           <p className="text-muted-foreground">
-            Manage your resume analyses and track your usage
+            {isPaid 
+              ? "Manage your premium resume analyses and track your usage" 
+              : "You're on the Free Plan. Upgrade to unlock premium features."}
           </p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={handleNewAnalysis}>
+          {!isPaid && (
+            <Button onClick={handleUpgrade} className="cta-gradient">
+              Upgrade to Premium
+            </Button>
+          )}
+          <Button onClick={handleNewAnalysis} variant={isPaid ? "default" : "outline"}>
             New Analysis
           </Button>
         </div>

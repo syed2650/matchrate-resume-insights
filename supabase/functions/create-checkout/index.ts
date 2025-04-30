@@ -46,6 +46,8 @@ serve(async (req) => {
       mode: mode,
       success_url: `${req.headers.get("origin")}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get("origin")}/`,
+      allow_promotion_codes: true,
+      billing_address_collection: "auto",
     });
 
     // Return the checkout session URL

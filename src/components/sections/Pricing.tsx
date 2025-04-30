@@ -1,10 +1,9 @@
-
 import { Button } from "@/components/ui/button";
 import { Check, X } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEffect, useRef, useState } from "react";
-import { getUsageStats, setUserPlan } from "@/pages/review/utils";
-import { Link } from "react-router-dom";
+import { getUsageStats } from "@/pages/review/utils";
+import { Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthUser } from "@/hooks/useAuthUser";
@@ -64,6 +63,7 @@ const Pricing = () => {
   const [isLoading, setIsLoading] = useState<string | null>(null);
   const { toast } = useToast();
   const { user } = useAuthUser();
+  const navigate = useNavigate();
   
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -91,25 +91,29 @@ const Pricing = () => {
 
   const handleUpgrade = async (planName: string) => {
     if (planName === "Free") {
-      setUserPlan('free');
+      // Free plan doesn't need authentication
+      // Simply activate the free plan
       toast({
         title: "Free plan activated",
         description: "You're now on the Free plan with 1 resume review per day."
       });
+      navigate("/review");
     } else {
       try {
         setIsLoading(planName);
         
         if (!user) {
-          toast({
-            title: "Please sign in",
-            description: "You need to sign in before upgrading to Premium",
-            variant: "destructive"
+          // If not logged in, redirect to auth page with the selected plan
+          navigate("/auth", { 
+            state: { 
+              fromPricing: true, 
+              selectedPlan: planName.toLowerCase() 
+            } 
           });
-          setIsLoading(null);
           return;
         }
         
+        // User is already logged in, proceed to checkout
         const { data, error } = await supabase.functions.invoke("create-checkout", {
           body: { plan: planName.toLowerCase() }
         });

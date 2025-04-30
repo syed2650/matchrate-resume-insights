@@ -39,12 +39,10 @@ export default function NavBar() {
                   About
                 </Link>
                 <Link
-                  to="/review"
-                  className={`text-sm font-medium ${
-                    location.pathname === "/review" ? "text-foreground" : "text-muted-foreground"
-                  } hover:text-foreground transition-colors`}
+                  to="/#features"
+                  className={`text-sm font-medium text-muted-foreground hover:text-foreground transition-colors`}
                 >
-                  Review
+                  Features
                 </Link>
                 <Link
                   to="/blog"
@@ -131,13 +129,11 @@ export default function NavBar() {
                   About
                 </Link>
                 <Link
-                  to="/review"
-                  className={`text-base font-medium ${
-                    location.pathname === "/review" ? "text-foreground" : "text-muted-foreground"
-                  }`}
+                  to="/#features"
+                  className="text-base font-medium text-muted-foreground"
                   onClick={() => setShowMobileMenu(false)}
                 >
-                  Review
+                  Features
                 </Link>
                 <Link
                   to="/blog"
