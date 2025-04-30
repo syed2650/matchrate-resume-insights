@@ -114,29 +114,35 @@ const Pricing = () => {
         }
         
         // User is already logged in, proceed to checkout
+        toast({
+          title: "Preparing checkout...",
+          description: "You'll be redirected to the payment page shortly."
+        });
+        
         const { data, error } = await supabase.functions.invoke("create-checkout", {
           body: { plan: planName.toLowerCase() }
         });
         
         if (error) {
-          throw new Error(error.message);
+          console.error("Error creating checkout session:", error);
+          throw error;
         }
         
-        // Redirect to Stripe Checkout
         if (data?.url) {
           window.location.href = data.url;
         } else {
           throw new Error("No checkout URL returned");
         }
       } catch (error) {
-        console.error("Error creating checkout session:", error);
+        console.error("Checkout error:", error);
         toast({
           title: "Payment Error",
-          description: "There was an error processing your payment. Please try again.",
+          description: error instanceof Error ? error.message : "Could not initiate checkout",
           variant: "destructive"
         });
+      } finally {
+        setIsLoading(null);
       }
-      setIsLoading(null);
     }
   };
 

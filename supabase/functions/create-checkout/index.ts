@@ -22,17 +22,62 @@ serve(async (req) => {
       apiVersion: "2023-10-16",
     });
 
-    // Set pricing based on the selected plan
-    let priceId;
-    let mode = "subscription";
+    // Create a product and price programmatically (or use existing ones)
+    // This ensures we always have valid price IDs
     
-    // The pricing configuration would be based on your Stripe products
-    if (plan === "premium") {
-      // Monthly subscription for premium plan ($7/month)
-      priceId = "price_1JxHsBz7jg4UDbxUyZvC3D9Fl"; // Replace with your actual price ID
-    } else {
-      // Default to premium if no valid plan is specified
-      priceId = "price_1JxHsBz7jg4UDbxUyZvC3D9Fl"; // Replace with your actual price ID
+    // First try to see if our product already exists
+    const productName = "Premium Subscription";
+    let productId;
+    let priceId;
+    
+    try {
+      // Look for existing products with our name
+      const products = await stripe.products.list({
+        active: true,
+        limit: 1
+      });
+      
+      // Use existing product if available
+      const existingProduct = products.data.find(p => p.name === productName);
+      if (existingProduct) {
+        productId = existingProduct.id;
+        console.log(`Found existing product: ${productId}`);
+        
+        // Get prices for this product
+        const prices = await stripe.prices.list({
+          product: productId,
+          active: true,
+          limit: 1
+        });
+        
+        if (prices.data.length > 0) {
+          priceId = prices.data[0].id;
+          console.log(`Found existing price: ${priceId}`);
+        }
+      }
+    } catch (error) {
+      console.log("Error finding existing products/prices:", error);
+    }
+    
+    // Create new product and price if needed
+    if (!productId) {
+      const product = await stripe.products.create({
+        name: productName,
+        description: "Premium access to Matchrate.ai resume services",
+      });
+      productId = product.id;
+      console.log(`Created new product: ${productId}`);
+    }
+    
+    if (!priceId) {
+      const price = await stripe.prices.create({
+        product: productId,
+        unit_amount: 700, // $7.00
+        currency: 'usd',
+        recurring: { interval: 'month' }
+      });
+      priceId = price.id;
+      console.log(`Created new price: ${priceId}`);
     }
 
     // Create a checkout session
@@ -43,7 +88,7 @@ serve(async (req) => {
           quantity: 1,
         },
       ],
-      mode: mode,
+      mode: "subscription",
       success_url: `${req.headers.get("origin")}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get("origin")}/`,
       allow_promotion_codes: true,

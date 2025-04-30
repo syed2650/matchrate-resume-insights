@@ -296,3 +296,21 @@ export function getRemainingUsage(): { feedbacks: number; rewrites: number } {
     };
   }
 }
+
+// Reset usage stats (for testing)
+export function resetUsageStats(): void {
+  const defaultStats: UsageStats = {
+    daily: {
+      count: 0,
+      date: new Date().toISOString().split('T')[0]
+    },
+    monthly: {
+      feedbacks: 0,
+      rewrites: 0,
+      resetDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toISOString()
+    },
+    plan: 'free'
+  };
+  
+  localStorage.setItem('usageStats', JSON.stringify(defaultStats));
+}

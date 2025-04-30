@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -74,7 +75,6 @@ const Auth = () => {
         description: error instanceof Error ? error.message : "Authentication failed",
         variant: "destructive",
       });
-    } finally {
       setPending(false);
     }
   }
@@ -111,7 +111,10 @@ const Auth = () => {
         body: { plan }
       });
       
-      if (error) throw new Error(error.message);
+      if (error) {
+        console.error("Checkout error:", error);
+        throw error;
+      }
       
       if (data?.url) {
         window.location.href = data.url;
@@ -121,7 +124,7 @@ const Auth = () => {
     } catch (error) {
       console.error("Checkout error:", error);
       toast({
-        title: "Checkout Error",
+        title: "Payment Error",
         description: error instanceof Error ? error.message : "Could not initiate checkout",
         variant: "destructive",
       });

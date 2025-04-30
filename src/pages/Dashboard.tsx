@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import UpgradeBanner from "@/pages/review/components/UpgradeBanner";
-import { getUsageStats } from "@/pages/review/utils";
+import { getUsageStats, resetUsageStats } from "@/pages/review/utils";
 
 type Submission = {
   id: string;
@@ -36,8 +36,8 @@ export default function Dashboard() {
   const [fetching, setFetching] = useState(false);
   const [usageStats, setUsageStats] = useState({
     plan: 'free',
-    feedbacks: { used: 0, total: 1 },
-    rewrites: { used: 0, total: 0 }
+    feedbacks: { used: 0, total: 1, remaining: 1 },
+    rewrites: { used: 0, total: 0, remaining: 0 }
   });
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -48,15 +48,31 @@ export default function Dashboard() {
     if (!loading && user) {
       fetchSubmissions();
       const stats = getUsageStats();
+      
+      // For free plan: 1 feedback per day, 0 rewrites
+      // For paid plan: 30 feedback per month, 15 rewrites per month
+      const feedbackTotal = stats.plan === 'paid' ? 30 : 1;
+      const rewriteTotal = stats.plan === 'paid' ? 15 : 0;
+      
+      // Calculate used amounts
+      const feedbackUsed = stats.plan === 'paid' ? stats.monthly.feedbacks : stats.daily.count;
+      const rewritesUsed = stats.plan === 'paid' ? stats.monthly.rewrites : 0;
+      
+      // Calculate remaining
+      const feedbackRemaining = Math.max(0, feedbackTotal - feedbackUsed);
+      const rewriteRemaining = Math.max(0, rewriteTotal - rewritesUsed);
+      
       setUsageStats({
         plan: stats.plan,
         feedbacks: { 
-          used: stats.monthly.feedbacks, 
-          total: stats.plan === 'paid' ? 30 : 1 
+          used: feedbackUsed, 
+          total: feedbackTotal,
+          remaining: feedbackRemaining
         },
         rewrites: { 
-          used: stats.monthly.rewrites, 
-          total: stats.plan === 'paid' ? 15 : 0 
+          used: rewritesUsed, 
+          total: rewriteTotal,
+          remaining: rewriteRemaining
         }
       });
     }
@@ -121,8 +137,35 @@ export default function Dashboard() {
     navigate("/review");
   };
 
-  const handleUpgrade = () => {
-    navigate("/#pricing");
+  const handleUpgrade = async () => {
+    try {
+      toast({
+        title: "Preparing checkout...",
+        description: "You'll be redirected to the payment page shortly."
+      });
+      
+      const { data, error } = await supabase.functions.invoke("create-checkout", {
+        body: { plan: "premium" }
+      });
+      
+      if (error) {
+        console.error("Checkout error:", error);
+        throw error;
+      }
+      
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error("No checkout URL returned");
+      }
+    } catch (error) {
+      console.error("Error creating checkout session:", error);
+      toast({
+        title: "Payment Error",
+        description: "There was an error processing your payment. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const getSubmissionDate = (dateString: string) => {
@@ -167,7 +210,7 @@ export default function Dashboard() {
         </div>
         <Progress value={(usageStats.feedbacks.used / usageStats.feedbacks.total) * 100} className="h-2 mb-2" />
         <p className="text-sm text-muted-foreground">
-          {usageStats.feedbacks.total - usageStats.feedbacks.used} feedback analyses remaining {isPaid ? 'this month' : ''}
+          {usageStats.feedbacks.remaining} feedback analyses remaining {isPaid ? 'this month' : ''}
         </p>
         {!isPaid && (
           <Button 
@@ -176,7 +219,7 @@ export default function Dashboard() {
             size="sm" 
             className="mt-3"
           >
-            Upgrade for 30/month
+            Upgrade to Premium
           </Button>
         )}
       </Card>
@@ -191,7 +234,7 @@ export default function Dashboard() {
         <Progress value={(usageStats.rewrites.used / usageStats.rewrites.total) * 100} className="h-2 mb-2" />
         {isPaid ? (
           <p className="text-sm text-muted-foreground">
-            {usageStats.rewrites.total - usageStats.rewrites.used} rewrites remaining this month
+            {usageStats.rewrites.remaining} rewrites remaining this month
           </p>
         ) : (
           <>
