@@ -1,5 +1,4 @@
 
-import Header from "@/components/sections/Header";
 import Hero from "@/components/sections/Hero";
 import Features from "@/components/sections/Features";
 import Testimonials from "@/components/sections/Testimonials";
@@ -36,9 +35,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-warm-bg font-sans">
-      <div className="bg-white/80 backdrop-blur-sm border-b border-slate-100 sticky top-0 z-50">
-        <Header />
-      </div>
       <main>
         <Hero />
         <div className="section-alt py-12 md:py-16 bg-lilac-gradient">
