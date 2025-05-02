@@ -21,6 +21,7 @@ const Footer = () => {
               <li><a href="/#features" className="text-slate-600 hover:text-warm-accent transition-colors duration-200">Features</a></li>
               <li><a href="/#pricing" className="text-slate-600 hover:text-warm-accent transition-colors duration-200">Pricing</a></li>
               <li><Link to="/faq" className="text-slate-600 hover:text-warm-accent transition-colors duration-200">FAQ</Link></li>
+              <li><Link to="/contact" className="text-slate-600 hover:text-warm-accent transition-colors duration-200">Contact Us</Link></li>
             </ul>
           </div>
           <div>
@@ -28,6 +29,7 @@ const Footer = () => {
             <ul className="space-y-2">
               <li><Link to="/about" className="text-slate-600 hover:text-warm-accent transition-colors duration-200">About</Link></li>
               <li><Link to="/blog" className="text-slate-600 hover:text-warm-accent transition-colors duration-200">Blog</Link></li>
+              <li><Link to="/contact" className="text-slate-600 hover:text-warm-accent transition-colors duration-200">Contact</Link></li>
             </ul>
           </div>
           <div>
@@ -39,8 +41,12 @@ const Footer = () => {
             </ul>
           </div>
         </div>
-        <div className="border-t border-slate-200 mt-12 pt-8 text-center text-slate-500 text-sm">
+        
+        <div className="flex flex-col md:flex-row justify-between items-center border-t border-slate-200 mt-12 pt-8 text-slate-500 text-sm">
           <p>© {new Date().getFullYear()} Matchrate.co. All rights reserved.</p>
+          <div className="mt-4 md:mt-0">
+            <a href="mailto:support@matchrate.co" className="text-warm-accent hover:underline">support@matchrate.co</a>
+          </div>
         </div>
       </div>
     </footer>

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuthUser } from "@/hooks/useAuthUser";
@@ -31,6 +30,39 @@ export default function NavBar() {
     }
   };
 
+  const handleFeaturesClick = (e) => {
+    // If we're on the homepage, scroll to features section
+    if (location.pathname === "/") {
+      e.preventDefault();
+      document.getElementById("features")?.scrollIntoView({ behavior: "smooth" });
+    } else {
+      // Otherwise navigate to homepage with features hash
+      navigate("/#features");
+    }
+  };
+
+  const handleTestimonialsClick = (e) => {
+    // If we're on the homepage, scroll to testimonials section
+    if (location.pathname === "/") {
+      e.preventDefault();
+      document.getElementById("testimonials")?.scrollIntoView({ behavior: "smooth" });
+    } else {
+      // Otherwise navigate to homepage with testimonials hash
+      navigate("/#testimonials");
+    }
+  };
+
+  const handlePricingClick = (e) => {
+    // If we're on the homepage, scroll to pricing section
+    if (location.pathname === "/") {
+      e.preventDefault();
+      document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" });
+    } else {
+      // Otherwise navigate to homepage with pricing hash
+      navigate("/#pricing");
+    }
+  };
+
   return (
     <div className="bg-background py-4 shadow-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 flex items-center justify-between">
@@ -56,12 +88,27 @@ export default function NavBar() {
                 >
                   About
                 </Link>
-                <Link
-                  to="/#features"
-                  className={`text-sm font-medium text-muted-foreground hover:text-foreground transition-colors`}
+                <a
+                  href="/#features"
+                  onClick={handleFeaturesClick}
+                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Features
-                </Link>
+                </a>
+                <a
+                  href="/#testimonials"
+                  onClick={handleTestimonialsClick}
+                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Testimonials
+                </a>
+                <a
+                  href="/#pricing"
+                  onClick={handlePricingClick}
+                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Pricing
+                </a>
                 <Link
                   to="/blog"
                   className={`text-sm font-medium ${
@@ -69,6 +116,14 @@ export default function NavBar() {
                   } hover:text-foreground transition-colors`}
                 >
                   Blog
+                </Link>
+                <Link
+                  to="/contact"
+                  className={`text-sm font-medium ${
+                    location.pathname === "/contact" ? "text-foreground" : "text-muted-foreground"
+                  } hover:text-foreground transition-colors`}
+                >
+                  Contact
                 </Link>
                 
                 {user && (
@@ -146,13 +201,36 @@ export default function NavBar() {
                 >
                   About
                 </Link>
-                <Link
-                  to="/#features"
+                <a
+                  href="/#features"
                   className="text-base font-medium text-muted-foreground"
-                  onClick={() => setShowMobileMenu(false)}
+                  onClick={(e) => {
+                    handleFeaturesClick(e);
+                    setShowMobileMenu(false);
+                  }}
                 >
                   Features
-                </Link>
+                </a>
+                <a
+                  href="/#testimonials"
+                  className="text-base font-medium text-muted-foreground"
+                  onClick={(e) => {
+                    handleTestimonialsClick(e);
+                    setShowMobileMenu(false);
+                  }}
+                >
+                  Testimonials
+                </a>
+                <a
+                  href="/#pricing"
+                  className="text-base font-medium text-muted-foreground"
+                  onClick={(e) => {
+                    handlePricingClick(e);
+                    setShowMobileMenu(false);
+                  }}
+                >
+                  Pricing
+                </a>
                 <Link
                   to="/blog"
                   className={`text-base font-medium ${
@@ -161,6 +239,15 @@ export default function NavBar() {
                   onClick={() => setShowMobileMenu(false)}
                 >
                   Blog
+                </Link>
+                <Link
+                  to="/contact"
+                  className={`text-base font-medium ${
+                    location.pathname === "/contact" ? "text-foreground" : "text-muted-foreground"
+                  }`}
+                  onClick={() => setShowMobileMenu(false)}
+                >
+                  Contact
                 </Link>
                 
                 {user && (

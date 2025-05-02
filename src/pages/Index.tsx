@@ -5,7 +5,7 @@ import Testimonials from "@/components/sections/Testimonials";
 import Pricing from "@/components/sections/Pricing";
 import CallToAction from "@/components/sections/CallToAction";
 import Footer from "@/components/sections/Footer";
-import Header from "@/components/sections/Header";
+import NavBar from "@/components/NavBar";
 import DashboardPreview from "@/components/sections/DashboardPreview";
 import { useEffect } from "react";
 import { ArrowUp } from "lucide-react";
@@ -52,10 +52,10 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-warm-bg font-sans">
-      <Header />
+      <NavBar />
       <main>
         <Hero />
-        <div className="section-alt py-12 md:py-16 bg-lilac-gradient">
+        <div id="features" className="section-alt py-12 md:py-16 bg-lilac-gradient">
           <div className="container-content">
             <Features />
           </div>
@@ -63,12 +63,12 @@ const Index = () => {
         <div className="py-12 md:py-16">
           <DashboardPreview />
         </div>
-        <div className="py-12 md:py-16 bg-white">
+        <div id="testimonials" className="py-12 md:py-16 bg-white">
           <div className="container-content">
             <Testimonials />
           </div>
         </div>
-        <div className="py-12 md:py-16 bg-lilac-gradient">
+        <div id="pricing" className="py-12 md:py-16 bg-lilac-gradient">
           <div className="container-content">
             <Pricing />
           </div>
