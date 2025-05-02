@@ -51,15 +51,6 @@ export default function NavBar() {
                 >
                   About
                 </Link>
-                
-                {user && (
-                  <Link
-                    to="/dashboard"
-                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    Dashboard
-                  </Link>
-                )}
               </>
             )}
             
@@ -121,16 +112,6 @@ export default function NavBar() {
                 >
                   About
                 </Link>
-                
-                {user && (
-                  <Link
-                    to="/dashboard"
-                    className="text-base font-medium text-muted-foreground"
-                    onClick={() => setShowMobileMenu(false)}
-                  >
-                    Dashboard
-                  </Link>
-                )}
               </nav>
             </div>
           </div>

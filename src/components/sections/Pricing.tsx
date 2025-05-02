@@ -17,8 +17,8 @@ const tiers = [
     mostPopular: false,
   },
   {
-    name: "Career Booster",
-    price: "$19/month",
+    name: "Premium",
+    price: "$7/month",
     description: "Unlock advanced features to boost your job search.",
     features: [
       "Unlimited resume analysis",
@@ -28,19 +28,6 @@ const tiers = [
     ],
     cta: "Start free trial",
     mostPopular: true,
-  },
-  {
-    name: "Land the Interview",
-    price: "$49/month",
-    description: "Get personalized expert feedback to land your dream job.",
-    features: [
-      "Everything in Career Booster",
-      "Expert resume review",
-      "Personalized feedback",
-      "Priority support",
-    ],
-    cta: "Get personalized review",
-    mostPopular: false,
   },
 ];
 
@@ -71,7 +58,7 @@ export default function Pricing() {
           Choose the plan that fits your needs, whether you're applying for one job or looking to optimize your entire job search.
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           {tiers.map((tier, index) => (
             <div
               key={index}
