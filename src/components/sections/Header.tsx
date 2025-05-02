@@ -52,7 +52,6 @@ const Header = () => {
           </div>
           <div className="flex items-center gap-4 md:gap-6 lg:gap-8">
             <a href="/" className="text-slate-600 hover:text-slate-800 transition-colors duration-200 hidden md:inline-block">Home</a>
-            <a href="#features" className="text-slate-600 hover:text-slate-800 transition-colors duration-200 hidden md:inline-block">Features</a>
             <a href="#testimonials" className="text-slate-600 hover:text-slate-800 transition-colors duration-200 hidden md:inline-block">Testimonials</a>
             <a href="#pricing" className="text-slate-600 hover:text-slate-800 transition-colors duration-200 hidden md:inline-block">Pricing</a>
             

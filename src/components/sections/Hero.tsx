@@ -59,15 +59,6 @@ const Hero = () => {
             Try Resume Feedback Free
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
-          
-          <Button
-            size="lg"
-            variant="outline"
-            className="glassmorphism hover:bg-white/80 border border-gray-200 text-gray-700 px-9 py-7 text-lg rounded-xl font-semibold transition-all hover:border-gray-300"
-            onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
-          >
-            See How It Works
-          </Button>
         </div>
         
         {/* Step-by-step guide instead of video placeholder */}
@@ -88,7 +79,7 @@ const Hero = () => {
               </div>
               <div className="relative">
                 <img 
-                  src="/lovable-uploads/1c49e19d-2692-4404-83fa-65cb2ca597e3.png" 
+                  src="/lovable-uploads/41e02388-22a6-400b-9409-977ae2d23cc8.png" 
                   alt="Upload your resume" 
                   className="w-full h-48 object-cover object-top"
                 />
