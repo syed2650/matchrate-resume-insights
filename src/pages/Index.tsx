@@ -5,7 +5,6 @@ import Testimonials from "@/components/sections/Testimonials";
 import Pricing from "@/components/sections/Pricing";
 import CallToAction from "@/components/sections/CallToAction";
 import Footer from "@/components/sections/Footer";
-import Header from "@/components/sections/Header";
 import DashboardPreview from "@/components/sections/DashboardPreview";
 import { useEffect } from "react";
 import { ArrowUp } from "lucide-react";
@@ -52,7 +51,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-warm-bg font-sans">
-      <Header />
       <main>
         <Hero />
         <div className="section-alt py-12 md:py-16 bg-lilac-gradient">
@@ -68,7 +66,7 @@ const Index = () => {
             <Testimonials />
           </div>
         </div>
-        <div className="py-12 md:py-16 bg-lilac-gradient">
+        <div className="py-12 md:py-16 bg-lilac-gradient" id="pricing">
           <div className="container-content">
             <Pricing />
           </div>
@@ -78,7 +76,7 @@ const Index = () => {
       <Footer />
       
       <Button 
-        className="sticky-cta cta-gradient w-12 h-12 p-0"
+        className="sticky-cta cta-gradient w-12 h-12 p-0 fixed bottom-8 right-8 z-50 rounded-full shadow-lg"
         onClick={scrollToTop}
         aria-label="Scroll to top"
       >

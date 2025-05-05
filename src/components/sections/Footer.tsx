@@ -28,6 +28,7 @@ const Footer = () => {
             <ul className="space-y-2">
               <li><Link to="/about" className="text-slate-600 hover:text-warm-accent transition-colors duration-200">About</Link></li>
               <li><Link to="/blog" className="text-slate-600 hover:text-warm-accent transition-colors duration-200">Blog</Link></li>
+              <li><Link to="/contact" className="text-slate-600 hover:text-warm-accent transition-colors duration-200">Contact</Link></li>
             </ul>
           </div>
           <div>
@@ -41,6 +42,9 @@ const Footer = () => {
         </div>
         <div className="border-t border-slate-200 mt-12 pt-8 text-center text-slate-500 text-sm">
           <p>© {new Date().getFullYear()} Matchrate.co. All rights reserved.</p>
+          <p className="mt-2">
+            Questions? <a href="mailto:support@matchrate.co" className="text-warm-accent hover:underline">support@matchrate.co</a>
+          </p>
         </div>
       </div>
     </footer>

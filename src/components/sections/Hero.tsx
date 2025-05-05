@@ -108,7 +108,7 @@ const Hero = () => {
               </div>
               <div className="relative">
                 <img 
-                  src="/lovable-uploads/dcf6323c-e4ab-497e-ab67-62cd59ba0171.png" 
+                  src="/lovable-uploads/daaf6c67-e6aa-4d91-bb27-57e463c4f421.png" 
                   alt="AI analyzes your resume" 
                   className="w-full h-48 object-cover object-top"
                 />
@@ -137,7 +137,7 @@ const Hero = () => {
               </div>
               <div className="relative">
                 <img 
-                  src="/lovable-uploads/292d820b-4571-41ab-bf3a-169d112edd89.png" 
+                  src="/lovable-uploads/076ae941-c3a2-462d-a9a1-c74272f1cbdf.png" 
                   alt="Improve your resume" 
                   className="w-full h-48 object-cover object-top"
                 />
