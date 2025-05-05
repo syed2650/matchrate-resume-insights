@@ -1,3 +1,4 @@
+
 import { Card } from "@/components/ui/card";
 import { Feedback } from "../types";
 import AnalysisHeader from "../AnalysisHeader";
@@ -9,6 +10,8 @@ import { Progress } from "@/components/ui/progress";
 import { FileText, CheckCheck, FileSearch } from "lucide-react";
 import { calculateATSScore } from "../utils/atsScoring";
 import { useToast } from "@/hooks/use-toast";
+import PremiumFeatureModal from "./PremiumFeatureModal";
+import { canUseRewrite } from "../utils";
 
 interface AnalysisResultsProps {
   feedback: Feedback;
@@ -27,6 +30,7 @@ const AnalysisResults = ({
   const [exportError, setExportError] = useState<string | null>(null);
   const [isRewriteRequested, setIsRewriteRequested] = useState(false);
   const [rewriteLoading, setRewriteLoading] = useState(false);
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
   const { toast } = useToast();
 
   const handleExportFeedback = async () => {
@@ -62,9 +66,18 @@ const AnalysisResults = ({
   };
 
   const handleRewriteRequest = () => {
+    // Check if user is allowed to use the rewrite feature
+    const canUse = canUseRewrite();
+    
+    if (!canUse) {
+      // User is on free plan, show premium modal
+      setShowPremiumModal(true);
+      return;
+    }
+    
+    // User can use the rewrite feature
     setRewriteLoading(true);
     // This simulates the transition to rewrite tab
-    // In a real implementation, you might want to trigger the rewrite here
     setTimeout(() => {
       setActiveTab('rewrite');
       setIsRewriteRequested(true);
@@ -138,13 +151,20 @@ const AnalysisResults = ({
           onExportPDF={handleExportFeedback}
           activeTab={activeTab}
           setActiveTab={(tab) => {
-            // Only allow switching to rewrite tab if it has been requested
-            if (tab === 'rewrite' && !isRewriteRequested) {
-              return;
+            // Only allow switching to rewrite tab if it has been requested and user can access it
+            if (tab === 'rewrite') {
+              if (!isRewriteRequested) {
+                return;
+              }
+              
+              if (!canUseRewrite()) {
+                setShowPremiumModal(true);
+                return;
+              }
             }
             setActiveTab(tab);
           }}
-          hasRewrite={isRewriteRequested && !!feedback.rewrittenResume}
+          hasRewrite={isRewriteRequested && !!feedback.rewrittenResume && canUseRewrite()}
         />
 
         {exportError && (
@@ -159,7 +179,7 @@ const AnalysisResults = ({
             onRequestRewrite={!isRewriteRequested ? handleRewriteRequest : undefined} 
           />
         ) : (
-          isRewriteRequested && (
+          isRewriteRequested && canUseRewrite() && (
             <ResumeRewrite 
               rewrittenResume={feedback.rewrittenResume} 
               atsScores={feedback.atsScores}
@@ -176,6 +196,12 @@ const AnalysisResults = ({
           onFeedbackSubmit={onFeedbackSubmit}
         />
       </div>
+      
+      <PremiumFeatureModal 
+        isOpen={showPremiumModal}
+        onClose={() => setShowPremiumModal(false)}
+        featureName="Resume Rewrite"
+      />
     </Card>
   );
 };

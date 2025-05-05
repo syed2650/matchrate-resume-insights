@@ -152,6 +152,7 @@ const Review = () => {
           onAnalysisComplete={handleAnalysisComplete}
           isLoading={isLoading}
           setIsLoading={setIsLoading}
+          isDisabled={!canUseFeedback()}
         />
       ) : (
         <AnalysisResults 

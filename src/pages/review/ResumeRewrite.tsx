@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { canUseRewrite, trackRewriteUsage, getATSScoreFromCache } from "./utils";
+import { canUseRewrite, trackRewriteUsage } from "./utils";
 import { useResumeVersion } from "./hooks/useResumeVersion";
 import ResumeHeader from "./components/ResumeHeader";
 import ResumeContent from "./components/ResumeContent";
@@ -24,7 +24,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
 }) => {
   const { toast } = useToast();
   const [stableAtsScores, setStableAtsScores] = useState<Record<string, number>>(atsScores);
-  const [canRewrite, setCanRewrite] = useState<boolean>(true);
+  const [isPremiumUser, setIsPremiumUser] = useState<boolean>(false);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
 
   const { currentResume: rawResume, generatedTimestamp } = useResumeVersion({ 
@@ -36,13 +36,18 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
   const roleSummary = extractRoleSummary(rawResume);
   
   useEffect(() => {
-    if (scoreHash) {
-      const cachedScore = getATSScoreFromCache(scoreHash);
-      if (cachedScore) setStableAtsScores(cachedScore.scores);
-      else if (Object.keys(atsScores).length > 0) setStableAtsScores(atsScores);
-    } else if (Object.keys(atsScores).length > 0) setStableAtsScores(atsScores);
-    setCanRewrite(canUseRewrite());
-  }, [scoreHash, atsScores]);
+    // Check if user has premium access
+    setIsPremiumUser(canUseRewrite());
+    
+    if (Object.keys(atsScores).length > 0) {
+      setStableAtsScores(atsScores);
+    }
+    
+    // Track usage if user has premium access
+    if (canUseRewrite()) {
+      trackRewriteUsage();
+    }
+  }, [atsScores]);
 
   const currentAtsScore = (typeof stableAtsScores === 'object' && Object.values(stableAtsScores)[0]) || 0;
   const scoreDifference = currentAtsScore - originalATSScore;
@@ -54,7 +59,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
 
   return (
     <div className="space-y-6">
-      {!canRewrite && <UpgradeBanner feature="resume rewriting" limit="15 rewrites per month" />}
+      {!isPremiumUser && <UpgradeBanner feature="resume rewriting" limit="15 rewrites per month" />}
       <ResumeOptimizedAlert />
       
       <ResumeHeader
@@ -64,21 +69,21 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
         isInterviewReady={isInterviewReady}
         onCopy={() => {}}  // This will be handled by the ResumeCopyButton component
         onDownload={() => {}} // This will be handled by the ResumeDownloadButton component
-        isPremiumLocked={!canRewrite}
+        isPremiumLocked={!isPremiumUser}
       />
       
       <div className="flex gap-2 w-full">
-        <ResumeCopyButton currentResume={currentResume} disabled={!canRewrite} />
+        <ResumeCopyButton currentResume={currentResume} disabled={!isPremiumUser} />
         <ResumeDownloadButton 
           currentResume={currentResume} 
           roleSummary={roleSummary} 
-          disabled={!canRewrite} 
+          disabled={!isPremiumUser} 
         />
       </div>
 
-      <ResumeContent currentResume={currentResume} jobContext={jobContext} isPremiumBlurred={!canRewrite} />
+      <ResumeContent currentResume={currentResume} jobContext={jobContext} isPremiumBlurred={!isPremiumUser} />
       
-      {canRewrite ? <ExportInfo /> : (
+      {isPremiumUser ? <ExportInfo /> : (
         <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg">
           <h3 className="font-medium text-amber-800">Premium Feature</h3>
           <p className="text-sm text-amber-700 mt-1">
