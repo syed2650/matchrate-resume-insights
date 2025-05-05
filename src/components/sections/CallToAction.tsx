@@ -3,18 +3,34 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { canUseFeedback } from "@/pages/review/utils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import UsageLimitModal from "@/pages/review/components/UsageLimitModal";
+import { useToast } from "@/hooks/use-toast";
 
 const CallToAction = () => {
   const navigate = useNavigate();
   const [showLimitModal, setShowLimitModal] = useState(false);
+  const [isChecking, setIsChecking] = useState(false);
+  const { toast } = useToast();
 
-  const handleTryClick = () => {
-    if (canUseFeedback()) {
-      navigate("/review");
-    } else {
-      setShowLimitModal(true);
+  const handleTryClick = async () => {
+    setIsChecking(true);
+    try {
+      const canUse = await canUseFeedback();
+      if (canUse) {
+        navigate("/review");
+      } else {
+        setShowLimitModal(true);
+      }
+    } catch (error) {
+      console.error("Error checking usage limits:", error);
+      toast({
+        title: "Error",
+        description: "Could not check usage limits. Try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsChecking(false);
     }
   };
 
@@ -35,8 +51,9 @@ const CallToAction = () => {
           size="lg"
           className="bg-warm-accent hover:bg-warm-accent/90 transition-all duration-200 hover:scale-105 text-white px-9 py-4 text-lg rounded-xl shadow-md font-semibold flex items-center gap-2"
           onClick={handleTryClick}
+          disabled={isChecking}
         >
-          Try Resume Feedback Free
+          {isChecking ? "Checking..." : "Try Resume Feedback Free"}
           <ArrowRight className="w-5 h-5" />
         </Button>
       </div>

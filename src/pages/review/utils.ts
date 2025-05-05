@@ -4,9 +4,27 @@
  */
 
 import { calculateATSScore as computeATSScore, getATSScoreExplanation, getATSScoreDetail } from './utils/atsScoring';
+import { supabase } from "@/integrations/supabase/client";
+import { v4 as uuidv4 } from 'uuid';
+import { useAuthUser } from "@/hooks/useAuthUser";
 
 // Re-export the ATS score explanation functions for easier access
 export { getATSScoreExplanation, getATSScoreDetail };
+
+// Generate a UUID for anonymous users and store it in localStorage and cookies
+function getOrCreateAnonymousId(): string {
+  let anonymousId = localStorage.getItem('anonymousId');
+  
+  if (!anonymousId) {
+    anonymousId = uuidv4();
+    localStorage.setItem('anonymousId', anonymousId);
+    
+    // Also set a cookie that lasts longer
+    document.cookie = `anonymousId=${anonymousId};path=/;max-age=2592000;SameSite=Lax`; // 30 days
+  }
+  
+  return anonymousId;
+}
 
 // Extract keywords from text with improved algorithm
 function extractKeywords(text: string): string[] {
@@ -170,8 +188,9 @@ export interface UsageStats {
   plan: 'free' | 'paid';
 }
 
-// Get current usage stats
-export function getUsageStats(): UsageStats {
+// Get current usage stats from localStorage (backward compatibility)
+// This will be used as a fallback when server is unreachable
+function getLocalUsageStats(): UsageStats {
   const defaultStats: UsageStats = {
     daily: {
       count: 0,
@@ -221,36 +240,52 @@ export function getUsageStats(): UsageStats {
   }
 }
 
+// Get current usage stats
+export function getUsageStats(): UsageStats {
+  // For backward compatibility, fall back to local storage method
+  return getLocalUsageStats();
+}
+
 // Track a feedback usage
-export function trackFeedbackUsage(): boolean {
+export async function trackFeedbackUsage(): Promise<boolean> {
   try {
-    const stats = getUsageStats();
-    
-    // Update counts
+    // For backward compatibility, update local storage too
+    const stats = getLocalUsageStats();
     stats.daily.count += 1;
     stats.monthly.feedbacks += 1;
-    
-    // Store updated stats
     localStorage.setItem('usageStats', JSON.stringify(stats));
+    
+    // Get user info
+    const { user } = useAuthUser();
+    const userId = user?.id;
+    const anonymousId = userId ? null : getOrCreateAnonymousId();
+    
+    // Call the Supabase edge function to track usage
+    await supabase.functions.invoke('track-usage', {
+      body: { action: 'track', userId, anonymousId }
+    });
+    
     return true;
   } catch (error) {
     console.error("Error tracking feedback usage:", error);
-    return false;
+    // If the server tracking fails, we still have the local tracking as backup
+    return true;
   }
 }
 
 // Track a rewrite usage
-export function trackRewriteUsage(): boolean {
+export async function trackRewriteUsage(): Promise<boolean> {
   try {
-    const stats = getUsageStats();
-    
-    // Update monthly rewrite count (only applies to paid users)
+    // For backward compatibility, update local storage too
+    const stats = getLocalUsageStats();
     if (stats.plan === 'paid') {
       stats.monthly.rewrites += 1;
+      localStorage.setItem('usageStats', JSON.stringify(stats));
     }
     
-    // Store updated stats
-    localStorage.setItem('usageStats', JSON.stringify(stats));
+    // Call the Supabase edge function to track rewrites (once implemented)
+    // This would be similar to the trackFeedbackUsage function but with a different action type
+    
     return true;
   } catch (error) {
     console.error("Error tracking rewrite usage:", error);
@@ -259,21 +294,43 @@ export function trackRewriteUsage(): boolean {
 }
 
 // Check if user can perform more feedback operations
-export function canUseFeedback(): boolean {
-  const stats = getUsageStats();
-  
-  // For free users, limit to 1 per day
-  if (stats.plan === 'free') {
-    return stats.daily.count < 1;
+export async function canUseFeedback(): Promise<boolean> {
+  try {
+    // Get user info
+    const { user } = useAuthUser();
+    const userId = user?.id;
+    const anonymousId = userId ? null : getOrCreateAnonymousId();
+    
+    // Call the Supabase edge function to check usage
+    const { data, error } = await supabase.functions.invoke('track-usage', {
+      body: { action: 'check', userId, anonymousId }
+    });
+    
+    if (error || !data) {
+      console.error("Error checking usage:", error);
+      // Fall back to local storage method if server check fails
+      const stats = getLocalUsageStats();
+      if (stats.plan === 'free') {
+        return stats.daily.count < 1;
+      }
+      return stats.monthly.feedbacks < 30;
+    }
+    
+    return data.canUse;
+  } catch (error) {
+    console.error("Error checking feedback usage:", error);
+    // Fall back to local storage method if there's an error
+    const stats = getLocalUsageStats();
+    if (stats.plan === 'free') {
+      return stats.daily.count < 1;
+    }
+    return stats.monthly.feedbacks < 30;
   }
-  
-  // For paid users, limit to 30 per month
-  return stats.monthly.feedbacks < 30;
 }
 
 // Check if user can perform more rewrite operations
 export function canUseRewrite(): boolean {
-  const stats = getUsageStats();
+  const stats = getLocalUsageStats();
   
   // Rewrite feature is only available for paid users
   if (stats.plan === 'free') {
@@ -287,7 +344,7 @@ export function canUseRewrite(): boolean {
 // Set user plan
 export function setUserPlan(plan: 'free' | 'paid'): void {
   try {
-    const stats = getUsageStats();
+    const stats = getLocalUsageStats();
     stats.plan = plan;
     localStorage.setItem('usageStats', JSON.stringify(stats));
   } catch (error) {
@@ -297,7 +354,7 @@ export function setUserPlan(plan: 'free' | 'paid'): void {
 
 // Get remaining usage counts
 export function getRemainingUsage(): { feedbacks: number; rewrites: number } {
-  const stats = getUsageStats();
+  const stats = getLocalUsageStats();
   
   if (stats.plan === 'free') {
     // Free plan: 1 per day, no rewrites
