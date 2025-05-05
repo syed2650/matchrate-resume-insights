@@ -7,16 +7,20 @@ import ReviewForm from "./ReviewForm";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Loader2 } from "lucide-react";
+import UsageLimitModal from "./components/UsageLimitModal";
+import { canUseFeedback } from "./utils";
 
 interface ResumeAnalyzerProps {
   onAnalysisComplete: (feedback: Feedback) => void;
   isLoading: boolean;
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   isDisabled?: boolean;
 }
 
-const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, isDisabled = false }: ResumeAnalyzerProps) => {
+const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, setIsLoading, isDisabled = false }: ResumeAnalyzerProps) => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showLimitModal, setShowLimitModal] = useState(false);
   
   useEffect(() => {
     const listener = () => {
@@ -35,6 +39,12 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, isDisabled = false }: R
     jobUrl?: string,
     jobTitle?: string
   ) => {
+    // Check if user has reached their limit
+    if (!canUseFeedback()) {
+      setShowLimitModal(true);
+      return;
+    }
+    
     try {
       setIsSubmitting(true);
 
@@ -76,6 +86,10 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, isDisabled = false }: R
     }
   };
 
+  const handleCloseLimitModal = () => {
+    setShowLimitModal(false);
+  };
+
   return (
     <Card className="p-6 relative">
       {isSubmitting && (
@@ -90,6 +104,11 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, isDisabled = false }: R
         onSubmit={handleFormSubmit} 
         isLoading={isLoading || isSubmitting}
         isDisabled={isDisabled}
+      />
+
+      <UsageLimitModal 
+        isOpen={showLimitModal} 
+        onClose={handleCloseLimitModal} 
       />
     </Card>
   );

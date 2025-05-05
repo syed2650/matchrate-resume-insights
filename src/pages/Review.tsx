@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -23,6 +24,7 @@ const Review = () => {
 
   // Check usage limits when component loads
   useEffect(() => {
+    // If user can't use feedback and doesn't already have feedback results, show limit modal
     if (!canUseFeedback() && !feedback) {
       setShowLimitModal(true);
     }
@@ -147,12 +149,14 @@ const Review = () => {
       </h1>
 
       {!feedback ? (
-        <ResumeAnalyzer 
-          onAnalysisComplete={handleAnalysisComplete}
-          isLoading={isLoading}
-          setIsLoading={setIsLoading}
-          isDisabled={!canUseFeedback()}
-        />
+        canUseFeedback() ? (
+          <ResumeAnalyzer 
+            onAnalysisComplete={handleAnalysisComplete}
+            isLoading={isLoading}
+            setIsLoading={setIsLoading}
+            isDisabled={!canUseFeedback()}
+          />
+        ) : null
       ) : (
         <AnalysisResults 
           feedback={feedback}

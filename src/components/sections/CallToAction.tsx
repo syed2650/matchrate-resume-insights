@@ -2,9 +2,25 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { canUseFeedback } from "@/pages/review/utils";
+import { useState } from "react";
+import UsageLimitModal from "@/pages/review/components/UsageLimitModal";
 
 const CallToAction = () => {
   const navigate = useNavigate();
+  const [showLimitModal, setShowLimitModal] = useState(false);
+
+  const handleTryClick = () => {
+    if (canUseFeedback()) {
+      navigate("/review");
+    } else {
+      setShowLimitModal(true);
+    }
+  };
+
+  const handleCloseLimitModal = () => {
+    setShowLimitModal(false);
+  };
 
   return (
     <section className="py-20 md:py-28 hero-gradient border-y border-slate-100">
@@ -18,12 +34,17 @@ const CallToAction = () => {
         <Button 
           size="lg"
           className="bg-warm-accent hover:bg-warm-accent/90 transition-all duration-200 hover:scale-105 text-white px-9 py-4 text-lg rounded-xl shadow-md font-semibold flex items-center gap-2"
-          onClick={() => navigate("/review")}
+          onClick={handleTryClick}
         >
           Try Resume Feedback Free
           <ArrowRight className="w-5 h-5" />
         </Button>
       </div>
+
+      <UsageLimitModal 
+        isOpen={showLimitModal} 
+        onClose={handleCloseLimitModal} 
+      />
     </section>
   );
 };

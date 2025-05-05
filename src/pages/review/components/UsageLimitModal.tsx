@@ -21,7 +21,9 @@ const UsageLimitModal: React.FC<UsageLimitModalProps> = ({ isOpen, onClose }) =>
   const stats = getUsageStats();
   
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      if (!open) onClose();
+    }}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Usage Limit Reached</DialogTitle>
