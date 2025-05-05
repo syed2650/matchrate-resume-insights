@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { FileSearch, MessageSquare, CheckCheck, Target, FileText, ArrowUp } from "lucide-react";
 import { Feedback } from "./types";
-import { calculateATSScore, getATSScoreExplanation } from "./utils/atsScoring";
+import { calculateATSScore, getATSScoreExplanation } from "./utils/atsScore";
 import ResultSection from "./ResultSection";
 import ScoreCard from "./components/ScoreCard";
 import MissingKeywords from "./components/MissingKeywords";
@@ -21,18 +21,22 @@ const ResultList = ({ feedback, onRequestRewrite }: ResultListProps) => {
 
   const resumeText = feedback?.resume || "";
   const jobDescriptionText = feedback?.jobDescription || "";
+  
+  // Ensure we calculate a valid score even if inputs are incomplete
   const atsScore = calculateATSScore(resumeText, jobDescriptionText);
   
-  // Ensure score has a default value if feedback.score is undefined
-  const score = feedback?.score !== undefined ? feedback.score : 0;
+  // Ensure score has a sensible default value
+  const score = feedback?.score !== undefined && feedback?.score > 0 
+    ? feedback.score 
+    : Math.max(30, Math.floor(atsScore * 0.8)); // Default to 80% of ATS score if missing
 
-  const atsScoreLow = atsScore < 75;
-  const relevanceScoreLow = score < 80;
+  const atsScoreLow = atsScore < 70;
+  const relevanceScoreLow = score < 70;
   const hasMissingKeywords = Array.isArray(feedback.missingKeywords) && feedback.missingKeywords.length > 0;
   const needsImprovement = atsScoreLow || relevanceScoreLow || hasMissingKeywords;
 
   useEffect(() => {
-    if (score) {
+    if (score > 0) {
       let current = 0;
       const interval = setInterval(() => {
         if (current < score) {

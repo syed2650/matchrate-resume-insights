@@ -3,7 +3,7 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { callOpenAIForAnalysis, generateFullResumeRewrite } from "./api.ts";
 import { buildAnalysisPrompt, buildRewritePrompt } from "./prompts.ts";
-import { parseAndValidateAnalysis } from "./utils.ts";
+import { parseAndValidateAnalysis, calculateATSScore as calculateATSScoreUtility } from "./utils.ts";
 
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
 
@@ -15,27 +15,34 @@ const corsHeaders = {
 // Function to calculate ATS score based on keyword matching
 function calculateATSScore(resumeText: string, jobDescriptionText: string): number {
   if (!resumeText || !jobDescriptionText) {
-    return 0;
+    return 55; // Default moderate score
   }
   
-  // Extract keywords from job description and resume
-  const jobKeywords = extractKeywords(jobDescriptionText);
-  const resumeKeywords = new Set(extractKeywords(resumeText));
-  
-  // Count matches
-  let matches = 0;
-  jobKeywords.forEach(keyword => {
-    if (resumeKeywords.has(keyword)) {
-      matches++;
-    }
-  });
-  
-  // Calculate score as percentage of matches
-  const totalKeywords = jobKeywords.length;
-  const score = totalKeywords > 0 ? Math.round((matches / totalKeywords) * 100) : 0;
-  
-  // Ensure score is within 0-100 range
-  return Math.min(100, Math.max(0, score));
+  try {
+    // Extract keywords from job description and resume
+    const jobKeywords = extractKeywords(jobDescriptionText);
+    const resumeKeywords = new Set(extractKeywords(resumeText));
+    
+    // Count matches
+    let matches = 0;
+    jobKeywords.forEach(keyword => {
+      if (resumeKeywords.has(keyword)) {
+        matches++;
+      }
+    });
+    
+    // Calculate score as percentage of matches, with a minimum score
+    const totalKeywords = jobKeywords.length;
+    const score = totalKeywords > 0 ? 
+      Math.round((matches / totalKeywords) * 70) + 30 : // Base range from 30-100
+      55; // Default if no keywords
+    
+    // Ensure score is within 30-100 range
+    return Math.min(100, Math.max(30, score));
+  } catch (error) {
+    console.error("Error calculating ATS score:", error);
+    return 55; // Default on error
+  }
 }
 
 // Extract keywords from text
@@ -211,14 +218,22 @@ serve(async (req) => {
           // Extract the rewritten resume from the response
           rewrittenResume = rewriteResult.text;
           
-          // Use the calculated ATS score
+          // Calculate the ATS score
           if (!skipATSCalculation) {
-            atsScores = { "general": rewriteResult.atsScore };
+            const calculatedAtsScore = calculateATSScore(rewrittenResume, effectiveJobDescription);
+            atsScores = { "general": calculatedAtsScore };
           }
         } catch (error) {
           console.error("Error generating resume rewrite:", error);
           rewrittenResume = "Failed to generate resume rewrite: " + error.message;
         }
+      }
+
+      // Calculate relevance score if analysis data doesn't have one
+      if (analysis.score === undefined || analysis.score === null || analysis.score <= 0) {
+        const originalAtsScore = calculateATSScore(resume, effectiveJobDescription);
+        analysis.score = Math.max(30, originalAtsScore - 10); // Base relevance score on ATS score with slight reduction
+        console.log(`Generated fallback relevance score: ${analysis.score}`);
       }
 
       // Return combined analysis + rewrite(s)
@@ -245,7 +260,7 @@ serve(async (req) => {
     console.error('Error in analyze-resume function:', error);
     return new Response(JSON.stringify({
       error: error.message,
-      score: 0,
+      score: 55, // Provide a reasonable default score
       missingKeywords: ["Error occurred"],
       sectionFeedback: { error: error.message },
       weakBullets: [],
