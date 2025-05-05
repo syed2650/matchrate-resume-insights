@@ -12,6 +12,7 @@ import ResumeCopyButton from "./components/ResumeCopyButton";
 import ResumeDownloadButton from "./components/ResumeDownloadButton";
 import { formatResumeContent, extractRoleSummary } from "./utils/resumeFormatter";
 import { ResumeRewriteProps } from "./types";
+import PremiumFeatureModal from "./components/PremiumFeatureModal";
 
 const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ 
   rewrittenResume, 
@@ -26,6 +27,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
   const [stableAtsScores, setStableAtsScores] = useState<Record<string, number>>(atsScores);
   const [isPremiumUser, setIsPremiumUser] = useState<boolean>(false);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [showPremiumModal, setShowPremiumModal] = useState<boolean>(false);
 
   const { currentResume: rawResume, generatedTimestamp } = useResumeVersion({ 
     rewrittenResume, 
@@ -37,17 +39,25 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
   
   useEffect(() => {
     // Check if user has premium access
-    setIsPremiumUser(canUseRewrite());
+    const hasPremiumAccess = canUseRewrite();
+    setIsPremiumUser(hasPremiumAccess);
     
     if (Object.keys(atsScores).length > 0) {
       setStableAtsScores(atsScores);
     }
     
     // Track usage if user has premium access
-    if (canUseRewrite()) {
+    if (hasPremiumAccess) {
       trackRewriteUsage();
+    } else {
+      // Show premium modal for non-premium users
+      setShowPremiumModal(true);
     }
   }, [atsScores]);
+
+  const handleClosePremiumModal = () => {
+    setShowPremiumModal(false);
+  };
 
   const currentAtsScore = (typeof stableAtsScores === 'object' && Object.values(stableAtsScores)[0]) || 0;
   const scoreDifference = currentAtsScore - originalATSScore;
@@ -91,6 +101,12 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
           </p>
         </div>
       )}
+
+      <PremiumFeatureModal
+        isOpen={showPremiumModal}
+        onClose={handleClosePremiumModal}
+        featureName="Resume rewriting"
+      />
     </div>
   );
 };

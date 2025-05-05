@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -167,12 +166,10 @@ const Review = () => {
         />
       )}
 
-      {showLimitModal && (
-        <UsageLimitModal 
-          isOpen={showLimitModal} 
-          onClose={handleCloseLimitModal} 
-        />
-      )}
+      <UsageLimitModal 
+        isOpen={showLimitModal} 
+        onClose={handleCloseLimitModal} 
+      />
     </div>
   );
 };
