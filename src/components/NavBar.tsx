@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuthUser } from "@/hooks/useAuthUser";
 import { Button } from "@/components/ui/button";
 import { X, Menu } from "lucide-react";
@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function NavBar() {
   const { user } = useAuthUser();
+  const location = useLocation();
   const navigate = useNavigate();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const isMobile = useIsMobile();
@@ -41,16 +42,45 @@ export default function NavBar() {
               <>
                 <Link
                   to="/"
-                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  className={`text-sm font-medium ${
+                    location.pathname === "/" ? "text-foreground" : "text-muted-foreground"
+                  } hover:text-foreground transition-colors`}
                 >
                   Home
                 </Link>
                 <Link
                   to="/about"
-                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  className={`text-sm font-medium ${
+                    location.pathname === "/about" ? "text-foreground" : "text-muted-foreground"
+                  } hover:text-foreground transition-colors`}
                 >
                   About
                 </Link>
+                <Link
+                  to="/#features"
+                  className={`text-sm font-medium text-muted-foreground hover:text-foreground transition-colors`}
+                >
+                  Features
+                </Link>
+                <Link
+                  to="/blog"
+                  className={`text-sm font-medium ${
+                    location.pathname === "/blog" ? "text-foreground" : "text-muted-foreground"
+                  } hover:text-foreground transition-colors`}
+                >
+                  Blog
+                </Link>
+                
+                {user && (
+                  <Link
+                    to="/dashboard"
+                    className={`text-sm font-medium ${
+                      location.pathname === "/dashboard" ? "text-foreground" : "text-muted-foreground"
+                    } hover:text-foreground transition-colors`}
+                  >
+                    Dashboard
+                  </Link>
+                )}
               </>
             )}
             
@@ -100,18 +130,50 @@ export default function NavBar() {
               <nav className="mt-8 flex flex-col gap-4">
                 <Link
                   to="/"
-                  className="text-base font-medium text-muted-foreground"
+                  className={`text-base font-medium ${
+                    location.pathname === "/" ? "text-foreground" : "text-muted-foreground"
+                  }`}
                   onClick={() => setShowMobileMenu(false)}
                 >
                   Home
                 </Link>
                 <Link
                   to="/about"
-                  className="text-base font-medium text-muted-foreground"
+                  className={`text-base font-medium ${
+                    location.pathname === "/about" ? "text-foreground" : "text-muted-foreground"
+                  }`}
                   onClick={() => setShowMobileMenu(false)}
                 >
                   About
                 </Link>
+                <Link
+                  to="/#features"
+                  className="text-base font-medium text-muted-foreground"
+                  onClick={() => setShowMobileMenu(false)}
+                >
+                  Features
+                </Link>
+                <Link
+                  to="/blog"
+                  className={`text-base font-medium ${
+                    location.pathname === "/blog" ? "text-foreground" : "text-muted-foreground"
+                  }`}
+                  onClick={() => setShowMobileMenu(false)}
+                >
+                  Blog
+                </Link>
+                
+                {user && (
+                  <Link
+                    to="/dashboard"
+                    className={`text-base font-medium ${
+                      location.pathname === "/dashboard" ? "text-foreground" : "text-muted-foreground"
+                    }`}
+                    onClick={() => setShowMobileMenu(false)}
+                  >
+                    Dashboard
+                  </Link>
+                )}
               </nav>
             </div>
           </div>
