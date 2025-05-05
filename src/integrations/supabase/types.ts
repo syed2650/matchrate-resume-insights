@@ -107,6 +107,30 @@ export type Database = {
         }
         Relationships: []
       }
+      usage_tracking: {
+        Row: {
+          action_type: string
+          anonymous_id: string | null
+          id: string
+          timestamp: string
+          user_id: string | null
+        }
+        Insert: {
+          action_type: string
+          anonymous_id?: string | null
+          id?: string
+          timestamp?: string
+          user_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          anonymous_id?: string | null
+          id?: string
+          timestamp?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
