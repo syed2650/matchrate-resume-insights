@@ -6,7 +6,7 @@ import { Feedback } from "./review/types";
 import { useAuthUser } from "@/hooks/useAuthUser";
 import ResumeAnalyzer from "./review/components/ResumeAnalyzer";
 import AnalysisResults from "./review/components/AnalysisResults";
-import { canUseFeedback } from "./review/utils";
+import { canUseFeedback, trackFeedbackUsage } from "./review/utils";
 import UsageLimitModal from "./review/components/UsageLimitModal";
 import { Database } from "@/integrations/supabase/types";
 
@@ -19,42 +19,24 @@ const Review = () => {
   const [helpfulFeedback, setHelpfulFeedback] = useState<null | boolean>(null);
   const [submissionId, setSubmissionId] = useState<string | null>(null);
   const [showLimitModal, setShowLimitModal] = useState(false);
-  const [isCheckingLimits, setIsCheckingLimits] = useState(true);
-  const [canUseFeature, setCanUseFeature] = useState(true);
   const { toast } = useToast();
   const { user } = useAuthUser();
 
   // Check usage limits when component loads
   useEffect(() => {
-    const checkUsageLimits = async () => {
-      try {
-        setIsCheckingLimits(true);
-        // If user already has feedback results, they can view them regardless of limits
-        if (!feedback) {
-          const canUse = await canUseFeedback();
-          setCanUseFeature(canUse);
-          if (!canUse) {
-            setShowLimitModal(true);
-          }
-        } else {
-          setCanUseFeature(true); // They can always view existing results
-        }
-      } catch (error) {
-        console.error("Error checking usage limits:", error);
-        // Default to allowing usage if we can't check
-        setCanUseFeature(true);
-      } finally {
-        setIsCheckingLimits(false);
-      }
-    };
-    
-    checkUsageLimits();
+    // If user can't use feedback and doesn't already have feedback results, show limit modal
+    if (!canUseFeedback() && !feedback) {
+      setShowLimitModal(true);
+    }
   }, [feedback]);
 
   const handleAnalysisComplete = async (data: Feedback) => {
     setIsLoading(false);
     setFeedback(data);
     setHelpfulFeedback(null);
+
+    // Track feedback usage
+    trackFeedbackUsage();
 
     try {
       // Convert feedback results to a JSON-compatible format
@@ -167,12 +149,12 @@ const Review = () => {
       </h1>
 
       {!feedback ? (
-        !isCheckingLimits && canUseFeature ? (
+        canUseFeedback() ? (
           <ResumeAnalyzer 
             onAnalysisComplete={handleAnalysisComplete}
             isLoading={isLoading}
             setIsLoading={setIsLoading}
-            isDisabled={!canUseFeature}
+            isDisabled={!canUseFeedback()}
           />
         ) : null
       ) : (

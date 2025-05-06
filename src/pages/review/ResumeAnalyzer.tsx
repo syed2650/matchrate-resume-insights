@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import UsageLimitModal from "./components/UsageLimitModal";
-import { canUseFeedback, trackFeedbackUsage } from "./utils";
+import { canUseFeedback } from "./utils";
 
 interface ResumeAnalyzerProps {
   onAnalysisComplete: (feedback: Feedback) => void;
@@ -21,7 +21,6 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, setIsLoading, isDisable
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showLimitModal, setShowLimitModal] = useState(false);
-  const [isCheckingLimits, setIsCheckingLimits] = useState(false);
   
   useEffect(() => {
     const listener = () => {
@@ -40,17 +39,13 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, setIsLoading, isDisable
     jobUrl?: string,
     jobTitle?: string
   ) => {
+    // Check if user has reached their limit
+    if (!canUseFeedback()) {
+      setShowLimitModal(true);
+      return;
+    }
+    
     try {
-      setIsCheckingLimits(true);
-      
-      // Check if user has reached their limit
-      const canUseFeature = await canUseFeedback();
-      
-      if (!canUseFeature) {
-        setShowLimitModal(true);
-        return;
-      }
-      
       setIsSubmitting(true);
 
       const response = await fetch('https://rodkrpeqxgqizngdypbl.functions.supabase.co/analyze-resume', {
@@ -78,9 +73,6 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, setIsLoading, isDisable
         jobTitle
       };
       
-      // Track feedback usage
-      await trackFeedbackUsage();
-      
       onAnalysisComplete(enhancedData);
     } catch (error) {
       console.error("Error analyzing resume:", error);
@@ -91,7 +83,6 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, setIsLoading, isDisable
       });
     } finally {
       setIsSubmitting(false);
-      setIsCheckingLimits(false);
     }
   };
 
@@ -101,21 +92,17 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, setIsLoading, isDisable
 
   return (
     <Card className="p-6 relative">
-      {(isSubmitting || isCheckingLimits) && (
+      {isSubmitting && (
         <div className="absolute inset-0 bg-slate-50/80 flex flex-col items-center justify-center z-10 rounded-lg">
           <Loader2 className="h-12 w-12 animate-spin text-blue-600 mb-4" />
-          <p className="text-lg font-medium text-slate-800">
-            {isCheckingLimits ? "Checking usage limits..." : "Analyzing your resume..."}
-          </p>
-          {isSubmitting && (
-            <p className="text-sm text-slate-600 mt-2">This may take up to 30 seconds</p>
-          )}
+          <p className="text-lg font-medium text-slate-800">Analyzing your resume...</p>
+          <p className="text-sm text-slate-600 mt-2">This may take up to 30 seconds</p>
         </div>
       )}
       
       <ReviewForm 
         onSubmit={handleFormSubmit} 
-        isLoading={isLoading || isSubmitting || isCheckingLimits}
+        isLoading={isLoading || isSubmitting}
         isDisabled={isDisabled}
       />
 
