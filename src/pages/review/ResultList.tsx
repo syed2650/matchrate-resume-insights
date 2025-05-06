@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { FileSearch, MessageSquare, CheckCheck, Target, FileText, ArrowUp, AlertTriangle } from "lucide-react";
 import { Feedback } from "./types";
@@ -98,7 +97,7 @@ const ResultList = ({ feedback, onRequestRewrite }: ResultListProps) => {
   if (isIncompleteData) {
     return (
       <div className="grid gap-8">
-        <Alert variant="warning" className="bg-amber-50 border-amber-300">
+        <Alert className="bg-amber-50 border-amber-300">
           <AlertTriangle className="h-5 w-5 text-amber-600" />
           <AlertTitle className="text-amber-800">Incomplete Analysis Results</AlertTitle>
           <AlertDescription className="text-amber-700">
