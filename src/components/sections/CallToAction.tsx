@@ -2,16 +2,29 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { canUseFeedback } from "@/pages/review/utils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import UsageLimitModal from "@/pages/review/components/UsageLimitModal";
+import { canUseFeedback } from "@/pages/review/utils";
 
 const CallToAction = () => {
   const navigate = useNavigate();
   const [showLimitModal, setShowLimitModal] = useState(false);
+  const [canUse, setCanUse] = useState<boolean | null>(null);
+  
+  // Check usage limits when component mounts
+  useEffect(() => {
+    const checkUsageLimits = async () => {
+      const allowed = await canUseFeedback();
+      setCanUse(allowed);
+    };
+    
+    checkUsageLimits();
+  }, []);
 
-  const handleTryClick = () => {
-    if (canUseFeedback()) {
+  const handleTryClick = async () => {
+    // Check again when button is clicked (in case limits changed)
+    const allowed = await canUseFeedback();
+    if (allowed) {
       navigate("/review");
     } else {
       setShowLimitModal(true);

@@ -107,12 +107,56 @@ export type Database = {
         }
         Relationships: []
       }
+      usage_tracking: {
+        Row: {
+          action_type: string
+          anonymous_id: string | null
+          client_fingerprint: string | null
+          feature_name: string
+          id: string
+          ip_address: string | null
+          timestamp: string
+          usage_date: string
+          user_id: string | null
+        }
+        Insert: {
+          action_type: string
+          anonymous_id?: string | null
+          client_fingerprint?: string | null
+          feature_name?: string
+          id?: string
+          ip_address?: string | null
+          timestamp?: string
+          usage_date?: string
+          user_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          anonymous_id?: string | null
+          client_fingerprint?: string | null
+          feature_name?: string
+          id?: string
+          ip_address?: string | null
+          timestamp?: string
+          usage_date?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_resume_analysis_limit: {
+        Args: {
+          p_user_id: string
+          p_anonymous_id: string
+          p_client_fingerprint: string
+          p_ip_address: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       job_role:

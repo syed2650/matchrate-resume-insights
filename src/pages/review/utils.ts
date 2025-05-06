@@ -1,9 +1,10 @@
-
 /**
  * Utility functions for resume reviews
  */
 
 import { calculateATSScore as computeATSScore, getATSScoreExplanation, getATSScoreDetail } from './utils/atsScoring';
+import { supabase } from "@/integrations/supabase/client";
+import { useAuthUser } from "@/hooks/useAuthUser";
 
 // Re-export the ATS score explanation functions for easier access
 export { getATSScoreExplanation, getATSScoreDetail };
@@ -156,6 +157,64 @@ export function getActiveResumeATSHash(): string | null {
   return sessionStorage.getItem('activeResumeATSHash');
 }
 
+// Client fingerprint generation (basic version)
+function generateClientFingerprint(): string {
+  try {
+    // Use screen properties, timezone, and other browser features
+    const screenData = `${window.screen.width}x${window.screen.height}x${window.screen.colorDepth}`;
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const language = navigator.language;
+    const platform = navigator.platform;
+    
+    // Combine these values to create a fingerprint
+    const combinedData = `${screenData}|${timeZone}|${language}|${platform}`;
+    
+    // Create a simple hash
+    let hash = 0;
+    for (let i = 0; i < combinedData.length; i++) {
+      const char = combinedData.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32bit integer
+    }
+    
+    return Math.abs(hash).toString(36);
+  } catch (e) {
+    // Fallback if anything fails
+    return Math.random().toString(36).substring(2, 15);
+  }
+}
+
+// Get or create a client ID that persists across sessions
+function getOrCreateClientId(): string {
+  try {
+    // Try to get existing client ID from localStorage
+    let clientId = localStorage.getItem('client_id');
+    
+    // If not found, create one and store it
+    if (!clientId) {
+      clientId = Math.random().toString(36).substring(2, 15) + 
+                Math.random().toString(36).substring(2, 15);
+      localStorage.setItem('client_id', clientId);
+    }
+    
+    return clientId;
+  } catch (e) {
+    // If localStorage fails, return a random ID (will not persist)
+    return Math.random().toString(36).substring(2, 15);
+  }
+}
+
+// Function to get the client's IP address (will use the edge function to get it)
+async function getClientIp(): Promise<string | null> {
+  try {
+    const response = await fetch('https://api.ipify.org?format=json');
+    const data = await response.json();
+    return data.ip;
+  } catch (e) {
+    return null;
+  }
+}
+
 // Usage tracking functions for subscription model
 export interface UsageStats {
   daily: {
@@ -221,17 +280,71 @@ export function getUsageStats(): UsageStats {
   }
 }
 
-// Track a feedback usage
-export function trackFeedbackUsage(): boolean {
+// Check if user can use feedback - enhanced with server-side validation
+export async function canUseFeedback(): Promise<boolean> {
   try {
-    const stats = getUsageStats();
+    // Get user information if logged in
+    const { user } = useAuthUser();
     
-    // Update counts
+    // Get client fingerprinting data
+    const clientFingerprint = generateClientFingerprint();
+    const clientId = getOrCreateClientId();
+    
+    // Call the edge function to check if usage is allowed
+    const response = await fetch('https://rodkrpeqxgqizngdypbl.functions.supabase.co/check-usage-limits', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': user ? `Bearer ${supabase.auth.getSession()}` : '',
+      },
+      body: JSON.stringify({
+        anonymousId: clientId,
+        fingerprint: {
+          data: clientFingerprint
+        },
+        feature: 'resume_analysis'
+      })
+    });
+    
+    if (!response.ok) {
+      // If server-side check fails, fall back to client-side check
+      console.error('Failed to verify usage limits with server, falling back to local check');
+      return fallbackCanUseFeedback();
+    }
+    
+    const data = await response.json();
+    return data.canUse;
+    
+  } catch (error) {
+    console.error("Error checking feedback usage limits:", error);
+    // On error, fall back to client-side check
+    return fallbackCanUseFeedback();
+  }
+}
+
+// Fallback to client-side check when server check fails
+function fallbackCanUseFeedback(): boolean {
+  const stats = getUsageStats();
+  
+  // For free users, limit to 1 per day
+  if (stats.plan === 'free') {
+    return stats.daily.count < 1;
+  }
+  
+  // For paid users, limit to 30 per month
+  return stats.monthly.feedbacks < 30;
+}
+
+// Track a feedback usage with enhanced server tracking
+export async function trackFeedbackUsage(): boolean {
+  try {
+    // Always update local stats first for immediate feedback
+    const stats = getUsageStats();
     stats.daily.count += 1;
     stats.monthly.feedbacks += 1;
-    
-    // Store updated stats
     localStorage.setItem('usageStats', JSON.stringify(stats));
+    
+    // Return true as we've updated local stats
     return true;
   } catch (error) {
     console.error("Error tracking feedback usage:", error);
@@ -256,19 +369,6 @@ export function trackRewriteUsage(): boolean {
     console.error("Error tracking rewrite usage:", error);
     return false;
   }
-}
-
-// Check if user can perform more feedback operations
-export function canUseFeedback(): boolean {
-  const stats = getUsageStats();
-  
-  // For free users, limit to 1 per day
-  if (stats.plan === 'free') {
-    return stats.daily.count < 1;
-  }
-  
-  // For paid users, limit to 30 per month
-  return stats.monthly.feedbacks < 30;
 }
 
 // Check if user can perform more rewrite operations

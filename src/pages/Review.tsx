@@ -24,10 +24,14 @@ const Review = () => {
 
   // Check usage limits when component loads
   useEffect(() => {
-    // If user can't use feedback and doesn't already have feedback results, show limit modal
-    if (!canUseFeedback() && !feedback) {
-      setShowLimitModal(true);
-    }
+    const checkUsageLimits = async () => {
+      // If user can't use feedback and doesn't already have feedback results, show limit modal
+      if (!await canUseFeedback() && !feedback) {
+        setShowLimitModal(true);
+      }
+    };
+    
+    checkUsageLimits();
   }, [feedback]);
 
   const handleAnalysisComplete = async (data: Feedback) => {
@@ -36,7 +40,7 @@ const Review = () => {
     setHelpfulFeedback(null);
 
     // Track feedback usage
-    trackFeedbackUsage();
+    await trackFeedbackUsage();
 
     try {
       // Convert feedback results to a JSON-compatible format
@@ -149,14 +153,11 @@ const Review = () => {
       </h1>
 
       {!feedback ? (
-        canUseFeedback() ? (
-          <ResumeAnalyzer 
-            onAnalysisComplete={handleAnalysisComplete}
-            isLoading={isLoading}
-            setIsLoading={setIsLoading}
-            isDisabled={!canUseFeedback()}
-          />
-        ) : null
+        <ResumeAnalyzer 
+          onAnalysisComplete={handleAnalysisComplete}
+          isLoading={isLoading}
+          setIsLoading={setIsLoading}
+        />
       ) : (
         <AnalysisResults 
           feedback={feedback}
