@@ -1,3 +1,4 @@
+
 /**
  * Utility functions for resume reviews
  */
@@ -336,7 +337,7 @@ function fallbackCanUseFeedback(): boolean {
 }
 
 // Track a feedback usage with enhanced server tracking
-export async function trackFeedbackUsage(): boolean {
+export async function trackFeedbackUsage(): Promise<boolean> {
   try {
     // Always update local stats first for immediate feedback
     const stats = getUsageStats();
