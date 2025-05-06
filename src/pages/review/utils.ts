@@ -1,4 +1,3 @@
-
 /**
  * Utility functions for resume reviews
  */
@@ -6,6 +5,7 @@
 import { calculateATSScore as computeATSScore, getATSScoreExplanation, getATSScoreDetail } from './utils/atsScoring';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthUser } from "@/hooks/useAuthUser";
+import { getClientFingerprint } from "./utils/fingerprinting";
 
 // Re-export the ATS score explanation functions for easier access
 export { getATSScoreExplanation, getATSScoreDetail };
@@ -284,72 +284,53 @@ export function getUsageStats(): UsageStats {
 // Check if user can use feedback - enhanced with server-side validation
 export async function canUseFeedback(): Promise<boolean> {
   try {
-    // Get user information if logged in
-    const { user } = useAuthUser();
+    // Get the client fingerprint
+    const fingerprint = getClientFingerprint();
     
-    // Get client fingerprinting data
-    const clientFingerprint = generateClientFingerprint();
-    const clientId = getOrCreateClientId();
-    
-    // Call the edge function to check if usage is allowed
-    const response = await fetch('https://rodkrpeqxgqizngdypbl.functions.supabase.co/check-usage-limits', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': user ? `Bearer ${supabase.auth.getSession()}` : '',
-      },
-      body: JSON.stringify({
-        anonymousId: clientId,
-        fingerprint: {
-          data: clientFingerprint
-        },
-        feature: 'resume_analysis'
-      })
+    // Call the function and check the result
+    const { data, error } = await supabase.rpc('check_resume_analysis_limit', {
+      p_user_id: null,  // Anonymous mode for now
+      p_anonymous_id: fingerprint,
+      p_client_fingerprint: fingerprint,
+      p_ip_address: null
     });
     
-    if (!response.ok) {
-      // If server-side check fails, fall back to client-side check
-      console.error('Failed to verify usage limits with server, falling back to local check');
-      return fallbackCanUseFeedback();
+    if (error) {
+      console.error("Error checking feedback usage limits:", error);
+      // Default to allowing usage if there's an error
+      return true;
     }
     
-    const data = await response.json();
-    return data.canUse;
-    
+    return data === true;
   } catch (error) {
     console.error("Error checking feedback usage limits:", error);
-    // On error, fall back to client-side check
-    return fallbackCanUseFeedback();
-  }
-}
-
-// Fallback to client-side check when server check fails
-function fallbackCanUseFeedback(): boolean {
-  const stats = getUsageStats();
-  
-  // For free users, limit to 1 per day
-  if (stats.plan === 'free') {
-    return stats.daily.count < 1;
-  }
-  
-  // For paid users, limit to 30 per month
-  return stats.monthly.feedbacks < 30;
-}
-
-// Track a feedback usage with enhanced server tracking
-export async function trackFeedbackUsage(): Promise<boolean> {
-  try {
-    // Always update local stats first for immediate feedback
-    const stats = getUsageStats();
-    stats.daily.count += 1;
-    stats.monthly.feedbacks += 1;
-    localStorage.setItem('usageStats', JSON.stringify(stats));
-    
-    // Return true as we've updated local stats
+    // Default to allowing usage if there's an error
     return true;
+  }
+}
+
+// Function to track feedback usage
+export async function trackFeedbackUsage(): Promise<void> {
+  try {
+    // Get the client fingerprint
+    const fingerprint = getClientFingerprint();
+    
+    // Insert usage tracking record
+    const { error } = await supabase.from('usage_tracking').insert([
+      {
+        user_id: null, // Anonymous mode for now
+        feature_name: 'resume_analysis',
+        anonymous_id: fingerprint,
+        client_fingerprint: fingerprint,
+        ip_address: null
+      }
+    ]);
+    
+    if (error) {
+      console.error("Error tracking feedback usage:", error);
+    }
   } catch (error) {
     console.error("Error tracking feedback usage:", error);
-    return false;
   }
 }
 

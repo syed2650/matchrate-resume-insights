@@ -112,7 +112,7 @@ const ResultList = ({ feedback, onRequestRewrite }: ResultListProps) => {
   if (isIncompleteData) {
     return (
       <div className="grid gap-8">
-        <Alert className="bg-amber-50 border-amber-300">
+        <Alert className="bg-amber-50 border border-amber-300">
           <AlertTriangle className="h-5 w-5 text-amber-600" />
           <AlertTitle className="text-amber-800">Incomplete Analysis Results</AlertTitle>
           <AlertDescription className="text-amber-700">

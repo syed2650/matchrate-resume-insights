@@ -1,4 +1,68 @@
 
+export function calculateATSScore(resumeText: string, jobDescriptionText: string): number {
+  if (!resumeText || !jobDescriptionText) {
+    return 0;
+  }
+  
+  // Extract keywords from job description and resume
+  const jobKeywords = extractKeywords(jobDescriptionText);
+  const resumeKeywords = new Set(extractKeywords(resumeText));
+  
+  // Count matches
+  let matches = 0;
+  jobKeywords.forEach(keyword => {
+    if (resumeKeywords.has(keyword)) {
+      matches++;
+    }
+  });
+  
+  // Calculate score as percentage of matches
+  const totalKeywords = jobKeywords.length;
+  const score = totalKeywords > 0 ? Math.round((matches / totalKeywords) * 100) : 0;
+  
+  // Ensure score is within 0-100 range
+  return Math.min(100, Math.max(0, score));
+}
+
+// Extract keywords from text
+function extractKeywords(text: string): string[] {
+  // Convert to lowercase and remove special characters
+  const cleanedText = text.toLowerCase().replace(/[^\w\s]/g, ' ');
+  
+  // Split into words and remove common stop words
+  const words = cleanedText.split(/\s+/);
+  const stopWords = new Set([
+    'a', 'an', 'the', 'and', 'or', 'but', 'is', 'are', 'was', 'were', 
+    'be', 'been', 'being', 'in', 'on', 'at', 'to', 'for', 'with', 
+    'by', 'about', 'against', 'between', 'into', 'through', 'during',
+    'before', 'after', 'above', 'below', 'from', 'up', 'down', 'of',
+    'off', 'over', 'under', 'again', 'further', 'then', 'once', 'here',
+    'there', 'when', 'where', 'why', 'how', 'all', 'any', 'both', 'each',
+    'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not',
+    'only', 'own', 'same', 'so', 'than', 'too', 'very', 'can', 'will',
+    'just', 'should', 'now', 'you', 'your', 'we', 'our', 'i', 'my'
+  ]);
+  
+  // Filter out stop words and short words
+  const filteredWords = words.filter(word => 
+    word.length > 2 && !stopWords.has(word)
+  );
+
+  // Count frequency of each word
+  const wordFrequency: {[key: string]: number} = {};
+  filteredWords.forEach(word => {
+    wordFrequency[word] = (wordFrequency[word] || 0) + 1;
+  });
+  
+  // Sort by frequency and get top keywords
+  const sortedKeywords = Object.entries(wordFrequency)
+    .sort((a, b) => b[1] - a[1])
+    .map(entry => entry[0]);
+  
+  // Return up to 50 most common words as keywords
+  return sortedKeywords.slice(0, 50);
+}
+
 export function parseAndValidateAnalysis(response: any) {
   if (!response || !response.choices || !response.choices[0] || !response.choices[0].message) {
     console.error("Invalid response structure from OpenAI", response);

@@ -1,5 +1,5 @@
 
-import { calculateATSScore, parseAndValidateAnalysis } from './utils.ts';
+import { parseAndValidateAnalysis, calculateATSScore } from './utils.ts';
 import { buildAnalysisPrompt, buildRewritePrompt } from './prompts.ts';
 
 const corsHeaders = {

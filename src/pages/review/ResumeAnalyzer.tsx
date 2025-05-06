@@ -40,9 +40,15 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, setIsLoading, isDisable
     jobTitle?: string
   ) => {
     // Check if user has reached their limit
-    if (!canUseFeedback()) {
-      setShowLimitModal(true);
-      return;
+    try {
+      const canUse = await canUseFeedback();
+      if (!canUse) {
+        setShowLimitModal(true);
+        return;
+      }
+    } catch (error) {
+      console.error("Error checking usage limits:", error);
+      // Continue anyway if we can't check limits
     }
     
     try {
@@ -63,7 +69,17 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, setIsLoading, isDisable
         }),
       });
 
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`API error (${response.status}): ${errorText}`);
+      }
+
       const data = await response.json();
+      
+      // Check for API error
+      if (data.error) {
+        throw new Error(data.error);
+      }
       
       const enhancedData = {
         ...data,
@@ -80,6 +96,22 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, setIsLoading, isDisable
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to analyze resume",
         variant: "destructive"
+      });
+      
+      // Send empty feedback object with error to still navigate to results view
+      // but show error state instead of loading forever
+      onAnalysisComplete({
+        error: error instanceof Error ? error.message : "Failed to analyze resume",
+        resume,
+        jobDescription,
+        jobUrl,
+        jobTitle,
+        score: 0,
+        missingKeywords: [],
+        sectionFeedback: {},
+        weakBullets: [],
+        toneSuggestions: "Error occurred during analysis",
+        wouldInterview: "Unable to provide recommendation due to error"
       });
     } finally {
       setIsSubmitting(false);

@@ -22,29 +22,20 @@ const Review = () => {
   const { toast } = useToast();
   const { user } = useAuthUser();
 
-  // Check usage limits when component loads
-  useEffect(() => {
-    const checkUsageLimits = async () => {
-      try {
-        // If user can't use feedback and doesn't already have feedback results, show limit modal
-        const allowed = await canUseFeedback();
-        if (!allowed && !feedback) {
-          setShowLimitModal(true);
-        }
-      } catch (error) {
-        console.error("Error checking usage limits:", error);
-      }
-    };
-    
-    checkUsageLimits();
-  }, [feedback]);
-
+  // Check usage limits when component loads - but we'll do this in ResumeAnalyzer
+  // to avoid using hooks outside of a component
+  
   const handleAnalysisComplete = async (data: Feedback) => {
     setIsLoading(false);
     setFeedback(data);
     setHelpfulFeedback(null);
 
     try {
+      // Skip tracking usage and database storage if there was an error
+      if (data.error) {
+        return;
+      }
+      
       // Track feedback usage
       await trackFeedbackUsage();
 
