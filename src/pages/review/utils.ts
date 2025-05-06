@@ -36,7 +36,7 @@ function extractKeywords(text: string): string[] {
   const filteredWords = words.filter(word => 
     word.length > 2 && !stopWords.has(word)
   );
-
+  
   // Count frequency of each word
   const wordFrequency: {[key: string]: number} = {};
   filteredWords.forEach(word => {
