@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { FileSearch, MessageSquare, CheckCheck, Target, FileText, ArrowUp, AlertTriangle } from "lucide-react";
 import { Feedback } from "./types";
@@ -22,32 +23,46 @@ const ResultList = ({ feedback, onRequestRewrite }: ResultListProps) => {
 
   const resumeText = feedback?.resume || "";
   const jobDescriptionText = feedback?.jobDescription || "";
-  const atsScore = calculateATSScore(resumeText, jobDescriptionText);
   
-  // Ensure score has a default value if feedback.score is undefined
-  const score = feedback?.score !== undefined ? feedback.score : 0;
+  // Ensure we have valid input for ATS score calculation
+  const atsScore = resumeText && jobDescriptionText ? calculateATSScore(resumeText, jobDescriptionText) : 0;
+  
+  // Ensure score has a default value if feedback.score is undefined or NaN
+  const score = feedback?.score !== undefined && !isNaN(feedback.score) ? feedback.score : 0;
 
   // Check for data completeness
   useEffect(() => {
     // Check if we have all the expected data
     const incompleteData = !feedback || 
       feedback.score === undefined || 
+      isNaN(feedback.score) ||
       !Array.isArray(feedback.missingKeywords) || 
       !feedback.sectionFeedback || 
       !Array.isArray(feedback.weakBullets) || 
       !feedback.toneSuggestions ||
       !feedback.wouldInterview;
     
+    console.log("Data completeness check:", {
+      hasFeedback: !!feedback,
+      score: feedback?.score,
+      isScoreNaN: isNaN(feedback?.score),
+      missingKeywordsArray: Array.isArray(feedback?.missingKeywords),
+      hasSectionFeedback: !!feedback?.sectionFeedback,
+      weakBulletsArray: Array.isArray(feedback?.weakBullets),
+      hasToneSuggestions: !!feedback?.toneSuggestions,
+      hasWouldInterview: !!feedback?.wouldInterview
+    });
+    
     setIsIncompleteData(incompleteData);
   }, [feedback]);
 
   const atsScoreLow = atsScore < 75;
   const relevanceScoreLow = score < 80;
-  const hasMissingKeywords = Array.isArray(feedback.missingKeywords) && feedback.missingKeywords.length > 0;
+  const hasMissingKeywords = Array.isArray(feedback?.missingKeywords) && feedback.missingKeywords.length > 0;
   const needsImprovement = atsScoreLow || relevanceScoreLow || hasMissingKeywords;
 
   useEffect(() => {
-    if (score) {
+    if (score > 0 || score === 0) {
       let current = 0;
       const interval = setInterval(() => {
         if (current < score) {
@@ -131,11 +146,11 @@ const ResultList = ({ feedback, onRequestRewrite }: ResultListProps) => {
           />
         </div>
         
-        {Array.isArray(feedback.missingKeywords) && feedback.missingKeywords.length > 0 && (
+        {Array.isArray(feedback?.missingKeywords) && feedback.missingKeywords.length > 0 && (
           <MissingKeywords keywords={feedback.missingKeywords} />
         )}
         
-        {feedback.sectionFeedback && Object.keys(feedback.sectionFeedback || {}).length > 0 && (
+        {feedback?.sectionFeedback && Object.keys(feedback.sectionFeedback || {}).length > 0 && (
           <SectionFeedback feedback={feedback.sectionFeedback} />
         )}
       </div>
