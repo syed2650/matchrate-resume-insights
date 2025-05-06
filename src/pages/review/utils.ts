@@ -5,7 +5,7 @@
 import { calculateATSScore as computeATSScore, getATSScoreExplanation, getATSScoreDetail } from './utils/atsScoring';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthUser } from "@/hooks/useAuthUser";
-import { getClientFingerprint } from "./utils/fingerprinting";
+import { generateClientFingerprint } from "./utils/fingerprinting";
 
 // Re-export the ATS score explanation functions for easier access
 export { getATSScoreExplanation, getATSScoreDetail };
@@ -159,30 +159,8 @@ export function getActiveResumeATSHash(): string | null {
 }
 
 // Client fingerprint generation (basic version)
-function generateClientFingerprint(): string {
-  try {
-    // Use screen properties, timezone, and other browser features
-    const screenData = `${window.screen.width}x${window.screen.height}x${window.screen.colorDepth}`;
-    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    const language = navigator.language;
-    const platform = navigator.platform;
-    
-    // Combine these values to create a fingerprint
-    const combinedData = `${screenData}|${timeZone}|${language}|${platform}`;
-    
-    // Create a simple hash
-    let hash = 0;
-    for (let i = 0; i < combinedData.length; i++) {
-      const char = combinedData.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32bit integer
-    }
-    
-    return Math.abs(hash).toString(36);
-  } catch (e) {
-    // Fallback if anything fails
-    return Math.random().toString(36).substring(2, 15);
-  }
+function getClientFingerprint(): string {
+  return generateClientFingerprint();
 }
 
 // Get or create a client ID that persists across sessions
@@ -285,7 +263,7 @@ export function getUsageStats(): UsageStats {
 export async function canUseFeedback(): Promise<boolean> {
   try {
     // Get the client fingerprint
-    const fingerprint = getClientFingerprint();
+    const fingerprint = generateClientFingerprint();
     
     // Call the function and check the result
     const { data, error } = await supabase.rpc('check_resume_analysis_limit', {
@@ -313,18 +291,17 @@ export async function canUseFeedback(): Promise<boolean> {
 export async function trackFeedbackUsage(): Promise<void> {
   try {
     // Get the client fingerprint
-    const fingerprint = getClientFingerprint();
+    const fingerprint = generateClientFingerprint();
     
     // Insert usage tracking record
-    const { error } = await supabase.from('usage_tracking').insert([
-      {
-        user_id: null, // Anonymous mode for now
-        feature_name: 'resume_analysis',
-        anonymous_id: fingerprint,
-        client_fingerprint: fingerprint,
-        ip_address: null
-      }
-    ]);
+    const { error } = await supabase.from('usage_tracking').insert({
+      user_id: null, // Anonymous mode for now
+      feature_name: 'resume_analysis',
+      anonymous_id: fingerprint,
+      client_fingerprint: fingerprint,
+      ip_address: null,
+      action_type: 'use' // Add the missing action_type field
+    });
     
     if (error) {
       console.error("Error tracking feedback usage:", error);
