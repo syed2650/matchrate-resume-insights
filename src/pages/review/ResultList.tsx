@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { FileSearch, MessageSquare, CheckCheck, Target, FileText, ArrowUp } from "lucide-react";
+import { FileSearch, MessageSquare, CheckCheck, Target, FileText, ArrowUp, AlertTriangle } from "lucide-react";
 import { Feedback } from "./types";
 import { calculateATSScore, getATSScoreExplanation } from "./utils/atsScoring";
 import ResultSection from "./ResultSection";
@@ -9,6 +9,7 @@ import MissingKeywords from "./components/MissingKeywords";
 import SectionFeedback from "./components/SectionFeedback";
 import BulletImprovements from "./components/BulletImprovements";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface ResultListProps {
   feedback: Feedback;
@@ -18,6 +19,7 @@ interface ResultListProps {
 const ResultList = ({ feedback, onRequestRewrite }: ResultListProps) => {
   const [animatedScore, setAnimatedScore] = useState(0);
   const [animatedATSScore, setAnimatedATSScore] = useState(0);
+  const [isIncompleteData, setIsIncompleteData] = useState(false);
 
   const resumeText = feedback?.resume || "";
   const jobDescriptionText = feedback?.jobDescription || "";
@@ -25,6 +27,20 @@ const ResultList = ({ feedback, onRequestRewrite }: ResultListProps) => {
   
   // Ensure score has a default value if feedback.score is undefined
   const score = feedback?.score !== undefined ? feedback.score : 0;
+
+  // Check for data completeness
+  useEffect(() => {
+    // Check if we have all the expected data
+    const incompleteData = !feedback || 
+      feedback.score === undefined || 
+      !Array.isArray(feedback.missingKeywords) || 
+      !feedback.sectionFeedback || 
+      !Array.isArray(feedback.weakBullets) || 
+      !feedback.toneSuggestions ||
+      !feedback.wouldInterview;
+    
+    setIsIncompleteData(incompleteData);
+  }, [feedback]);
 
   const atsScoreLow = atsScore < 75;
   const relevanceScoreLow = score < 80;
@@ -75,6 +91,54 @@ const ResultList = ({ feedback, onRequestRewrite }: ResultListProps) => {
             Please try again later or contact support if this issue persists.
           </p>
         </div>
+      </div>
+    );
+  }
+  
+  if (isIncompleteData) {
+    return (
+      <div className="grid gap-8">
+        <Alert variant="warning" className="bg-amber-50 border-amber-300">
+          <AlertTriangle className="h-5 w-5 text-amber-600" />
+          <AlertTitle className="text-amber-800">Incomplete Analysis Results</AlertTitle>
+          <AlertDescription className="text-amber-700">
+            We received incomplete data from our analysis engine. Some parts of your report may be missing or inaccurate.
+            You might want to try submitting your resume again.
+          </AlertDescription>
+        </Alert>
+        
+        {/* Still show whatever data we have */}
+        <div className="grid md:grid-cols-2 gap-6">
+          <ScoreCard
+            title="Relevance Score"
+            score={animatedScore}
+            icon={Target}
+            explanation={
+              score >= 80
+                ? "Great match! Your resume aligns well with this position."
+                : score >= 60
+                ? "Moderate match. Consider tailoring your resume further."
+                : "Low match. Significant changes recommended to align with this role."
+            }
+            isLow={relevanceScoreLow}
+          />
+
+          <ScoreCard
+            title="ATS Readiness"
+            score={animatedATSScore}
+            icon={FileSearch}
+            explanation={getATSScoreExplanation(atsScore)}
+            isLow={atsScoreLow}
+          />
+        </div>
+        
+        {Array.isArray(feedback.missingKeywords) && feedback.missingKeywords.length > 0 && (
+          <MissingKeywords keywords={feedback.missingKeywords} />
+        )}
+        
+        {feedback.sectionFeedback && Object.keys(feedback.sectionFeedback || {}).length > 0 && (
+          <SectionFeedback feedback={feedback.sectionFeedback} />
+        )}
       </div>
     );
   }

@@ -3,6 +3,19 @@ import { Document, Paragraph, TextRun, HeadingLevel, AlignmentType, Packer } fro
 import { Feedback } from "../types";
 
 export const generateFeedbackDocx = (feedback: Feedback) => {
+  // Validate the feedback object to ensure it has the required properties
+  if (!feedback) {
+    throw new Error("No feedback data provided");
+  }
+  
+  // Create safe accessors for feedback properties
+  const score = feedback.score ?? 0;
+  const missingKeywords = Array.isArray(feedback.missingKeywords) ? feedback.missingKeywords : [];
+  const sectionFeedback = feedback.sectionFeedback || {};
+  const weakBullets = Array.isArray(feedback.weakBullets) ? feedback.weakBullets : [];
+  const toneSuggestions = feedback.toneSuggestions || "No tone suggestions available";
+  const wouldInterview = feedback.wouldInterview || "No interview recommendation available";
+  
   const doc = new Document({
     sections: [
       {
@@ -18,7 +31,7 @@ export const generateFeedbackDocx = (feedback: Feedback) => {
           
           // Score section
           new Paragraph({
-            text: `Match Score: ${feedback.score}/100`,
+            text: `Match Score: ${score}/100`,
             heading: HeadingLevel.HEADING_1,
             spacing: { before: 400, after: 200 }
           }),
@@ -26,11 +39,11 @@ export const generateFeedbackDocx = (feedback: Feedback) => {
           new Paragraph({
             children: [
               new TextRun({
-                text: `This resume has a ${feedback.score}% match with the job description. `,
+                text: `This resume has a ${score}% match with the job description. `,
                 size: 24
               }),
               new TextRun({
-                text: feedback.wouldInterview || "",
+                text: wouldInterview,
                 size: 24,
                 bold: true
               })
@@ -45,7 +58,7 @@ export const generateFeedbackDocx = (feedback: Feedback) => {
             spacing: { before: 400, after: 200 }
           }),
           
-          ...(Array.isArray(feedback.missingKeywords) ? feedback.missingKeywords.map(keyword => 
+          ...(missingKeywords.length > 0 ? missingKeywords.map(keyword => 
             new Paragraph({
               text: `• ${keyword}`,
               spacing: { after: 100 }
@@ -59,15 +72,15 @@ export const generateFeedbackDocx = (feedback: Feedback) => {
             spacing: { before: 400, after: 200 }
           }),
           
-          ...(feedback.sectionFeedback && Object.entries(feedback.sectionFeedback).length > 0 ? 
-            Object.entries(feedback.sectionFeedback).flatMap(([section, content]) => [
+          ...(Object.entries(sectionFeedback).length > 0 ? 
+            Object.entries(sectionFeedback).flatMap(([section, content]) => [
               new Paragraph({
                 text: section,
                 heading: HeadingLevel.HEADING_2,
                 spacing: { before: 200, after: 100 }
               }),
               new Paragraph({
-                text: content,
+                text: content as string,
                 spacing: { after: 100 }
               })
             ]) : 
@@ -81,7 +94,7 @@ export const generateFeedbackDocx = (feedback: Feedback) => {
             spacing: { before: 400, after: 200 }
           }),
           
-          ...(Array.isArray(feedback.weakBullets) ? feedback.weakBullets.flatMap((bullet, index) => {
+          ...(weakBullets.length > 0 ? weakBullets.flatMap((bullet, index) => {
             if (!bullet || typeof bullet !== 'object') {
               return [new Paragraph({ text: `No data for bullet ${index + 1}`, spacing: { after: 100 } })];
             }
@@ -120,7 +133,7 @@ export const generateFeedbackDocx = (feedback: Feedback) => {
           }),
           
           new Paragraph({
-            text: feedback.toneSuggestions || "No tone suggestions available",
+            text: toneSuggestions,
             spacing: { after: 400 }
           }),
           

@@ -84,6 +84,8 @@ serve(async (req) => {
   }
 
   try {
+    console.log("Starting resume analysis request processing");
+    
     const { 
       resume, 
       jobDescription, 
@@ -96,14 +98,16 @@ serve(async (req) => {
 
     // Log input sizes to help with debugging
     console.log(`Processing request: Resume length: ${resume?.length || 0}, Job description length: ${jobDescription?.length || 0}, URL: ${jobUrl || 'none'}`);
-    console.log(`Using score hash: ${scoreHash || 'none'}, Skip ATS calculation: ${skipATSCalculation}`);
+    console.log(`Selected role: ${selectedRole || 'General'}, Generate rewrite: ${generateRewrite}, Skip ATS calculation: ${skipATSCalculation}`);
     
     // Validate required values
     if ((!resume || resume.trim() === '') && (!jobDescription || jobDescription.trim() === '')) {
+      console.error("Both resume text and job description are empty");
       throw new Error('Both resume text and job description are empty');
     }
     
     if (!openAIApiKey) {
+      console.error("OpenAI API key is not configured");
       throw new Error('OpenAI API key is not configured');
     }
 
@@ -188,14 +192,67 @@ serve(async (req) => {
     console.log("Sending analysis request to OpenAI...");
 
     try {
-      const analysisData = await callOpenAIForAnalysis(analysisMessages, openAIApiKey);
+      console.log("Calling OpenAI API for resume analysis");
+      let retries = 0;
+      const maxRetries = 2;
+      let analysisData;
+      
+      // Add retry logic for OpenAI API call
+      while (retries <= maxRetries) {
+        try {
+          analysisData = await callOpenAIForAnalysis(analysisMessages, openAIApiKey);
+          console.log("Successfully received OpenAI API response");
+          break;
+        } catch (apiError) {
+          retries++;
+          console.error(`OpenAI API call failed (attempt ${retries}/${maxRetries + 1}):`, apiError);
+          
+          if (retries > maxRetries) {
+            throw apiError;
+          }
+          
+          // Wait before retrying (exponential backoff)
+          const delay = 1000 * Math.pow(2, retries - 1);
+          console.log(`Waiting ${delay}ms before retry...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
+
+      if (!analysisData) {
+        throw new Error("Failed to get analysis data from OpenAI after retries");
+      }
+      
+      // Log the raw response before parsing
+      console.log("OpenAI raw response structure:", JSON.stringify({
+        choices: analysisData.choices ? 
+          analysisData.choices.map(c => ({ index: c.index, finish_reason: c.finish_reason })) : 
+          'No choices array',
+        usage: analysisData.usage || 'No usage data'
+      }));
+      
+      // Try to log a preview of the actual content
+      try {
+        if (analysisData.choices && analysisData.choices[0] && analysisData.choices[0].message) {
+          const contentPreview = analysisData.choices[0].message.content.substring(0, 100) + '...';
+          console.log("Response content preview:", contentPreview);
+        }
+      } catch (previewError) {
+        console.error("Error while logging content preview:", previewError);
+      }
+      
       let analysis = parseAndValidateAnalysis(analysisData);
+      
+      console.log("Successfully parsed analysis object with keys:", Object.keys(analysis));
+      console.log("Analysis score:", analysis.score);
+      console.log("Missing keywords count:", Array.isArray(analysis.missingKeywords) ? analysis.missingKeywords.length : 'Not an array');
+      console.log("Section feedback keys:", analysis.sectionFeedback ? Object.keys(analysis.sectionFeedback).length : 'No section feedback');
 
       // Resume rewrite generation (if requested) with enhanced context
       let rewrittenResume = null;
       let atsScores = {};
       
       if (generateRewrite) {
+        console.log("Generating resume rewrite...");
         // Generate full professional resume
         try {
           // Pass the analysis to the rewrite function to incorporate feedback
@@ -210,10 +267,12 @@ serve(async (req) => {
           
           // Extract the rewritten resume from the response
           rewrittenResume = rewriteResult.text;
+          console.log("Successfully generated resume rewrite");
           
           // Use the calculated ATS score
           if (!skipATSCalculation) {
             atsScores = { "general": rewriteResult.atsScore };
+            console.log("Generated ATS score:", rewriteResult.atsScore);
           }
         } catch (error) {
           console.error("Error generating resume rewrite:", error);
@@ -234,6 +293,8 @@ serve(async (req) => {
         }
       };
 
+      console.log("Sending final response with keys:", Object.keys(finalResult));
+      
       return new Response(JSON.stringify(finalResult), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -243,6 +304,7 @@ serve(async (req) => {
     }
   } catch (error) {
     console.error('Error in analyze-resume function:', error);
+    // Return a structured error response with default values for all expected fields
     return new Response(JSON.stringify({
       error: error.message,
       score: 0,

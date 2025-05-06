@@ -88,6 +88,11 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, setIsLoading, isDisable
 
       const data = await response.json();
       
+      // Check for API error
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      
       const enhancedData = {
         ...data,
         resume,
