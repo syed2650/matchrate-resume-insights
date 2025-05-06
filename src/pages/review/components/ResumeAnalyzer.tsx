@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Feedback } from "../types";
-import ReviewForm from "./ReviewForm";
+import ReviewForm from "../ReviewForm";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Loader2 } from "lucide-react";
