@@ -25,9 +25,14 @@ const Review = () => {
   // Check usage limits when component loads
   useEffect(() => {
     const checkUsageLimits = async () => {
-      // If user can't use feedback and doesn't already have feedback results, show limit modal
-      if (!await canUseFeedback() && !feedback) {
-        setShowLimitModal(true);
+      try {
+        // If user can't use feedback and doesn't already have feedback results, show limit modal
+        const allowed = await canUseFeedback();
+        if (!allowed && !feedback) {
+          setShowLimitModal(true);
+        }
+      } catch (error) {
+        console.error("Error checking usage limits:", error);
       }
     };
     
@@ -39,10 +44,10 @@ const Review = () => {
     setFeedback(data);
     setHelpfulFeedback(null);
 
-    // Track feedback usage
-    await trackFeedbackUsage();
-
     try {
+      // Track feedback usage
+      await trackFeedbackUsage();
+
       // Convert feedback results to a JSON-compatible format
       const feedbackResultsForDb = {
         score: data.score,

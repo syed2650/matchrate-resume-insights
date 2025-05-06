@@ -26,12 +26,18 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, setIsLoading, isDisable
   // Check usage limits when component loads
   useEffect(() => {
     const checkUsageLimits = async () => {
-      const allowed = await canUseFeedback();
-      setCanUse(allowed);
-      
-      // Show limit modal if user has reached their limit
-      if (!allowed) {
-        setShowLimitModal(true);
+      try {
+        const allowed = await canUseFeedback();
+        setCanUse(allowed);
+        
+        // Show limit modal if user has reached their limit
+        if (!allowed) {
+          setShowLimitModal(true);
+        }
+      } catch (error) {
+        console.error("Error checking usage limits:", error);
+        // Default to allowing usage if there's an error
+        setCanUse(true);
       }
     };
     
@@ -56,13 +62,13 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, setIsLoading, isDisable
     jobTitle?: string
   ) => {
     // Double-check if user has reached their limit
-    const allowed = await canUseFeedback();
-    if (!allowed) {
-      setShowLimitModal(true);
-      return;
-    }
-    
     try {
+      const allowed = await canUseFeedback();
+      if (!allowed) {
+        setShowLimitModal(true);
+        return;
+      }
+      
       setIsSubmitting(true);
 
       const response = await fetch('https://rodkrpeqxgqizngdypbl.functions.supabase.co/analyze-resume', {
