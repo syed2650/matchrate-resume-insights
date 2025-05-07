@@ -1,187 +1,210 @@
 
+/**
+ * Utility functions for usage tracking in resume reviews
+ */
+
 import { supabase } from "@/integrations/supabase/client";
-import { getOrCreateClientId } from "./fingerprinting";
+import { useAuthUser } from "@/hooks/useAuthUser";
+import { generateClientFingerprint } from "./fingerprinting";
+import { getAnonymousId } from "./idGeneration";
 
-// Define the shape of our usage stats
 export interface UsageStats {
-  feedback: number;
-  rewrite: number;
-  timestamp: string;
-  lastUsedFeedback?: string;
-  lastUsedRewrite?: string;
-  plan?: string;
-}
-
-// Constants for usage limits
-const FREE_FEEDBACK_LIMIT = 1;
-const FREE_REWRITE_LIMIT = 0;
-const PREMIUM_FEEDBACK_LIMIT = 999;
-const PREMIUM_REWRITE_LIMIT = 999;
-
-// Local storage keys
-const USAGE_KEY = 'usage_stats';
-const PLAN_KEY = 'user_plan';
-
-// Get usage stats from local storage or create new ones
-export function getUsageStats(): UsageStats {
-  try {
-    const storedStats = localStorage.getItem(USAGE_KEY);
-    if (storedStats) {
-      return JSON.parse(storedStats);
-    }
-  } catch (e) {
-    console.error("Error retrieving usage stats:", e);
-  }
-
-  // Default empty stats
-  return {
-    feedback: 0,
-    rewrite: 0,
-    timestamp: new Date().toISOString().split('T')[0], // current date
-    plan: getPlan()
+  daily: {
+    count: number,
+    date: string
   };
+  monthly: {
+    feedbacks: number,
+    rewrites: number,
+    resetDate: string
+  };
+  plan: 'free' | 'paid';
 }
 
-// Save updated usage stats to local storage
-function saveUsageStats(stats: UsageStats): void {
-  try {
-    localStorage.setItem(USAGE_KEY, JSON.stringify(stats));
-  } catch (e) {
-    console.error("Error saving usage stats:", e);
-  }
-}
+// Get current usage stats
+export function getUsageStats(): UsageStats {
+  const defaultStats: UsageStats = {
+    daily: {
+      count: 0,
+      date: new Date().toISOString().split('T')[0]
+    },
+    monthly: {
+      feedbacks: 0,
+      rewrites: 0,
+      resetDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toISOString()
+    },
+    plan: 'free'
+  };
 
-// Get the user's current plan
-function getPlan(): string {
   try {
-    return localStorage.getItem(PLAN_KEY) || 'free';
-  } catch (e) {
-    return 'free';
-  }
-}
-
-// Set the user's plan
-export function setUserPlan(plan: string): void {
-  try {
-    localStorage.setItem(PLAN_KEY, plan);
-    const stats = getUsageStats();
-    stats.plan = plan;
-    saveUsageStats(stats);
-  } catch (e) {
-    console.error("Error setting user plan:", e);
-  }
-}
-
-// Check if the user has used up their feedback quota
-export async function canUseFeedback(): Promise<boolean> {
-  try {
-    // Get the client ID for tracking
-    const clientId = getOrCreateClientId();
-    const stats = getUsageStats();
-    const plan = stats.plan || 'free';
+    const storedStats = localStorage.getItem('usageStats');
+    if (!storedStats) return defaultStats;
     
-    // Check if usage limits need to be reset (new day)
+    const stats: UsageStats = JSON.parse(storedStats);
     const today = new Date().toISOString().split('T')[0];
-    if (stats.timestamp !== today) {
-      // Reset counts for a new day
-      stats.feedback = 0;
-      stats.rewrite = 0;
-      stats.timestamp = today;
-      saveUsageStats(stats);
+    
+    // Reset daily count if it's a new day
+    if (stats.daily.date !== today) {
+      stats.daily.count = 0;
+      stats.daily.date = today;
+    }
+    
+    // Reset monthly count if we're past reset date
+    const resetDate = new Date(stats.monthly.resetDate);
+    if (new Date() > resetDate) {
+      stats.monthly.feedbacks = 0;
+      stats.monthly.rewrites = 0;
+      
+      // Set next reset date to first day of next month
+      const nextMonth = new Date();
+      nextMonth.setMonth(nextMonth.getMonth() + 1);
+      nextMonth.setDate(1);
+      stats.monthly.resetDate = nextMonth.toISOString();
+      
+      // Save the updated stats with reset counters
+      localStorage.setItem('usageStats', JSON.stringify(stats));
+    }
+    
+    return stats;
+  } catch (error) {
+    console.error("Error retrieving usage stats:", error);
+    return defaultStats;
+  }
+}
+
+// Check if user has reached their daily limit for free feedback
+export const canUseFeedback = async (): Promise<boolean> => {
+  try {
+    const { user } = useAuthUser();
+    const anonymousId = getAnonymousId();
+    const clientFingerprint = await generateClientFingerprint();
+    
+    const { data, error } = await supabase.rpc(
+      'check_resume_analysis_limit',
+      { 
+        p_user_id: user?.id || null, 
+        p_anonymous_id: anonymousId,
+        p_client_fingerprint: clientFingerprint,
+        p_ip_address: null // We don't track IP on client side for privacy
+      }
+    );
+    
+    if (error) {
+      console.error("Error checking usage limit:", error);
+      // Default to allowing usage if there's an error checking
       return true;
     }
     
-    // Check against the appropriate limit based on plan
-    const limit = plan === 'premium' ? PREMIUM_FEEDBACK_LIMIT : FREE_FEEDBACK_LIMIT;
-    return stats.feedback < limit;
-  } catch (error) {
-    console.error("Error checking feedback usage limits:", error);
-    // Default to allowing usage if there's an error checking
+    return data === true;
+  } catch (err) {
+    console.error("Exception checking usage limit:", err);
+    // Default to allowing usage if there's an exception
     return true;
   }
-}
+};
 
 // Track usage of the feedback feature
-export async function trackFeedbackUsage(): Promise<void> {
+export const trackFeedbackUsage = async (): Promise<void> => {
   try {
-    const stats = getUsageStats();
-    stats.feedback += 1;
-    stats.lastUsedFeedback = new Date().toISOString();
-    saveUsageStats(stats);
-  } catch (error) {
-    console.error("Error tracking feedback usage:", error);
-  }
-}
-
-// Check if the user has used up their rewrite quota
-export async function canUseRewrite(): Promise<boolean> {
-  try {
-    const stats = getUsageStats();
-    const plan = stats.plan || 'free';
+    const { user } = useAuthUser();
+    const anonymousId = getAnonymousId();
+    const clientFingerprint = await generateClientFingerprint();
     
-    // Check if usage limits need to be reset (new day)
-    const today = new Date().toISOString().split('T')[0];
-    if (stats.timestamp !== today) {
-      // Reset counts for a new day
-      stats.feedback = 0;
-      stats.rewrite = 0;
-      stats.timestamp = today;
-      saveUsageStats(stats);
-      return plan === 'premium'; // Only premium users can use rewrite
+    const { error } = await supabase
+      .from('usage_tracking')
+      .insert({
+        user_id: user?.id || null,
+        feature_name: 'resume_analysis',
+        anonymous_id: anonymousId,
+        client_fingerprint: clientFingerprint,
+        ip_address: null,  // We don't track IP on client side for privacy
+        action_type: 'used' // Adding required action_type field
+      });
+    
+    if (error) {
+      console.error("Error tracking feedback usage:", error);
+    }
+  } catch (err) {
+    console.error("Exception tracking feedback usage:", err);
+  }
+};
+
+// Track a rewrite usage
+export function trackRewriteUsage(): boolean {
+  try {
+    const stats = getUsageStats();
+    
+    // Update monthly rewrite count (only applies to paid users)
+    if (stats.plan === 'paid') {
+      stats.monthly.rewrites += 1;
     }
     
-    // Check against the appropriate limit based on plan
-    const limit = plan === 'premium' ? PREMIUM_REWRITE_LIMIT : FREE_REWRITE_LIMIT;
-    return stats.rewrite < limit;
+    // Store updated stats
+    localStorage.setItem('usageStats', JSON.stringify(stats));
+    return true;
   } catch (error) {
-    console.error("Error checking rewrite usage limits:", error);
+    console.error("Error tracking rewrite usage:", error);
     return false;
   }
 }
 
-// Track usage of the rewrite feature
-export async function trackRewriteUsage(): Promise<void> {
+// Check if user can perform more rewrite operations
+export function canUseRewrite(): boolean {
+  const stats = getUsageStats();
+  
+  // Rewrite feature is only available for paid users
+  if (stats.plan === 'free') {
+    return false;
+  }
+  
+  // For paid users, limit to 15 rewrites per month
+  return stats.monthly.rewrites < 15;
+}
+
+// Set user plan
+export function setUserPlan(plan: 'free' | 'paid'): void {
   try {
     const stats = getUsageStats();
-    stats.rewrite += 1;
-    stats.lastUsedRewrite = new Date().toISOString();
-    saveUsageStats(stats);
+    stats.plan = plan;
+    localStorage.setItem('usageStats', JSON.stringify(stats));
   } catch (error) {
-    console.error("Error tracking rewrite usage:", error);
+    console.error("Error setting user plan:", error);
   }
 }
 
-// Get remaining usage for the current day
-export function getRemainingUsage(): { feedback: number; rewrite: number } {
-  try {
-    const stats = getUsageStats();
-    const plan = stats.plan || 'free';
-    
-    const feedbackLimit = plan === 'premium' ? PREMIUM_FEEDBACK_LIMIT : FREE_FEEDBACK_LIMIT;
-    const rewriteLimit = plan === 'premium' ? PREMIUM_REWRITE_LIMIT : FREE_REWRITE_LIMIT;
-    
+// Get remaining usage counts
+export function getRemainingUsage(): { feedbacks: number; rewrites: number } {
+  const stats = getUsageStats();
+  
+  if (stats.plan === 'free') {
+    // Free plan: 1 per day, no rewrites
     return {
-      feedback: Math.max(0, feedbackLimit - stats.feedback),
-      rewrite: Math.max(0, rewriteLimit - stats.rewrite)
+      feedbacks: Math.max(0, 1 - stats.daily.count),
+      rewrites: 0
     };
-  } catch (error) {
-    console.error("Error calculating remaining usage:", error);
-    return { feedback: 0, rewrite: 0 };
+  } else {
+    // Paid plan: 30 feedbacks, 15 rewrites per month
+    return {
+      feedbacks: Math.max(0, 30 - stats.monthly.feedbacks),
+      rewrites: Math.max(0, 15 - stats.monthly.rewrites)
+    };
   }
 }
 
 // Reset usage stats (for testing)
 export function resetUsageStats(): void {
-  try {
-    const plan = getPlan();
-    const emptyStats: UsageStats = {
-      feedback: 0,
-      rewrite: 0,
-      timestamp: new Date().toISOString().split('T')[0],
-      plan
-    };
-    saveUsageStats(emptyStats);
-  } catch (error) {
-    console.error("Error resetting usage stats:", error);
-  }
+  const defaultStats: UsageStats = {
+    daily: {
+      count: 0,
+      date: new Date().toISOString().split('T')[0]
+    },
+    monthly: {
+      feedbacks: 0,
+      rewrites: 0,
+      resetDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toISOString()
+    },
+    plan: 'free'
+  };
+  
+  localStorage.setItem('usageStats', JSON.stringify(defaultStats));
 }

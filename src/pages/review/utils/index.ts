@@ -27,6 +27,9 @@ export {
   getClientIp
 } from './fingerprinting';
 
+// Re-export from the idGeneration module
+export { getAnonymousId } from './idGeneration';
+
 // Re-export from the usageTracking module
 export {
   type UsageStats,

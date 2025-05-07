@@ -1,9 +1,8 @@
 
 /**
- * Utility functions for keyword extraction and processing
+ * Utility functions for keyword extraction and analysis
  */
 
-// Extract keywords from text with improved algorithm
 export function extractKeywords(text: string): string[] {
   if (!text || typeof text !== 'string') {
     return [];
