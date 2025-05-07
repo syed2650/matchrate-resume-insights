@@ -6,6 +6,7 @@ import { calculateATSScore as computeATSScore, getATSScoreExplanation, getATSSco
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthUser } from "@/hooks/useAuthUser";
 import { generateClientFingerprint } from "./utils/fingerprinting";
+import { v4 as uuidv4 } from 'uuid';
 
 // Re-export the ATS score explanation functions for easier access
 export { getATSScoreExplanation, getATSScoreDetail };
@@ -254,57 +255,69 @@ export function getUsageStats(): UsageStats {
   }
 }
 
-// Check if user can use feedback - enhanced with server-side validation
-export async function canUseFeedback(): Promise<boolean> {
+// Generate a random anonymous ID if the user is not logged in
+let storedAnonymousId = localStorage.getItem('anonymousId');
+if (!storedAnonymousId) {
+  storedAnonymousId = uuidv4();
+  localStorage.setItem('anonymousId', storedAnonymousId);
+}
+
+// Check if user has reached their daily limit for free feedback
+export const canUseFeedback = async (): Promise<boolean> => {
   try {
-    // Get the client fingerprint
-    const fingerprint = generateClientFingerprint();
+    const { user } = useAuthUser();
+    const anonymousId = storedAnonymousId;
+    const clientFingerprint = await generateClientFingerprint();
     
-    // Call the function and check the result
-    const { data, error } = await supabase.rpc('check_resume_analysis_limit', {
-      p_user_id: null,  // Anonymous mode for now
-      p_anonymous_id: fingerprint,
-      p_client_fingerprint: fingerprint,
-      p_ip_address: null
-    });
+    const { data, error } = await supabase.rpc(
+      'check_resume_analysis_limit',
+      { 
+        p_user_id: user?.id || null, 
+        p_anonymous_id: anonymousId,
+        p_client_fingerprint: clientFingerprint,
+        p_ip_address: null // We don't track IP on client side for privacy
+      }
+    );
     
     if (error) {
-      console.error("Error checking feedback usage limits:", error);
-      // Default to allowing usage if there's an error
+      console.error("Error checking usage limit:", error);
+      // Default to allowing usage if there's an error checking
       return true;
     }
     
     return data === true;
-  } catch (error) {
-    console.error("Error checking feedback usage limits:", error);
-    // Default to allowing usage if there's an error
+  } catch (err) {
+    console.error("Exception checking usage limit:", err);
+    // Default to allowing usage if there's an exception
     return true;
   }
-}
+};
 
-// Function to track feedback usage
-export async function trackFeedbackUsage(): Promise<void> {
+// Track usage of the feedback feature
+export const trackFeedbackUsage = async (): Promise<void> => {
   try {
-    // Get the client fingerprint
-    const fingerprint = generateClientFingerprint();
+    const { user } = useAuthUser();
+    const anonymousId = storedAnonymousId;
+    const clientFingerprint = await generateClientFingerprint();
     
-    // Insert usage tracking record with the required action_type field
-    const { error } = await supabase.from('usage_tracking').insert({
-      user_id: null, // Anonymous mode for now
-      feature_name: 'resume_analysis',
-      anonymous_id: fingerprint,
-      client_fingerprint: fingerprint,
-      ip_address: null,
-      action_type: 'use' // Make sure to include the action_type field
-    });
+    const { error } = await supabase
+      .from('usage_tracking')
+      .insert({
+        user_id: user?.id || null,
+        feature_name: 'resume_analysis',
+        anonymous_id: anonymousId,
+        client_fingerprint: clientFingerprint,
+        ip_address: null,  // We don't track IP on client side for privacy
+        action_type: 'used' // Adding required action_type field
+      });
     
     if (error) {
       console.error("Error tracking feedback usage:", error);
     }
-  } catch (error) {
-    console.error("Error tracking feedback usage:", error);
+  } catch (err) {
+    console.error("Exception tracking feedback usage:", err);
   }
-}
+};
 
 // Track a rewrite usage
 export function trackRewriteUsage(): boolean {

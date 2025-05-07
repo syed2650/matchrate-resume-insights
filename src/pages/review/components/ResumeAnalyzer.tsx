@@ -54,7 +54,7 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, setIsLoading, isDisable
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJvZGtycGVxeGdxaXpuZ2R5cGJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNDY5ODEsImV4cCI6MjA2MDcyMjk4MX0.ECPKii1lST8GcNt0M8SGXKLeeyJSL6vtIpoXVH5SZYA',
+          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJvZGtycGVxeGdxaXpuZ2R5cGJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNDY5ODEsImV4cCI6MjA2MDcyMjk4MX0.ECPKii1lST8GcNt0M8SGXKLeeyJSL6vtIpoXVH5SZYA`,
         },
         body: JSON.stringify({
           resume,
@@ -66,7 +66,8 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, setIsLoading, isDisable
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
+        const errorData = await response.json().catch(() => null);
+        const errorText = errorData ? JSON.stringify(errorData) : await response.text();
         throw new Error(`API error (${response.status}): ${errorText}`);
       }
 
