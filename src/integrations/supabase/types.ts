@@ -9,6 +9,48 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      feedback: {
+        Row: {
+          ats_scores: Json | null
+          created_at: string
+          id: string
+          missing_keywords: Json | null
+          rewritten_resume: string | null
+          score: number | null
+          section_feedback: Json | null
+          tone_suggestions: string | null
+          user_id: string | null
+          weak_bullets: Json | null
+          would_interview: string | null
+        }
+        Insert: {
+          ats_scores?: Json | null
+          created_at?: string
+          id?: string
+          missing_keywords?: Json | null
+          rewritten_resume?: string | null
+          score?: number | null
+          section_feedback?: Json | null
+          tone_suggestions?: string | null
+          user_id?: string | null
+          weak_bullets?: Json | null
+          would_interview?: string | null
+        }
+        Update: {
+          ats_scores?: Json | null
+          created_at?: string
+          id?: string
+          missing_keywords?: Json | null
+          rewritten_resume?: string | null
+          score?: number | null
+          section_feedback?: Json | null
+          tone_suggestions?: string | null
+          user_id?: string | null
+          weak_bullets?: Json | null
+          would_interview?: string | null
+        }
+        Relationships: []
+      }
       metrics: {
         Row: {
           created_at: string

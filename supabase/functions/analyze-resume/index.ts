@@ -58,6 +58,25 @@ serve(async (req) => {
       );
     }
 
+    // Initialize Supabase client
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+    const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
+    
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+      return new Response(
+        JSON.stringify({ error: "Supabase credentials not configured" }),
+        {
+          status: 500,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+    }
+    
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
     const openai = new OpenAI({
       apiKey: OPENAI_API_KEY,
     });
@@ -174,6 +193,42 @@ serve(async (req) => {
           ...feedbackData,
           rewrittenResume,
         };
+        
+        try {
+          // Store feedback data in the feedback table
+          console.log("Storing feedback data in Supabase");
+          
+          const { data: authData } = await supabase.auth.getUser();
+          const user = authData?.user || null;
+          
+          // Prepare the data for insertion in the correct format
+          const feedbackInsert = {
+            user_id: user?.id || null,
+            score: feedbackData.score || 0,
+            missing_keywords: feedbackData.missingKeywords || [],
+            section_feedback: feedbackData.sectionFeedback || {},
+            weak_bullets: feedbackData.weakBullets || [],
+            tone_suggestions: feedbackData.toneSuggestions || "",
+            would_interview: feedbackData.wouldInterview || "",
+            rewritten_resume: rewrittenResume || "",
+            ats_scores: feedbackData.atsScores || {}
+          };
+          
+          const { error: insertError } = await supabase
+            .from('feedback')
+            .insert(feedbackInsert);
+            
+          if (insertError) {
+            console.error("Error storing feedback in database:", insertError);
+            // Don't fail the request, just log the error
+          } else {
+            console.log("Feedback successfully stored in database");
+          }
+          
+        } catch (dbError) {
+          console.error("Database operation failed:", dbError);
+          // Continue without failing the entire request
+        }
         
         console.log("Analysis complete, returning results");
         
