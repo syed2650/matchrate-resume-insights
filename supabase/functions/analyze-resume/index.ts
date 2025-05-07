@@ -89,7 +89,7 @@ serve(async (req) => {
           { role: "user", content: prompt },
         ],
         temperature: 0.2,
-        response_format: { type: "json_object" },
+        response_format: "json",
       });
 
       // Parse the OpenAI response
