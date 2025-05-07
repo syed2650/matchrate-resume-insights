@@ -56,7 +56,7 @@ function extractKeywords(text: string): string[] {
 }
 
 // Generate a stable hash for caching
-export function generateHash(resume: string, jobDescription: string): string {
+export function generateHash(resume: string | undefined, jobDescription: string | undefined): string {
   const str = `${resume?.substring(0, 1000) || ''}::${jobDescription?.substring(0, 1000) || ''}`;
   let hash = 0;
   if (str.length === 0) return hash.toString();
@@ -75,8 +75,14 @@ export function calculateATSScore(resumeText: string, jobDescriptionText: string
   return computeATSScore(resumeText, jobDescriptionText);
 }
 
+interface CachedATSScore {
+  hash: string;
+  scores: Record<string, number>;
+  timestamp: string;
+}
+
 // Cache management functions for ATS scores
-export function saveATSScoreToCache(hash: string, scores: Record<string, number>) {
+export function saveATSScoreToCache(hash: string, scores: Record<string, number>): boolean {
   try {
     // Get existing cache
     let cachedScores = getATSScoresFromCache();
@@ -112,7 +118,7 @@ export function saveATSScoreToCache(hash: string, scores: Record<string, number>
   }
 }
 
-export function getATSScoresFromCache() {
+export function getATSScoresFromCache(): CachedATSScore[] {
   try {
     const storedScores = localStorage.getItem('cachedATSScores');
     const parsedScores = storedScores ? JSON.parse(storedScores) : [];
@@ -123,18 +129,18 @@ export function getATSScoresFromCache() {
   }
 }
 
-export function getATSScoreFromCache(hash: string) {
+export function getATSScoreFromCache(hash: string): CachedATSScore | undefined {
   try {
     const cachedScores = getATSScoresFromCache();
     const result = cachedScores.find(item => item.hash === hash);
     return result;
   } catch (error) {
     console.error("Error retrieving ATS score from cache:", error);
-    return null;
+    return undefined;
   }
 }
 
-export function clearATSScoreCache() {
+export function clearATSScoreCache(): boolean {
   try {
     localStorage.removeItem('cachedATSScores');
     return true;
@@ -145,7 +151,7 @@ export function clearATSScoreCache() {
 }
 
 // Session storage function to maintain score during session
-export function storeActiveResumeATSScore(resumeJobHash: string) {
+export function storeActiveResumeATSScore(resumeJobHash: string): boolean {
   try {
     sessionStorage.setItem('activeResumeATSHash', resumeJobHash);
     return true;
