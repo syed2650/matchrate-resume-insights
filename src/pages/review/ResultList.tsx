@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { FileSearch, MessageSquare, CheckCheck, Target, FileText, ArrowUp, AlertTriangle } from "lucide-react";
 import { Feedback } from "./types";
@@ -92,8 +91,8 @@ const ResultList = ({ feedback, onRequestRewrite }: ResultListProps) => {
   }, [atsScore]);
 
   // Check if there was an API error
-  const hasError = feedback.error !== undefined;
-  const errorMessage = feedback.error || "An unknown error occurred during analysis.";
+  const hasError = feedback?.error !== undefined;
+  const errorMessage = feedback?.error || "An unknown error occurred during analysis.";
 
   if (hasError) {
     return (

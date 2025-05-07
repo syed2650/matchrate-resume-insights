@@ -4,11 +4,9 @@ import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Feedback } from "../types";
 import ReviewForm from "../ReviewForm";
-import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import UsageLimitModal from "./UsageLimitModal";
-import { canUseFeedback } from "../utils";
+import { canUseFeedback, trackFeedbackUsage } from "../utils";
 
 interface ResumeAnalyzerProps {
   onAnalysisComplete: (feedback: Feedback) => void;
@@ -21,28 +19,6 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, setIsLoading, isDisable
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showLimitModal, setShowLimitModal] = useState(false);
-  const [canUse, setCanUse] = useState<boolean | null>(null);
-  
-  // Check usage limits when component loads
-  useEffect(() => {
-    const checkUsageLimits = async () => {
-      try {
-        const allowed = await canUseFeedback();
-        setCanUse(allowed);
-        
-        // Show limit modal if user has reached their limit
-        if (!allowed) {
-          setShowLimitModal(true);
-        }
-      } catch (error) {
-        console.error("Error checking usage limits:", error);
-        // Default to allowing usage if there's an error
-        setCanUse(true);
-      }
-    };
-    
-    checkUsageLimits();
-  }, []);
   
   useEffect(() => {
     const listener = () => {
@@ -61,13 +37,16 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, setIsLoading, isDisable
     jobUrl?: string,
     jobTitle?: string
   ) => {
-    // Double-check if user has reached their limit
+    // Check if user has reached their limit
     try {
-      const allowed = await canUseFeedback();
-      if (!allowed) {
+      const canUse = await canUseFeedback();
+      if (!canUse) {
         setShowLimitModal(true);
         return;
       }
+      
+      // Track usage if we're allowed to proceed
+      await trackFeedbackUsage();
       
       setIsSubmitting(true);
 
@@ -85,6 +64,11 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, setIsLoading, isDisable
           generateRewrite: true,
         }),
       });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`API error (${response.status}): ${errorText}`);
+      }
 
       const data = await response.json();
       
@@ -109,6 +93,22 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, setIsLoading, isDisable
         description: error instanceof Error ? error.message : "Failed to analyze resume",
         variant: "destructive"
       });
+      
+      // Send empty feedback object with error to still navigate to results view
+      // but show error state instead of loading forever
+      onAnalysisComplete({
+        error: error instanceof Error ? error.message : "Failed to analyze resume",
+        resume,
+        jobDescription,
+        jobUrl,
+        jobTitle,
+        score: 0,
+        missingKeywords: [],
+        sectionFeedback: {},
+        weakBullets: [],
+        toneSuggestions: "Error occurred during analysis",
+        wouldInterview: "Unable to provide recommendation due to error"
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -131,7 +131,7 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, setIsLoading, isDisable
       <ReviewForm 
         onSubmit={handleFormSubmit} 
         isLoading={isLoading || isSubmitting}
-        isDisabled={isDisabled || canUse === false}
+        isDisabled={isDisabled}
       />
 
       <UsageLimitModal 

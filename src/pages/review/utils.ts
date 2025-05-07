@@ -158,11 +158,6 @@ export function getActiveResumeATSHash(): string | null {
   return sessionStorage.getItem('activeResumeATSHash');
 }
 
-// Client fingerprint generation (basic version)
-function getClientFingerprint(): string {
-  return generateClientFingerprint();
-}
-
 // Get or create a client ID that persists across sessions
 function getOrCreateClientId(): string {
   try {
@@ -293,14 +288,14 @@ export async function trackFeedbackUsage(): Promise<void> {
     // Get the client fingerprint
     const fingerprint = generateClientFingerprint();
     
-    // Insert usage tracking record
+    // Insert usage tracking record with the required action_type field
     const { error } = await supabase.from('usage_tracking').insert({
       user_id: null, // Anonymous mode for now
       feature_name: 'resume_analysis',
       anonymous_id: fingerprint,
       client_fingerprint: fingerprint,
       ip_address: null,
-      action_type: 'use' // Add the missing action_type field
+      action_type: 'use' // Make sure to include the action_type field
     });
     
     if (error) {
