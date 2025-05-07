@@ -1,0 +1,14 @@
+
+{
+  "functions": {
+    "api/analyze-resume.ts": {
+      "runtime": "edge"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/analyze-resume",
+      "destination": "/api/analyze-resume.ts"
+    }
+  ]
+}
