@@ -1,22 +1,22 @@
 
 /**
- * Utility functions for usage tracking in resume reviews
+ * Utility functions for tracking feature usage
  */
 
 import { supabase } from "@/integrations/supabase/client";
-import { useAuthUser } from "@/hooks/useAuthUser";
 import { generateClientFingerprint } from "./fingerprinting";
 import { getAnonymousId } from "./idGeneration";
 
+// UsageStats type definition
 export interface UsageStats {
   daily: {
-    count: number,
-    date: string
+    count: number;
+    date: string;
   };
   monthly: {
-    feedbacks: number,
-    rewrites: number,
-    resetDate: string
+    feedbacks: number;
+    rewrites: number;
+    resetDate: string;
   };
   plan: 'free' | 'paid';
 }
@@ -35,12 +35,12 @@ export function getUsageStats(): UsageStats {
     },
     plan: 'free'
   };
-
+  
   try {
     const storedStats = localStorage.getItem('usageStats');
     if (!storedStats) return defaultStats;
     
-    const stats: UsageStats = JSON.parse(storedStats);
+    const stats = JSON.parse(storedStats) as UsageStats;
     const today = new Date().toISOString().split('T')[0];
     
     // Reset daily count if it's a new day
@@ -54,13 +54,11 @@ export function getUsageStats(): UsageStats {
     if (new Date() > resetDate) {
       stats.monthly.feedbacks = 0;
       stats.monthly.rewrites = 0;
-      
       // Set next reset date to first day of next month
       const nextMonth = new Date();
       nextMonth.setMonth(nextMonth.getMonth() + 1);
       nextMonth.setDate(1);
       stats.monthly.resetDate = nextMonth.toISOString();
-      
       // Save the updated stats with reset counters
       localStorage.setItem('usageStats', JSON.stringify(stats));
     }
@@ -75,19 +73,19 @@ export function getUsageStats(): UsageStats {
 // Check if user has reached their daily limit for free feedback
 export const canUseFeedback = async (): Promise<boolean> => {
   try {
-    const { user } = useAuthUser();
+    // Get user information if available
+    const authData = await supabase.auth.getUser();
+    const user = authData?.data?.user || null;
+    
     const anonymousId = getAnonymousId();
     const clientFingerprint = await generateClientFingerprint();
     
-    const { data, error } = await supabase.rpc(
-      'check_resume_analysis_limit',
-      { 
-        p_user_id: user?.id || null, 
-        p_anonymous_id: anonymousId,
-        p_client_fingerprint: clientFingerprint,
-        p_ip_address: null // We don't track IP on client side for privacy
-      }
-    );
+    const { data, error } = await supabase.rpc('check_resume_analysis_limit', {
+      p_user_id: user?.id || null,
+      p_anonymous_id: anonymousId,
+      p_client_fingerprint: clientFingerprint,
+      p_ip_address: null // We don't track IP on client side for privacy
+    });
     
     if (error) {
       console.error("Error checking usage limit:", error);
@@ -106,20 +104,21 @@ export const canUseFeedback = async (): Promise<boolean> => {
 // Track usage of the feedback feature
 export const trackFeedbackUsage = async (): Promise<void> => {
   try {
-    const { user } = useAuthUser();
+    // Get user information if available
+    const authData = await supabase.auth.getUser();
+    const user = authData?.data?.user || null;
+    
     const anonymousId = getAnonymousId();
     const clientFingerprint = await generateClientFingerprint();
     
-    const { error } = await supabase
-      .from('usage_tracking')
-      .insert({
-        user_id: user?.id || null,
-        feature_name: 'resume_analysis',
-        anonymous_id: anonymousId,
-        client_fingerprint: clientFingerprint,
-        ip_address: null,  // We don't track IP on client side for privacy
-        action_type: 'used' // Adding required action_type field
-      });
+    const { error } = await supabase.from('usage_tracking').insert({
+      user_id: user?.id || null,
+      feature_name: 'resume_analysis',
+      anonymous_id: anonymousId,
+      client_fingerprint: clientFingerprint,
+      ip_address: null,
+      action_type: 'used' // Adding required action_type field
+    });
     
     if (error) {
       console.error("Error tracking feedback usage:", error);
@@ -133,12 +132,10 @@ export const trackFeedbackUsage = async (): Promise<void> => {
 export function trackRewriteUsage(): boolean {
   try {
     const stats = getUsageStats();
-    
     // Update monthly rewrite count (only applies to paid users)
     if (stats.plan === 'paid') {
       stats.monthly.rewrites += 1;
     }
-    
     // Store updated stats
     localStorage.setItem('usageStats', JSON.stringify(stats));
     return true;
@@ -151,12 +148,10 @@ export function trackRewriteUsage(): boolean {
 // Check if user can perform more rewrite operations
 export function canUseRewrite(): boolean {
   const stats = getUsageStats();
-  
   // Rewrite feature is only available for paid users
   if (stats.plan === 'free') {
     return false;
   }
-  
   // For paid users, limit to 15 rewrites per month
   return stats.monthly.rewrites < 15;
 }
@@ -175,7 +170,6 @@ export function setUserPlan(plan: 'free' | 'paid'): void {
 // Get remaining usage counts
 export function getRemainingUsage(): { feedbacks: number; rewrites: number } {
   const stats = getUsageStats();
-  
   if (stats.plan === 'free') {
     // Free plan: 1 per day, no rewrites
     return {
@@ -205,6 +199,5 @@ export function resetUsageStats(): void {
     },
     plan: 'free'
   };
-  
   localStorage.setItem('usageStats', JSON.stringify(defaultStats));
 }

@@ -16,4 +16,3 @@ export function getAnonymousId(): string {
   
   return storedAnonymousId;
 }
-
