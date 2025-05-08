@@ -1,7 +1,7 @@
 
 import { NextApiRequest, NextApiResponse } from 'next';
 import { OpenAI } from "openai";
-import { generatePrompt, generateSystemMessage } from "../api/prompts";
+import { generatePrompt, generateSystemMessage } from "./prompts";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Enable CORS

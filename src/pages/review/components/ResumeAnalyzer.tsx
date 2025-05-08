@@ -50,7 +50,7 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, setIsLoading, isDisable
       
       setIsSubmitting(true);
 
-      // Use the Next.js API endpoint directly
+      // Use the API endpoint
       const response = await fetch('/api/analyze-resume', {
         method: 'POST',
         headers: {
