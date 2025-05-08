@@ -8,7 +8,7 @@ const corsHeaders = {
 };
 
 /**
- * Extracts job description from a URL, with special handling for LinkedIn.
+ * Extracts job description from a URL, with specialized handling for common job sites.
  */
 async function fetchJobDescription(url: string): Promise<{ description: string; title?: string }> {
   console.log(`Attempting to fetch job description from URL: ${url}`);
@@ -40,133 +40,44 @@ async function fetchJobDescription(url: string): Promise<{ description: string; 
     let description = '';
     let title = '';
     
-    // Handle LinkedIn job posts specifically
-    if (url.includes('linkedin.com/jobs/') || url.includes('linkedin.com/job/')) {
-      // Extract job title from LinkedIn
+    // Extract title from meta tags first (more reliable)
+    const metaTitle = html.match(/<meta\s+property=["']og:title["']\s+content=["']([^"']+)["']/i) ||
+                      html.match(/<meta\s+name=["']title["']\s+content=["']([^"']+)["']/i);
+    
+    if (metaTitle && metaTitle[1]) {
+      title = metaTitle[1].trim();
+    } else {
+      // Fallback to title tag
       const titleMatch = html.match(/<title[^>]*>(.*?)<\/title>/i);
       if (titleMatch && titleMatch[1]) {
         title = titleMatch[1].replace(/\s*[\|\-–]\s*.*$/, '').trim();
       }
-      
-      // Try various LinkedIn selectors for job description
-      const descriptionSelectors = [
-        /<div\s+class="[^"]*description__text[^"]*">([\s\S]*?)<\/div>/i,
-        /<div\s+class="[^"]*jobs-description__content[^"]*">([\s\S]*?)<\/div>/i,
-        /<div\s+class="[^"]*jobs-box__html-content[^"]*">([\s\S]*?)<\/div>/i,
-        /<div\s+class="[^"]*jobs-description-content__text[^"]*">([\s\S]*?)<\/div>/i
-      ];
-      
-      // Try each selector
-      for (const selector of descriptionSelectors) {
-        const match = cleanHtml.match(selector);
-        if (match && match[1]) {
-          let extractedText = match[1];
-          
-          // Clean up the extracted HTML
-          description = extractedText
-            .replace(/<[^>]*>/g, ' ') // Remove HTML tags
-            .replace(/\s+/g, ' ')      // Normalize whitespace
-            .replace(/See more/gi, '') // Remove "See more" buttons
-            .replace(/Join now/gi, '') // Remove "Join now" text
-            .trim();
-          
-          if (description.length > 100) {
-            console.log(`Successfully extracted LinkedIn job description (${description.length} chars) using selector`);
-            break;
-          }
-        }
-      }
-      
-      // If description is still empty or too short, try a broader approach
-      if (!description || description.length < 100) {
-        // Look for content div with substantial text
-        const contentDivs = cleanHtml.match(/<div[^>]*>([\s\S]*?)<\/div>/gi) || [];
-        
-        for (const div of contentDivs) {
-          const text = div.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-          if (text.length > 200 && text.length < 10000 && 
-              (text.includes('responsibilities') || text.includes('requirements') || 
-               text.includes('qualifications') || text.includes('about the job'))) {
-            description = text;
-            console.log(`Found job description in content div (${text.length} chars)`);
-            break;
-          }
-        }
-      }
+    }
+    
+    // Site-specific handling
+    if (url.includes('linkedin.com/jobs/') || url.includes('linkedin.com/job/')) {
+      // Handle LinkedIn job posts
+      description = extractLinkedInDescription(cleanHtml);
+    } else if (url.includes('salesforce.com/')) {
+      // Handle Salesforce job posts
+      description = extractSalesforceDescription(cleanHtml);
+    } else if (url.includes('indeed.com/')) {
+      // Handle Indeed job posts
+      description = extractIndeedDescription(cleanHtml);
+    } else if (url.includes('glassdoor.com/')) {
+      // Handle Glassdoor job posts
+      description = extractGlassdoorDescription(cleanHtml);
     } else {
-      // Generic extraction for non-LinkedIn URLs
-      // Extract title
-      const titleMatch = html.match(/<title[^>]*>(.*?)<\/title>/i);
-      if (titleMatch && titleMatch[1]) {
-        title = titleMatch[1].replace(/\s+/g, ' ').trim();
-        title = title.replace(/\s*[\|\-–]\s*.*$/, ''); // Remove site name
-      }
-      
-      // Look for job description in meta tags first
-      const metaDescription = html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["'][^>]*>/i);
-      if (metaDescription && metaDescription[1]) {
-        description = metaDescription[1].trim();
-      }
-      
-      // If meta description is not useful, look for common job posting patterns
-      if (!description || description.length < 100) {
-        // Common section identifiers for job postings
-        const jobSectionIds = [
-          'job-description', 'jobDescription', 'job_description',
-          'description', 'job-details', 'jobDetails',
-          'position-description', 'requirements'
-        ];
-        
-        // Try to find sections by ID or class
-        for (const sectionId of jobSectionIds) {
-          const sectionRegex = new RegExp(`<(?:div|section)[^>]*(?:id|class)=["'](?:[^"']*\\s)?${sectionId}(?:\\s[^"']*)?["'][^>]*>([\\s\\S]*?)<\/(?:div|section)>`, 'i');
-          const match = cleanHtml.match(sectionRegex);
-          
-          if (match && match[1]) {
-            const sectionText = match[1].replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-            if (sectionText.length > 100) {
-              description = sectionText;
-              console.log(`Found job description by section identifier: ${sectionId}`);
-              break;
-            }
-          }
-        }
-      }
-      
-      // If still no good description, extract a reasonable chunk of main content
-      if (!description || description.length < 100) {
-        // Find the main content area (usually has the most text)
-        let mainContent = '';
-        const contentMatches = cleanHtml.match(/<(?:div|section|article|main)[^>]*>([\\s\\S]*?)<\/(?:div|section|article|main)>/gi) || [];
-        
-        for (const content of contentMatches) {
-          const text = content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-          if (text.length > mainContent.length && text.length < 10000) {
-            mainContent = text;
-          }
-        }
-        
-        description = mainContent;
-      }
+      // Generic extraction for other job sites
+      description = extractGenericDescription(cleanHtml);
     }
     
-    // If we still don't have a description, use generic text extraction
+    // If description is still empty or too short, try the generic approach as fallback
     if (!description || description.length < 100) {
-      // Remove common irrelevant sections
-      cleanHtml = cleanHtml
-        .replace(/<footer[^>]*>[\s\S]*?<\/footer>/gi, '')
-        .replace(/<header[^>]*>[\s\S]*?<\/header>/gi, '')
-        .replace(/<nav[^>]*>[\s\S]*?<\/nav>/gi, '');
-      
-      // Convert remaining HTML to text
-      const textContent = cleanHtml.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-      
-      // Take a reasonable chunk from the middle (likely to be the main content)
-      const middleStartPos = Math.floor(textContent.length / 3);
-      description = textContent.substring(middleStartPos, middleStartPos + 3000);
+      description = extractGenericDescription(cleanHtml);
     }
     
-    // Limit description length to 3000 tokens (approximately 3000 words)
+    // Limit description length to 12000 chars
     if (description.length > 12000) {
       description = description.substring(0, 12000) + '...';
     }
@@ -181,6 +92,201 @@ async function fetchJobDescription(url: string): Promise<{ description: string; 
     console.error(`Error fetching job description: ${error.message}`);
     throw new Error(`Failed to extract job description: ${error.message}`);
   }
+}
+
+function extractLinkedInDescription(html: string): string {
+  // Try various LinkedIn selectors for job description
+  const descriptionSelectors = [
+    /<div\s+class="[^"]*description__text[^"]*">([\s\S]*?)<\/div>/i,
+    /<div\s+class="[^"]*jobs-description__content[^"]*">([\s\S]*?)<\/div>/i,
+    /<div\s+class="[^"]*jobs-box__html-content[^"]*">([\s\S]*?)<\/div>/i,
+    /<div\s+class="[^"]*jobs-description-content__text[^"]*">([\s\S]*?)<\/div>/i
+  ];
+  
+  // Try each selector
+  for (const selector of descriptionSelectors) {
+    const match = html.match(selector);
+    if (match && match[1]) {
+      let extractedText = match[1];
+      
+      // Clean up the extracted HTML
+      return extractedText
+        .replace(/<[^>]*>/g, ' ') // Remove HTML tags
+        .replace(/\s+/g, ' ')      // Normalize whitespace
+        .replace(/See more/gi, '') // Remove "See more" buttons
+        .replace(/Join now/gi, '') // Remove "Join now" text
+        .trim();
+    }
+  }
+  
+  // If selectors didn't work, look for content div with substantial text
+  return extractDescriptionFromContentDivs(html);
+}
+
+function extractSalesforceDescription(html: string): string {
+  // Salesforce-specific selectors
+  const salesforceSelectors = [
+    /<section\s+class="[^"]*job-description[^"]*">([\s\S]*?)<\/section>/i,
+    /<div\s+class="[^"]*job-description[^"]*">([\s\S]*?)<\/div>/i,
+    /<div\s+data-testid="job-description">([\s\S]*?)<\/div>/i,
+    /<div\s+class="[^"]*description[^"]*">([\s\S]*?)<\/div>/i
+  ];
+  
+  for (const selector of salesforceSelectors) {
+    const match = html.match(selector);
+    if (match && match[1]) {
+      return cleanExtractedHtml(match[1]);
+    }
+  }
+  
+  // If we can't find a matching selector, try looking for the job responsibilities section
+  const responsibilitiesSection = html.match(/<h\d[^>]*>(?:Responsibilities|What you'll do)[^<]*<\/h\d>[\s\S]*?(<ul>[\s\S]*?<\/ul>)/i);
+  if (responsibilitiesSection && responsibilitiesSection[1]) {
+    const requirementsSection = html.match(/<h\d[^>]*>(?:Requirements|What we need)[^<]*<\/h\d>[\s\S]*?(<ul>[\s\S]*?<\/ul>)/i);
+    
+    let fullDescription = cleanExtractedHtml(responsibilitiesSection[1]);
+    if (requirementsSection && requirementsSection[1]) {
+      fullDescription += "\n\n" + cleanExtractedHtml(requirementsSection[1]);
+    }
+    
+    if (fullDescription.length > 200) {
+      return fullDescription;
+    }
+  }
+  
+  return extractDescriptionFromContentDivs(html);
+}
+
+function extractIndeedDescription(html: string): string {
+  // Indeed-specific selectors
+  const indeedSelectors = [
+    /<div\s+id="jobDescriptionText">([\s\S]*?)<\/div>/i,
+    /<div\s+class="[^"]*jobsearch-JobComponent-description[^"]*">([\s\S]*?)<\/div>/i
+  ];
+  
+  for (const selector of indeedSelectors) {
+    const match = html.match(selector);
+    if (match && match[1]) {
+      return cleanExtractedHtml(match[1]);
+    }
+  }
+  
+  return extractDescriptionFromContentDivs(html);
+}
+
+function extractGlassdoorDescription(html: string): string {
+  // Glassdoor-specific selectors
+  const glassdoorSelectors = [
+    /<div\s+class="[^"]*jobDescriptionContent[^"]*">([\s\S]*?)<\/div>/i,
+    /<div\s+data-test="description">([\s\S]*?)<\/div>/i,
+    /<div\s+class="[^"]*desc[^"]*">([\s\S]*?)<\/div>/i
+  ];
+  
+  for (const selector of glassdoorSelectors) {
+    const match = html.match(selector);
+    if (match && match[1]) {
+      return cleanExtractedHtml(match[1]);
+    }
+  }
+  
+  return extractDescriptionFromContentDivs(html);
+}
+
+function extractGenericDescription(html: string): string {
+  // Look for job description in meta tags first
+  const metaDescription = html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["'][^>]*>/i);
+  if (metaDescription && metaDescription[1] && metaDescription[1].length > 100) {
+    return metaDescription[1].trim();
+  }
+  
+  // Common section identifiers for job postings
+  const jobSectionIds = [
+    'job-description', 'jobDescription', 'job_description',
+    'description', 'job-details', 'jobDetails',
+    'position-description', 'requirements', 'job-responsibilities',
+    'jobContent', 'vacancy-description', 'career-detail', 'job-detail-description'
+  ];
+  
+  // Try to find sections by ID or class
+  for (const sectionId of jobSectionIds) {
+    const sectionRegex = new RegExp(`<(?:div|section)[^>]*(?:id|class)=["'](?:[^"']*\\s)?${sectionId}(?:\\s[^"']*)?["'][^>]*>([\\s\\S]*?)<\/(?:div|section)>`, 'i');
+    const match = html.match(sectionRegex);
+    
+    if (match && match[1]) {
+      const sectionText = cleanExtractedHtml(match[1]);
+      if (sectionText.length > 100) {
+        return sectionText;
+      }
+    }
+  }
+  
+  // Look for specific headers that typically introduce job descriptions
+  const headings = [
+    'Job Description', 'About the Role', 'Position Summary',
+    'The Role', 'About the Position', 'Job Summary',
+    'What You'll Do', 'Responsibilities', 'About This Role'
+  ];
+  
+  for (const heading of headings) {
+    const headingRegex = new RegExp(`<h\\d[^>]*>\\s*${heading}\\s*<\/h\\d>\\s*(<[\\s\\S]*?(?:<\/div>|<\/section>))`, 'i');
+    const match = html.match(headingRegex);
+    
+    if (match && match[1]) {
+      const sectionText = cleanExtractedHtml(match[1]);
+      if (sectionText.length > 100) {
+        return sectionText;
+      }
+    }
+  }
+  
+  return extractDescriptionFromContentDivs(html);
+}
+
+function extractDescriptionFromContentDivs(html: string): string {
+  // Look for content div with substantial text
+  const contentDivs = html.match(/<(?:div|section)[^>]*>([\s\S]*?)(?:<\/div>|<\/section>)/gi) || [];
+  
+  let longestText = "";
+  
+  for (const div of contentDivs) {
+    const text = cleanExtractedHtml(div);
+    
+    // Look for divs with substantial text that have job-related keywords
+    if (text.length > 200 && text.length < 15000 && 
+        (text.includes('responsibilities') || text.includes('requirements') || 
+         text.includes('qualifications') || text.includes('about the job') ||
+         text.includes('job summary') || text.includes('position') ||
+         text.includes('what you will do') || text.includes('what you'll do') ||
+         text.includes('experience') || text.includes('skills needed'))) {
+      
+      if (text.length > longestText.length) {
+        longestText = text;
+      }
+    }
+  }
+  
+  if (longestText.length > 200) {
+    return longestText;
+  }
+  
+  // If we still don't have good text, get the longest content div that's reasonably sized
+  let bestText = "";
+  for (const div of contentDivs) {
+    const text = cleanExtractedHtml(div);
+    if (text.length > 200 && text.length < 20000 && text.length > bestText.length) {
+      bestText = text;
+    }
+  }
+  
+  return bestText;
+}
+
+function cleanExtractedHtml(html: string): string {
+  return html
+    .replace(/<[^>]*>/g, ' ')       // Remove HTML tags
+    .replace(/\s+/g, ' ')           // Normalize whitespace
+    .replace(/\s+([.,;:!?])/g, '$1') // Remove spaces before punctuation
+    .trim();
 }
 
 serve(async (req) => {

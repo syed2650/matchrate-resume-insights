@@ -9,6 +9,48 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      feedback: {
+        Row: {
+          ats_scores: Json | null
+          created_at: string
+          id: string
+          missing_keywords: Json | null
+          rewritten_resume: string | null
+          score: number | null
+          section_feedback: Json | null
+          tone_suggestions: string | null
+          user_id: string | null
+          weak_bullets: Json | null
+          would_interview: string | null
+        }
+        Insert: {
+          ats_scores?: Json | null
+          created_at?: string
+          id?: string
+          missing_keywords?: Json | null
+          rewritten_resume?: string | null
+          score?: number | null
+          section_feedback?: Json | null
+          tone_suggestions?: string | null
+          user_id?: string | null
+          weak_bullets?: Json | null
+          would_interview?: string | null
+        }
+        Update: {
+          ats_scores?: Json | null
+          created_at?: string
+          id?: string
+          missing_keywords?: Json | null
+          rewritten_resume?: string | null
+          score?: number | null
+          section_feedback?: Json | null
+          tone_suggestions?: string | null
+          user_id?: string | null
+          weak_bullets?: Json | null
+          would_interview?: string | null
+        }
+        Relationships: []
+      }
       metrics: {
         Row: {
           created_at: string
@@ -107,12 +149,56 @@ export type Database = {
         }
         Relationships: []
       }
+      usage_tracking: {
+        Row: {
+          action_type: string
+          anonymous_id: string | null
+          client_fingerprint: string | null
+          feature_name: string
+          id: string
+          ip_address: string | null
+          timestamp: string
+          usage_date: string
+          user_id: string | null
+        }
+        Insert: {
+          action_type: string
+          anonymous_id?: string | null
+          client_fingerprint?: string | null
+          feature_name?: string
+          id?: string
+          ip_address?: string | null
+          timestamp?: string
+          usage_date?: string
+          user_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          anonymous_id?: string | null
+          client_fingerprint?: string | null
+          feature_name?: string
+          id?: string
+          ip_address?: string | null
+          timestamp?: string
+          usage_date?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_resume_analysis_limit: {
+        Args: {
+          p_user_id: string
+          p_anonymous_id: string
+          p_client_fingerprint: string
+          p_ip_address: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       job_role:

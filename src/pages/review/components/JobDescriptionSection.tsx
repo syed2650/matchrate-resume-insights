@@ -13,6 +13,8 @@ interface Props {
   setJobUrl: (value: string) => void;
   extractionStatus: ExtractionStatus;
   onExtract: () => void;
+  jobTitle?: string;
+  setJobTitle?: (value: string) => void;
 }
 
 export const JobDescriptionSection: React.FC<Props> = ({
@@ -21,7 +23,9 @@ export const JobDescriptionSection: React.FC<Props> = ({
   jobUrl,
   setJobUrl,
   extractionStatus,
-  onExtract
+  onExtract,
+  jobTitle,
+  setJobTitle
 }) => {
   return (
     <div className="space-y-6">
@@ -32,7 +36,7 @@ export const JobDescriptionSection: React.FC<Props> = ({
         <div className="relative">
           <div className="flex items-center gap-2">
             <InputWithIcon
-              placeholder="Paste Job URL (LinkedIn, Indeed, etc.)"
+              placeholder="Paste Job URL (LinkedIn, Indeed, Salesforce, etc.)"
               value={jobUrl}
               onChange={(e) => setJobUrl(e.target.value)}
               className="mb-2 rounded-xl border-gray-200 focus:border-blue-400 focus:ring-blue-400"

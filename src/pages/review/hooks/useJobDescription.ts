@@ -8,6 +8,7 @@ export const useJobDescription = () => {
   const [jobDescription, setJobDescription] = useState("");
   const [jobUrl, setJobUrl] = useState("");
   const [extractionStatus, setExtractionStatus] = useState<ExtractionStatus>({ status: 'idle' });
+  const [jobTitle, setJobTitle] = useState<string>("");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -53,7 +54,14 @@ export const useJobDescription = () => {
       console.log("Extract function response:", data);
       
       if (data?.description) {
+        // Set job description
         setJobDescription(data.description);
+        
+        // If we have a title, set it
+        if (data.title && data.title !== "Job Position") {
+          setJobTitle(data.title);
+        }
+        
         setExtractionStatus({ 
           status: 'success', 
           message: data.title ? `Successfully extracted: "${data.title}"` : 'Job description extracted successfully!' 
@@ -95,6 +103,8 @@ export const useJobDescription = () => {
     setJobDescription,
     jobUrl,
     setJobUrl,
+    jobTitle,
+    setJobTitle,
     extractionStatus,
     handleUrlPaste
   };

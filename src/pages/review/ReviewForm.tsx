@@ -35,11 +35,12 @@ const ReviewForm = ({ onSubmit, isLoading, isDisabled = false }: ReviewFormProps
     setJobDescription,
     jobUrl,
     setJobUrl,
+    jobTitle,
+    setJobTitle,
     extractionStatus,
     handleUrlPaste
   } = useJobDescription();
 
-  const [jobTitle, setJobTitle] = useState<string>("");
   const [submitting, setSubmitting] = useState<boolean>(false);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -82,6 +83,8 @@ const ReviewForm = ({ onSubmit, isLoading, isDisabled = false }: ReviewFormProps
             setJobUrl={setJobUrl}
             extractionStatus={extractionStatus as ExtractionStatus}
             onExtract={handleUrlPaste}
+            jobTitle={jobTitle}
+            setJobTitle={setJobTitle}
           />
 
           <div className="mb-6">
