@@ -224,7 +224,7 @@ function extractGenericDescription(html: string): string {
   const headings = [
     'Job Description', 'About the Role', 'Position Summary',
     'The Role', 'About the Position', 'Job Summary',
-    'What You'll Do', 'Responsibilities', 'About This Role'
+    'What You\u2019ll Do', 'Responsibilities', 'About This Role'
   ];
   
   for (const heading of headings) {
@@ -256,7 +256,7 @@ function extractDescriptionFromContentDivs(html: string): string {
         (text.includes('responsibilities') || text.includes('requirements') || 
          text.includes('qualifications') || text.includes('about the job') ||
          text.includes('job summary') || text.includes('position') ||
-         text.includes('what you will do') || text.includes('what you'll do') ||
+         text.includes('what you will do') || text.includes('what you\u2019ll do') ||
          text.includes('experience') || text.includes('skills needed'))) {
       
       if (text.length > longestText.length) {
