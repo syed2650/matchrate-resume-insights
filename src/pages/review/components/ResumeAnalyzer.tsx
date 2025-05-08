@@ -66,11 +66,22 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, setIsLoading, isDisable
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        const errorText = errorData ? JSON.stringify(errorData) : await response.text();
-        throw new Error(`API error (${response.status}): ${errorText}`);
+        // Get error text without trying to parse as JSON first
+        const errorText = await response.text();
+        let errorData;
+        
+        // Try to parse as JSON if possible
+        try {
+          errorData = JSON.parse(errorText);
+        } catch (parseError) {
+          // If it's not valid JSON, use the text directly
+          errorData = { message: errorText };
+        }
+        
+        throw new Error(`API error (${response.status}): ${errorData.message || errorText}`);
       }
 
+      // Parse the JSON response
       const data = await response.json();
       
       // Check for API error
