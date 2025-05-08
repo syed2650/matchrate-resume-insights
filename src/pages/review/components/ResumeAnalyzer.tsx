@@ -50,7 +50,7 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, setIsLoading, isDisable
       
       setIsSubmitting(true);
 
-      // Use the Vercel API endpoint instead of the Supabase Function
+      // Use the Next.js API endpoint directly
       const response = await fetch('/api/analyze-resume', {
         method: 'POST',
         headers: {

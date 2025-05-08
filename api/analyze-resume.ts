@@ -1,41 +1,29 @@
 
+import { NextApiRequest, NextApiResponse } from 'next';
 import { OpenAI } from "openai";
-import { generatePrompt, generateSystemMessage } from "../supabase/functions/analyze-resume/prompts";
+import { generatePrompt, generateSystemMessage } from "../api/prompts";
 
-// Set up CORS headers for browser requests
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  // Enable CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Headers', 'authorization, x-client-info, apikey, content-type');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
 
-export default async function handler(req: Request) {
-  // Handle CORS preflight requests
-  if (req.method === "OPTIONS") {
-    return new Response(null, {
-      headers: corsHeaders,
-    });
+  // Handle OPTIONS request for CORS preflight
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
   }
 
   try {
-    console.log("Edge function called: analyze-resume");
+    console.log("API called: analyze-resume");
     
     // Parse request body
-    const requestData = await req.json();
+    const requestData = req.body;
     const { resume, jobDescription, selectedRole, generateRewrite = false, jobUrl = null } = requestData;
 
     // Validate inputs
     if (!resume || !jobDescription) {
-      return new Response(
-        JSON.stringify({ error: "Resume and job description are required" }),
-        {
-          status: 400,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      return res.status(400).json({ error: "Resume and job description are required" });
     }
 
     console.log("Inputs validated, proceeding with OpenAI analysis");
@@ -43,16 +31,7 @@ export default async function handler(req: Request) {
     // Initialize OpenAI client
     const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
     if (!OPENAI_API_KEY) {
-      return new Response(
-        JSON.stringify({ error: "OpenAI API key not configured" }),
-        {
-          status: 500,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      return res.status(500).json({ error: "OpenAI API key not configured" });
     }
 
     const openai = new OpenAI({
@@ -96,19 +75,10 @@ export default async function handler(req: Request) {
           console.error("Error parsing feedback JSON:", parseError);
           console.error("Raw response:", analysisText);
           
-          return new Response(
-            JSON.stringify({
-              error: "Error parsing analysis results",
-              details: parseError.message,
-            }),
-            {
-              status: 500,
-              headers: {
-                ...corsHeaders,
-                "Content-Type": "application/json",
-              },
-            }
-          );
+          return res.status(500).json({
+            error: "Error parsing analysis results",
+            details: parseError.message,
+          });
         }
         
         // Handle rewrite generation if requested
@@ -165,58 +135,26 @@ export default async function handler(req: Request) {
         console.log("Analysis complete, returning results");
         
         // Return the combined response
-        return new Response(JSON.stringify(response), {
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-          },
-        });
+        return res.status(200).json(response);
       } catch (jsonError) {
         console.error("Error processing OpenAI response:", jsonError);
-        return new Response(
-          JSON.stringify({
-            error: "Error processing analysis results",
-            details: jsonError.message,
-          }),
-          {
-            status: 500,
-            headers: {
-              ...corsHeaders,
-              "Content-Type": "application/json",
-            },
-          }
-        );
+        return res.status(500).json({
+          error: "Error processing analysis results",
+          details: jsonError.message,
+        });
       }
     } catch (openaiError) {
       console.error("Error calling OpenAI API:", openaiError);
-      return new Response(
-        JSON.stringify({
-          error: "Error calling OpenAI API",
-          details: openaiError.message,
-        }),
-        {
-          status: 500,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      return res.status(500).json({
+        error: "Error calling OpenAI API",
+        details: openaiError.message,
+      });
     }
   } catch (error) {
     console.error("Unhandled error in analyze-resume function:", error);
-    return new Response(
-      JSON.stringify({
-        error: "Server error during resume analysis",
-        details: error.message,
-      }),
-      {
-        status: 500,
-        headers: {
-          ...corsHeaders,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    return res.status(500).json({
+      error: "Server error during resume analysis",
+      details: error.message,
+    });
   }
 }
