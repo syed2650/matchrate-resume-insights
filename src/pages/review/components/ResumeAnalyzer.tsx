@@ -4,25 +4,26 @@ import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Feedback } from "../types";
 import ReviewForm from "../ReviewForm";
+import { canUseFeedback } from "../utils";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 import { Loader2 } from "lucide-react";
-import UsageLimitModal from "./UsageLimitModal";
-import { canUseFeedback, trackFeedbackUsage } from "../utils";
 
 interface ResumeAnalyzerProps {
   onAnalysisComplete: (feedback: Feedback) => void;
   isLoading: boolean;
-  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsLoading: (isLoading: boolean) => void;
   isDisabled?: boolean;
 }
 
 const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, setIsLoading, isDisabled = false }: ResumeAnalyzerProps) => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showLimitModal, setShowLimitModal] = useState(false);
+  const [analysisProgress, setAnalysisProgress] = useState(0);
   
   useEffect(() => {
     const listener = () => {
-      setIsSubmitting(true); // 🔥 Set loading TRUE immediately on click
+      setIsSubmitting(true);
     };
     window.addEventListener("set-loading-true", listener);
 
@@ -31,30 +32,64 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, setIsLoading, isDisable
     };
   }, []);
 
+  // Reset submitting state when isLoading changes to false
+  useEffect(() => {
+    if (!isLoading && isSubmitting) {
+      setIsSubmitting(false);
+      setAnalysisProgress(0);
+    }
+  }, [isLoading]);
+  
+  // Simulate progress updates while analysis is running
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval>;
+    
+    if (isSubmitting) {
+      setAnalysisProgress(10); // Start at 10%
+      
+      interval = setInterval(() => {
+        setAnalysisProgress(prev => {
+          // Gradually increase but never reach 100%
+          if (prev < 20) return prev + 5;
+          if (prev < 50) return prev + 3;
+          if (prev < 70) return prev + 1;
+          if (prev < 85) return prev + 0.5;
+          return prev;
+        });
+      }, 800);
+    }
+    
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isSubmitting]);
+
   const handleFormSubmit = async (
     resume: string,
     jobDescription: string,
     jobUrl?: string,
     jobTitle?: string
   ) => {
-    // Check if user has reached their limit
-    try {
-      const canUse = await canUseFeedback();
-      if (!canUse) {
-        setShowLimitModal(true);
-        return;
-      }
-      
-      // Track usage if we're allowed to proceed
-      await trackFeedbackUsage();
-      
-      setIsSubmitting(true);
+    // Check if user can use the feature
+    if (!canUseFeedback()) {
+      toast({
+        title: "Usage Limit Reached",
+        description: "You've reached your usage limit for the day. Please try again tomorrow or upgrade your plan.",
+        variant: "destructive"
+      });
+      return;
+    }
 
-      // Use the API endpoint
-      const response = await fetch('/api/analyze-resume', {
+    try {
+      setIsSubmitting(true);
+      setIsLoading(true);
+
+      const response = await fetch('https://rodkrpeqxgqizngdypbl.functions.supabase.co/analyze-resume', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          // Use the Supabase anon key as bearer token
+          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJvZGtycGVxeGdxaXpuZ2R5cGJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNDY5ODEsImV4cCI6MjA2MDcyMjk4MX0.ECPKii1lST8GcNt0M8SGXKLeeyJSL6vtIpoXVH5SZYA',
         },
         body: JSON.stringify({
           resume,
@@ -66,29 +101,13 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, setIsLoading, isDisable
       });
 
       if (!response.ok) {
-        // Get error text without trying to parse as JSON first
-        const errorText = await response.text();
-        let errorData;
-        
-        // Try to parse as JSON if possible
-        try {
-          errorData = JSON.parse(errorText);
-        } catch (parseError) {
-          // If it's not valid JSON, use the text directly
-          errorData = { message: errorText };
-        }
-        
-        throw new Error(`API error (${response.status}): ${errorData.message || errorText}`);
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Server error: ${response.status}`);
       }
 
-      // Parse the JSON response
       const data = await response.json();
       
-      // Check for API error
-      if (data.error) {
-        throw new Error(data.error);
-      }
-      
+      // Add required properties for storage
       const enhancedData = {
         ...data,
         resume,
@@ -97,7 +116,14 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, setIsLoading, isDisable
         jobTitle
       };
       
-      onAnalysisComplete(enhancedData);
+      // Set analysis progress to 100% to indicate success before calling onAnalysisComplete
+      setAnalysisProgress(100);
+      
+      // Small delay to allow user to see 100% completion
+      setTimeout(() => {
+        onAnalysisComplete(enhancedData);
+      }, 500);
+      
     } catch (error) {
       console.error("Error analyzing resume:", error);
       toast({
@@ -105,50 +131,40 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, setIsLoading, isDisable
         description: error instanceof Error ? error.message : "Failed to analyze resume",
         variant: "destructive"
       });
-      
-      // Send empty feedback object with error to still navigate to results view
-      // but show error state instead of loading forever
-      onAnalysisComplete({
-        error: error instanceof Error ? error.message : "Failed to analyze resume",
-        resume,
-        jobDescription,
-        jobUrl,
-        jobTitle,
-        score: 0,
-        missingKeywords: [],
-        sectionFeedback: {},
-        weakBullets: [],
-        toneSuggestions: "Error occurred during analysis",
-        wouldInterview: "Unable to provide recommendation due to error"
-      });
-    } finally {
+      setIsLoading(false);
       setIsSubmitting(false);
     }
   };
 
-  const handleCloseLimitModal = () => {
-    setShowLimitModal(false);
-  };
+  const showOverlay = isLoading || isSubmitting;
 
   return (
     <Card className="p-6 relative">
-      {isSubmitting && (
+      {showOverlay && (
         <div className="absolute inset-0 bg-slate-50/80 flex flex-col items-center justify-center z-10 rounded-lg">
           <Loader2 className="h-12 w-12 animate-spin text-blue-600 mb-4" />
           <p className="text-lg font-medium text-slate-800">Analyzing your resume...</p>
-          <p className="text-sm text-slate-600 mt-2">This may take up to 30 seconds</p>
+          
+          <div className="w-64 mt-4 mb-2 bg-slate-200 rounded-full h-2.5">
+            <div 
+              className="bg-blue-600 h-2.5 rounded-full transition-all duration-300" 
+              style={{width: `${analysisProgress}%`}}
+            ></div>
+          </div>
+          
+          <p className="text-sm text-slate-600">
+            {analysisProgress < 30 && "Extracting job requirements..."}
+            {analysisProgress >= 30 && analysisProgress < 60 && "Analyzing resume content..."}
+            {analysisProgress >= 60 && analysisProgress < 90 && "Generating recommendations..."}
+            {analysisProgress >= 90 && "Finalizing results..."}
+          </p>
         </div>
       )}
       
       <ReviewForm 
         onSubmit={handleFormSubmit} 
-        isLoading={isLoading || isSubmitting}
+        isLoading={showOverlay}
         isDisabled={isDisabled}
-      />
-
-      <UsageLimitModal 
-        isOpen={showLimitModal} 
-        onClose={handleCloseLimitModal} 
       />
     </Card>
   );

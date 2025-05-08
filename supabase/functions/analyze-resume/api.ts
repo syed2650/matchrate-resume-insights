@@ -1,5 +1,5 @@
 
-import { parseAndValidateAnalysis, calculateATSScore } from './utils.ts';
+import { calculateATSScore, parseAndValidateAnalysis } from './utils.ts';
 import { buildAnalysisPrompt, buildRewritePrompt } from './prompts.ts';
 
 const corsHeaders = {
@@ -9,8 +9,6 @@ const corsHeaders = {
 
 export async function callOpenAIForAnalysis(messages: any[], openAIApiKey: string) {
   try {
-    console.log("Making OpenAI API call for analysis");
-    
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -32,7 +30,6 @@ export async function callOpenAIForAnalysis(messages: any[], openAIApiKey: strin
       throw new Error(error.error?.message || `OpenAI API returned status ${response.status}`);
     }
     
-    console.log("Received successful response from OpenAI API");
     return response.json();
   } catch (error) {
     console.error("Error calling OpenAI:", error);
@@ -73,63 +70,39 @@ ${Object.entries(feedbackAreas).map(([section, feedback]) => `- ${section}: ${fe
   }
 
   try {
-    // Implement retry mechanism
-    let attempts = 0;
-    const maxAttempts = 2;
-    let error;
-    
-    while (attempts <= maxAttempts) {
-      try {
-        console.log(`Attempt ${attempts + 1} to generate resume rewrite`);
-        
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${openAIApiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'gpt-4o',
-            messages: enhancedPrompt,
-            temperature: 0.3,
-          }),
-        });
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o',
+        messages: enhancedPrompt,
+        temperature: 0.3,
+      }),
+    });
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error?.message || 'Failed to generate resume rewrite');
-        }
-
-        const data = await response.json();
-        const content = data.choices[0].message.content;
-        
-        // Calculate improved ATS score based on the rewritten resume
-        const atsScore = calculateATSScore(content, jobDescription);
-        
-        console.log("Successfully generated resume rewrite");
-        
-        // Clean up the rewritten resume - remove asterisks
-        const cleanedContent = content
-          .replace(/^\* /gm, '') // Remove asterisks at the beginning of lines
-          .replace(/^\- /gm, ''); // Remove dashes at the beginning of lines
-        
-        return {
-          text: cleanedContent,
-          atsScore
-        };
-      } catch (err) {
-        error = err;
-        attempts++;
-        
-        if (attempts <= maxAttempts) {
-          const delay = 1000 * Math.pow(2, attempts - 1); // Exponential backoff
-          console.log(`Resume rewrite attempt ${attempts} failed. Retrying in ${delay}ms...`);
-          await new Promise(resolve => setTimeout(resolve, delay));
-        }
-      }
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error?.message || 'Failed to generate resume rewrite');
     }
+
+    const data = await response.json();
+    const content = data.choices[0].message.content;
     
-    throw error || new Error("Failed to generate resume rewrite after retries");
+    // Calculate improved ATS score based on the rewritten resume
+    const atsScore = calculateATSScore(content, jobDescription);
+    
+    // Clean up the rewritten resume - remove asterisks
+    const cleanedContent = content
+      .replace(/^\* /gm, '') // Remove asterisks at the beginning of lines
+      .replace(/^\- /gm, ''); // Remove dashes at the beginning of lines
+    
+    return {
+      text: cleanedContent,
+      atsScore
+    };
   } catch (error) {
     console.error("Error generating resume rewrite:", error);
     throw new Error(`Failed to generate resume rewrite: ${error.message}`);

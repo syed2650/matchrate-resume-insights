@@ -54,7 +54,3 @@ enable_confirmations = true
 enabled = false
 client_id = ""
 secret = ""
-
-[functions]
-[functions.check-usage-limits]
-verify_jwt = false

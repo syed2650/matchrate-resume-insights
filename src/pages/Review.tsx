@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -21,23 +22,23 @@ const Review = () => {
   const { toast } = useToast();
   const { user } = useAuthUser();
 
-  // Check usage limits when component loads - but we'll do this in ResumeAnalyzer
-  // to avoid using hooks outside of a component
-  
+  // Check usage limits when component loads
+  useEffect(() => {
+    // If user can't use feedback and doesn't already have feedback results, show limit modal
+    if (!canUseFeedback() && !feedback) {
+      setShowLimitModal(true);
+    }
+  }, [feedback]);
+
   const handleAnalysisComplete = async (data: Feedback) => {
     setIsLoading(false);
     setFeedback(data);
     setHelpfulFeedback(null);
 
-    try {
-      // Skip tracking usage and database storage if there was an error
-      if (data.error) {
-        return;
-      }
-      
-      // Track feedback usage
-      await trackFeedbackUsage();
+    // Track feedback usage
+    trackFeedbackUsage();
 
+    try {
       // Convert feedback results to a JSON-compatible format
       const feedbackResultsForDb = {
         score: data.score,
@@ -148,11 +149,14 @@ const Review = () => {
       </h1>
 
       {!feedback ? (
-        <ResumeAnalyzer 
-          onAnalysisComplete={handleAnalysisComplete}
-          isLoading={isLoading}
-          setIsLoading={setIsLoading}
-        />
+        canUseFeedback() ? (
+          <ResumeAnalyzer 
+            onAnalysisComplete={handleAnalysisComplete}
+            isLoading={isLoading}
+            setIsLoading={setIsLoading}
+            isDisabled={!canUseFeedback()}
+          />
+        ) : null
       ) : (
         <AnalysisResults 
           feedback={feedback}
