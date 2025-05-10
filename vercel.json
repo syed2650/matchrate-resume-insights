@@ -1,4 +1,3 @@
-
 {
   "rewrites": [
     { "source": "/(.*)", "destination": "/" }
@@ -14,7 +13,7 @@
       ]
     },
     {
-      "source": "/(.*\\.(js|css|png|jpg|jpeg|svg|ico|webp|gif)$)",
+      "source": "/:path*",
       "headers": [
         {
           "key": "Cache-Control",
