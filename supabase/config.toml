@@ -54,3 +54,10 @@ enable_confirmations = true
 enabled = false
 client_id = ""
 secret = ""
+
+# Configure our new edge functions
+[functions.send-email]
+verify_jwt = true
+
+[functions.resume-feedback-notification]
+verify_jwt = true

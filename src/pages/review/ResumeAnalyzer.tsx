@@ -9,6 +9,8 @@ import { Link } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import UsageLimitModal from "./components/UsageLimitModal";
 import { canUseFeedback } from "./utils";
+import { useEmailService } from "@/hooks/useEmailService";
+import { useAuthUser } from "@/hooks/useAuthUser";
 
 interface ResumeAnalyzerProps {
   onAnalysisComplete: (feedback: Feedback) => void;
@@ -21,6 +23,8 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, setIsLoading, isDisable
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showLimitModal, setShowLimitModal] = useState(false);
+  const { user } = useAuthUser();
+  const { sendFeedbackNotification } = useEmailService();
   
   useEffect(() => {
     const listener = () => {
@@ -74,6 +78,25 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, setIsLoading, isDisable
       };
       
       onAnalysisComplete(enhancedData);
+
+      // Send notification email if user is logged in
+      if (user?.email) {
+        try {
+          // Assuming we save submission ID somewhere, otherwise generate a random one
+          const submissionId = data.id || crypto.randomUUID();
+          
+          await sendFeedbackNotification({
+            submissionId,
+            userId: user.id,
+            score: data.score,
+            jobTitle,
+            recipientEmail: user.email
+          });
+        } catch (emailError) {
+          console.error("Failed to send notification email:", emailError);
+          // Don't fail the whole process if email fails
+        }
+      }
     } catch (error) {
       console.error("Error analyzing resume:", error);
       toast({
