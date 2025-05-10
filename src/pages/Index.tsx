@@ -39,9 +39,13 @@ const Index = () => {
     };
 
     handleHashNavigation();
+
+    // Add event listener for popstate to handle browser back/forward navigation
+    window.addEventListener('popstate', handleHashNavigation);
     
     return () => {
       revealElements.forEach(element => observer.unobserve(element));
+      window.removeEventListener('popstate', handleHashNavigation);
     };
   }, []);
 
