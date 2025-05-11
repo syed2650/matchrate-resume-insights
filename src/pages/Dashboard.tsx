@@ -178,19 +178,24 @@ export default function Dashboard() {
       
       if (error) {
         console.error("Checkout error:", error);
-        throw error;
+        throw new Error(`Checkout error: ${error.message}`);
       }
       
       if (data?.url) {
-        window.location.href = data.url;
+        // Add delay to ensure toast is seen
+        setTimeout(() => {
+          window.location.href = data.url;
+        }, 300);
       } else {
-        throw new Error("No checkout URL returned");
+        throw new Error("No checkout URL returned from server");
       }
     } catch (error) {
       console.error("Error creating checkout session:", error);
       toast({
         title: "Payment Error",
-        description: "There was an error processing your payment. Please try again.",
+        description: error instanceof Error 
+          ? `Could not initiate checkout: ${error.message}` 
+          : "Could not initiate checkout. Please try again later.",
         variant: "destructive"
       });
     }

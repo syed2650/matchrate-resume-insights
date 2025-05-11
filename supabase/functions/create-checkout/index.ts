@@ -111,7 +111,7 @@ serve(async (req) => {
       console.log(`Created new coupon: ${couponId}`);
     }
 
-    // Create a checkout session
+    // Create a checkout session - FIX: Don't use both allow_promotion_codes and discounts
     const session = await stripe.checkout.sessions.create({
       line_items: [
         {
@@ -122,7 +122,8 @@ serve(async (req) => {
       mode: "subscription",
       success_url: `${req.headers.get("origin")}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get("origin")}/`,
-      allow_promotion_codes: true,
+      // FIX: Remove allow_promotion_codes as we're using discounts
+      // allow_promotion_codes: true,
       discounts: [{ coupon: couponId }],  // Automatically apply the 50% discount
       billing_address_collection: "auto",
     });
