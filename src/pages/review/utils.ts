@@ -1,4 +1,3 @@
-
 /**
  * Utility functions for resume reviews
  */
@@ -7,6 +6,14 @@ import { calculateATSScore as computeATSScore, getATSScoreExplanation, getATSSco
 
 // Re-export the ATS score explanation functions for easier access
 export { getATSScoreExplanation, getATSScoreDetail };
+
+// Convert bytes to human-readable size format
+export function bytesToSize(bytes: number): string {
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  if (bytes === 0) return '0 Byte';
+  const i = Math.floor(Math.log(bytes) / Math.log(1024));
+  return Math.round((bytes / Math.pow(1024, i)) * 100) / 100 + ' ' + sizes[i];
+}
 
 // Extract keywords from text with improved algorithm
 function extractKeywords(text: string): string[] {
