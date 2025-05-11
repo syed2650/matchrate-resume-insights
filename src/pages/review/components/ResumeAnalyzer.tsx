@@ -7,8 +7,7 @@ import ReviewForm from "../ReviewForm";
 import { canUseFeedback } from "../utils";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Loader2, Brain } from "lucide-react";
-import { Progress } from "@/components/ui/progress";
+import { Loader2 } from "lucide-react";
 
 interface ResumeAnalyzerProps {
   onAnalysisComplete: (feedback: Feedback) => void;
@@ -139,56 +138,26 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, setIsLoading, isDisable
 
   const showOverlay = isLoading || isSubmitting;
 
-  // Analysis phases to show to user
-  const getAnalysisPhase = (progress: number) => {
-    if (progress < 20) return { text: "Extracting job requirements...", icon: "📋" };
-    if (progress < 40) return { text: "Analyzing resume content...", icon: "📄" };
-    if (progress < 60) return { text: "Identifying keyword matches...", icon: "🔍" };
-    if (progress < 75) return { text: "Generating recommendations...", icon: "💡" };
-    if (progress < 90) return { text: "Preparing final assessment...", icon: "⚙️" };
-    return { text: "Finalizing results...", icon: "✅" };
-  };
-
-  const analysisPhase = getAnalysisPhase(analysisProgress);
-
   return (
     <Card className="p-6 relative">
       {showOverlay && (
-        <div className="absolute inset-0 bg-slate-50/90 dark:bg-slate-900/90 flex flex-col items-center justify-center z-10 rounded-lg"
-             aria-live="polite"
-             aria-atomic="true">
-          <div className="flex items-center justify-center mb-4">
-            <Brain className="h-12 w-12 text-blue-600 mr-4 animate-pulse" aria-hidden="true" />
-            <div>
-              <h3 className="text-lg font-medium text-slate-800 dark:text-slate-200">
-                Analyzing your resume
-              </h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                This may take up to 30 seconds
-              </p>
-            </div>
+        <div className="absolute inset-0 bg-slate-50/80 flex flex-col items-center justify-center z-10 rounded-lg">
+          <Loader2 className="h-12 w-12 animate-spin text-blue-600 mb-4" />
+          <p className="text-lg font-medium text-slate-800">Analyzing your resume...</p>
+          
+          <div className="w-64 mt-4 mb-2 bg-slate-200 rounded-full h-2.5">
+            <div 
+              className="bg-blue-600 h-2.5 rounded-full transition-all duration-300" 
+              style={{width: `${analysisProgress}%`}}
+            ></div>
           </div>
           
-          <div className="w-full max-w-md px-4 mb-2">
-            <div className="flex justify-between mb-1 text-sm text-slate-600 dark:text-slate-400">
-              <span>{analysisPhase.icon} {analysisPhase.text}</span>
-              <span aria-hidden="true">{Math.round(analysisProgress)}%</span>
-            </div>
-            <Progress 
-              value={analysisProgress} 
-              className="h-2" 
-              aria-label="Analysis progress"
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={Math.round(analysisProgress)}
-            />
-          </div>
-          
-          <div className="mt-6 px-4 py-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800 max-w-md">
-            <p className="text-xs text-blue-700 dark:text-blue-300">
-              Our AI is thoroughly analyzing your resume against the job description, identifying both strengths and areas for improvement.
-            </p>
-          </div>
+          <p className="text-sm text-slate-600">
+            {analysisProgress < 30 && "Extracting job requirements..."}
+            {analysisProgress >= 30 && analysisProgress < 60 && "Analyzing resume content..."}
+            {analysisProgress >= 60 && analysisProgress < 90 && "Generating recommendations..."}
+            {analysisProgress >= 90 && "Finalizing results..."}
+          </p>
         </div>
       )}
       

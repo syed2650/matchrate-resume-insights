@@ -1,169 +1,265 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://api.fontshare.com/v2/css?f[]=satoshi@400,700,500,301,701,300&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
- 
+
 @layer base {
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
- 
+
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
- 
+
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
- 
-    --primary: 221.2 83.2% 53.3%;
+
+    --primary: 215 25% 27%;
     --primary-foreground: 210 40% 98%;
- 
+
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
- 
+
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
- 
+
     --accent: 210 40% 96.1%;
     --accent-foreground: 222.2 47.4% 11.2%;
- 
+
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
- 
+
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
- 
-    --radius: 0.5rem;
+    --ring: 222.2 84% 4.9%;
 
-    /* Add website-specific colors */
-    --warm-accent: #4263eb;
-    --warm-accent-hover: #364fc7;
-    --warm-bg: #ffffff;
-    --warm-text: #1A1F2C;
-    --warm-border: #e2e8f0;
+    --radius: 0.7rem;
   }
- 
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
- 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
- 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
- 
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
- 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
- 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
- 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
- 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
- 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.5% 48%;
 
-    /* Add website-specific dark mode colors */
-    --warm-accent: #748ffc;
-    --warm-accent-hover: #91a7ff;
-    --warm-bg: #1A1F2C;
-    --warm-text: #f8f9fa;
-    --warm-border: #2d3748;
-  }
-}
-
-@layer base {
   * {
     @apply border-border;
   }
+
   body {
-    @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    @apply bg-warm-bg text-warm-text antialiased;
+    font-family: 'Satoshi', 'Inter', sans-serif !important;
+    letter-spacing: 0.01em;
+  }
+
+  .section-alt {
+    @apply bg-warm-section;
+  }
+  
+  /* Premium SaaS UI Components */
+  .card-premium {
+    @apply bg-white rounded-xl border border-gray-100 shadow-card hover:shadow-premium-hover transition-shadow duration-300;
+  }
+  
+  .container-content {
+    @apply max-w-screen-xl mx-auto px-4 sm:px-6;
+  }
+  
+  /* Reduce section padding to decrease spacing between sections */
+  .section-padding {
+    @apply py-8 md:py-14;
+  }
+  
+  .heading-xl {
+    @apply text-4xl md:text-5xl font-bold text-warm-text leading-tight tracking-tight;
+  }
+  
+  .heading-lg {
+    @apply text-3xl md:text-4xl font-bold text-warm-text leading-tight;
+  }
+  
+  .heading-md {
+    @apply text-2xl md:text-3xl font-bold text-warm-text;
+  }
+  
+  .text-premium {
+    @apply text-lg text-slate-600;
+  }
+  
+  .button-primary {
+    @apply bg-warm-accent hover:bg-warm-accent/90 text-white font-semibold rounded-lg transition-all duration-200 hover:scale-[1.03] shadow-md;
+  }
+  
+  .button-secondary {
+    @apply bg-white text-warm-accent border border-warm-accent/20 hover:bg-warm-accent/5 font-semibold rounded-lg transition-all duration-200;
+  }
+  
+  .button-tertiary {
+    @apply text-slate-600 hover:text-warm-text font-medium;
+  }
+
+  /* Feature cards with hover effect */
+  .feature-card {
+    @apply bg-white/70 backdrop-blur-sm border border-white/30 rounded-xl p-6 hover:shadow-premium-hover transition-all duration-300 hover:translate-y-[-3px];
+  }
+  
+  /* Icon circle backgrounds */
+  .icon-circle {
+    @apply w-14 h-14 rounded-full flex items-center justify-center shadow-md;
+  }
+  
+  /* Testimonial cards */
+  .testimonial-card {
+    @apply bg-white/70 backdrop-blur-sm border border-white/30 rounded-xl p-6 hover:shadow-premium-hover transition-all duration-300;
+  }
+
+  /* Score colors */
+  .score-high {
+    @apply text-emerald-600;
+  }
+  
+  .score-medium {
+    @apply text-amber-600;
+  }
+  
+  .score-low {
+    @apply text-rose-600;
+  }
+
+  /* Scroll reveal animations */
+  .scroll-reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.6s ease-out;
+  }
+
+  .scroll-reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Tech stack logos - improved styling */
+  .tech-stack {
+    @apply flex items-center gap-4;
+  }
+
+  .tech-stack-wrapper {
+    @apply flex items-center gap-8 md:gap-12;
+    animation: scroll 20s linear infinite;
+  }
+
+  .tech-stack-item {
+    @apply flex items-center gap-2 px-3 py-2 bg-white/80 rounded-lg shadow-sm border border-gray-100;
+    transition: all 0.3s ease;
+  }
+  
+  .tech-stack-item:hover {
+    @apply bg-white shadow-md transform -translate-y-1;
   }
 }
 
-/* Additional custom styles */
-.resume-input {
-  min-height: 200px;
-}
-
-.job-description-input {
-  min-height: 150px;
-}
-
-/* Website-specific gradients and styles */
+/* Gradient backgrounds */
 .hero-gradient {
-  background: linear-gradient(to bottom, #f8fafc 0%, #f1f5f9 100%);
+  background: linear-gradient(to bottom, #FFF1F0 0%, #FFE4D6 100%);
+}
+
+.feature-gradient {
+  background: linear-gradient(to bottom, #F5F3FF 0%, #EDE9FE 100%);
 }
 
 .cta-gradient {
-  background: linear-gradient(to right, var(--warm-accent), #4f46e5);
+  background: linear-gradient(to right, #FB6B5A 0%, #F87171 100%);
 }
 
-.lilac-gradient {
-  background: linear-gradient(to bottom, #f8fafc 0%, #eef2ff 100%);
+.cta-blue-gradient {
+  background: linear-gradient(to right, #6366F1 0%, #3B82F6 100%);
 }
 
-.text-gradient {
-  @apply bg-gradient-to-r from-warm-accent to-blue-600 bg-clip-text text-transparent;
+/* Soft card styling */
+.premium-card {
+  @apply bg-white rounded-xl shadow-card border border-slate-100/80 hover:shadow-premium-hover transition-all duration-300;
 }
 
-/* Hover effects */
-.hover-scale {
-  transition: transform 0.3s ease;
+/* Glassmorphism effects */
+.glass-effect {
+  @apply bg-white/70 backdrop-blur-sm border border-white/50 shadow-md;
 }
 
-.hover-scale:hover {
-  transform: translateY(-5px);
-}
-
-/* Shadow effects */
-.shadow-cta {
-  box-shadow: 0 10px 15px -3px rgba(66, 99, 235, 0.2), 0 4px 6px -2px rgba(66, 99, 235, 0.1);
-}
-
-/* Container utilities */
-.container-content {
-  @apply container mx-auto max-w-6xl px-4;
-}
-
-/* Tech stack marquee animation */
+/* Built With section animation - improved with more natural speed */
 .marquee {
-  width: 100%;
-  overflow: hidden;
-  white-space: nowrap;
-  position: relative;
+  @apply flex overflow-hidden whitespace-nowrap;
 }
 
 .marquee-content {
-  display: flex;
-  animation: marquee 30s linear infinite;
+  @apply flex items-center gap-12;
+  animation: scroll 25s linear infinite;
 }
 
-@keyframes marquee {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-50%);
+.marquee-content-reversed {
+  @apply flex items-center gap-12;
+  animation: scroll-reversed 25s linear infinite;
+}
+
+@keyframes scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes scroll-reversed {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0); }
+}
+
+/* Sticky CTA */
+.sticky-cta {
+  @apply fixed bottom-6 right-6 z-50 shadow-xl rounded-full transform transition-transform hover:scale-105;
+}
+
+/* Text gradient */
+.text-gradient {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-warm-accent to-rose-500;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #ddd;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #ccc;
+}
+
+/* Animations */
+.hover-lift {
+  @apply transition-all duration-200;
+}
+
+.hover-lift:hover {
+  @apply -translate-y-1 shadow-lg;
+}
+
+/* Improved glassmorphism */
+.glassmorphism {
+  @apply bg-white/60 backdrop-blur-md border border-white/40 shadow-glass;
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-white/70 backdrop-blur-sm border border-white/30 rounded-xl shadow-md transition-all duration-200;
   }
 }
 
-.tech-stack-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  color: #64748b;
-  padding: 0.5rem 1rem;
-  white-space: nowrap;
+/* Update card hover effects */
+.feature-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.1);
+}
+
+.testimonial-card:hover {
+  transform: scale(1.02);
 }

@@ -9,7 +9,6 @@ import DashboardPreview from "@/components/sections/DashboardPreview";
 import { useEffect } from "react";
 import { ArrowUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import NavBar from "@/components/NavBar";
 
 const Index = () => {
   useEffect(() => {
@@ -56,7 +55,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-warm-bg font-sans">
-      <NavBar />
       <main>
         <Hero />
         <div className="section-alt py-12 md:py-16 bg-lilac-gradient">
