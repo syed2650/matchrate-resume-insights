@@ -1,4 +1,17 @@
+
 import { supabase } from "@/integrations/supabase/client";
+
+/**
+ * Converts bytes to a human-readable file size string
+ */
+export const bytesToSize = (bytes: number): string => {
+  if (bytes === 0) return '0 Bytes';
+  
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(1024));
+  
+  return parseFloat((bytes / Math.pow(1024, i)).toFixed(2)) + ' ' + sizes[i];
+};
 
 /**
  * Gets the user's current plan
@@ -12,15 +25,15 @@ export const getUserPlan = async () => {
     }
 
     // Check if the user is lifetime premium
-    const { data: authData } = await supabase.auth.getSession();
-    if (authData.session) {
-      const { data: profileData } = await supabase
+    const authData = await supabase.auth.getSession();
+    if (authData.data.session) {
+      const profileData = await supabase
         .from('profiles')
         .select('is_lifetime_premium')
-        .eq('id', authData.session.user.id)
+        .eq('id', authData.data.session.user.id)
         .single();
       
-      if (profileData && profileData.is_lifetime_premium) {
+      if (profileData.data && profileData.data.is_lifetime_premium) {
         setUserPlan('paid'); // Set paid plan for lifetime premium users
         return 'paid';
       }
@@ -78,9 +91,35 @@ export const getUsageStats = () => {
     monthly: {
       feedbacks: monthlyData.feedbacks || 0,
       rewrites: monthlyData.rewrites || 0,
-      month: month
+      month: month,
+      resetDate: getMonthlyResetDate() // Add reset date
     }
   };
+};
+
+/**
+ * Get the date when monthly limits reset
+ */
+export const getMonthlyResetDate = (): string => {
+  const now = new Date();
+  const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  return nextMonth.toISOString().split('T')[0]; // YYYY-MM-DD
+};
+
+/**
+ * For debugging usage stats
+ */
+export const debugUsageStats = () => {
+  const stats = getUsageStats();
+  console.log('Usage Stats:', stats);
+  return stats;
+};
+
+/**
+ * Get active resume ATS hash from session
+ */
+export const getActiveResumeATSHash = (): string | null => {
+  return sessionStorage.getItem('active-resume-ats-hash');
 };
 
 export const canUseFeedback = () => {
@@ -93,21 +132,28 @@ export const canUseRewrite = () => {
   
   // Check for lifetime premium users
   if (stats.plan === 'paid') {
-    const { data: authData } = supabase.auth.getSession();
-    if (authData.session) {
-      const { data: profileData } = supabase
-        .from('profiles')
-        .select('is_lifetime_premium')
-        .eq('id', authData.session.user.id)
-        .single();
-      
-      // Lifetime premium users have unlimited rewrites
-      if (profileData && profileData.is_lifetime_premium) {
-        return true;
+    const checkLifetimePremium = async () => {
+      const authData = await supabase.auth.getSession();
+      if (authData.data.session) {
+        const profileData = await supabase
+          .from('profiles')
+          .select('is_lifetime_premium')
+          .eq('id', authData.data.session.user.id)
+          .single();
+        
+        // Lifetime premium users have unlimited rewrites
+        if (profileData.data && profileData.data.is_lifetime_premium) {
+          return true;
+        }
       }
-    }
+      
+      // Regular premium users have 15 rewrites per month
+      return stats.monthly.rewrites < 15;
+    };
     
-    // Regular premium users have 15 rewrites per month
+    // For immediate response, check based on current data
+    // The async check will update in the background
+    checkLifetimePremium().catch(console.error);
     return stats.monthly.rewrites < 15;
   }
   
@@ -135,16 +181,16 @@ export const trackFeedbackUsage = () => {
     
     // But don't count usages for lifetime premium users
     const checkLifetimePremium = async () => {
-      const { data: authData } = await supabase.auth.getSession();
-      if (authData.session) {
-        const { data: profileData } = await supabase
+      const authData = await supabase.auth.getSession();
+      if (authData.data.session) {
+        const profileData = await supabase
           .from('profiles')
           .select('is_lifetime_premium')
-          .eq('id', authData.session.user.id)
+          .eq('id', authData.data.session.user.id)
           .single();
         
         // Reset counters for lifetime premium users
-        if (profileData && profileData.is_lifetime_premium) {
+        if (profileData.data && profileData.data.is_lifetime_premium) {
           const monthlyData = {"feedbacks": 0, "rewrites": 0};
           localStorage.setItem(monthlyKey, JSON.stringify(monthlyData));
         }
@@ -164,16 +210,16 @@ export const trackRewriteUsage = () => {
   if (plan === 'paid') {
     // Check if the user is lifetime premium
     const checkAndTrack = async () => {
-      const { data: authData } = await supabase.auth.getSession();
-      if (authData.session) {
-        const { data: profileData } = await supabase
+      const authData = await supabase.auth.getSession();
+      if (authData.data.session) {
+        const profileData = await supabase
           .from('profiles')
           .select('is_lifetime_premium')
-          .eq('id', authData.session.user.id)
+          .eq('id', authData.data.session.user.id)
           .single();
         
         // Don't track usage for lifetime premium users
-        if (profileData && profileData.is_lifetime_premium) {
+        if (profileData.data && profileData.data.is_lifetime_premium) {
           return;
         }
         

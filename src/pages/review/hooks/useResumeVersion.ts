@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from "react";
-import { getActiveResumeATSHash } from "../utils";
 
 interface UseResumeVersionProps {
   rewrittenResume: any;
@@ -20,8 +19,8 @@ export const useResumeVersion = ({
   useEffect(() => {
     // Try to get hash from session if not provided
     if (!scoreHash) {
-      const activeHash = getActiveResumeATSHash();
-      if (activeHash !== null) { // Changed from testing for truthiness to explicit check
+      const activeHash = sessionStorage.getItem('active-resume-ats-hash');
+      if (activeHash !== null) {
         setSessionHash(activeHash);
       }
     } else if (scoreHash !== sessionHash) {

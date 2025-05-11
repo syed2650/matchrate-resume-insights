@@ -9,7 +9,7 @@ import {
   DialogFooter
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { getUsageStats } from "../utils";
+import { getUsageStats, getMonthlyResetDate } from "../utils";
 import { Link } from "react-router-dom";
 
 interface UsageLimitModalProps {
@@ -46,6 +46,9 @@ const UsageLimitModal: React.FC<UsageLimitModalProps> = ({ isOpen, onClose }) =>
       return "tomorrow";
     }
   };
+
+  // Get the date when monthly limits reset
+  const monthlyResetDate = getMonthlyResetDate();
   
   return (
     <Dialog open={isOpen} onOpenChange={(open) => {
@@ -63,7 +66,7 @@ const UsageLimitModal: React.FC<UsageLimitModalProps> = ({ isOpen, onClose }) =>
             ) : (
               <>
                 You've reached your monthly limit of 30 resume reviews on the Paid Plan.
-                Your limit will reset on {new Date(stats.monthly.resetDate).toLocaleDateString()}.
+                Your limit will reset on {new Date(monthlyResetDate).toLocaleDateString()}.
               </>
             )}
           </DialogDescription>

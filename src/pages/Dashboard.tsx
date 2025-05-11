@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthUser } from "@/hooks/useAuthUser";
@@ -28,12 +29,24 @@ type Submission = {
   feedback_results: any;
 };
 
+type UsageCount = {
+  used: number;
+  total: number | string;
+  remaining: number | string;
+};
+
+type UsageStats = {
+  plan: string;
+  feedbacks: UsageCount;
+  rewrites: UsageCount;
+};
+
 export default function Dashboard() {
   const { user, loading } = useAuthUser();
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
   const [fetching, setFetching] = useState(false);
-  const [usageStats, setUsageStats] = useState({
+  const [usageStats, setUsageStats] = useState<UsageStats>({
     plan: 'free',
     feedbacks: { used: 0, total: 1, remaining: 1 },
     rewrites: { used: 0, total: 0, remaining: 0 }
@@ -226,7 +239,9 @@ export default function Dashboard() {
           </span>
         </div>
         <Progress 
-          value={isLifetimePremium ? 0 : (usageStats.feedbacks.used / Number(usageStats.feedbacks.total)) * 100} 
+          value={isLifetimePremium ? 0 : typeof usageStats.feedbacks.used === 'number' && typeof usageStats.feedbacks.total === 'number' 
+            ? (usageStats.feedbacks.used / usageStats.feedbacks.total) * 100 
+            : 0} 
           className="h-2 mb-2" 
         />
         <p className="text-sm text-muted-foreground">
@@ -256,7 +271,9 @@ export default function Dashboard() {
           </span>
         </div>
         <Progress 
-          value={isLifetimePremium ? 0 : (usageStats.rewrites.used / Number(usageStats.rewrites.total)) * 100} 
+          value={isLifetimePremium ? 0 : typeof usageStats.rewrites.used === 'number' && typeof usageStats.rewrites.total === 'number' 
+            ? (usageStats.rewrites.used / usageStats.rewrites.total) * 100
+            : 0} 
           className="h-2 mb-2" 
         />
         {isPaid || isLifetimePremium ? (

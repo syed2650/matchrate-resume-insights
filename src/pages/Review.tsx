@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -6,7 +5,7 @@ import { Feedback } from "./review/types";
 import { useAuthUser } from "@/hooks/useAuthUser";
 import ResumeAnalyzer from "./review/components/ResumeAnalyzer";
 import AnalysisResults from "./review/components/AnalysisResults";
-import { canUseFeedback, trackFeedbackUsage, debugUsageStats } from "./review/utils";
+import { canUseFeedback, trackFeedbackUsage, getUsageStats } from "./review/utils";
 import UsageLimitModal from "./review/components/UsageLimitModal";
 import { Database } from "@/integrations/supabase/types";
 
@@ -25,7 +24,7 @@ const Review = () => {
   // Debug usage stats when component loads in development
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
-      debugUsageStats();
+      console.log('Usage stats:', getUsageStats());
     }
   }, []);
 
