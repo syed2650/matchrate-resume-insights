@@ -67,6 +67,24 @@ async function fetchJobDescription(url: string): Promise<{ description: string; 
     } else if (url.includes('glassdoor.com/')) {
       // Handle Glassdoor job posts
       description = extractGlassdoorDescription(cleanHtml);
+    } else if (url.includes('totaljobs.com/')) {
+      // Handle TotalJobs posts
+      description = extractTotalJobsDescription(cleanHtml);
+    } else if (url.includes('monster.com/')) {
+      // Handle Monster job posts
+      description = extractMonsterDescription(cleanHtml);
+    } else if (url.includes('reed.co.uk/')) {
+      // Handle Reed job posts
+      description = extractReedDescription(cleanHtml);
+    } else if (url.includes('workday.com/')) {
+      // Handle Workday job posts
+      description = extractWorkdayDescription(cleanHtml);
+    } else if (url.includes('lever.co/')) {
+      // Handle Lever job posts
+      description = extractLeverDescription(cleanHtml);
+    } else if (url.includes('greenhouse.io/')) {
+      // Handle Greenhouse job posts
+      description = extractGreenhouseDescription(cleanHtml);
     } else {
       // Generic extraction for other job sites
       description = extractGenericDescription(cleanHtml);
@@ -75,6 +93,11 @@ async function fetchJobDescription(url: string): Promise<{ description: string; 
     // If description is still empty or too short, try the generic approach as fallback
     if (!description || description.length < 100) {
       description = extractGenericDescription(cleanHtml);
+      
+      // If still no luck, try aggressive extraction
+      if (!description || description.length < 100) {
+        description = extractAggressiveDescription(cleanHtml);
+      }
     }
     
     // Limit description length to 12000 chars
@@ -192,6 +215,144 @@ function extractGlassdoorDescription(html: string): string {
   return extractDescriptionFromContentDivs(html);
 }
 
+function extractTotalJobsDescription(html: string): string {
+  // TotalJobs-specific selectors
+  const totalJobsSelectors = [
+    /<div\s+class="job-description">([\s\S]*?)<\/div>/i,
+    /<div\s+id="job-description">([\s\S]*?)<\/div>/i,
+    /<div\s+class="[^"]*job-description[^"]*">([\s\S]*?)<\/div>/i,
+    /<div\s+data-at="job-description">([\s\S]*?)<\/div>/i,
+    /<article[^>]*>([\s\S]*?)<\/article>/i
+  ];
+  
+  for (const selector of totalJobsSelectors) {
+    const match = html.match(selector);
+    if (match && match[1]) {
+      return cleanExtractedHtml(match[1]);
+    }
+  }
+  
+  // Look for content with job-related keywords
+  const contentDivs = html.match(/<div[^>]*>([\s\S]*?)<\/div>/gi) || [];
+  for (const div of contentDivs) {
+    if (div.includes('job description') || div.includes('role') || div.includes('responsibilities') || div.includes('requirements')) {
+      const cleanText = cleanExtractedHtml(div);
+      if (cleanText.length > 150) {
+        return cleanText;
+      }
+    }
+  }
+  
+  // If all else fails, try to find main content
+  return extractDescriptionFromContentDivs(html);
+}
+
+function extractMonsterDescription(html: string): string {
+  // Monster-specific selectors
+  const monsterSelectors = [
+    /<div\s+class="[^"]*job-description[^"]*">([\s\S]*?)<\/div>/i,
+    /<section\s+class="[^"]*job-description[^"]*">([\s\S]*?)<\/section>/i,
+    /<div\s+id="JobDescription">([\s\S]*?)<\/div>/i
+  ];
+  
+  for (const selector of monsterSelectors) {
+    const match = html.match(selector);
+    if (match && match[1]) {
+      return cleanExtractedHtml(match[1]);
+    }
+  }
+  
+  return extractDescriptionFromContentDivs(html);
+}
+
+function extractReedDescription(html: string): string {
+  // Reed-specific selectors
+  const reedSelectors = [
+    /<div\s+class="[^"]*job-description[^"]*">([\s\S]*?)<\/div>/i,
+    /<section\s+class="[^"]*description[^"]*">([\s\S]*?)<\/section>/i,
+    /<div\s+data-qa="job-description">([\s\S]*?)<\/div>/i
+  ];
+  
+  for (const selector of reedSelectors) {
+    const match = html.match(selector);
+    if (match && match[1]) {
+      return cleanExtractedHtml(match[1]);
+    }
+  }
+  
+  return extractDescriptionFromContentDivs(html);
+}
+
+function extractWorkdayDescription(html: string): string {
+  // Workday-specific selectors
+  const workdaySelectors = [
+    /<div\s+class="[^"]*job-description[^"]*">([\s\S]*?)<\/div>/i,
+    /<div\s+id="job-description">([\s\S]*?)<\/div>/i,
+    /<div\s+class="[^"]*WDDF">([\s\S]*?)<\/div>/i
+  ];
+  
+  for (const selector of workdaySelectors) {
+    const match = html.match(selector);
+    if (match && match[1]) {
+      return cleanExtractedHtml(match[1]);
+    }
+  }
+  
+  // Look for common Workday sections
+  const jobRequisites = html.match(/<h3>Job Requisites<\/h3>([\s\S]*?)<\/div>/i);
+  const jobDescription = html.match(/<h3>Description<\/h3>([\s\S]*?)<\/div>/i);
+  
+  let fullDescription = '';
+  if (jobDescription && jobDescription[1]) {
+    fullDescription += cleanExtractedHtml(jobDescription[1]) + "\n\n";
+  }
+  if (jobRequisites && jobRequisites[1]) {
+    fullDescription += cleanExtractedHtml(jobRequisites[1]);
+  }
+  
+  if (fullDescription.length > 150) {
+    return fullDescription;
+  }
+  
+  return extractDescriptionFromContentDivs(html);
+}
+
+function extractLeverDescription(html: string): string {
+  // Lever-specific selectors
+  const leverSelectors = [
+    /<div\s+class="[^"]*posting-page[^"]*">([\s\S]*?)<\/div>/i,
+    /<div\s+class="[^"]*posting-description[^"]*">([\s\S]*?)<\/div>/i,
+    /<div\s+class="[^"]*job-description[^"]*">([\s\S]*?)<\/div>/i
+  ];
+  
+  for (const selector of leverSelectors) {
+    const match = html.match(selector);
+    if (match && match[1]) {
+      return cleanExtractedHtml(match[1]);
+    }
+  }
+  
+  return extractDescriptionFromContentDivs(html);
+}
+
+function extractGreenhouseDescription(html: string): string {
+  // Greenhouse-specific selectors
+  const greenhouseSelectors = [
+    /<div\s+id="content">([\s\S]*?)<\/div>/i,
+    /<div\s+class="[^"]*content[^"]*">([\s\S]*?)<\/div>/i,
+    /<div\s+class="[^"]*job-description[^"]*">([\s\S]*?)<\/div>/i
+  ];
+  
+  for (const selector of greenhouseSelectors) {
+    const match = html.match(selector);
+    if (match && match[1]) {
+      return cleanExtractedHtml(match[1]);
+    }
+  }
+  
+  return extractDescriptionFromContentDivs(html);
+}
+
 function extractGenericDescription(html: string): string {
   // Look for job description in meta tags first
   const metaDescription = html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["'][^>]*>/i);
@@ -240,6 +401,54 @@ function extractGenericDescription(html: string): string {
   }
   
   return extractDescriptionFromContentDivs(html);
+}
+
+function extractAggressiveDescription(html: string): string {
+  // More aggressive approach - look for any significant text blocks
+  const paragraphs = html.match(/<p[^>]*>([\s\S]*?)<\/p>/gi) || [];
+  const lists = html.match(/<ul[^>]*>([\s\S]*?)<\/ul>/gi) || [];
+  
+  let combinedText = '';
+  
+  // Extract paragraphs that look job-related
+  for (const p of paragraphs) {
+    const text = cleanExtractedHtml(p);
+    if (text.length > 50 && 
+        (text.toLowerCase().includes('experience') || 
+         text.toLowerCase().includes('skill') || 
+         text.toLowerCase().includes('responsib') || 
+         text.toLowerCase().includes('qualifi') || 
+         text.toLowerCase().includes('about the') || 
+         text.toLowerCase().includes('position'))) {
+      combinedText += text + '\n\n';
+    }
+  }
+  
+  // Extract lists
+  for (const list of lists) {
+    const text = cleanExtractedHtml(list);
+    if (text.length > 50) {
+      combinedText += text + '\n\n';
+    }
+  }
+  
+  // If we found some relevant text
+  if (combinedText.length > 200) {
+    return combinedText.trim();
+  }
+  
+  // Last resort: extract the longest text block from the page
+  const allTextBlocks = html.match(/<(?:div|section|article)[^>]*>([\s\S]*?)<\/(?:div|section|article)>/gi) || [];
+  let longestText = '';
+  
+  for (const block of allTextBlocks) {
+    const text = cleanExtractedHtml(block);
+    if (text.length > longestText.length && text.length < 20000) {
+      longestText = text;
+    }
+  }
+  
+  return longestText;
 }
 
 function extractDescriptionFromContentDivs(html: string): string {

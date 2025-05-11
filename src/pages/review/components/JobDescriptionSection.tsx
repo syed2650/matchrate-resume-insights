@@ -36,7 +36,7 @@ export const JobDescriptionSection: React.FC<Props> = ({
         <div className="relative">
           <div className="flex items-center gap-2">
             <InputWithIcon
-              placeholder="Paste Job URL (LinkedIn, Indeed, Salesforce, etc.)"
+              placeholder="Paste Job URL (LinkedIn, Indeed, TotalJobs, etc.)"
               value={jobUrl}
               onChange={(e) => setJobUrl(e.target.value)}
               className="mb-2 rounded-xl border-gray-200 focus:border-blue-400 focus:ring-blue-400"
