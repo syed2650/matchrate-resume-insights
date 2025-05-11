@@ -34,6 +34,13 @@
     --ring: 221.2 83.2% 53.3%;
  
     --radius: 0.5rem;
+
+    /* Add website-specific colors */
+    --warm-accent: #4263eb;
+    --warm-accent-hover: #364fc7;
+    --warm-bg: #ffffff;
+    --warm-text: #1A1F2C;
+    --warm-border: #e2e8f0;
   }
  
   .dark {
@@ -64,6 +71,13 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 224.3 76.5% 48%;
+
+    /* Add website-specific dark mode colors */
+    --warm-accent: #748ffc;
+    --warm-accent-hover: #91a7ff;
+    --warm-bg: #1A1F2C;
+    --warm-text: #f8f9fa;
+    --warm-border: #2d3748;
   }
 }
 
@@ -84,4 +98,72 @@
 
 .job-description-input {
   min-height: 150px;
+}
+
+/* Website-specific gradients and styles */
+.hero-gradient {
+  background: linear-gradient(to bottom, #f8fafc 0%, #f1f5f9 100%);
+}
+
+.cta-gradient {
+  background: linear-gradient(to right, var(--warm-accent), #4f46e5);
+}
+
+.lilac-gradient {
+  background: linear-gradient(to bottom, #f8fafc 0%, #eef2ff 100%);
+}
+
+.text-gradient {
+  @apply bg-gradient-to-r from-warm-accent to-blue-600 bg-clip-text text-transparent;
+}
+
+/* Hover effects */
+.hover-scale {
+  transition: transform 0.3s ease;
+}
+
+.hover-scale:hover {
+  transform: translateY(-5px);
+}
+
+/* Shadow effects */
+.shadow-cta {
+  box-shadow: 0 10px 15px -3px rgba(66, 99, 235, 0.2), 0 4px 6px -2px rgba(66, 99, 235, 0.1);
+}
+
+/* Container utilities */
+.container-content {
+  @apply container mx-auto max-w-6xl px-4;
+}
+
+/* Tech stack marquee animation */
+.marquee {
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  position: relative;
+}
+
+.marquee-content {
+  display: flex;
+  animation: marquee 30s linear infinite;
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.tech-stack-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #64748b;
+  padding: 0.5rem 1rem;
+  white-space: nowrap;
 }

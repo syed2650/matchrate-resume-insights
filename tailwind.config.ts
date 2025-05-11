@@ -51,11 +51,20 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // Custom colors used throughout the site
+        'warm-accent': {
+          DEFAULT: 'var(--warm-accent)',
+          hover: 'var(--warm-accent-hover)',
+        },
+        'warm-bg': 'var(--warm-bg)',
+        'warm-text': 'var(--warm-text)',
+        'warm-border': 'var(--warm-border)',
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        xl: "1rem",
       },
       fontFamily: {
         sans: ["var(--font-sans)", ...fontFamily.sans],
