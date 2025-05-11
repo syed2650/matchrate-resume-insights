@@ -10,7 +10,7 @@ const NavBar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
-  const { user, isLoading } = useAuthUser();
+  const { user, loading } = useAuthUser();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -86,7 +86,7 @@ const NavBar = () => {
               
               <DarkModeToggle />
 
-              {!isLoading && (
+              {!loading && (
                 <>
                   {user ? (
                     <Button asChild variant="outline">
@@ -160,7 +160,7 @@ const NavBar = () => {
                   >
                     Contact
                   </Link>
-                  {!isLoading && (
+                  {!loading && (
                     <>
                       {user ? (
                         <Link
