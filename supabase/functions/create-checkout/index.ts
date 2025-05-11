@@ -104,7 +104,7 @@ serve(async (req) => {
       const coupon = await stripe.coupons.create({
         name: couponName,
         percent_off: 50,
-        duration: 'once',
+        duration: 'repeating', // Fixed: changed from 'once' to 'repeating'
         duration_in_months: 1,
       });
       couponId = coupon.id;
