@@ -1,184 +1,194 @@
 
-import { useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useAuthUser } from "@/hooks/useAuthUser";
+import React, { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { X, Menu } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { DarkModeToggle } from "@/components/ui/dark-mode-toggle";
+import { Menu, X } from "lucide-react";
+import { useAuthUser } from "@/hooks/useAuthUser";
 
-export default function NavBar() {
-  const { user } = useAuthUser();
+const NavBar = () => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
-  const [showMobileMenu, setShowMobileMenu] = useState(false);
-  const isMobile = useIsMobile();
-  const { toast } = useToast();
+  const { user, isLoading } = useAuthUser();
 
-  const handleSignOut = async () => {
-    try {
-      await supabase.auth.signOut();
-      toast({ title: "Signed out successfully" });
-      navigate("/");
-    } catch (error) {
-      console.error("Error signing out:", error);
-      toast({
-        title: "Error signing out",
-        description: "Please try again",
-        variant: "destructive"
-      });
-    }
-  };
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
-    <div className="bg-background py-4 shadow-sm sticky top-0 z-50">
-      <div className="container mx-auto px-4 flex items-center justify-between">
-        <Link to="/" className="font-bold text-xl">Matchrate.co</Link>
-          
-        <div className="flex flex-1 justify-end items-center">
-          <nav className="flex items-center gap-4 sm:gap-6">
-            {!isMobile && (
-              <>
-                <Link
-                  to="/"
-                  className={`text-sm font-medium ${
-                    location.pathname === "/" ? "text-foreground" : "text-muted-foreground"
-                  } hover:text-foreground transition-colors`}
-                >
-                  Home
-                </Link>
-                <Link
-                  to="/about"
-                  className={`text-sm font-medium ${
-                    location.pathname === "/about" ? "text-foreground" : "text-muted-foreground"
-                  } hover:text-foreground transition-colors`}
-                >
-                  About
-                </Link>
-                <Link
-                  to="/#features"
-                  className={`text-sm font-medium text-muted-foreground hover:text-foreground transition-colors`}
-                >
-                  Features
-                </Link>
-                <Link
-                  to="/blog"
-                  className={`text-sm font-medium ${
-                    location.pathname === "/blog" ? "text-foreground" : "text-muted-foreground"
-                  } hover:text-foreground transition-colors`}
-                >
-                  Blog
-                </Link>
-                
-                {user && (
-                  <Link
-                    to="/dashboard"
-                    className={`text-sm font-medium ${
-                      location.pathname === "/dashboard" ? "text-foreground" : "text-muted-foreground"
-                    } hover:text-foreground transition-colors`}
-                  >
-                    Dashboard
-                  </Link>
-                )}
-              </>
-            )}
-            
-            {user ? (
-              <Button variant="outline" size="sm" onClick={handleSignOut}>
-                Sign Out
-              </Button>
-            ) : (
-              <Button variant="outline" size="sm" onClick={() => navigate("/auth")}>
-                Sign In
-              </Button>
-            )}
-            
-            <Button 
-              variant="default"
-              className="cta-gradient text-white px-6"
-              onClick={() => navigate("/review")}
-            >
-              Try it free
-            </Button>
+    <nav
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        isScrolled
+          ? "bg-white/80 dark:bg-slate-900/80 backdrop-blur-md shadow-sm"
+          : "bg-transparent"
+      }`}
+      aria-label="Main navigation"
+    >
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center py-4 md:justify-start md:space-x-10">
+          <div className="flex justify-start lg:w-0 lg:flex-1">
+            <Link to="/" className="flex items-center">
+              <span className="text-2xl font-bold text-blue-600">Matchrate</span>
+              <span className="text-2xl font-bold text-slate-800 dark:text-white">.ai</span>
+            </Link>
+          </div>
 
-            {isMobile && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="ml-2"
-                onClick={() => setShowMobileMenu(true)}
+          <div className="-mr-2 -my-2 md:hidden flex items-center">
+            <DarkModeToggle />
+            <Button
+              variant="ghost"
+              onClick={() => setIsMenuOpen(true)}
+              className="inline-flex items-center justify-center p-2 rounded-md focus:outline-none"
+              aria-expanded={isMenuOpen ? "true" : "false"}
+              aria-label="Toggle menu"
+            >
+              <Menu className="h-6 w-6" aria-hidden="true" />
+            </Button>
+          </div>
+
+          <div className="hidden md:flex items-center justify-end md:flex-1 lg:w-0">
+            <nav className="flex space-x-8 items-center">
+              <Link
+                to="/review"
+                className={`text-base font-medium ${
+                  location.pathname === "/review"
+                    ? "text-blue-600 dark:text-blue-400"
+                    : "text-slate-700 hover:text-blue-600 dark:text-slate-200 dark:hover:text-blue-400"
+                } transition-colors`}
               >
-                <Menu className="h-5 w-5" />
-              </Button>
-            )}
-          </nav>
+                Resume Review
+              </Link>
+              <Link
+                to="/blog"
+                className={`text-base font-medium ${
+                  location.pathname.startsWith("/blog")
+                    ? "text-blue-600 dark:text-blue-400"
+                    : "text-slate-700 hover:text-blue-600 dark:text-slate-200 dark:hover:text-blue-400"
+                } transition-colors`}
+              >
+                Blog
+              </Link>
+              <Link
+                to="/contact"
+                className={`text-base font-medium ${
+                  location.pathname === "/contact"
+                    ? "text-blue-600 dark:text-blue-400"
+                    : "text-slate-700 hover:text-blue-600 dark:text-slate-200 dark:hover:text-blue-400"
+                } transition-colors`}
+              >
+                Contact
+              </Link>
+              
+              <DarkModeToggle />
+
+              {!isLoading && (
+                <>
+                  {user ? (
+                    <Button asChild variant="outline">
+                      <Link to="/dashboard">Dashboard</Link>
+                    </Button>
+                  ) : (
+                    <Button asChild>
+                      <Link to="/auth">Sign In</Link>
+                    </Button>
+                  )}
+                </>
+              )}
+            </nav>
+          </div>
         </div>
-          
-        {showMobileMenu && (
-          <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
-            <div className="fixed inset-y-0 right-0 w-full max-w-sm bg-background shadow-lg p-6">
+      </div>
+
+      {/* Mobile menu */}
+      {isMenuOpen && (
+        <div className="absolute top-0 inset-x-0 p-2 transition transform origin-top-right md:hidden z-50">
+          <div className="rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 bg-white dark:bg-slate-900 divide-y-2 divide-gray-50 dark:divide-slate-800">
+            <div className="pt-5 pb-6 px-5">
               <div className="flex items-center justify-between">
-                <Link to="/" className="font-bold text-xl">Matchrate.co</Link>
-                <button
-                  onClick={() => setShowMobileMenu(false)}
-                  className="p-2 rounded-md hover:bg-muted"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-              <nav className="mt-8 flex flex-col gap-4">
-                <Link
-                  to="/"
-                  className={`text-base font-medium ${
-                    location.pathname === "/" ? "text-foreground" : "text-muted-foreground"
-                  }`}
-                  onClick={() => setShowMobileMenu(false)}
-                >
-                  Home
-                </Link>
-                <Link
-                  to="/about"
-                  className={`text-base font-medium ${
-                    location.pathname === "/about" ? "text-foreground" : "text-muted-foreground"
-                  }`}
-                  onClick={() => setShowMobileMenu(false)}
-                >
-                  About
-                </Link>
-                <Link
-                  to="/#features"
-                  className="text-base font-medium text-muted-foreground"
-                  onClick={() => setShowMobileMenu(false)}
-                >
-                  Features
-                </Link>
-                <Link
-                  to="/blog"
-                  className={`text-base font-medium ${
-                    location.pathname === "/blog" ? "text-foreground" : "text-muted-foreground"
-                  }`}
-                  onClick={() => setShowMobileMenu(false)}
-                >
-                  Blog
-                </Link>
-                
-                {user && (
-                  <Link
-                    to="/dashboard"
-                    className={`text-base font-medium ${
-                      location.pathname === "/dashboard" ? "text-foreground" : "text-muted-foreground"
-                    }`}
-                    onClick={() => setShowMobileMenu(false)}
+                <div>
+                  <span className="text-2xl font-bold text-blue-600">Matchrate</span>
+                  <span className="text-2xl font-bold text-slate-800 dark:text-white">.ai</span>
+                </div>
+                <div className="-mr-2">
+                  <Button
+                    variant="ghost"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="rounded-md p-2 inline-flex items-center justify-center focus:outline-none"
+                    aria-label="Close menu"
                   >
-                    Dashboard
+                    <X className="h-6 w-6" aria-hidden="true" />
+                  </Button>
+                </div>
+              </div>
+              <div className="mt-6">
+                <nav className="grid gap-y-8">
+                  <Link
+                    to="/review"
+                    onClick={() => setIsMenuOpen(false)}
+                    className={`text-base font-medium ${
+                      location.pathname === "/review"
+                        ? "text-blue-600 dark:text-blue-400"
+                        : "text-slate-700 dark:text-slate-200"
+                    } hover:text-blue-600 dark:hover:text-blue-400`}
+                  >
+                    Resume Review
                   </Link>
-                )}
-              </nav>
+                  <Link
+                    to="/blog"
+                    onClick={() => setIsMenuOpen(false)}
+                    className={`text-base font-medium ${
+                      location.pathname.startsWith("/blog")
+                        ? "text-blue-600 dark:text-blue-400"
+                        : "text-slate-700 dark:text-slate-200"
+                    } hover:text-blue-600 dark:hover:text-blue-400`}
+                  >
+                    Blog
+                  </Link>
+                  <Link
+                    to="/contact"
+                    onClick={() => setIsMenuOpen(false)}
+                    className={`text-base font-medium ${
+                      location.pathname === "/contact"
+                        ? "text-blue-600 dark:text-blue-400"
+                        : "text-slate-700 dark:text-slate-200"
+                    } hover:text-blue-600 dark:hover:text-blue-400`}
+                  >
+                    Contact
+                  </Link>
+                  {!isLoading && (
+                    <>
+                      {user ? (
+                        <Link
+                          to="/dashboard"
+                          onClick={() => setIsMenuOpen(false)}
+                          className="text-base font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-500"
+                        >
+                          Dashboard
+                        </Link>
+                      ) : (
+                        <Link
+                          to="/auth"
+                          onClick={() => setIsMenuOpen(false)}
+                          className="text-base font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-500"
+                        >
+                          Sign In
+                        </Link>
+                      )}
+                    </>
+                  )}
+                </nav>
+              </div>
             </div>
           </div>
-        )}
-      </div>
-    </div>
+        </div>
+      )}
+    </nav>
   );
-}
+};
+
+export default NavBar;

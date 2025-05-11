@@ -1,3 +1,4 @@
+
 /**
  * Utility functions for resume reviews
  */
@@ -201,13 +202,20 @@ export function getUsageStats(): UsageStats {
     
     // Reset daily count if it's a new day
     if (stats.daily.date !== today) {
-      stats.daily.count = 0;
-      stats.daily.date = today;
+      console.log("New day detected. Resetting daily usage count.");
+      stats.daily = {
+        count: 0,
+        date: today
+      };
+      
+      // Save the updated stats with reset daily counter
+      localStorage.setItem('usageStats', JSON.stringify(stats));
     }
     
     // Reset monthly count if we're past reset date
     const resetDate = new Date(stats.monthly.resetDate);
     if (new Date() > resetDate) {
+      console.log("New month detected. Resetting monthly usage counts.");
       stats.monthly.feedbacks = 0;
       stats.monthly.rewrites = 0;
       

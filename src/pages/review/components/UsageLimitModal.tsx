@@ -21,13 +21,18 @@ const UsageLimitModal: React.FC<UsageLimitModalProps> = ({ isOpen, onClose }) =>
   const stats = getUsageStats();
   
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => {
-      if (!open) onClose();
-    }}>
+    <Dialog 
+      open={isOpen} 
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+      aria-labelledby="usage-limit-dialog-title"
+      aria-describedby="usage-limit-dialog-description"
+    >
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Usage Limit Reached</DialogTitle>
-          <DialogDescription>
+          <DialogTitle id="usage-limit-dialog-title">Usage Limit Reached</DialogTitle>
+          <DialogDescription id="usage-limit-dialog-description">
             {stats.plan === 'free' ? (
               <>
                 You've reached your daily limit of 1 resume review on the Free Plan.
@@ -42,10 +47,10 @@ const UsageLimitModal: React.FC<UsageLimitModalProps> = ({ isOpen, onClose }) =>
           </DialogDescription>
         </DialogHeader>
         
-        <div className="flex flex-col space-y-2 py-4">
+        <div className="flex flex-col space-y-2 py-4" aria-labelledby="premium-benefits-heading">
           <div className="bg-amber-50 border border-amber-200 rounded-md p-3">
-            <h3 className="font-medium text-amber-800 mb-2">Premium Plan Benefits</h3>
-            <ul className="text-amber-800 text-sm list-disc pl-5 space-y-1">
+            <h3 id="premium-benefits-heading" className="font-medium text-amber-800 mb-2">Premium Plan Benefits</h3>
+            <ul className="text-amber-800 text-sm list-disc pl-5 space-y-1" aria-label="Premium plan benefits list">
               <li>Unlimited resume analyses</li>
               <li>15 AI-powered resume rewrites per month</li>
               <li>Export to PDF and Word formats</li>
@@ -56,10 +61,10 @@ const UsageLimitModal: React.FC<UsageLimitModalProps> = ({ isOpen, onClose }) =>
         </div>
 
         <DialogFooter className="flex-col sm:flex-row sm:justify-between gap-2">
-          <Button variant="outline" onClick={onClose}>Close</Button>
+          <Button variant="outline" onClick={onClose} aria-label="Close dialog">Close</Button>
           {stats.plan === 'free' && (
             <Button asChild>
-              <Link to="/#pricing">Upgrade Now</Link>
+              <Link to="/#pricing" aria-label="Upgrade to premium plan">Upgrade Now</Link>
             </Button>
           )}
         </DialogFooter>
