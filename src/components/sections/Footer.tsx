@@ -1,5 +1,5 @@
-
 import { Link } from "react-router-dom";
+import BetaBadge from "@/components/BetaBadge";
 
 const Footer = () => {
   return (
@@ -7,7 +7,10 @@ const Footer = () => {
       <div className="container max-w-screen-xl mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
           <div>
-            <h3 className="text-xl font-bold text-warm-text mb-3">Matchrate.co</h3>
+            <h3 className="text-xl font-bold text-warm-text mb-3 flex items-center gap-2">
+              Matchrate.co
+              <BetaBadge />
+            </h3>
             <p className="text-slate-600 text-base">
               AI-powered resume feedback tailored to tech job seekers — from PMs to Engineers and beyond.
             </p>

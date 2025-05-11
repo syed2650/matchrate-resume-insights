@@ -5,23 +5,48 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Check, ArrowRight } from "lucide-react";
 import { setUserPlan } from "@/pages/review/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
   const [isProcessing, setIsProcessing] = useState(true);
+  const [isLifetimePremium, setIsLifetimePremium] = useState(false);
   const sessionId = searchParams.get("session_id");
 
   useEffect(() => {
-    // Activate the premium plan
-    if (sessionId) {
-      setUserPlan('paid');
-      setTimeout(() => {
+    const checkSubscriptionStatus = async () => {
+      try {
+        // First, check if the user is a lifetime premium user
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('is_lifetime_premium')
+            .eq('id', session.user.id)
+            .single();
+          
+          if (profileData && profileData.is_lifetime_premium) {
+            setIsLifetimePremium(true);
+          }
+        }
+        
+        // Activate the premium plan regardless
+        setUserPlan('paid');
+        setTimeout(() => {
+          setIsProcessing(false);
+        }, 1500);
+      } catch (error) {
+        console.error("Error checking subscription:", error);
         setIsProcessing(false);
-      }, 1500);
+      }
+    };
+
+    if (sessionId || isLifetimePremium) {
+      checkSubscriptionStatus();
     } else {
       setIsProcessing(false);
     }
-  }, [sessionId]);
+  }, [sessionId, isLifetimePremium]);
 
   return (
     <div className="container mx-auto px-4 py-16 max-w-3xl">
@@ -41,7 +66,9 @@ const PaymentSuccess = () => {
             <h1 className="text-4xl font-bold mb-6">Payment Successful!</h1>
             
             <p className="text-lg text-gray-600 mb-8 max-w-md">
-              Thank you for subscribing to our Premium Plan. Your account has been activated with all premium features.
+              {isLifetimePremium 
+                ? "Thank you for being an early supporter! You have been granted lifetime premium access to all features." 
+                : "Thank you for subscribing to our Premium Plan. Your account has been activated with all premium features."}
             </p>
             
             <div className="bg-slate-50 p-6 rounded-lg w-full mb-8">
@@ -49,11 +76,11 @@ const PaymentSuccess = () => {
               <ul className="text-left space-y-3">
                 <li className="flex items-start gap-3">
                   <Check className="w-5 h-5 text-green-500 mt-0.5 shrink-0" />
-                  <span>30 resume reviews per month</span>
+                  <span>{isLifetimePremium ? "Unlimited" : "30"} resume reviews{isLifetimePremium ? "" : " per month"}</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <Check className="w-5 h-5 text-green-500 mt-0.5 shrink-0" />
-                  <span>15 resume rewrites per month</span>
+                  <span>{isLifetimePremium ? "Unlimited" : "15"} resume rewrites{isLifetimePremium ? "" : " per month"}</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <Check className="w-5 h-5 text-green-500 mt-0.5 shrink-0" />
@@ -63,6 +90,12 @@ const PaymentSuccess = () => {
                   <Check className="w-5 h-5 text-green-500 mt-0.5 shrink-0" />
                   <span>Export reports in .docx format</span>
                 </li>
+                {isLifetimePremium && (
+                  <li className="flex items-start gap-3">
+                    <Check className="w-5 h-5 text-green-500 mt-0.5 shrink-0" />
+                    <span>Lifetime access to all future premium features</span>
+                  </li>
+                )}
               </ul>
             </div>
             

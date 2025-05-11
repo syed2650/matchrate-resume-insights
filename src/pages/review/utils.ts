@@ -1,368 +1,191 @@
+import { supabase } from "@/integrations/supabase/client";
 
 /**
- * Utility functions for resume reviews
+ * Gets the user's current plan
  */
-
-import { calculateATSScore as computeATSScore, getATSScoreExplanation, getATSScoreDetail } from './utils/atsScoring';
-
-// Re-export the ATS score explanation functions for easier access
-export { getATSScoreExplanation, getATSScoreDetail };
-
-// Convert bytes to human-readable size format
-export function bytesToSize(bytes: number): string {
-  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-  if (bytes === 0) return '0 Byte';
-  const i = Math.floor(Math.log(bytes) / Math.log(1024));
-  return Math.round((bytes / Math.pow(1024, i)) * 100) / 100 + ' ' + sizes[i];
-}
-
-// Extract keywords from text with improved algorithm
-function extractKeywords(text: string): string[] {
-  if (!text || typeof text !== 'string') {
-    return [];
-  }
-  
-  // Convert to lowercase and remove special characters
-  const cleanedText = text.toLowerCase().replace(/[^\w\s]/g, ' ');
-  
-  // Split into words and remove common stop words
-  const words = cleanedText.split(/\s+/);
-  const stopWords = new Set([
-    'a', 'an', 'the', 'and', 'or', 'but', 'is', 'are', 'was', 'were', 
-    'be', 'been', 'being', 'in', 'on', 'at', 'to', 'for', 'with', 
-    'by', 'about', 'against', 'between', 'into', 'through', 'during',
-    'before', 'after', 'above', 'below', 'from', 'up', 'down', 'of',
-    'off', 'over', 'under', 'again', 'further', 'then', 'once', 'here',
-    'there', 'when', 'where', 'why', 'how', 'all', 'any', 'both', 'each',
-    'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not',
-    'only', 'own', 'same', 'so', 'than', 'too', 'very', 'can', 'will',
-    'just', 'should', 'now', 'you', 'your', 'we', 'our', 'i', 'my'
-  ]);
-  
-  // Filter out stop words and short words
-  const filteredWords = words.filter(word => 
-    word.length > 2 && !stopWords.has(word)
-  );
-
-  // Count frequency of each word
-  const wordFrequency: {[key: string]: number} = {};
-  filteredWords.forEach(word => {
-    wordFrequency[word] = (wordFrequency[word] || 0) + 1;
-  });
-  
-  // Sort by frequency and get top keywords
-  const sortedKeywords = Object.entries(wordFrequency)
-    .sort((a, b) => b[1] - a[1])
-    .map(entry => entry[0]);
-  
-  // Return top keywords
-  return sortedKeywords.slice(0, 50);
-}
-
-// Generate a stable hash for caching
-export function generateHash(resume: string, jobDescription: string): string {
-  const str = `${resume?.substring(0, 1000) || ''}::${jobDescription?.substring(0, 1000) || ''}`;
-  let hash = 0;
-  if (str.length === 0) return hash.toString();
-  
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32bit integer
-  }
-  
-  return Math.abs(hash).toString(16);
-}
-
-// Export the ATS score calculation function
-export function calculateATSScore(resumeText: string, jobDescriptionText: string): number {
-  return computeATSScore(resumeText, jobDescriptionText);
-}
-
-// Cache management functions for ATS scores
-export function saveATSScoreToCache(hash: string, scores: Record<string, number>) {
+export const getUserPlan = async () => {
   try {
-    // Get existing cache
-    let cachedScores = getATSScoresFromCache();
-    
-    // Find existing entry or add new one
-    const existingIndex = cachedScores.findIndex(item => item.hash === hash);
-    if (existingIndex >= 0) {
-      cachedScores[existingIndex] = {
-        hash,
-        scores,
-        timestamp: new Date().toISOString()
-      };
-    } else {
-      cachedScores.push({
-        hash,
-        scores,
-        timestamp: new Date().toISOString()
-      });
+    // Check local storage first for faster response
+    const storedPlan = localStorage.getItem('user-plan');
+    if (storedPlan) {
+      return storedPlan;
     }
-    
-    // Limit cache size to prevent localStorage bloat
-    if (cachedScores.length > 50) {
-      cachedScores = cachedScores.slice(-50);
+
+    // Check if the user is lifetime premium
+    const { data: authData } = await supabase.auth.getSession();
+    if (authData.session) {
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('is_lifetime_premium')
+        .eq('id', authData.session.user.id)
+        .single();
+      
+      if (profileData && profileData.is_lifetime_premium) {
+        setUserPlan('paid'); // Set paid plan for lifetime premium users
+        return 'paid';
+      }
     }
-    
-    // Save updated cache
-    localStorage.setItem('cachedATSScores', JSON.stringify(cachedScores));
-    console.log(`Saved ATS scores for hash: ${hash} to cache`);
-    return true;
+
+    return 'free';
   } catch (error) {
-    console.error("Error saving ATS score to cache:", error);
-    return false;
+    console.error("Error checking user plan:", error);
+    return 'free';
   }
-}
+};
 
-export function getATSScoresFromCache() {
-  try {
-    const storedScores = localStorage.getItem('cachedATSScores');
-    const parsedScores = storedScores ? JSON.parse(storedScores) : [];
-    return parsedScores;
-  } catch (error) {
-    console.error("Error loading cached scores:", error);
-    return [];
-  }
-}
+/**
+ * Sets the user's plan
+ */
+export const setUserPlan = (plan: string) => {
+  localStorage.setItem('user-plan', plan);
+};
 
-export function getATSScoreFromCache(hash: string) {
-  try {
-    const cachedScores = getATSScoresFromCache();
-    const result = cachedScores.find(item => item.hash === hash);
-    return result;
-  } catch (error) {
-    console.error("Error retrieving ATS score from cache:", error);
-    return null;
-  }
-}
+/**
+ * Resets the usage stats for the current day
+ */
+export const resetUsageStats = () => {
+  const today = new Date().toISOString().split('T')[0];
+  const dailyKey = `usage-count-${today}`;
+  localStorage.removeItem(dailyKey);
+};
 
-export function clearATSScoreCache() {
-  try {
-    localStorage.removeItem('cachedATSScores');
-    return true;
-  } catch (error) {
-    console.error("Error clearing ATS score cache:", error);
-    return false;
-  }
-}
-
-// Session storage function to maintain score during session
-export function storeActiveResumeATSScore(resumeJobHash: string) {
-  try {
-    sessionStorage.setItem('activeResumeATSHash', resumeJobHash);
-    return true;
-  } catch (error) {
-    console.error("Error storing active resume hash:", error);
-    return false;
-  }
-}
-
-export function getActiveResumeATSHash(): string | null {
-  return sessionStorage.getItem('activeResumeATSHash');
-}
-
-// Usage tracking functions for subscription model
-export interface UsageStats {
-  daily: {
-    count: number,
-    date: string
-  };
-  monthly: {
-    feedbacks: number,
-    rewrites: number,
-    resetDate: string
-  };
-  plan: 'free' | 'paid';
-}
-
-// Get current usage stats - Fixed to properly reset daily count
-export function getUsageStats(): UsageStats {
-  const defaultStats: UsageStats = {
+/**
+ * Gets the user's usage statistics
+ */
+export const getUsageStats = () => {
+  // Check if the user has a premium plan
+  const plan = localStorage.getItem('user-plan');
+  
+  // Daily usage tracking
+  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+  const dailyKey = `usage-count-${today}`;
+  const dailyCount = parseInt(localStorage.getItem(dailyKey) || '0', 10);
+  
+  // Monthly usage tracking (for premium features)
+  const month = new Date().toISOString().slice(0, 7); // YYYY-MM
+  const monthlyKey = `premium-usage-${month}`;
+  const monthlyData = JSON.parse(localStorage.getItem(monthlyKey) || '{"feedbacks": 0, "rewrites": 0}');
+  
+  // Get updated plan status from server
+  getUserPlan().catch(console.error); // Refresh plan status in background
+  
+  return {
+    plan: plan || 'free',
     daily: {
-      count: 0,
-      date: new Date().toISOString().split('T')[0]
+      count: dailyCount,
+      date: today
     },
     monthly: {
-      feedbacks: 0,
-      rewrites: 0,
-      resetDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toISOString()
-    },
-    plan: 'free'
+      feedbacks: monthlyData.feedbacks || 0,
+      rewrites: monthlyData.rewrites || 0,
+      month: month
+    }
   };
+};
 
-  try {
-    const storedStats = localStorage.getItem('usageStats');
-    if (!storedStats) return defaultStats;
-    
-    const stats: UsageStats = JSON.parse(storedStats);
-    const today = new Date().toISOString().split('T')[0];
-    
-    // Reset daily count if it's a new day
-    if (stats.daily.date !== today) {
-      console.log("Resetting daily count because date changed", {
-        storedDate: stats.daily.date,
-        today
-      });
-      stats.daily.count = 0;
-      stats.daily.date = today;
-      
-      // Save the updated stats with reset daily counter
-      localStorage.setItem('usageStats', JSON.stringify(stats));
-    }
-    
-    // Reset monthly count if we're past reset date
-    const resetDate = new Date(stats.monthly.resetDate);
-    if (new Date() > resetDate) {
-      stats.monthly.feedbacks = 0;
-      stats.monthly.rewrites = 0;
-      
-      // Set next reset date to first day of next month
-      const nextMonth = new Date();
-      nextMonth.setMonth(nextMonth.getMonth() + 1);
-      nextMonth.setDate(1);
-      stats.monthly.resetDate = nextMonth.toISOString();
-      
-      // Save the updated stats with reset counters
-      localStorage.setItem('usageStats', JSON.stringify(stats));
-    }
-    
-    return stats;
-  } catch (error) {
-    console.error("Error retrieving usage stats:", error);
-    return defaultStats;
-  }
-}
+export const canUseFeedback = () => {
+  const stats = getUsageStats();
+  return stats.plan === 'free' ? stats.daily.count < 1 : true;
+};
 
-// For testing purposes - manually set the date
-export function setUsageStatDate(dateString: string): void {
-  try {
-    const stats = getUsageStats();
-    stats.daily.date = dateString;
-    localStorage.setItem('usageStats', JSON.stringify(stats));
-  } catch (error) {
-    console.error("Error setting usage stats date:", error);
-  }
-}
-
-// Track a feedback usage
-export function trackFeedbackUsage(): boolean {
-  try {
-    const stats = getUsageStats();
-    
-    // Update counts
-    stats.daily.count += 1;
-    stats.monthly.feedbacks += 1;
-    
-    // Store updated stats
-    localStorage.setItem('usageStats', JSON.stringify(stats));
-    return true;
-  } catch (error) {
-    console.error("Error tracking feedback usage:", error);
-    return false;
-  }
-}
-
-// Track a rewrite usage
-export function trackRewriteUsage(): boolean {
-  try {
-    const stats = getUsageStats();
-    
-    // Update monthly rewrite count (only applies to paid users)
-    if (stats.plan === 'paid') {
-      stats.monthly.rewrites += 1;
-    }
-    
-    // Store updated stats
-    localStorage.setItem('usageStats', JSON.stringify(stats));
-    return true;
-  } catch (error) {
-    console.error("Error tracking rewrite usage:", error);
-    return false;
-  }
-}
-
-// Check if user can perform more feedback operations
-export function canUseFeedback(): boolean {
+export const canUseRewrite = () => {
   const stats = getUsageStats();
   
-  // For free users, limit to 1 per day
-  if (stats.plan === 'free') {
-    return stats.daily.count < 1;
+  // Check for lifetime premium users
+  if (stats.plan === 'paid') {
+    const { data: authData } = supabase.auth.getSession();
+    if (authData.session) {
+      const { data: profileData } = supabase
+        .from('profiles')
+        .select('is_lifetime_premium')
+        .eq('id', authData.session.user.id)
+        .single();
+      
+      // Lifetime premium users have unlimited rewrites
+      if (profileData && profileData.is_lifetime_premium) {
+        return true;
+      }
+    }
+    
+    // Regular premium users have 15 rewrites per month
+    return stats.monthly.rewrites < 15;
   }
   
-  // For paid users, limit to 30 per month
-  return stats.monthly.feedbacks < 30;
-}
+  // Free plan users cannot use rewrites
+  return false;
+};
 
-// Check if user can perform more rewrite operations
-export function canUseRewrite(): boolean {
-  const stats = getUsageStats();
+/**
+ * Track usage of the resume analysis feature
+ */
+export const trackFeedbackUsage = () => {
+  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+  const dailyKey = `usage-count-${today}`;
+  const currentCount = parseInt(localStorage.getItem(dailyKey) || '0', 10);
+  localStorage.setItem(dailyKey, (currentCount + 1).toString());
   
-  // Rewrite feature is only available for paid users
-  if (stats.plan === 'free') {
-    return false;
-  }
-  
-  // For paid users, limit to 15 rewrites per month
-  return stats.monthly.rewrites < 15;
-}
-
-// Set user plan
-export function setUserPlan(plan: 'free' | 'paid'): void {
-  try {
-    const stats = getUsageStats();
-    stats.plan = plan;
-    localStorage.setItem('usageStats', JSON.stringify(stats));
-  } catch (error) {
-    console.error("Error setting user plan:", error);
-  }
-}
-
-// Get remaining usage counts
-export function getRemainingUsage(): { feedbacks: number; rewrites: number } {
-  const stats = getUsageStats();
-  
-  if (stats.plan === 'free') {
-    // Free plan: 1 per day, no rewrites
-    return {
-      feedbacks: Math.max(0, 1 - stats.daily.count),
-      rewrites: 0
+  // For premium users, also track monthly usage
+  const plan = localStorage.getItem('user-plan');
+  if (plan === 'paid') {
+    const month = new Date().toISOString().slice(0, 7); // YYYY-MM
+    const monthlyKey = `premium-usage-${month}`;
+    const monthlyData = JSON.parse(localStorage.getItem(monthlyKey) || '{"feedbacks": 0, "rewrites": 0}');
+    monthlyData.feedbacks += 1;
+    localStorage.setItem(monthlyKey, JSON.stringify(monthlyData));
+    
+    // But don't count usages for lifetime premium users
+    const checkLifetimePremium = async () => {
+      const { data: authData } = await supabase.auth.getSession();
+      if (authData.session) {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('is_lifetime_premium')
+          .eq('id', authData.session.user.id)
+          .single();
+        
+        // Reset counters for lifetime premium users
+        if (profileData && profileData.is_lifetime_premium) {
+          const monthlyData = {"feedbacks": 0, "rewrites": 0};
+          localStorage.setItem(monthlyKey, JSON.stringify(monthlyData));
+        }
+      }
     };
-  } else {
-    // Paid plan: 30 feedbacks, 15 rewrites per month
-    return {
-      feedbacks: Math.max(0, 30 - stats.monthly.feedbacks),
-      rewrites: Math.max(0, 15 - stats.monthly.rewrites)
-    };
+    
+    // Check in the background
+    checkLifetimePremium().catch(console.error);
   }
-}
+};
 
-// Reset usage stats (for testing)
-export function resetUsageStats(): void {
-  const defaultStats: UsageStats = {
-    daily: {
-      count: 0,
-      date: new Date().toISOString().split('T')[0]
-    },
-    monthly: {
-      feedbacks: 0,
-      rewrites: 0,
-      resetDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toISOString()
-    },
-    plan: 'free'
-  };
-  
-  localStorage.setItem('usageStats', JSON.stringify(defaultStats));
-  console.log("Usage stats reset to defaults");
-}
-
-// Debug function to view current usage stats in console
-export function debugUsageStats(): void {
-  const stats = getUsageStats();
-  console.log("Current usage stats:", stats);
-  console.log("Can use feedback:", canUseFeedback());
-  console.log("Today's date:", new Date().toISOString().split('T')[0]);
-  console.log("Stored date:", stats.daily.date);
-}
+/**
+ * Track usage of the resume rewrite feature
+ */
+export const trackRewriteUsage = () => {
+  const plan = localStorage.getItem('user-plan');
+  if (plan === 'paid') {
+    // Check if the user is lifetime premium
+    const checkAndTrack = async () => {
+      const { data: authData } = await supabase.auth.getSession();
+      if (authData.session) {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('is_lifetime_premium')
+          .eq('id', authData.session.user.id)
+          .single();
+        
+        // Don't track usage for lifetime premium users
+        if (profileData && profileData.is_lifetime_premium) {
+          return;
+        }
+        
+        // For regular premium users, track monthly usage
+        const month = new Date().toISOString().slice(0, 7); // YYYY-MM
+        const monthlyKey = `premium-usage-${month}`;
+        const monthlyData = JSON.parse(localStorage.getItem(monthlyKey) || '{"feedbacks": 0, "rewrites": 0}');
+        monthlyData.rewrites += 1;
+        localStorage.setItem(monthlyKey, JSON.stringify(monthlyData));
+      }
+    };
+    
+    checkAndTrack().catch(console.error);
+  }
+};

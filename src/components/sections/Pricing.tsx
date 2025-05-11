@@ -17,10 +17,12 @@ interface PlanFeature {
 interface PricingPlan {
   name: string;
   price: string;
+  discountedPrice?: string;
   period: string | null;
   description: string;
   features: PlanFeature[];
   popular?: boolean;
+  badge?: string;
 }
 
 const pricingPlans: PricingPlan[] = [
@@ -42,6 +44,7 @@ const pricingPlans: PricingPlan[] = [
   {
     name: "Premium",
     price: "7",
+    discountedPrice: "3.50",
     period: "monthly",
     description: "For focused job seekers actively applying.",
     features: [
@@ -53,7 +56,8 @@ const pricingPlans: PricingPlan[] = [
       { name: "15 Resume rewrites per month", available: true },
       { name: "Export reports (.docx)", available: true },
     ],
-    popular: true
+    popular: true,
+    badge: "50% Off First Month"
   }
 ];
 
@@ -199,6 +203,12 @@ const Pricing = () => {
                       </div>
                     )}
                     
+                    {plan.badge && (
+                      <div className="absolute top-0 right-4 transform -translate-y-1/2 inline-block px-4 py-1 text-xs font-medium text-white bg-amber-500 rounded-full shadow-md">
+                        {plan.badge}
+                      </div>
+                    )}
+                    
                     {stats.plan === plan.name.toLowerCase() && (
                       <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 inline-block px-4 py-1 text-xs font-medium text-white bg-emerald-600 rounded-full shadow-md">
                         Your Current Plan
@@ -207,10 +217,28 @@ const Pricing = () => {
                     
                     <h3 className="text-xl font-bold text-warm-text mb-2">{plan.name}</h3>
                     <div className="flex items-baseline mb-4">
-                      <span className="text-4xl font-bold text-warm-text">${plan.price}</span>
-                      {plan.period && <span className="text-slate-500 ml-1">{plan.period}</span>}
+                      {plan.discountedPrice ? (
+                        <>
+                          <del className="text-2xl text-slate-400 mr-2">${plan.price}</del>
+                          <span className="text-4xl font-bold text-warm-text">${plan.discountedPrice}</span>
+                        </>
+                      ) : (
+                        <span className="text-4xl font-bold text-warm-text">${plan.price}</span>
+                      )}
+                      {plan.period && (
+                        <span className="text-slate-500 ml-1">
+                          {plan.discountedPrice ? '/first month' : `/${plan.period}`}
+                        </span>
+                      )}
                     </div>
-                    <p className="text-slate-600 mb-6 text-sm">{plan.description}</p>
+                    <p className="text-slate-600 mb-6 text-sm">
+                      {plan.description}
+                      {plan.discountedPrice && (
+                        <span className="block text-xs mt-1 text-amber-600">
+                          Regular price: ${plan.price}/month after first month
+                        </span>
+                      )}
+                    </p>
                     
                     <Button 
                       className={`w-full mb-7 font-semibold px-6 py-3 rounded-xl transition-all duration-200 hover:scale-[1.02] ${

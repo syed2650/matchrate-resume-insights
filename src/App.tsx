@@ -14,6 +14,7 @@ import Dashboard from "@/pages/Dashboard";
 import PaymentSuccess from "@/pages/PaymentSuccess";
 import Contact from "@/pages/Contact";
 import NavBar from "@/components/NavBar";
+import BetaAnnouncementBanner from "@/components/BetaAnnouncementBanner";
 import { AuthProvider } from "@/hooks/useAuthUser";
 import { Toaster } from "@/components/ui/toaster";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
@@ -22,6 +23,7 @@ function App() {
   return (
     <Router>
       <AuthProvider>
+        <BetaAnnouncementBanner />
         <NavBar />
         <Routes>
           <Route path="/" element={<Index />} />

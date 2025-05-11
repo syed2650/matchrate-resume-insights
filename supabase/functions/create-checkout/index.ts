@@ -80,6 +80,37 @@ serve(async (req) => {
       console.log(`Created new price: ${priceId}`);
     }
 
+    // Create or find a beta coupon for 50% off first month
+    const couponName = "BETALAUNCH";
+    let couponId;
+    
+    try {
+      // Check if the coupon already exists
+      const coupons = await stripe.coupons.list({
+        limit: 100
+      });
+      
+      const existingCoupon = coupons.data.find(c => c.name === couponName);
+      if (existingCoupon) {
+        couponId = existingCoupon.id;
+        console.log(`Found existing coupon: ${couponId}`);
+      }
+    } catch (error) {
+      console.log("Error finding existing coupons:", error);
+    }
+    
+    // Create the coupon if it doesn't exist
+    if (!couponId) {
+      const coupon = await stripe.coupons.create({
+        name: couponName,
+        percent_off: 50,
+        duration: 'once',
+        duration_in_months: 1,
+      });
+      couponId = coupon.id;
+      console.log(`Created new coupon: ${couponId}`);
+    }
+
     // Create a checkout session
     const session = await stripe.checkout.sessions.create({
       line_items: [
@@ -92,6 +123,7 @@ serve(async (req) => {
       success_url: `${req.headers.get("origin")}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get("origin")}/`,
       allow_promotion_codes: true,
+      discounts: [{ coupon: couponId }],  // Automatically apply the 50% discount
       billing_address_collection: "auto",
     });
 

@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthUser } from "@/hooks/useAuthUser";
@@ -39,6 +38,7 @@ export default function Dashboard() {
     feedbacks: { used: 0, total: 1, remaining: 1 },
     rewrites: { used: 0, total: 0, remaining: 0 }
   });
+  const [isLifetimePremium, setIsLifetimePremium] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const isPaid = usageStats.plan === 'paid';
@@ -48,6 +48,21 @@ export default function Dashboard() {
     if (!loading && user) {
       fetchSubmissions();
       const stats = getUsageStats();
+      
+      // Check if the user has lifetime premium access
+      const checkLifetimePremium = async () => {
+        const { data } = await supabase
+          .from("profiles")
+          .select("is_lifetime_premium")
+          .eq("id", user.id)
+          .single();
+        
+        if (data && data.is_lifetime_premium) {
+          setIsLifetimePremium(true);
+        }
+      };
+      
+      checkLifetimePremium().catch(console.error);
       
       // For free plan: 1 feedback per day, 0 rewrites
       // For paid plan: 30 feedback per month, 15 rewrites per month
@@ -59,24 +74,24 @@ export default function Dashboard() {
       const rewritesUsed = stats.plan === 'paid' ? stats.monthly.rewrites : 0;
       
       // Calculate remaining
-      const feedbackRemaining = Math.max(0, feedbackTotal - feedbackUsed);
-      const rewriteRemaining = Math.max(0, rewriteTotal - rewritesUsed);
+      const feedbackRemaining = isLifetimePremium ? "∞" : Math.max(0, feedbackTotal - feedbackUsed);
+      const rewriteRemaining = isLifetimePremium ? "∞" : Math.max(0, rewriteTotal - rewritesUsed);
       
       setUsageStats({
         plan: stats.plan,
         feedbacks: { 
           used: feedbackUsed, 
-          total: feedbackTotal,
+          total: isLifetimePremium ? "∞" : feedbackTotal,
           remaining: feedbackRemaining
         },
         rewrites: { 
           used: rewritesUsed, 
-          total: rewriteTotal,
+          total: isLifetimePremium ? "∞" : rewriteTotal,
           remaining: rewriteRemaining
         }
       });
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, isLifetimePremium]);
 
   const fetchSubmissions = async () => {
     setFetching(true);
@@ -186,7 +201,9 @@ export default function Dashboard() {
 
     const latestScore = submissions[0]?.feedback_results?.score || 0;
 
-    if (!isPaid) {
+    if (isLifetimePremium) {
+      return "You have Lifetime Premium Access — thank you for being an early supporter!";
+    } else if (!isPaid) {
       return "Upgrade to Premium to unlock 30 resume reviews and 15 resume rewrites per month, plus additional features like report downloads.";
     } else if (mostCommonRole && submissions.length >= 3) {
       return `Based on your ${submissions.length} submissions, you seem focused on ${mostCommonRole} roles. Consider optimizing your resume specifically for this career path.`;
@@ -208,11 +225,18 @@ export default function Dashboard() {
             {usageStats.feedbacks.used} / {usageStats.feedbacks.total}
           </span>
         </div>
-        <Progress value={(usageStats.feedbacks.used / usageStats.feedbacks.total) * 100} className="h-2 mb-2" />
+        <Progress 
+          value={isLifetimePremium ? 0 : (usageStats.feedbacks.used / Number(usageStats.feedbacks.total)) * 100} 
+          className="h-2 mb-2" 
+        />
         <p className="text-sm text-muted-foreground">
-          {usageStats.feedbacks.remaining} feedback analyses remaining {isPaid ? 'this month' : ''}
+          {isLifetimePremium ? (
+            "Unlimited feedback analyses — lifetime premium access"
+          ) : (
+            `${usageStats.feedbacks.remaining} feedback analyses remaining ${isPaid ? 'this month' : ''}`
+          )}
         </p>
-        {!isPaid && (
+        {!isPaid && !isLifetimePremium && (
           <Button 
             onClick={handleUpgrade}
             variant="outline" 
@@ -231,10 +255,17 @@ export default function Dashboard() {
             {usageStats.rewrites.used} / {usageStats.rewrites.total}
           </span>
         </div>
-        <Progress value={(usageStats.rewrites.used / usageStats.rewrites.total) * 100} className="h-2 mb-2" />
-        {isPaid ? (
+        <Progress 
+          value={isLifetimePremium ? 0 : (usageStats.rewrites.used / Number(usageStats.rewrites.total)) * 100} 
+          className="h-2 mb-2" 
+        />
+        {isPaid || isLifetimePremium ? (
           <p className="text-sm text-muted-foreground">
-            {usageStats.rewrites.remaining} rewrites remaining this month
+            {isLifetimePremium ? (
+              "Unlimited rewrites — lifetime premium access"
+            ) : (
+              `${usageStats.rewrites.remaining} rewrites remaining this month`
+            )}
           </p>
         ) : (
           <>
@@ -425,13 +456,13 @@ export default function Dashboard() {
     if (!suggestion) return null;
     
     return (
-      <Card className={`mt-8 p-6 border-l-4 ${!isPaid ? 'border-l-amber-500' : 'border-l-blue-500'}`}>
+      <Card className={`mt-8 p-6 border-l-4 ${isLifetimePremium ? 'border-l-green-500' : !isPaid ? 'border-l-amber-500' : 'border-l-blue-500'}`}>
         <h3 className="text-lg font-medium mb-2 flex items-center gap-2">
           <User className="h-5 w-5" />
-          AI Suggestion
+          {isLifetimePremium ? "Lifetime Premium" : "AI Suggestion"}
         </h3>
         <p className="text-muted-foreground">{suggestion}</p>
-        {!isPaid && (
+        {!isPaid && !isLifetimePremium && (
           <Button 
             onClick={handleUpgrade}
             className="mt-4 cta-gradient"

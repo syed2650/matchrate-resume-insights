@@ -86,18 +86,21 @@ export type Database = {
           email: string
           full_name: string | null
           id: string
+          is_lifetime_premium: boolean | null
         }
         Insert: {
           created_at?: string
           email: string
           full_name?: string | null
           id: string
+          is_lifetime_premium?: boolean | null
         }
         Update: {
           created_at?: string
           email?: string
           full_name?: string | null
           id?: string
+          is_lifetime_premium?: boolean | null
         }
         Relationships: []
       }
