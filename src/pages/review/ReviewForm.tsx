@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
@@ -8,6 +8,7 @@ import { JobDescriptionSection } from "./components/JobDescriptionSection";
 import { ExtractionStatus } from "./types";
 import { useJobDescription } from "./hooks/useJobDescription";
 import { useResumeUpload } from "./hooks/useResumeUpload";
+import { useResumeAutosave } from "./hooks/useResumeAutosave";
 
 interface ReviewFormProps {
   onSubmit: (
@@ -18,9 +19,16 @@ interface ReviewFormProps {
   ) => void;
   isLoading: boolean;
   isDisabled?: boolean;
+  savedData?: {
+    resume: string;
+    jobDescription: string;
+    jobUrl?: string;
+    jobTitle?: string;
+    lastSaved?: Date;
+  } | null;
 }
 
-const ReviewForm = ({ onSubmit, isLoading, isDisabled = false }: ReviewFormProps) => {
+const ReviewForm = ({ onSubmit, isLoading, isDisabled = false, savedData }: ReviewFormProps) => {
   const {
     resume,
     setResume,
@@ -41,7 +49,48 @@ const ReviewForm = ({ onSubmit, isLoading, isDisabled = false }: ReviewFormProps
     handleUrlPaste
   } = useJobDescription();
 
+  const { saveFormData } = useResumeAutosave();
   const [submitting, setSubmitting] = useState<boolean>(false);
+  
+  // Load saved data if provided
+  useEffect(() => {
+    if (savedData) {
+      setResume(savedData.resume || "");
+      setJobDescription(savedData.jobDescription || "");
+      if (savedData.jobUrl) setJobUrl(savedData.jobUrl);
+      if (savedData.jobTitle) setJobTitle(savedData.jobTitle);
+    }
+  }, [savedData]);
+  
+  // Auto-save form data every 30 seconds or when content changes significantly
+  useEffect(() => {
+    if (!resume && !jobDescription) return;
+    
+    const saveTimeout = setTimeout(() => {
+      if (resume || jobDescription) {
+        saveFormData({
+          resume,
+          jobDescription,
+          jobUrl,
+          jobTitle
+        });
+      }
+    }, 30000); // 30 seconds
+    
+    return () => clearTimeout(saveTimeout);
+  }, [resume, jobDescription, jobUrl, jobTitle]);
+  
+  // Save when substantial content is entered
+  useEffect(() => {
+    if (resume.length > 200 || jobDescription.length > 200) {
+      saveFormData({
+        resume,
+        jobDescription,
+        jobUrl,
+        jobTitle
+      });
+    }
+  }, [resume.length > 200, jobDescription.length > 200]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

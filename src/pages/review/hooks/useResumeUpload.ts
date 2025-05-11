@@ -12,6 +12,7 @@ export const useResumeUpload = () => {
   const [resume, setResume] = useState("");
   const [resumeFile, setResumeFile] = useState<ResumeFile | null>(null);
   const [isParsingResume, setIsParsingResume] = useState(false);
+  const [hasParsingError, setHasParsingError] = useState(false);
   const { toast } = useToast();
 
   // Maximum file size: 5MB
@@ -19,6 +20,7 @@ export const useResumeUpload = () => {
 
   const handleFileUpload = async (file: File) => {
     setIsParsingResume(true);
+    setHasParsingError(false);
     
     try {
       // Check file size
@@ -29,6 +31,7 @@ export const useResumeUpload = () => {
           variant: "destructive"
         });
         setIsParsingResume(false);
+        setHasParsingError(true);
         return;
       }
       
@@ -43,32 +46,64 @@ export const useResumeUpload = () => {
       // Process based on file type
       if (file.type === "application/pdf") {
         // Handle PDF files using pdfjs which works in browsers
-        const arrayBuffer = await file.arrayBuffer();
-        const pdf = await pdfjs.getDocument(new Uint8Array(arrayBuffer)).promise;
-        
-        let fullText = '';
-        for (let i = 1; i <= pdf.numPages; i++) {
-          const page = await pdf.getPage(i);
-          const textContent = await page.getTextContent();
-          const pageText = textContent.items
-            .map((item: any) => item.str)
-            .join(' ');
-          fullText += pageText + '\n';
+        try {
+          const arrayBuffer = await file.arrayBuffer();
+          const pdf = await pdfjs.getDocument(new Uint8Array(arrayBuffer)).promise;
+          
+          let fullText = '';
+          for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const textContent = await page.getTextContent();
+            const pageText = textContent.items
+              .map((item: any) => item.str)
+              .join(' ');
+            fullText += pageText + '\n';
+          }
+          extractedText = fullText;
+          
+          // Verify extracted content
+          if (!extractedText || extractedText.trim().length < 50) {
+            throw new Error("Could not extract sufficient text from PDF. The PDF may be scanned or contain images of text.");
+          }
+        } catch (pdfError) {
+          setHasParsingError(true);
+          throw new Error("Could not parse this PDF file. Please upload a text-based PDF or try using Word (.docx) format instead.");
         }
-        extractedText = fullText;
       } else if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
         // Handle DOCX files
-        const arrayBuffer = await file.arrayBuffer();
-        const result = await mammoth.extractRawText({arrayBuffer});
-        extractedText = result.value;
+        try {
+          const arrayBuffer = await file.arrayBuffer();
+          const result = await mammoth.extractRawText({arrayBuffer});
+          extractedText = result.value;
+          
+          // Verify extracted content
+          if (!extractedText || extractedText.trim().length < 50) {
+            throw new Error("Could not extract sufficient text from DOCX file.");
+          }
+        } catch (docxError) {
+          setHasParsingError(true);
+          throw new Error("Could not parse this DOCX file. The file might be corrupted or password protected.");
+        }
       } else if (file.type === "text/plain") {
         // Handle plain text files
-        extractedText = await file.text();
+        try {
+          extractedText = await file.text();
+        } catch (txtError) {
+          setHasParsingError(true);
+          throw new Error("Could not read this text file. Please try copy-pasting the content instead.");
+        }
       } else {
         // Try basic text extraction as fallback
         try {
           extractedText = await file.text();
+          
+          // Check if we got meaningful content
+          if (extractedText.trim().length < 50) {
+            setHasParsingError(true);
+            throw new Error("Unsupported file format. Please upload a PDF, DOCX, or TXT file.");
+          }
         } catch (error) {
+          setHasParsingError(true);
           throw new Error("Unsupported file format. Please upload a PDF, DOCX, or TXT file.");
         }
       }
@@ -79,6 +114,12 @@ export const useResumeUpload = () => {
         .replace(/\n{3,}/g, "\n\n")
         .trim();
       
+      // Final check to make sure we have enough content
+      if (cleanText.length < 100) {
+        setHasParsingError(true);
+        throw new Error("We couldn't extract enough text from your resume. The file might be an image-based PDF or contain too little text. Please try uploading a different format or copy-paste your resume text directly.");
+      }
+      
       setResume(cleanText);
       
       toast({
@@ -86,10 +127,13 @@ export const useResumeUpload = () => {
         description: `Extracted content from ${file.name}`,
       });
     } catch (error) {
+      setHasParsingError(true);
       console.error("Error parsing file:", error);
       toast({
         title: "Error parsing resume",
-        description: error instanceof Error ? error.message : "Failed to extract text from the uploaded file. Please paste your resume text manually.",
+        description: error instanceof Error 
+          ? error.message 
+          : "We couldn't extract text from your resume. Please upload a text-based file (.docx or PDF) or copy-paste your resume text manually.",
         variant: "destructive"
       });
     } finally {
@@ -100,6 +144,7 @@ export const useResumeUpload = () => {
   const clearResume = () => {
     setResumeFile(null);
     setResume("");
+    setHasParsingError(false);
   };
 
   return {
@@ -107,6 +152,7 @@ export const useResumeUpload = () => {
     setResume,
     resumeFile,
     isParsingResume,
+    hasParsingError,
     handleFileUpload,
     clearResume
   };

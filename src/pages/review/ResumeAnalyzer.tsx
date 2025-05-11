@@ -11,6 +11,7 @@ import UsageLimitModal from "./components/UsageLimitModal";
 import { canUseFeedback } from "./utils";
 import { useEmailService } from "@/hooks/useEmailService";
 import { useAuthUser } from "@/hooks/useAuthUser";
+import { useResumeAutosave } from "./hooks/useResumeAutosave";
 
 interface ResumeAnalyzerProps {
   onAnalysisComplete: (feedback: Feedback) => void;
@@ -25,6 +26,16 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, setIsLoading, isDisable
   const [showLimitModal, setShowLimitModal] = useState(false);
   const { user } = useAuthUser();
   const { sendFeedbackNotification } = useEmailService();
+  const { saveFormData, loadFormData, clearSavedFormData, lastSaved } = useResumeAutosave();
+  const [hasSavedData, setHasSavedData] = useState(false);
+  
+  // Check for saved form data on initial load
+  useEffect(() => {
+    const savedData = loadFormData();
+    if (savedData && savedData.resume) {
+      setHasSavedData(true);
+    }
+  }, []);
   
   useEffect(() => {
     const listener = () => {
@@ -51,6 +62,9 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, setIsLoading, isDisable
     
     try {
       setIsSubmitting(true);
+
+      // Save form data in case of page refresh
+      saveFormData({ resume, jobDescription, jobUrl, jobTitle });
 
       const response = await fetch('https://rodkrpeqxgqizngdypbl.functions.supabase.co/analyze-resume', {
         method: 'POST',
@@ -79,6 +93,9 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, setIsLoading, isDisable
       
       onAnalysisComplete(enhancedData);
 
+      // Clear saved data after successful analysis
+      clearSavedFormData();
+
       // Send notification email if user is logged in
       if (user?.email) {
         try {
@@ -93,7 +110,6 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, setIsLoading, isDisable
             recipientEmail: user.email
           });
         } catch (emailError) {
-          console.error("Failed to send notification email:", emailError);
           // Don't fail the whole process if email fails
         }
       }
@@ -101,7 +117,7 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, setIsLoading, isDisable
       console.error("Error analyzing resume:", error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to analyze resume",
+        description: "Failed to analyze resume. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -111,6 +127,26 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, setIsLoading, isDisable
 
   const handleCloseLimitModal = () => {
     setShowLimitModal(false);
+  };
+
+  // Function to handle restoring saved data
+  const handleRestoreSavedData = () => {
+    const savedData = loadFormData();
+    if (savedData) {
+      // We'll pass this data to the ReviewForm component
+      return savedData;
+    }
+    return null;
+  };
+
+  // Function to discard saved data
+  const handleDiscardSavedData = () => {
+    clearSavedFormData();
+    setHasSavedData(false);
+    toast({
+      title: "Saved data discarded",
+      description: "Starting with a clean form",
+    });
   };
 
   return (
@@ -123,10 +159,36 @@ const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, setIsLoading, isDisable
         </div>
       )}
       
+      {hasSavedData && !isSubmitting && (
+        <div className="mb-6 bg-blue-50 p-4 rounded-lg border border-blue-200">
+          <h3 className="font-medium text-blue-800">Resume Analysis in Progress</h3>
+          <p className="text-sm text-blue-700 mt-1">
+            We found your previous resume analysis data. Would you like to continue where you left off?
+          </p>
+          <div className="mt-3 flex space-x-3">
+            <Button 
+              variant="default" 
+              size="sm"
+              onClick={() => setHasSavedData(false)}
+            >
+              Continue
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={handleDiscardSavedData}
+            >
+              Start Fresh
+            </Button>
+          </div>
+        </div>
+      )}
+      
       <ReviewForm 
         onSubmit={handleFormSubmit} 
         isLoading={isLoading || isSubmitting}
         isDisabled={isDisabled}
+        savedData={hasSavedData ? handleRestoreSavedData() : undefined}
       />
 
       <UsageLimitModal 

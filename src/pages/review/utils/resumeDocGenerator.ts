@@ -1,264 +1,468 @@
+import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, TabStopPosition, TabStopType, BorderStyle } from "docx";
 
-import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } from "docx";
-
-// Enhanced DOCX generation that preserves formatting
-export const generateFormattedDocx = async (content: string) => {
-  if (!content) return null;
-  
+export async function generateFormattedDocx(resumeText: string): Promise<Blob | null> {
   try {
-    // Parse the resume into sections
-    const sections = content.split(/^(#+\s.*|[A-Z\s]{5,})$/m).filter(Boolean);
-    const docChildren: Paragraph[] = [];
+    if (!resumeText || typeof resumeText !== 'string') {
+      console.error("Invalid resume text provided");
+      return null;
+    }
     
-    let currentSection: string | null = null;
-    let isHeader = true;
+    // Parse resume text into sections
+    const sections = parseResumeIntoSections(resumeText);
     
-    // Process each section
-    sections.forEach((section, sectionIndex) => {
-      const isHeading = /^(#+\s.*|[A-Z\s]{5,})$/m.test(section);
+    // Create document with proper styling
+    const doc = new Document({
+      sections: [
+        {
+          properties: {},
+          children: createFormattedDocument(sections)
+        }
+      ],
+      styles: {
+        paragraphStyles: [
+          {
+            id: "Normal",
+            name: "Normal",
+            basedOn: "Normal",
+            next: "Normal",
+            quickFormat: true,
+            run: {
+              font: "Calibri",
+              size: 22,
+              color: "000000",
+            },
+            paragraph: {
+              spacing: {
+                line: 276,
+                before: 0,
+                after: 200,
+              },
+            },
+          },
+          {
+            id: "Heading1",
+            name: "Heading 1",
+            basedOn: "Normal",
+            next: "Normal",
+            quickFormat: true,
+            run: {
+              font: "Calibri",
+              size: 32,
+              bold: true,
+              color: "000000",
+            },
+            paragraph: {
+              spacing: {
+                before: 240,
+                after: 120,
+              },
+              alignment: AlignmentType.CENTER,
+            },
+          },
+          {
+            id: "Heading2",
+            name: "Heading 2",
+            basedOn: "Normal",
+            next: "Normal",
+            quickFormat: true,
+            run: {
+              font: "Calibri",
+              size: 26,
+              bold: true,
+              color: "000000",
+              underline: {
+                type: "single",
+                color: "000000",
+              },
+            },
+            paragraph: {
+              spacing: {
+                before: 240,
+                after: 120,
+              },
+            },
+          },
+          {
+            id: "JobTitle",
+            name: "Job Title",
+            basedOn: "Normal",
+            next: "Normal",
+            quickFormat: true,
+            run: {
+              font: "Calibri",
+              size: 24,
+              bold: true,
+              color: "000000",
+            },
+          },
+          {
+            id: "Company",
+            name: "Company",
+            basedOn: "Normal",
+            next: "Normal",
+            quickFormat: true,
+            run: {
+              font: "Calibri",
+              size: 22,
+              bold: false,
+              color: "000000",
+            },
+          },
+          {
+            id: "BulletPoint",
+            name: "Bullet Point",
+            basedOn: "Normal",
+            next: "Normal",
+            quickFormat: true,
+            run: {
+              font: "Calibri",
+              size: 22,
+              color: "000000",
+            },
+            paragraph: {
+              spacing: {
+                line: 276,
+                before: 0,
+                after: 100,
+              },
+              indent: {
+                left: 720, // 0.5 inch indent for bullets
+              },
+            },
+          },
+          {
+            id: "ContactInfo",
+            name: "Contact Info",
+            basedOn: "Normal",
+            next: "Normal",
+            quickFormat: true,
+            run: {
+              font: "Calibri",
+              size: 22,
+              color: "000000",
+            },
+            paragraph: {
+              alignment: AlignmentType.CENTER,
+              spacing: {
+                before: 0,
+                after: 240,
+              },
+            },
+          },
+        ],
+      },
+    });
+    
+    // Convert to blob
+    const buffer = await Packer.toBlob(doc);
+    return buffer;
+  } catch (error) {
+    console.error("Error generating DOCX:", error);
+    return null;
+  }
+}
+
+function parseResumeIntoSections(resumeText: string): any {
+  // Split the text by double newlines to separate sections
+  const lines = resumeText.split(/\n/).filter(line => line.trim().length > 0);
+  
+  // First line is usually the name
+  const name = lines[0]?.trim() || "Resume";
+  
+  // Look for contact information in the first few lines
+  const contactInfo = lines.slice(1, 4).join(" • ");
+  
+  // Try to identify sections like "Experience", "Education", "Skills", etc.
+  const sections: Record<string, string[]> = {
+    name: [name],
+    contactInfo: [contactInfo],
+    summary: [],
+    experience: [],
+    education: [],
+    skills: [],
+    other: []
+  };
+  
+  // Simple heuristic to identify sections
+  let currentSection = "summary";
+  
+  for (let i = 4; i < lines.length; i++) {
+    const line = lines[i].trim();
+    
+    // Skip empty lines
+    if (!line) continue;
+    
+    // Check if this is a section header
+    if (line.toUpperCase() === line && line.length < 30) {
+      // This is likely a section header - determine which section
+      if (/EXPERIENCE|EMPLOYMENT|WORK|CAREER|PROFESSIONAL/i.test(line)) {
+        currentSection = "experience";
+        continue;
+      } else if (/EDUCATION|ACADEMIC|DEGREE|UNIVERSITY|COLLEGE/i.test(line)) {
+        currentSection = "education";
+        continue;
+      } else if (/SKILLS|TECHNOLOGIES|COMPETENCIES|PROFICIENCIES/i.test(line)) {
+        currentSection = "skills";
+        continue;
+      } else if (/SUMMARY|PROFILE|OBJECTIVE|ABOUT/i.test(line)) {
+        currentSection = "summary";
+        continue;
+      } else {
+        currentSection = "other";
+        continue;
+      }
+    }
+    
+    // Add the line to the current section
+    sections[currentSection].push(line);
+  }
+  
+  return sections;
+}
+
+function createFormattedDocument(sections: Record<string, string[]>) {
+  const documentElements = [];
+  
+  // Name (centered, large)
+  if (sections.name && sections.name.length > 0) {
+    documentElements.push(
+      new Paragraph({
+        text: sections.name[0],
+        heading: HeadingLevel.HEADING_1,
+        alignment: AlignmentType.CENTER,
+      })
+    );
+  }
+  
+  // Contact Info (centered)
+  if (sections.contactInfo && sections.contactInfo.length > 0) {
+    documentElements.push(
+      new Paragraph({
+        text: sections.contactInfo[0],
+        style: "ContactInfo",
+        alignment: AlignmentType.CENTER,
+      })
+    );
+  }
+  
+  // Summary
+  if (sections.summary && sections.summary.length > 0) {
+    documentElements.push(
+      new Paragraph({
+        text: "SUMMARY",
+        heading: HeadingLevel.HEADING_2,
+        border: {
+          bottom: {
+            color: "auto",
+            space: 1,
+            style: BorderStyle.SINGLE,
+            size: 6,
+          },
+        },
+      })
+    );
+    
+    // Add each summary paragraph
+    sections.summary.forEach(paragraph => {
+      documentElements.push(
+        new Paragraph({
+          text: paragraph,
+          spacing: {
+            before: 100,
+            after: 100,
+          },
+        })
+      );
+    });
+  }
+  
+  // Experience
+  if (sections.experience && sections.experience.length > 0) {
+    documentElements.push(
+      new Paragraph({
+        text: "EXPERIENCE",
+        heading: HeadingLevel.HEADING_2,
+        border: {
+          bottom: {
+            color: "auto",
+            space: 1,
+            style: BorderStyle.SINGLE,
+            size: 6,
+          },
+        },
+      })
+    );
+    
+    // Parse experience entries - usually in format:
+    // Company Name | Location                            Date - Date
+    // Job Title
+    // • Bullet point
+    // • Bullet point
+    
+    let i = 0;
+    while (i < sections.experience.length) {
+      const line = sections.experience[i];
       
-      if (isHeading) {
-        // Add section headings
-        const headingText = section.replace(/^#+\s*/g, '').replace(/^\s+|\s+$/g, '');
+      // Check if this line contains a company name (often has a pipe or dash)
+      if (line.includes('|') || line.includes('-') || /\d{4}\s*-\s*\d{4}|\d{4}\s*-\s*(Present|Current)/.test(line)) {
+        // Company line with date
+        const companyParts = line.split(/\s{2,}|\t/);
         
-        docChildren.push(
+        const companyText = companyParts[0];
+        const dateText = companyParts.length > 1 ? companyParts[companyParts.length - 1] : "";
+        
+        documentElements.push(
           new Paragraph({
-            text: headingText.toUpperCase(),
-            heading: HeadingLevel.HEADING_2,
-            thematicBreak: true,
-            spacing: { before: 300, after: 120 }
+            tabStops: [
+              {
+                type: TabStopType.RIGHT,
+                position: TabStopPosition.MAX,
+              },
+            ],
+            spacing: {
+              before: 240,
+            },
+            children: [
+              new TextRun({
+                text: companyText,
+                bold: true,
+                size: 24,
+              }),
+              new TextRun({
+                text: "\t",
+              }),
+              new TextRun({
+                text: dateText,
+                size: 22,
+              }),
+            ],
           })
         );
         
-        currentSection = headingText.toLowerCase();
-        isHeader = currentSection.includes("summary") && sectionIndex <= 2;
-      } else {
-        // Process content within each section
-        const lines = section.split('\n');
-        
-        lines.forEach((line, lineIndex) => {
-          // Handle empty lines
-          if (!line.trim()) {
-            docChildren.push(new Paragraph({ spacing: { before: 120, after: 120 } }));
-            return;
-          }
-          
-          // Process header (name and contact info)
-          if (isHeader && lineIndex === 0) {
-            docChildren.push(
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text: line,
-                    bold: true,
-                    size: 36
-                  })
-                ],
-                alignment: AlignmentType.CENTER,
-                spacing: { after: 120 }
-              })
-            );
-            return;
-          }
-          
-          // Process contact info
-          if (isHeader && (lineIndex === 1 || lineIndex === 2) && 
-              (line.includes('@') || line.includes('|') || line.includes('+') || line.includes('linkedin'))) {
-            docChildren.push(
-              new Paragraph({
-                text: line,
-                alignment: AlignmentType.CENTER,
-                spacing: { after: 120 }
-              })
-            );
-            return;
-          }
-          
-          // Process bullet points
-          if (line.trim().startsWith('•') || line.trim().startsWith('-')) {
-            docChildren.push(
-              new Paragraph({
-                text: line.replace(/^[•-]\s*/, ''),
-                bullet: { level: 0 },
-                spacing: { before: 60, after: 60 }
-              })
-            );
-            return;
-          }
-          
-          // Process date ranges (right-aligned)
-          if (line.match(/^\d{1,2}\/\d{4}\s*-\s*\d{1,2}\/\d{4}/) || 
-              line.match(/^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}/i)) {
-            docChildren.push(
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text: line,
-                    bold: true,
-                  })
-                ],
-                alignment: AlignmentType.RIGHT,
-                spacing: { after: 120 }
-              })
-            );
-            return;
-          }
-          
-          // Process company names and job titles
-          const isCompanyName = (currentSection === "experience" || currentSection?.includes("work")) && 
-                               lineIndex === 0 && line.split('•')[0].trim();
-          
-          const isJobTitle = (currentSection === "experience" || currentSection?.includes("work")) && 
-                            lineIndex === 1 && line.match(/^[A-Z][a-z]+(\s+[A-Z][a-z]+)*/);
-          
-          if (isCompanyName) {
-            // Only use the company name part (before any delimiter like •)
-            const companyNameOnly = line.split('•')[0].trim();
-            docChildren.push(
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text: companyNameOnly,
-                    bold: true,
-                  })
-                ],
-                spacing: { after: 60 }
-              })
-            );
-            return;
-          }
-          
-          if (isJobTitle) {
-            docChildren.push(
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text: line,
-                    bold: true,
-                  })
-                ],
-                spacing: { after: 120 }
-              })
-            );
-            return;
-          }
-          
-          // Handle education details
-          const isEducationSection = currentSection === "education" || currentSection?.includes("education");
-          const isEducationDegree = isEducationSection && lineIndex === 0 && line.match(/^[A-Z][a-zA-Z\s,]+$/) && !line.includes('•');
-          const isInstitution = isEducationSection && lineIndex === 1;
-          const isCountry = isEducationSection && lineIndex === 2;
-          const isYear = isEducationSection && lineIndex === 3;
-          
-          if (isEducationDegree) {
-            docChildren.push(
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text: line.split('•')[0].trim(), // Remove location if present
-                    bold: true,
-                  })
-                ],
-                spacing: { after: 60 }
-              })
-            );
-            return;
-          }
-          
-          if (isInstitution) {
-            docChildren.push(
-              new Paragraph({
-                text: line.split('•')[0].trim(), // Remove location if present
-                spacing: { after: 60 }
-              })
-            );
-            return;
-          }
-          
-          if (isCountry) {
-            docChildren.push(
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text: line,
-                    italics: true,
-                  })
-                ],
-                spacing: { after: 60 }
-              })
-            );
-            return;
-          }
-          
-          if (isYear) {
-            docChildren.push(
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text: line,
-                    bold: true,
-                  })
-                ],
-                spacing: { after: 240 }
-              })
-            );
-            return;
-          }
-          
-          // Default paragraph formatting
-          docChildren.push(
+        // Next line may be the job title
+        if (i + 1 < sections.experience.length) {
+          i++;
+          documentElements.push(
             new Paragraph({
-              text: line,
-              spacing: { after: 60 }
+              text: sections.experience[i],
+              style: "JobTitle",
             })
           );
-        });
+        }
+      } else if (line.trim().startsWith('•') || line.trim().startsWith('-')) {
+        // This is a bullet point
+        documentElements.push(
+          new Paragraph({
+            text: line,
+            style: "BulletPoint",
+          })
+        );
+      } else {
+        // Regular text line
+        documentElements.push(
+          new Paragraph({
+            text: line,
+          })
+        );
       }
-    });
-    
-    // Create the document with all formatted paragraphs
-    const doc = new Document({
-      sections: [{
-        properties: {
-          page: {
-            margin: {
-              top: 1000,
-              right: 1000,
-              bottom: 1000,
-              left: 1000,
-            },
-          },
-        },
-        children: docChildren
-      }]
-    });
-    
-    return await Packer.toBlob(doc);
-  } catch (error) {
-    console.error("Error generating DOCX:", error);
-    
-    // Fallback to simple document if formatting fails
-    try {
-      const doc = new Document({
-        sections: [{
-          properties: {},
-          children: [
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: content,
-                  size: 24
-                })
-              ],
-              spacing: { line: 360 }
-            })
-          ]
-        }]
-      });
-      return await Packer.toBlob(doc);
-    } catch (fallbackError) {
-      console.error("Fallback document generation failed:", fallbackError);
-      return null;
+      
+      i++;
     }
   }
-};
+  
+  // Education
+  if (sections.education && sections.education.length > 0) {
+    documentElements.push(
+      new Paragraph({
+        text: "EDUCATION",
+        heading: HeadingLevel.HEADING_2,
+        border: {
+          bottom: {
+            color: "auto",
+            space: 1,
+            style: BorderStyle.SINGLE,
+            size: 6,
+          },
+        },
+      })
+    );
+    
+    // Add education entries
+    sections.education.forEach(entry => {
+      documentElements.push(
+        new Paragraph({
+          text: entry,
+          spacing: {
+            before: 120,
+            after: 120,
+          },
+        })
+      );
+    });
+  }
+  
+  // Skills
+  if (sections.skills && sections.skills.length > 0) {
+    documentElements.push(
+      new Paragraph({
+        text: "SKILLS",
+        heading: HeadingLevel.HEADING_2,
+        border: {
+          bottom: {
+            color: "auto",
+            space: 1,
+            style: BorderStyle.SINGLE,
+            size: 6,
+          },
+        },
+      })
+    );
+    
+    // Add skills entries
+    sections.skills.forEach(skill => {
+      if (skill.trim().startsWith('•') || skill.trim().startsWith('-')) {
+        documentElements.push(
+          new Paragraph({
+            text: skill,
+            style: "BulletPoint",
+          })
+        );
+      } else {
+        documentElements.push(
+          new Paragraph({
+            text: skill,
+          })
+        );
+      }
+    });
+  }
+  
+  // Other sections
+  if (sections.other && sections.other.length > 0) {
+    documentElements.push(
+      new Paragraph({
+        text: "ADDITIONAL INFORMATION",
+        heading: HeadingLevel.HEADING_2,
+        border: {
+          bottom: {
+            color: "auto",
+            space: 1,
+            style: BorderStyle.SINGLE,
+            size: 6,
+          },
+        },
+      })
+    );
+    
+    // Add other entries
+    sections.other.forEach(entry => {
+      documentElements.push(
+        new Paragraph({
+          text: entry,
+        })
+      );
+    });
+  }
+  
+  return documentElements;
+}

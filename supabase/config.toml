@@ -55,9 +55,12 @@ enabled = false
 client_id = ""
 secret = ""
 
-# Configure our new edge functions
+# Configure our edge functions
 [functions.send-email]
 verify_jwt = true
 
 [functions.resume-feedback-notification]
 verify_jwt = true
+
+[functions.stripe-webhook]
+verify_jwt = false
