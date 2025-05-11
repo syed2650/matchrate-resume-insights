@@ -6,7 +6,7 @@ import { Feedback } from "./review/types";
 import { useAuthUser } from "@/hooks/useAuthUser";
 import ResumeAnalyzer from "./review/components/ResumeAnalyzer";
 import AnalysisResults from "./review/components/AnalysisResults";
-import { canUseFeedback, trackFeedbackUsage } from "./review/utils";
+import { canUseFeedback, trackFeedbackUsage, debugUsageStats } from "./review/utils";
 import UsageLimitModal from "./review/components/UsageLimitModal";
 import { Database } from "@/integrations/supabase/types";
 
@@ -21,6 +21,13 @@ const Review = () => {
   const [showLimitModal, setShowLimitModal] = useState(false);
   const { toast } = useToast();
   const { user } = useAuthUser();
+
+  // Debug usage stats when component loads in development
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      debugUsageStats();
+    }
+  }, []);
 
   // Check usage limits when component loads
   useEffect(() => {

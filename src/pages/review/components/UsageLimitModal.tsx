@@ -13,12 +13,39 @@ import { getUsageStats } from "../utils";
 import { Link } from "react-router-dom";
 
 interface UsageLimitModalProps {
-  isOpen: boolean; // Required prop
+  isOpen: boolean;
   onClose: () => void;
 }
 
 const UsageLimitModal: React.FC<UsageLimitModalProps> = ({ isOpen, onClose }) => {
   const stats = getUsageStats();
+  
+  // Calculate when the limit resets
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setHours(0, 0, 0, 0);
+  
+  // Format the reset time in a user-friendly way
+  const formatResetTime = () => {
+    const today = new Date();
+    const resetTime = new Date(today);
+    resetTime.setDate(resetTime.getDate() + 1);
+    resetTime.setHours(0, 0, 0, 0);
+    
+    // Calculate hours until reset
+    const hoursUntilReset = Math.round((resetTime.getTime() - today.getTime()) / (1000 * 60 * 60));
+    
+    if (hoursUntilReset < 1) {
+      return "in less than an hour";
+    } else if (hoursUntilReset === 1) {
+      return "in 1 hour";
+    } else if (hoursUntilReset < 24) {
+      return `in ${hoursUntilReset} hours`;
+    } else {
+      return "tomorrow";
+    }
+  };
   
   return (
     <Dialog open={isOpen} onOpenChange={(open) => {
@@ -31,7 +58,7 @@ const UsageLimitModal: React.FC<UsageLimitModalProps> = ({ isOpen, onClose }) =>
             {stats.plan === 'free' ? (
               <>
                 You've reached your daily limit of 1 resume review on the Free Plan.
-                Your limit resets tomorrow.
+                Your limit resets {formatResetTime()}.
               </>
             ) : (
               <>

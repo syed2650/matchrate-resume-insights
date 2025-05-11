@@ -1,3 +1,4 @@
+
 /**
  * Utility functions for resume reviews
  */
@@ -159,7 +160,6 @@ export function storeActiveResumeATSScore(resumeJobHash: string) {
 }
 
 export function getActiveResumeATSHash(): string | null {
-  // Fixed to return the value from sessionStorage instead of setting it
   return sessionStorage.getItem('activeResumeATSHash');
 }
 
@@ -177,7 +177,7 @@ export interface UsageStats {
   plan: 'free' | 'paid';
 }
 
-// Get current usage stats
+// Get current usage stats - Fixed to properly reset daily count
 export function getUsageStats(): UsageStats {
   const defaultStats: UsageStats = {
     daily: {
@@ -201,8 +201,15 @@ export function getUsageStats(): UsageStats {
     
     // Reset daily count if it's a new day
     if (stats.daily.date !== today) {
+      console.log("Resetting daily count because date changed", {
+        storedDate: stats.daily.date,
+        today
+      });
       stats.daily.count = 0;
       stats.daily.date = today;
+      
+      // Save the updated stats with reset daily counter
+      localStorage.setItem('usageStats', JSON.stringify(stats));
     }
     
     // Reset monthly count if we're past reset date
@@ -225,6 +232,17 @@ export function getUsageStats(): UsageStats {
   } catch (error) {
     console.error("Error retrieving usage stats:", error);
     return defaultStats;
+  }
+}
+
+// For testing purposes - manually set the date
+export function setUsageStatDate(dateString: string): void {
+  try {
+    const stats = getUsageStats();
+    stats.daily.date = dateString;
+    localStorage.setItem('usageStats', JSON.stringify(stats));
+  } catch (error) {
+    console.error("Error setting usage stats date:", error);
   }
 }
 
@@ -337,4 +355,14 @@ export function resetUsageStats(): void {
   };
   
   localStorage.setItem('usageStats', JSON.stringify(defaultStats));
+  console.log("Usage stats reset to defaults");
+}
+
+// Debug function to view current usage stats in console
+export function debugUsageStats(): void {
+  const stats = getUsageStats();
+  console.log("Current usage stats:", stats);
+  console.log("Can use feedback:", canUseFeedback());
+  console.log("Today's date:", new Date().toISOString().split('T')[0]);
+  console.log("Stored date:", stats.daily.date);
 }
