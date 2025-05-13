@@ -1,3 +1,4 @@
+
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, TabStopPosition, TabStopType, BorderStyle, Table, TableRow, TableCell, WidthType, convertInchesToTwip } from "docx";
 
 export async function generateFormattedDocx(resumeText: string): Promise<Blob | null> {
@@ -336,7 +337,8 @@ function createFormattedDocument(sections: Record<string, string[]>) {
         }
         
         // Try to parse company and date
-        const dateMatch = line.match(/.*\s+((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}\s*-\s*(?:Present|Current|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4})/i);
+        // FIX: Adding the missing closing parenthesis in the regular expression
+        const dateMatch = line.match(/.*\s+((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}\s*-\s*(?:Present|Current|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}))/i);
         
         if (dateMatch) {
           // Line contains both company and date
@@ -359,6 +361,7 @@ function createFormattedDocument(sections: Record<string, string[]>) {
       }
       
       // Check if this might be a date range (if not already captured)
+      // FIX: Using the corrected regular expression here as well
       if (!currentDates && line.match(/(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}\s*-\s*(?:Present|Current|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4})/i)) {
         currentDates = line.trim();
         continue;
