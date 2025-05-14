@@ -18,19 +18,19 @@ const Review = () => {
   const [helpfulFeedback, setHelpfulFeedback] = useState<null | boolean>(null);
   const [submissionId, setSubmissionId] = useState<string | null>(null);
   const [showLimitModal, setShowLimitModal] = useState(false);
+
+  const [selectedTheme, setSelectedTheme] = useState<"teal" | "modern" | "minimal">("teal");
+
   const { toast } = useToast();
   const { user } = useAuthUser();
 
-  // Debug usage stats when component loads in development
   useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Usage stats:', getUsageStats());
+    if (process.env.NODE_ENV === "development") {
+      console.log("Usage stats:", getUsageStats());
     }
   }, []);
 
-  // Check usage limits when component loads
   useEffect(() => {
-    // If user can't use feedback and doesn't already have feedback results, show limit modal
     if (!canUseFeedback() && !feedback) {
       setShowLimitModal(true);
     }
@@ -41,11 +41,9 @@ const Review = () => {
     setFeedback(data);
     setHelpfulFeedback(null);
 
-    // Track feedback usage
     trackFeedbackUsage();
 
     try {
-      // Convert feedback results to a JSON-compatible format
       const feedbackResultsForDb = {
         score: data.score,
         missingKeywords: data.missingKeywords || [],
@@ -55,55 +53,43 @@ const Review = () => {
         wouldInterview: data.wouldInterview || "",
         rewrittenResume: data.rewrittenResume || "",
         atsScores: data.atsScores || {},
-        jobContext: data.jobContext ? {
-          keywords: data.jobContext.keywords || [],
-          responsibilities: data.jobContext.responsibilities || [],
-          industry: data.jobContext.industry || "",
-          tone: data.jobContext.tone || ""
-        } : null
+        jobContext: data.jobContext
+          ? {
+              keywords: data.jobContext.keywords || [],
+              responsibilities: data.jobContext.responsibilities || [],
+              industry: data.jobContext.industry || "",
+              tone: data.jobContext.tone || "",
+            }
+          : null,
       };
 
-      // Convert jobTitle to a valid role enum or null
       let selectedRole: JobRole | null = null;
       if (data.jobTitle) {
-        // Check if the jobTitle matches any of the valid roles
-        const matchedRole = validRoles.find(
-          role => role.toLowerCase() === data.jobTitle?.toLowerCase()
-        );
+        const matchedRole = validRoles.find((role) => role.toLowerCase() === data.jobTitle?.toLowerCase());
         if (matchedRole) {
           selectedRole = matchedRole;
         }
       }
 
-      // Insert into submissions table
       const { data: submissionData, error: submissionError } = await supabase
-        .from('submissions')
+        .from("submissions")
         .insert({
           resume_text: data.resume || "",
           job_description: data.jobDescription || "",
           job_url: data.jobUrl || null,
           selected_role: selectedRole,
           feedback_results: feedbackResultsForDb,
-          user_id: user?.id || null
+          user_id: user?.id || null,
         })
-        .select('id')
+        .select("id")
         .single();
 
       if (submissionError) {
         console.error("Error storing submission:", submissionError);
-        
-        // More detailed error logging
-        if (submissionError.details) {
-          console.error("Error details:", submissionError.details);
-        }
-        if (submissionError.hint) {
-          console.error("Error hint:", submissionError.hint);
-        }
-        
         toast({
           title: "Error storing feedback",
           description: "Your feedback was generated but couldn't be saved",
-          variant: "destructive"
+          variant: "destructive",
         });
       } else if (submissionData) {
         setSubmissionId(submissionData.id);
@@ -117,28 +103,28 @@ const Review = () => {
       toast({
         title: "Error",
         description: "Failed to store analysis results",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
 
   const handleFeedbackSubmit = async (isHelpful: boolean) => {
     setHelpfulFeedback(isHelpful);
-    
+
     if (submissionId) {
       try {
         await supabase
-          .from('submissions')
+          .from("submissions")
           .update({
-            helpful: isHelpful
+            helpful: isHelpful,
           })
-          .eq('id', submissionId);
+          .eq("id", submissionId);
       } catch (error) {
         console.error("Error storing feedback:", error);
         toast({
           title: "Feedback Error",
           description: "Could not store feedback",
-          variant: "destructive"
+          variant: "destructive",
         });
       }
     }
@@ -154,9 +140,23 @@ const Review = () => {
         Resume Analysis & Optimization
       </h1>
 
+      {/* Theme Selector UI */}
+      <div className="text-center mb-6">
+        <label className="mr-2 font-medium">Choose Resume Style:</label>
+        <select
+          value={selectedTheme}
+          onChange={(e) => setSelectedTheme(e.target.value as "teal" | "modern" | "minimal")}
+          className="border border-slate-300 rounded px-2 py-1"
+        >
+          <option value="teal">TealHQ Style</option>
+          <option value="modern">Modern</option>
+          <option value="minimal">Minimalist</option>
+        </select>
+      </div>
+
       {!feedback ? (
         canUseFeedback() ? (
-          <ResumeAnalyzer 
+          <ResumeAnalyzer
             onAnalysisComplete={handleAnalysisComplete}
             isLoading={isLoading}
             setIsLoading={setIsLoading}
@@ -164,8 +164,9 @@ const Review = () => {
           />
         ) : null
       ) : (
-        <AnalysisResults 
+        <AnalysisResults
           feedback={feedback}
+          selectedTheme={selectedTheme}
           onReset={() => {
             setFeedback(null);
             setSubmissionId(null);
@@ -176,10 +177,7 @@ const Review = () => {
         />
       )}
 
-      <UsageLimitModal 
-        isOpen={showLimitModal} 
-        onClose={handleCloseLimitModal} 
-      />
+      <UsageLimitModal isOpen={showLimitModal} onClose={handleCloseLimitModal} />
     </div>
   );
 };
