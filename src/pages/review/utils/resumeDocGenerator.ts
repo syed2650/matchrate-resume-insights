@@ -1,5 +1,13 @@
-import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, TabStopPosition, TabStopType } from "docx";
+import {
+  Document,
+  Packer,
+  Paragraph,
+  TextRun,
+  HeadingLevel,
+  AlignmentType,
+} from "docx";
 
+// --- MAIN FUNCTION ---
 export async function generateFormattedDocx(resumeText: string): Promise<Blob | null> {
   try {
     if (!resumeText || typeof resumeText !== 'string') {
@@ -10,103 +18,132 @@ export async function generateFormattedDocx(resumeText: string): Promise<Blob | 
     const sections = parseResumeIntoSections(resumeText);
 
     const doc = new Document({
-  sections: [
-    {
-      properties: {
-        page: {
-          margin: { top: 720, right: 720, bottom: 720, left: 720 } // 0.5-inch margins
+      sections: [
+        {
+          properties: {
+            page: {
+              margin: {
+                top: 720,
+                bottom: 720,
+                left: 720,
+                right: 720
+              },
+            },
+          },
+          children: createDocContent(sections),
         },
-      },
-      children: createFormattedDocument(sections)
-    }
-  ],
-  styles: {
-    paragraphStyles: [
-      // ... (same as yours, keep Heading1, Heading2, BulletPoint, ContactInfo)
-    ]
-  }
-});
-    const buffer = await Packer.toBlob(doc);
-    return buffer;
-  } catch (error) {
-    console.error("Error generating DOCX:", error);
+      ],
+    });
+
+    return await Packer.toBlob(doc);
+  } catch (err) {
+    console.error("DOCX generation failed:", err);
     return null;
   }
 }
 
-function parseResumeIntoSections(resumeText: string): Record<string, string[]> {
-  const lines = resumeText.split(/\n/).filter(line => line.trim().length > 0);
+// --- PARSE TEXT INTO SECTION BUCKETS ---
+function parseResumeIntoSections(text: string): Record<string, string[]> {
+  const lines = text.split(/\n/).map(l => l.trim()).filter(Boolean);
   const sections: Record<string, string[]> = {
     header: [],
     summary: [],
     experience: [],
     education: [],
     skills: [],
-    additional: []
+    recognition: [],
+    projects: [],
   };
 
   let current = "header";
+  const headersMap: Record<string, string> = {
+    "SUMMARY": "summary",
+    "PROFESSIONAL SUMMARY": "summary",
+    "PROFESSIONAL EXPERIENCE": "experience",
+    "EXPERIENCE": "experience",
+    "EDUCATION": "education",
+    "KEY SKILLS": "skills",
+    "SKILLS": "skills",
+    "RECOGNITION": "recognition",
+    "PROJECTS": "projects"
+  };
+
   for (const line of lines) {
-    const clean = line.trim();
-    if (/^(SUMMARY|EXPERIENCE|EDUCATION|SKILLS|ADDITIONAL INFORMATION)$/i.test(clean)) {
-      current = clean.toLowerCase();
-    } else {
-      sections[current]?.push(clean);
+    const upper = line.toUpperCase();
+    if (headersMap[upper]) {
+      current = headersMap[upper];
+      continue;
     }
+    sections[current]?.push(line);
   }
+
   return sections;
 }
 
-function createFormattedDocument(sections: Record<string, string[]>) {
-  const docElements = [];
+// --- BUILD DOCX CONTENT ---
+function createDocContent(sections: Record<string, string[]>): Paragraph[] {
+  const content: Paragraph[] = [];
 
   // Header
   if (sections.header.length > 0) {
-    docElements.push(
+    const [name, ...rest] = sections.header;
+    content.push(
       new Paragraph({
-        text: sections.header[0],
-        heading: HeadingLevel.HEADING_1,
+        children: [new TextRun({ text: name, bold: true, size: 32 })],
         alignment: AlignmentType.CENTER,
+        spacing: { after: 100 },
       }),
       new Paragraph({
-        text: sections.header.slice(1).join(" | "),
-        alignment: AlignmentType.CENTER
+        children: [new TextRun({ text: rest.join(" | "), size: 22 })],
+        alignment: AlignmentType.CENTER,
+        spacing: { after: 400 },
       })
     );
   }
 
-  const addSection = (title: string, content: string[]) => {
-    if (!content.length) return;
-    docElements.push(
+  const addSection = (title: string, items: string[], options: { isBullet?: boolean; isSingleParagraph?: boolean } = {}) => {
+    if (!items.length) return;
+
+    content.push(
       new Paragraph({
         text: title.toUpperCase(),
         heading: HeadingLevel.HEADING_2,
+        spacing: { after: 100 },
       })
     );
-    content.forEach(line => {
-      if (line.startsWith("•") || line.startsWith("-")) {
-        docElements.push(
+
+    if (options.isSingleParagraph) {
+      content.push(
+        new Paragraph({
+          children: [new TextRun({ text: items.join(" "), size: 22 })],
+          spacing: { after: 400 },
+        })
+      );
+    } else if (options.isBullet) {
+      items.forEach(item => {
+        content.push(
           new Paragraph({
-  bullet: { level: 0 },
-  text: line.replace(/^[-•]\s*/, ""),
-  style: "BulletPoint"
-})
-        );
-      } else {
-        docElements.push(
-          new Paragraph({
-            text: line,
+            text: item.replace(/^[-•]\s*/, ""),
+            bullet: { level: 0 },
+            spacing: { after: 100 },
           })
         );
-      }
-    });
+      });
+      content.push(new Paragraph({ spacing: { after: 400 } }));
+    } else {
+      items.forEach(item => {
+        content.push(new Paragraph({ text: item, spacing: { after: 100 } }));
+      });
+      content.push(new Paragraph({ spacing: { after: 400 } }));
+    }
   };
 
-  addSection("Summary", sections.summary);
-  addSection("Experience", sections.experience);
+  addSection("Summary", sections.summary, { isSingleParagraph: true });
+  addSection("Professional Experience", sections.experience, { isBullet: true });
+  addSection("Key Skills", sections.skills, { isBullet: true });
   addSection("Education", sections.education);
-  addSection("Skills", sections.skills);
-  addSection("Additional Information", sections.additional);
+  addSection("Recognition", sections.recognition, { isBullet: true });
+  addSection("Projects", sections.projects, { isBullet: true });
 
-  return docElements;
+  return content;
 }
