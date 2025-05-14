@@ -10,14 +10,22 @@ export async function generateFormattedDocx(resumeText: string): Promise<Blob | 
     const sections = parseResumeIntoSections(resumeText);
 
     const doc = new Document({
-      sections: [
-        {
-          properties: {},
-          children: createFormattedDocument(sections)
-        }
-      ]
-    });
-
+  sections: [
+    {
+      properties: {
+        page: {
+          margin: { top: 720, right: 720, bottom: 720, left: 720 } // 0.5-inch margins
+        },
+      },
+      children: createFormattedDocument(sections)
+    }
+  ],
+  styles: {
+    paragraphStyles: [
+      // ... (same as yours, keep Heading1, Heading2, BulletPoint, ContactInfo)
+    ]
+  }
+});
     const buffer = await Packer.toBlob(doc);
     return buffer;
   } catch (error) {
@@ -79,9 +87,10 @@ function createFormattedDocument(sections: Record<string, string[]>) {
       if (line.startsWith("•") || line.startsWith("-")) {
         docElements.push(
           new Paragraph({
-            text: line.replace(/^[-•]\s*/, ""),
-            bullet: { level: 0 },
-          })
+  bullet: { level: 0 },
+  text: line.replace(/^[-•]\s*/, ""),
+  style: "BulletPoint"
+})
         );
       } else {
         docElements.push(
