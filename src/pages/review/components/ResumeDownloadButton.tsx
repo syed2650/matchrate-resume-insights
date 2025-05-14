@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { generateFormattedDocx } from "../utils/resumedocgenerator";
+import { generateFormattedDocx } from "../../../utils/resumedocgenerator";
 import { Progress } from "@/components/ui/progress";
 import { trackRewriteUsage } from "../utils";
 
