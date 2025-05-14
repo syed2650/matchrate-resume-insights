@@ -1,21 +1,22 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { generateFormattedDocx } from "../utils/resumeDocGenerator";
+import { generateFormattedDocx } from "../utils/resumedocgenerator";
 import { Progress } from "@/components/ui/progress";
 import { trackRewriteUsage } from "../utils";
 
 interface ResumeDownloadButtonProps {
   currentResume: string;
   roleSummary: string;
+  selectedTheme?: string;
   disabled?: boolean;
 }
 
 const ResumeDownloadButton: React.FC<ResumeDownloadButtonProps> = ({
   currentResume,
   roleSummary,
+  selectedTheme = "teal",
   disabled = false
 }) => {
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
@@ -28,32 +29,26 @@ const ResumeDownloadButton: React.FC<ResumeDownloadButtonProps> = ({
     }
 
     setIsProcessing(true);
-    
+
     try {
-      const docBlob = await generateFormattedDocx(currentResume);
-      if (!docBlob) {
-        throw new Error("Failed to generate document");
-      }
-      
-      // Create a download link
+      const docBlob = await generateFormattedDocx(currentResume, selectedTheme);
+      if (!docBlob) throw new Error("Failed to generate document");
+
       const url = URL.createObjectURL(docBlob);
       const a = document.createElement("a");
-      a.href = url;
-      
-      // Set filename - with date and role if available
       const dateStr = new Date().toISOString().split('T')[0];
       const roleStr = roleSummary ? `-${roleSummary.replace(/\s+/g, '-')}` : '';
+      a.href = url;
       a.download = `optimized-resume${roleStr}-${dateStr}.docx`;
-      
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      
+
       trackRewriteUsage();
       toast({ title: "Success", description: "Resume downloaded successfully" });
     } catch (error) {
-      console.error("Error downloading resume:", error);
+      console.error("Download error:", error);
       toast({ title: "Error", description: "Failed to download resume", variant: "destructive" });
     } finally {
       setIsProcessing(false);
@@ -62,13 +57,7 @@ const ResumeDownloadButton: React.FC<ResumeDownloadButtonProps> = ({
 
   return (
     <>
-      <Button 
-        variant="outline" 
-        size="sm"
-        onClick={handleDownload}
-        disabled={disabled}
-        className="flex-1 sm:flex-none"
-      >
+      <Button variant="outline" size="sm" onClick={handleDownload} disabled={disabled} className="flex-1 sm:flex-none">
         <Download className="mr-1.5 h-4 w-4" /> Download
       </Button>
       {isProcessing && (
