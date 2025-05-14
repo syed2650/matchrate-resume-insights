@@ -5,12 +5,12 @@ import {
   TextRun,
   HeadingLevel,
   AlignmentType,
+  convertInchesToTwip
 } from "docx";
 
-// --- MAIN FUNCTION ---
-export async function generateFormattedDocx(resumeText: string): Promise<Blob | null> {
+export async function generateFormattedDocx(resumeText: string, theme: string = "teal"): Promise<Blob | null> {
   try {
-    if (!resumeText || typeof resumeText !== 'string') {
+    if (!resumeText || typeof resumeText !== "string") {
       console.error("Invalid resume text provided");
       return null;
     }
@@ -23,127 +23,84 @@ export async function generateFormattedDocx(resumeText: string): Promise<Blob | 
           properties: {
             page: {
               margin: {
-                top: 720,
-                bottom: 720,
-                left: 720,
-                right: 720
+                top: convertInchesToTwip(0.7),
+                right: convertInchesToTwip(0.7),
+                bottom: convertInchesToTwip(0.7),
+                left: convertInchesToTwip(0.7),
               },
             },
           },
-          children: createDocContent(sections),
+          children: createTealLayout(sections),
         },
       ],
     });
 
     return await Packer.toBlob(doc);
-  } catch (err) {
-    console.error("DOCX generation failed:", err);
+  } catch (error) {
+    console.error("Error generating DOCX:", error);
     return null;
   }
 }
 
-// --- PARSE TEXT INTO SECTION BUCKETS ---
 function parseResumeIntoSections(text: string): Record<string, string[]> {
-  const lines = text.split(/\n/).map(l => l.trim()).filter(Boolean);
+  const lines = text.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
   const sections: Record<string, string[]> = {
-    header: [],
-    summary: [],
-    experience: [],
-    education: [],
-    skills: [],
-    recognition: [],
-    projects: [],
+    header: [], summary: [], experience: [], education: [], skills: [], additional: []
   };
-
   let current = "header";
-  const headersMap: Record<string, string> = {
-    "SUMMARY": "summary",
-    "PROFESSIONAL SUMMARY": "summary",
-    "PROFESSIONAL EXPERIENCE": "experience",
-    "EXPERIENCE": "experience",
-    "EDUCATION": "education",
-    "KEY SKILLS": "skills",
-    "SKILLS": "skills",
-    "RECOGNITION": "recognition",
-    "PROJECTS": "projects"
-  };
-
   for (const line of lines) {
-    const upper = line.toUpperCase();
-    if (headersMap[upper]) {
-      current = headersMap[upper];
-      continue;
+    if (/^(SUMMARY|EXPERIENCE|EDUCATION|SKILLS|ADDITIONAL INFORMATION)$/i.test(line)) {
+      current = line.toLowerCase();
+    } else {
+      sections[current].push(line);
     }
-    sections[current]?.push(line);
   }
-
   return sections;
 }
 
-// --- BUILD DOCX CONTENT ---
-function createDocContent(sections: Record<string, string[]>): Paragraph[] {
-  const content: Paragraph[] = [];
+function createTealLayout(sections: Record<string, string[]>) {
+  const docElements: Paragraph[] = [];
 
-  // Header
   if (sections.header.length > 0) {
-    const [name, ...rest] = sections.header;
-    content.push(
-      new Paragraph({
-        children: [new TextRun({ text: name, bold: true, size: 32 })],
+    docElements.push(new Paragraph({
+      children: [new TextRun({ text: sections.header[0], bold: true, size: 24 })],
+      alignment: AlignmentType.CENTER,
+    }));
+    if (sections.header.length > 1) {
+      docElements.push(new Paragraph({
+        children: [new TextRun({ text: sections.header.slice(1).join(" | "), size: 20 })],
         alignment: AlignmentType.CENTER,
-        spacing: { after: 100 },
-      }),
-      new Paragraph({
-        children: [new TextRun({ text: rest.join(" | "), size: 22 })],
-        alignment: AlignmentType.CENTER,
-        spacing: { after: 400 },
-      })
-    );
+      }));
+    }
   }
 
-  const addSection = (title: string, items: string[], options: { isBullet?: boolean; isSingleParagraph?: boolean } = {}) => {
-    if (!items.length) return;
-
-    content.push(
-      new Paragraph({
-        text: title.toUpperCase(),
-        heading: HeadingLevel.HEADING_2,
-        spacing: { after: 100 },
-      })
-    );
-
-    if (options.isSingleParagraph) {
-      content.push(
-        new Paragraph({
-          children: [new TextRun({ text: items.join(" "), size: 22 })],
-          spacing: { after: 400 },
-        })
-      );
-    } else if (options.isBullet) {
-      items.forEach(item => {
-        content.push(
-          new Paragraph({
-            text: item.replace(/^[-•]\s*/, ""),
-            bullet: { level: 0 },
-            spacing: { after: 100 },
-          })
-        );
-      });
-      content.push(new Paragraph({ spacing: { after: 400 } }));
-    } else {
-      items.forEach(item => {
-        content.push(new Paragraph({ text: item, spacing: { after: 100 } }));
-      });
-      content.push(new Paragraph({ spacing: { after: 400 } }));
-    }
+  const sectionTitles = {
+    summary: "Summary",
+    experience: "Experience",
+    education: "Education",
+    skills: "Skills",
+    additional: "Additional Information",
   };
 
-  addSection("Summary", sections.summary, { isSingleParagraph: true });
-  addSection("Professional Experience", sections.experience, { isBullet: true });
-  addSection("Key Skills", sections.skills, { isBullet: true });
-  addSection("Education", sections.education);
-  addSection("Recognition", sections.recognition, { isBullet: true });
-  addSection("Projects", sections.projects, { isBullet: true });
+  for (const [key, label] of Object.entries(sectionTitles)) {
+    const content = sections[key];
+    if (!content || content.length === 0) continue;
 
-  return content;
+    docElements.push(new Paragraph({
+      text: label.toUpperCase(),
+      heading: HeadingLevel.HEADING_2,
+      spacing: { after: 150 }
+    }));
+
+    content.forEach(line => {
+      const isBullet = /^[-•]/.test(line);
+      docElements.push(new Paragraph({
+        text: line.replace(/^[-•]\s*/, ""),
+        bullet: isBullet ? { level: 0 } : undefined,
+        spacing: { after: 100 },
+      }));
+    });
+  }
+
+  return docElements;
 }
