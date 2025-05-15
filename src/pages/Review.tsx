@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -18,6 +19,7 @@ const Review = () => {
   const [helpfulFeedback, setHelpfulFeedback] = useState<null | boolean>(null);
   const [submissionId, setSubmissionId] = useState<string | null>(null);
   const [showLimitModal, setShowLimitModal] = useState(false);
+  const [roleTemplates, setRoleTemplates] = useState<any[]>([]);
   const { toast } = useToast();
   const { user } = useAuthUser();
 
@@ -26,6 +28,27 @@ const Review = () => {
     if (process.env.NODE_ENV === 'development') {
       console.log('Usage stats:', getUsageStats());
     }
+  }, []);
+  
+  // Fetch role templates on component mount
+  useEffect(() => {
+    const fetchRoleTemplates = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('role_templates')
+          .select('*');
+          
+        if (error) {
+          console.error('Error fetching role templates:', error);
+        } else if (data) {
+          setRoleTemplates(data);
+        }
+      } catch (error) {
+        console.error('Error fetching role templates:', error);
+      }
+    };
+    
+    fetchRoleTemplates();
   }, []);
 
   // Check usage limits when component loads
@@ -161,6 +184,7 @@ const Review = () => {
             isLoading={isLoading}
             setIsLoading={setIsLoading}
             isDisabled={!canUseFeedback()}
+            roleTemplates={roleTemplates}
           />
         ) : null
       ) : (
@@ -173,6 +197,7 @@ const Review = () => {
           }}
           helpfulFeedback={helpfulFeedback}
           onFeedbackSubmit={handleFeedbackSubmit}
+          roleTemplates={roleTemplates}
         />
       )}
 

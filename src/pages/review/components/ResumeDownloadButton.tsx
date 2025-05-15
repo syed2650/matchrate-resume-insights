@@ -6,19 +6,26 @@ import { useToast } from "@/hooks/use-toast";
 import { generateFormattedDocx } from "../utils/resumeDocGenerator";
 import { Progress } from "@/components/ui/progress";
 import { trackRewriteUsage } from "../utils";
+import { supabase } from "@/integrations/supabase/client";
+import { Database } from "@/integrations/supabase/types";
 
 interface ResumeDownloadButtonProps {
   currentResume: string;
   roleSummary: string;
   disabled?: boolean;
+  roleId?: string; 
 }
+
+type RoleTemplate = Database["public"]["Tables"]["role_templates"]["Row"];
 
 const ResumeDownloadButton: React.FC<ResumeDownloadButtonProps> = ({
   currentResume,
   roleSummary,
-  disabled = false
+  disabled = false,
+  roleId
 }) => {
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [progress, setProgress] = useState<number>(0);
   const { toast } = useToast();
 
   const handleDownload = async () => {
@@ -28,12 +35,38 @@ const ResumeDownloadButton: React.FC<ResumeDownloadButtonProps> = ({
     }
 
     setIsProcessing(true);
+    setProgress(10);
     
     try {
-      const docBlob = await generateFormattedDocx(currentResume);
+      // Fetch role template if roleId is provided
+      let formattingStyle = null;
+      
+      if (roleId) {
+        try {
+          setProgress(20);
+          const { data: templateData } = await supabase
+            .from('role_templates')
+            .select('formatting_style')
+            .eq('role_name', roleId)
+            .single();
+            
+          if (templateData) {
+            formattingStyle = templateData.formatting_style;
+          }
+          setProgress(40);
+        } catch (error) {
+          console.error("Error fetching role template:", error);
+          // Continue with default formatting if template fetch fails
+        }
+      }
+      
+      setProgress(50);
+      const docBlob = await generateFormattedDocx(currentResume, formattingStyle);
       if (!docBlob) {
         throw new Error("Failed to generate document");
       }
+      
+      setProgress(80);
       
       // Create a download link
       const url = URL.createObjectURL(docBlob);
@@ -56,7 +89,11 @@ const ResumeDownloadButton: React.FC<ResumeDownloadButtonProps> = ({
       console.error("Error downloading resume:", error);
       toast({ title: "Error", description: "Failed to download resume", variant: "destructive" });
     } finally {
-      setIsProcessing(false);
+      setProgress(100);
+      setTimeout(() => {
+        setIsProcessing(false);
+        setProgress(0);
+      }, 1000);
     }
   };
 
@@ -74,7 +111,7 @@ const ResumeDownloadButton: React.FC<ResumeDownloadButtonProps> = ({
       {isProcessing && (
         <div className="mt-3 bg-blue-50 p-4 border border-blue-100 rounded-lg">
           <h4 className="text-blue-800 font-medium mb-2">Processing Your Resume</h4>
-          <Progress value={50} className="h-2 mb-2" />
+          <Progress value={progress} className="h-2 mb-2" />
           <p className="text-blue-700 text-sm">Please wait while we prepare your document...</p>
         </div>
       )}
