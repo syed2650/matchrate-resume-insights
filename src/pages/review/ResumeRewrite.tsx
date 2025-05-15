@@ -71,7 +71,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
           </div>
         </CardContent>
         <CardFooter className="flex flex-col sm:flex-row gap-3">
-          <ResumeCopyButton content={rewrittenResume} />
+          <ResumeCopyButton currentResume={rewrittenResume} />
           <ResumeDownloadButton 
             currentResume={rewrittenResume} 
             roleSummary={jobRole || "optimized"} 

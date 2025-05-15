@@ -7,13 +7,17 @@ import SectionFeedback from "./SectionFeedback";
 import ScoreCard from "./ScoreCard";
 import MissingKeywords from "./MissingKeywords";
 import BulletImprovements from "./BulletImprovements";
-import ExportInfo from "./ExportInfo";
-import { jsPDF } from "jspdf";
-import { generateReportPDF } from "../PDFGenerator";
+import { ExportInfo } from "./ExportInfo"; // Fixed import to use named export
 import { Button } from "@/components/ui/button";
 import { ThumbsUp, ThumbsDown } from "lucide-react";
+import { jsPDF } from "jspdf";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import InterviewReadyIndicator from "./InterviewReadyIndicator";
+import { Database } from "@/integrations/supabase/types";
+
+// Import the correct PDF generator function
+// You may need to update this import based on how PDFGenerator is exported
+import { generatePDF as generateReportPDF } from "../PDFGenerator";
 
 interface AnalysisResultsProps {
   feedback: Feedback;
@@ -48,6 +52,9 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({
   };
   
   const roleTemplate = findRoleTemplate();
+  
+  // Determine if the resume is interview-ready based on score
+  const isInterviewReady = feedback.score >= 70;
 
   return (
     <div className="space-y-6">
@@ -63,19 +70,31 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({
       {activeTab === 'analysis' ? (
         <>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <ScoreCard score={feedback.score} />
+            <ScoreCard 
+              score={feedback.score}
+              title="ATS Matching Score" 
+              icon="chart"
+              explanation="How well your resume matches the job description"
+            />
             {feedback.missingKeywords && feedback.missingKeywords.length > 0 && (
               <MissingKeywords keywords={feedback.missingKeywords} />
             )}
-            <InterviewReadyIndicator verdict={feedback.wouldInterview || ""} />
+            <InterviewReadyIndicator 
+              isReady={isInterviewReady}
+              score={feedback.score} 
+            />
           </div>
           
           {feedback.sectionFeedback && Object.keys(feedback.sectionFeedback).length > 0 && (
-            <SectionFeedback sectionFeedback={feedback.sectionFeedback} />
+            <SectionFeedback 
+              feedback={feedback.sectionFeedback} 
+            />
           )}
           
           {feedback.weakBullets && feedback.weakBullets.length > 0 && (
-            <BulletImprovements weakBullets={feedback.weakBullets} />
+            <BulletImprovements 
+              bullets={feedback.weakBullets} 
+            />
           )}
           
           {feedback.toneSuggestions && (

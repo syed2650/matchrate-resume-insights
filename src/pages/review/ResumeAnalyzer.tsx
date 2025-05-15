@@ -18,6 +18,7 @@ interface ResumeAnalyzerProps {
   isLoading: boolean;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   isDisabled?: boolean;
+  roleTemplates?: any[]; // Added roleTemplates prop
 }
 
 const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, setIsLoading, isDisabled = false }: ResumeAnalyzerProps) => {

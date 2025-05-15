@@ -17,6 +17,7 @@ interface ResumeDownloadButtonProps {
 }
 
 type RoleTemplate = Database["public"]["Tables"]["role_templates"]["Row"];
+type JobRole = Database["public"]["Enums"]["job_role"];
 
 const ResumeDownloadButton: React.FC<ResumeDownloadButtonProps> = ({
   currentResume,
@@ -44,15 +45,23 @@ const ResumeDownloadButton: React.FC<ResumeDownloadButtonProps> = ({
       if (roleId) {
         try {
           setProgress(20);
-          const { data: templateData } = await supabase
-            .from('role_templates')
-            .select('formatting_style')
-            .eq('role_name', roleId)
-            .single();
-            
-          if (templateData) {
-            formattingStyle = templateData.formatting_style;
+          
+          // Check if roleId is a valid JobRole before querying
+          const validRoles: JobRole[] = ["Product Manager", "UX Designer", "Data Analyst", "Software Engineer", "Consultant"];
+          const roleToQuery = validRoles.find(role => role.toLowerCase() === roleId.toLowerCase());
+          
+          if (roleToQuery) {
+            const { data: templateData } = await supabase
+              .from('role_templates')
+              .select('formatting_style')
+              .eq('role_name', roleToQuery)
+              .single();
+              
+            if (templateData) {
+              formattingStyle = templateData.formatting_style;
+            }
           }
+          
           setProgress(40);
         } catch (error) {
           console.error("Error fetching role template:", error);
