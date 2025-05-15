@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
-import ResumeAnalyzer from "./ResumeAnalyzer";
-import AnalysisResults from "./components/AnalysisResults";
+import ResumeAnalyzer from "./review/ResumeAnalyzer";
+import AnalysisResults from "./review/components/AnalysisResults";
 
 const Review = () => {
   const [feedback, setFeedback] = useState(null);

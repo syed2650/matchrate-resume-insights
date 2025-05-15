@@ -11,7 +11,7 @@ import { calculateATSScore } from "../utils/atsScoring";
 import { useToast } from "@/hooks/use-toast";
 import PremiumFeatureModal from "./PremiumFeatureModal";
 import { canUseRewrite } from "../utils";
-import ResumeDownloadButton from "../ResumeDownloadButton";
+import ResumeDownloadButton from "./ResumeDownloadButton";
 
 interface AnalysisResultsProps {
   feedback: Feedback;
