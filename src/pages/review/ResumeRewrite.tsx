@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { canUseRewrite, trackRewriteUsage } from "./utils";
@@ -28,6 +27,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
   const [isPremiumUser, setIsPremiumUser] = useState<boolean>(false);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [showPremiumModal, setShowPremiumModal] = useState<boolean>(false);
+  const [selectedTheme, setSelectedTheme] = useState<"teal" | "modern" | "minimal">("teal");
 
   const { currentResume: rawResume, generatedTimestamp } = useResumeVersion({ 
     rewrittenResume, 
@@ -87,11 +87,17 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
         <ResumeDownloadButton 
           currentResume={currentResume} 
           roleSummary={roleSummary} 
-          disabled={!isPremiumUser} 
+          disabled={!isPremiumUser}
+          selectedTheme={selectedTheme}
         />
       </div>
 
-      <ResumeContent currentResume={currentResume} jobContext={jobContext} isPremiumBlurred={!isPremiumUser} />
+      <ResumeContent 
+        currentResume={currentResume} 
+        jobContext={jobContext} 
+        isPremiumBlurred={!isPremiumUser}
+        selectedTheme={selectedTheme} 
+      />
       
       {isPremiumUser ? <ExportInfo /> : (
         <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg">
