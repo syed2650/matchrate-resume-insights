@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import AnalysisResults from "./components/AnalysisResults";
+import AnalysisResults from "./review/components/AnalysisResults";
 import ResumeAnalyzer from "./components/ResumeAnalyzer";
 
 const Review = () => {
