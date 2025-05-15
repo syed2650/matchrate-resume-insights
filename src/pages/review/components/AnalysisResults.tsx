@@ -7,17 +7,16 @@ import SectionFeedback from "./SectionFeedback";
 import ScoreCard from "./ScoreCard";
 import MissingKeywords from "./MissingKeywords";
 import BulletImprovements from "./BulletImprovements";
-import { ExportInfo } from "./ExportInfo"; // Fixed import to use named export
+import { ExportInfo } from "./ExportInfo"; // Use named import
 import { Button } from "@/components/ui/button";
-import { ThumbsUp, ThumbsDown } from "lucide-react";
+import { ThumbsUp, ThumbsDown, ChartBar } from "lucide-react"; // Import ChartBar for icon
 import { jsPDF } from "jspdf";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import InterviewReadyIndicator from "./InterviewReadyIndicator";
 import { Database } from "@/integrations/supabase/types";
 
-// Import the correct PDF generator function
-// You may need to update this import based on how PDFGenerator is exported
-import { generatePDF as generateReportPDF } from "../PDFGenerator";
+// Import the PDF generator function
+import { generatePDF } from "../PDFGenerator";
 
 interface AnalysisResultsProps {
   feedback: Feedback;
@@ -38,7 +37,7 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({
 
   const handleExportPDF = async () => {
     const doc = new jsPDF();
-    await generateReportPDF(doc, feedback);
+    await generatePDF(doc, feedback);
     doc.save("resume-analysis-report.pdf");
   };
 
@@ -73,7 +72,7 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({
             <ScoreCard 
               score={feedback.score}
               title="ATS Matching Score" 
-              icon="chart"
+              icon={ChartBar} // Pass the actual Lucide component, not a string
               explanation="How well your resume matches the job description"
             />
             {feedback.missingKeywords && feedback.missingKeywords.length > 0 && (

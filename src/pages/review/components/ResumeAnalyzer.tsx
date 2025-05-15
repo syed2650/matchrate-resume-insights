@@ -14,9 +14,10 @@ interface ResumeAnalyzerProps {
   isLoading: boolean;
   setIsLoading: (isLoading: boolean) => void;
   isDisabled?: boolean;
+  roleTemplates?: any[]; // Added this prop to match what's being passed
 }
 
-const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, setIsLoading, isDisabled = false }: ResumeAnalyzerProps) => {
+const ResumeAnalyzer = ({ onAnalysisComplete, isLoading, setIsLoading, isDisabled = false, roleTemplates = [] }: ResumeAnalyzerProps) => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [analysisProgress, setAnalysisProgress] = useState(0);

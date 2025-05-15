@@ -1,3 +1,4 @@
+
 import { jsPDF } from "jspdf";
 import { Feedback } from "./types";
 
@@ -60,3 +61,5 @@ export const generatePDF = async (doc: jsPDF, feedback: Feedback) => {
   
   return doc;
 };
+
+export default generatePDF; // Add a default export for flexibility
