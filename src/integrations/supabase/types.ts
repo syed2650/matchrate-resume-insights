@@ -104,42 +104,6 @@ export type Database = {
         }
         Relationships: []
       }
-      role_templates: {
-        Row: {
-          bullet_structure: Json
-          created_at: string
-          formatting_style: Json
-          id: string
-          role_name: Database["public"]["Enums"]["job_role"]
-          skill_emphasis: Json
-          title: string
-          tone_guidance: string
-          updated_at: string
-        }
-        Insert: {
-          bullet_structure: Json
-          created_at?: string
-          formatting_style: Json
-          id?: string
-          role_name: Database["public"]["Enums"]["job_role"]
-          skill_emphasis: Json
-          title: string
-          tone_guidance: string
-          updated_at?: string
-        }
-        Update: {
-          bullet_structure?: Json
-          created_at?: string
-          formatting_style?: Json
-          id?: string
-          role_name?: Database["public"]["Enums"]["job_role"]
-          skill_emphasis?: Json
-          title?: string
-          tone_guidance?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       submissions: {
         Row: {
           created_at: string

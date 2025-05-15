@@ -3,103 +3,82 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Database } from "@/integrations/supabase/types";
-
-type JobRole = Database["public"]["Enums"]["job_role"];
-const validRoles: JobRole[] = ["Product Manager", "UX Designer", "Data Analyst", "Software Engineer", "Consultant"];
+import { generateFormattedDocx } from "../utils/resumeDocGenerator";
+import { Progress } from "@/components/ui/progress";
+import { trackRewriteUsage } from "../utils";
 
 interface ResumeDownloadButtonProps {
   currentResume: string;
   roleSummary: string;
-  roleId?: string;
+  disabled?: boolean;
 }
 
 const ResumeDownloadButton: React.FC<ResumeDownloadButtonProps> = ({
   currentResume,
   roleSummary,
-  roleId
+  disabled = false
 }) => {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const { toast } = useToast();
 
-  const downloadAsDoc = async () => {
+  const handleDownload = async () => {
+    if (disabled || !currentResume) {
+      toast({ title: "Error", description: "No resume content available to download", variant: "destructive" });
+      return;
+    }
+
+    setIsProcessing(true);
+    
     try {
-      setIsLoading(true);
-
-      // Validate roleId if provided
-      let validatedRoleId: JobRole | null = null;
-      if (roleId) {
-        // Check if the roleId matches any of the valid roles (case insensitive)
-        const matchedRole = validRoles.find(
-          role => role.toLowerCase() === roleId.toLowerCase()
-        );
-        
-        if (matchedRole) {
-          validatedRoleId = matchedRole;
-        }
-      }
-
-      // Determine filename
-      const timestamp = new Date().toISOString().split('T')[0];
-      const filename = `optimized-resume-${roleSummary.toLowerCase().replace(/\s+/g, '-')}-${timestamp}.docx`;
-      
-      const response = await fetch('https://rodkrpeqxgqizngdypbl.functions.supabase.co/generate-resume-doc', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          content: currentResume,
-          roleType: validatedRoleId || null
-        }),
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to generate document');
+      const docBlob = await generateFormattedDocx(currentResume);
+      if (!docBlob) {
+        throw new Error("Failed to generate document");
       }
       
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.style.display = 'none';
+      // Create a download link
+      const url = URL.createObjectURL(docBlob);
+      const a = document.createElement("a");
       a.href = url;
-      a.download = filename;
+      
+      // Set filename - with date and role if available
+      const dateStr = new Date().toISOString().split('T')[0];
+      const roleStr = roleSummary ? `-${roleSummary.replace(/\s+/g, '-')}` : '';
+      a.download = `optimized-resume${roleStr}-${dateStr}.docx`;
+      
       document.body.appendChild(a);
       a.click();
-      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
       
-      toast({
-        title: "Success",
-        description: "Resume downloaded as DOCX file"
-      });
-      
+      trackRewriteUsage();
+      toast({ title: "Success", description: "Resume downloaded successfully" });
     } catch (error) {
-      console.error("Error downloading as DOCX:", error);
-      toast({
-        title: "Error",
-        description: "Failed to download resume. Please try again.",
-        variant: "destructive"
-      });
+      console.error("Error downloading resume:", error);
+      toast({ title: "Error", description: "Failed to download resume", variant: "destructive" });
     } finally {
-      setIsLoading(false);
+      setIsProcessing(false);
     }
   };
-  
+
   return (
-    <Button 
-      onClick={downloadAsDoc}
-      disabled={isLoading} 
-      className="w-full sm:w-auto"
-    >
-      {isLoading ? (
-        "Downloading..."
-      ) : (
-        <>
-          <Download className="mr-2 h-4 w-4" />
-          Download as DOCX
-        </>
+    <>
+      <Button 
+        variant="outline" 
+        size="sm"
+        onClick={handleDownload}
+        disabled={disabled}
+        className="flex-1 sm:flex-none"
+      >
+        <Download className="mr-1.5 h-4 w-4" /> Download
+      </Button>
+      {isProcessing && (
+        <div className="mt-3 bg-blue-50 p-4 border border-blue-100 rounded-lg">
+          <h4 className="text-blue-800 font-medium mb-2">Processing Your Resume</h4>
+          <Progress value={50} className="h-2 mb-2" />
+          <p className="text-blue-700 text-sm">Please wait while we prepare your document...</p>
+        </div>
       )}
-    </Button>
+    </>
   );
 };
 

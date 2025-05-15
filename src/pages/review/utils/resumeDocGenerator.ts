@@ -1,6 +1,6 @@
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, TabStopPosition, TabStopType, BorderStyle } from "docx";
 
-export async function generateFormattedDocx(resumeText: string, formattingStyle = null): Promise<Blob | null> {
+export async function generateFormattedDocx(resumeText: string): Promise<Blob | null> {
   try {
     if (!resumeText || typeof resumeText !== 'string') {
       console.error("Invalid resume text provided");
@@ -10,20 +10,12 @@ export async function generateFormattedDocx(resumeText: string, formattingStyle 
     // Parse resume text into sections
     const sections = parseResumeIntoSections(resumeText);
     
-    // Apply formatting style if provided
-    const formatting = formattingStyle || {
-      font: "Calibri",
-      heading_style: "bold black",
-      bullet_indent: "0.5in",
-      line_spacing: "1.15"
-    };
-    
     // Create document with proper styling
     const doc = new Document({
       sections: [
         {
           properties: {},
-          children: createFormattedDocument(sections, formatting)
+          children: createFormattedDocument(sections)
         }
       ],
       styles: {
@@ -35,7 +27,7 @@ export async function generateFormattedDocx(resumeText: string, formattingStyle 
             next: "Normal",
             quickFormat: true,
             run: {
-              font: formatting.font || "Calibri",
+              font: "Calibri",
               size: 22,
               color: "000000",
             },
@@ -54,7 +46,7 @@ export async function generateFormattedDocx(resumeText: string, formattingStyle 
             next: "Normal",
             quickFormat: true,
             run: {
-              font: formatting.font || "Calibri",
+              font: "Calibri",
               size: 32,
               bold: true,
               color: "000000",
@@ -74,10 +66,10 @@ export async function generateFormattedDocx(resumeText: string, formattingStyle 
             next: "Normal",
             quickFormat: true,
             run: {
-              font: formatting.font || "Calibri",
+              font: "Calibri",
               size: 26,
               bold: true,
-              color: getHeadingColorFromStyle(formatting.heading_style || "bold black"),
+              color: "000000",
               underline: {
                 type: "single",
                 color: "000000",
@@ -97,7 +89,7 @@ export async function generateFormattedDocx(resumeText: string, formattingStyle 
             next: "Normal",
             quickFormat: true,
             run: {
-              font: formatting.font || "Calibri",
+              font: "Calibri",
               size: 24,
               bold: true,
               color: "000000",
@@ -110,7 +102,7 @@ export async function generateFormattedDocx(resumeText: string, formattingStyle 
             next: "Normal",
             quickFormat: true,
             run: {
-              font: formatting.font || "Calibri",
+              font: "Calibri",
               size: 22,
               bold: false,
               color: "000000",
@@ -123,7 +115,7 @@ export async function generateFormattedDocx(resumeText: string, formattingStyle 
             next: "Normal",
             quickFormat: true,
             run: {
-              font: formatting.font || "Calibri",
+              font: "Calibri",
               size: 22,
               color: "000000",
             },
@@ -134,7 +126,7 @@ export async function generateFormattedDocx(resumeText: string, formattingStyle 
                 after: 100,
               },
               indent: {
-                left: parseBulletIndent(formatting.bullet_indent || "0.5in"),
+                left: 720, // 0.5 inch indent for bullets
               },
             },
           },
@@ -145,7 +137,7 @@ export async function generateFormattedDocx(resumeText: string, formattingStyle 
             next: "Normal",
             quickFormat: true,
             run: {
-              font: formatting.font || "Calibri",
+              font: "Calibri",
               size: 22,
               color: "000000",
             },
@@ -168,38 +160,6 @@ export async function generateFormattedDocx(resumeText: string, formattingStyle 
     console.error("Error generating DOCX:", error);
     return null;
   }
-}
-
-// Helper function to parse bullet indent
-function parseBulletIndent(indentStr: string): number {
-  if (indentStr.includes('in')) {
-    // Convert inches to twips (1 inch = 1440 twips)
-    const inches = parseFloat(indentStr);
-    return inches * 1440;
-  }
-  // Default to 0.5 inches (720 twips)
-  return 720;
-}
-
-// Helper function to get heading color from style string
-function getHeadingColorFromStyle(style: string): string {
-  const colorMap: Record<string, string> = {
-    'blue': '0000FF',
-    'navy': '000080',
-    'dark': '333333',
-    'black': '000000',
-    'gray': '808080',
-    'charcoal': '36454F'
-  };
-  
-  for (const [color, hex] of Object.entries(colorMap)) {
-    if (style.toLowerCase().includes(color)) {
-      return hex;
-    }
-  }
-  
-  // Default to black if no color match
-  return '000000';
 }
 
 function parseResumeIntoSections(resumeText: string): any {
@@ -260,7 +220,7 @@ function parseResumeIntoSections(resumeText: string): any {
   return sections;
 }
 
-function createFormattedDocument(sections: Record<string, string[]>, formatting: any = {}) {
+function createFormattedDocument(sections: Record<string, string[]>) {
   const documentElements = [];
   
   // Name (centered, large)

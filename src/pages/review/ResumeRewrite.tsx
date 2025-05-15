@@ -1,84 +1,112 @@
 
-import React from "react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState, useEffect } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { canUseRewrite, trackRewriteUsage } from "./utils";
+import { useResumeVersion } from "./hooks/useResumeVersion";
+import ResumeHeader from "./components/ResumeHeader";
+import ResumeContent from "./components/ResumeContent";
+import UpgradeBanner from "./components/UpgradeBanner";
+import { ExportInfo } from "./components/ExportInfo";
+import ResumeOptimizedAlert from "./components/ResumeOptimizedAlert";
 import ResumeCopyButton from "./components/ResumeCopyButton";
 import ResumeDownloadButton from "./components/ResumeDownloadButton";
-import ResumeOptimizedAlert from "./components/ResumeOptimizedAlert";
-
-interface ResumeRewriteProps {
-  rewrittenResume: string;
-  jobRole: string;
-  roleTemplate?: any;
-}
+import { formatResumeContent, extractRoleSummary } from "./utils/resumeFormatter";
+import { ResumeRewriteProps } from "./types";
+import PremiumFeatureModal from "./components/PremiumFeatureModal";
 
 const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ 
-  rewrittenResume,
-  jobRole,
-  roleTemplate
+  rewrittenResume, 
+  atsScores = {},
+  scoreHash = null,
+  jobContext,
+  originalResume,
+  jobDescription,
+  originalATSScore = 0
 }) => {
-  if (!rewrittenResume) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Rewritten Resume</CardTitle>
-          <CardDescription>No rewritten content available</CardDescription>
-        </CardHeader>
-      </Card>
-    );
-  }
+  const { toast } = useToast();
+  const [stableAtsScores, setStableAtsScores] = useState<Record<string, number>>(atsScores);
+  const [isPremiumUser, setIsPremiumUser] = useState<boolean>(false);
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [showPremiumModal, setShowPremiumModal] = useState<boolean>(false);
 
-  // Extract template details if available
-  const templateTitle = roleTemplate ? roleTemplate.title : jobRole || "Optimized";
-  const bulletFormat = roleTemplate?.bullet_structure?.bullet_format || "";
-  const toneStyling = roleTemplate?.tone_guidance || "";
+  const { currentResume: rawResume, generatedTimestamp } = useResumeVersion({ 
+    rewrittenResume, 
+    activeVersion: "general" 
+  });
+
+  const currentResume = formatResumeContent(rawResume);
+  const roleSummary = extractRoleSummary(rawResume);
+  
+  useEffect(() => {
+    // Check if user has premium access
+    const hasPremiumAccess = canUseRewrite();
+    setIsPremiumUser(hasPremiumAccess);
+    
+    if (Object.keys(atsScores).length > 0) {
+      setStableAtsScores(atsScores);
+    }
+    
+    // Track usage if user has premium access
+    if (hasPremiumAccess) {
+      trackRewriteUsage();
+    } else {
+      // Show premium modal for non-premium users
+      setShowPremiumModal(true);
+    }
+  }, [atsScores]);
+
+  const handleClosePremiumModal = () => {
+    setShowPremiumModal(false);
+  };
+
+  const currentAtsScore = (typeof stableAtsScores === 'object' && Object.values(stableAtsScores)[0]) || 0;
+  const scoreDifference = currentAtsScore - originalATSScore;
+  const isInterviewReady = currentAtsScore >= 75;
+
+  if (!rewrittenResume) {
+    return <div className="py-8 text-center"><p className="text-slate-600">No rewritten resume available.</p></div>;
+  }
 
   return (
     <div className="space-y-6">
+      {!isPremiumUser && <UpgradeBanner feature="resume rewriting" limit="15 rewrites per month" />}
       <ResumeOptimizedAlert />
       
-      {(roleTemplate && bulletFormat) && (
-        <Card className="bg-blue-50 border-blue-200">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-blue-800 text-lg">Using {templateTitle} Format</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {bulletFormat && (
-                <div>
-                  <span className="font-medium text-blue-700">Bullet Format:</span>
-                  <span className="ml-2 text-blue-600">{bulletFormat}</span>
-                </div>
-              )}
-              {toneStyling && (
-                <div>
-                  <span className="font-medium text-blue-700">Tone Style:</span>
-                  <span className="ml-2 text-blue-600">{toneStyling.substring(0, 100)}...</span>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      <ResumeHeader
+        currentAtsScore={currentAtsScore}
+        roleSummary={roleSummary}
+        generatedTimestamp={generatedTimestamp}
+        isInterviewReady={isInterviewReady}
+        onCopy={() => {}}  // This will be handled by the ResumeCopyButton component
+        onDownload={() => {}} // This will be handled by the ResumeDownloadButton component
+        isPremiumLocked={!isPremiumUser}
+      />
       
-      <Card>
-        <CardHeader>
-          <CardTitle>Your Rewritten Resume</CardTitle>
-          <CardDescription>Optimized for {jobRole || "your target role"}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="bg-gray-50 border border-gray-200 rounded-md p-4">
-            <pre className="whitespace-pre-line text-sm font-mono">{rewrittenResume}</pre>
-          </div>
-        </CardContent>
-        <CardFooter className="flex flex-col sm:flex-row gap-3">
-          <ResumeCopyButton currentResume={rewrittenResume} />
-          <ResumeDownloadButton 
-            currentResume={rewrittenResume} 
-            roleSummary={jobRole || "optimized"} 
-            roleId={jobRole}
-          />
-        </CardFooter>
-      </Card>
+      <div className="flex gap-2 w-full">
+        <ResumeCopyButton currentResume={currentResume} disabled={!isPremiumUser} />
+        <ResumeDownloadButton 
+          currentResume={currentResume} 
+          roleSummary={roleSummary} 
+          disabled={!isPremiumUser} 
+        />
+      </div>
+
+      <ResumeContent currentResume={currentResume} jobContext={jobContext} isPremiumBlurred={!isPremiumUser} />
+      
+      {isPremiumUser ? <ExportInfo /> : (
+        <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg">
+          <h3 className="font-medium text-amber-800">Premium Feature</h3>
+          <p className="text-sm text-amber-700 mt-1">
+            Resume rewriting is available on our paid plan with 15 rewrites per month. Upgrade to access this feature.
+          </p>
+        </div>
+      )}
+
+      <PremiumFeatureModal
+        isOpen={showPremiumModal}
+        onClose={handleClosePremiumModal}
+        featureName="Resume rewriting"
+      />
     </div>
   );
 };

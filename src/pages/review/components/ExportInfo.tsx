@@ -26,5 +26,3 @@ export const ExportInfo: React.FC = () => {
     </div>
   );
 };
-
-// Not adding a default export, we'll use the named export

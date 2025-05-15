@@ -1,60 +1,40 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
-import { Copy, Check } from "lucide-react";
+import { Copy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { trackRewriteUsage } from "../utils";
 
 interface ResumeCopyButtonProps {
   currentResume: string;
+  disabled?: boolean;
 }
 
 const ResumeCopyButton: React.FC<ResumeCopyButtonProps> = ({
-  currentResume
+  currentResume,
+  disabled = false
 }) => {
-  const [copied, setCopied] = useState(false);
   const { toast } = useToast();
 
-  const copyToClipboard = async () => {
-    try {
-      await navigator.clipboard.writeText(currentResume);
-      setCopied(true);
-      
-      toast({
-        title: "Copied to clipboard",
-        description: "Resume content copied to clipboard"
-      });
-      
-      // Reset after 2 seconds
-      setTimeout(() => {
-        setCopied(false);
-      }, 2000);
-    } catch (error) {
-      console.error("Error copying to clipboard:", error);
-      toast({
-        title: "Error",
-        description: "Failed to copy to clipboard",
-        variant: "destructive"
-      });
+  const handleCopy = () => {
+    if (disabled || !currentResume) {
+      toast({ title: "Error", description: "No resume content available to copy", variant: "destructive" });
+      return;
     }
+    navigator.clipboard.writeText(currentResume);
+    trackRewriteUsage();
+    toast({ title: "Success", description: "Resume copied to clipboard" });
   };
-  
+
   return (
     <Button 
-      variant="outline" 
-      onClick={copyToClipboard} 
-      className="w-full sm:w-auto"
+      variant="default" 
+      size="sm"
+      onClick={handleCopy}
+      disabled={disabled}
+      className="flex-1 sm:flex-none"
     >
-      {copied ? (
-        <>
-          <Check className="mr-2 h-4 w-4" />
-          Copied!
-        </>
-      ) : (
-        <>
-          <Copy className="mr-2 h-4 w-4" />
-          Copy to Clipboard
-        </>
-      )}
+      <Copy className="mr-1.5 h-4 w-4" /> Copy
     </Button>
   );
 };

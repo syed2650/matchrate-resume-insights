@@ -1,65 +1,87 @@
 
 import { jsPDF } from "jspdf";
 import { Feedback } from "./types";
+import { PDF_STYLES as styles, configurePDFStyles } from "./pdf/styles";
+import { drawHeader, drawMetadata, drawScores, addFooters } from "./pdf/sections";
+import { 
+  drawMissingKeywords, 
+  drawSectionFeedback, 
+  drawWeakBullets, 
+  drawFinalSection 
+} from "./pdf/content";
 
-export const generatePDF = async (doc: jsPDF, feedback: Feedback) => {
-  // Simple implementation to make TypeScript happy
-  // This should be replaced with your actual PDF generation logic
-  
-  // Set up document
-  doc.setFont("helvetica");
-  doc.setFontSize(22);
-  doc.text("Resume Analysis Report", 20, 20);
-  
-  // Add score
-  doc.setFontSize(16);
-  doc.text(`ATS Score: ${feedback.score}/100`, 20, 40);
-  
-  // Add missing keywords if available
-  if (feedback.missingKeywords && feedback.missingKeywords.length > 0) {
-    doc.setFontSize(14);
-    doc.text("Missing Keywords:", 20, 60);
+export const generatePDF = (feedback: Feedback): jsPDF => {
+  // Create new PDF document with a4 format (210x297mm)
+  const doc = new jsPDF({ 
+    format: 'a4',
+    unit: 'mm',
+  });
+
+  try {
+    // Validate feedback object
+    if (!feedback) {
+      throw new Error("No feedback data provided");
+    }
     
-    let yPos = 70;
-    feedback.missingKeywords.forEach((keyword, index) => {
-      doc.setFontSize(12);
-      doc.text(`• ${keyword}`, 30, yPos);
-      yPos += 10;
-    });
-  }
-  
-  // Add section feedback
-  if (feedback.sectionFeedback && Object.keys(feedback.sectionFeedback).length > 0) {
-    doc.addPage();
-    doc.setFontSize(14);
-    doc.text("Section Feedback:", 20, 20);
+    // Configure document styles for professional output
+    configurePDFStyles(doc);
     
-    let yPos = 30;
-    Object.entries(feedback.sectionFeedback).forEach(([section, feedbackText]) => {
-      doc.setFontSize(13);
-      doc.setFont("helvetica", "bold");
-      doc.text(section, 20, yPos);
-      
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(12);
-      
-      // Simple text wrapping logic
-      const maxWidth = 170;
-      const lines = doc.splitTextToSize(feedbackText, maxWidth);
-      
-      yPos += 10;
-      doc.text(lines, 20, yPos);
-      yPos += lines.length * 7 + 10;
-      
-      // Check if we need a new page
-      if (yPos > 270) {
-        doc.addPage();
-        yPos = 20;
-      }
-    });
+    // Calculate usable width
+    const pageWidth = doc.internal.pageSize.getWidth();
+    
+    // Add header
+    drawHeader(doc, pageWidth);
+    
+    // Track y position as we add content
+    let yPos = 40;
+    
+    // Add metadata
+    yPos = drawMetadata(doc, yPos);
+    
+    // Add scores section
+    yPos = drawScores(doc, feedback, pageWidth, yPos);
+    
+    // Add missing keywords
+    yPos = drawMissingKeywords(doc, feedback, pageWidth, yPos);
+    
+    // Add section feedback
+    yPos = drawSectionFeedback(doc, feedback, pageWidth, yPos);
+    
+    // Add weak bullet improvements
+    yPos = drawWeakBullets(doc, feedback, pageWidth, yPos);
+    
+    // Add final sections
+    yPos = drawFinalSection(doc, feedback, pageWidth, yPos);
+
+    // Add footers to all pages
+    addFooters(doc);
+
+    console.log("PDF generation completed successfully");
+    return doc;
+  } catch (error) {
+    console.error("Error generating PDF:", error);
+    
+    // Create a basic error PDF instead of failing completely
+    doc.setFontSize(16);
+    doc.setTextColor(255, 0, 0);
+    doc.text("Error generating full report", 20, 20);
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text("Please try again or contact support if the issue persists.", 20, 30);
+    doc.text("Error details: " + ((error as Error).message || "Unknown error"), 20, 40);
+    
+    // Still add basic score information if available
+    if (feedback && typeof feedback.score !== 'undefined') {
+      doc.text(`Your score: ${feedback.score}/100`, 20, 60);
+    }
+    
+    // Add some information about the resume if available
+    if (feedback && feedback.jobTitle) {
+      doc.text(`Target role: ${feedback.jobTitle}`, 20, 70);
+    }
+    
+    return doc;
   }
-  
-  return doc;
 };
 
-export default generatePDF; // Add a default export for flexibility
+export default generatePDF;
