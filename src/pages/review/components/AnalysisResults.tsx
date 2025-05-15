@@ -1,3 +1,4 @@
+
 import { Card } from "@/components/ui/card";
 import { Feedback } from "../types";
 import AnalysisHeader from "../AnalysisHeader";
@@ -11,22 +12,19 @@ import { calculateATSScore } from "../utils/atsScoring";
 import { useToast } from "@/hooks/use-toast";
 import PremiumFeatureModal from "./PremiumFeatureModal";
 import { canUseRewrite } from "../utils";
-import ResumeDownloadButton from "./ResumeDownloadButton";
 
 interface AnalysisResultsProps {
   feedback: Feedback;
   onReset: () => void;
   helpfulFeedback: boolean | null;
   onFeedbackSubmit: (isHelpful: boolean) => void;
-  selectedTheme?: "teal" | "modern" | "minimal";
 }
 
-const AnalysisResults = ({
-  feedback,
-  onReset,
-  helpfulFeedback,
-  onFeedbackSubmit,
-  selectedTheme = "teal",
+const AnalysisResults = ({ 
+  feedback, 
+  onReset, 
+  helpfulFeedback, 
+  onFeedbackSubmit 
 }: AnalysisResultsProps) => {
   const [activeTab, setActiveTab] = useState<'analysis' | 'rewrite'>('analysis');
   const [exportError, setExportError] = useState<string | null>(null);
@@ -35,14 +33,51 @@ const AnalysisResults = ({
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const { toast } = useToast();
 
+  const handleExportFeedback = async () => {
+    try {
+      // Import the DOCX generator and necessary helper functions
+      const { generateFeedbackDocx } = await import("../utils/feedbackDocxGenerator");
+      
+      // Generate the document blob - this now returns a Promise<Blob>
+      const blob = await generateFeedbackDocx(feedback);
+      
+      // Create a download link
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "matchrate-feedback-report.docx";
+      link.click();
+      URL.revokeObjectURL(url);
+      
+      setExportError(null);
+      toast({
+        title: "Success",
+        description: "Feedback report downloaded as DOCX",
+      });
+    } catch (error) {
+      console.error("Error exporting feedback report:", error);
+      setExportError("Failed to generate feedback report: " + (error instanceof Error ? error.message : "Unknown error"));
+      toast({
+        title: "Error",
+        description: "Failed to generate feedback report",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleRewriteRequest = () => {
+    // Check if user is allowed to use the rewrite feature
     const canUse = canUseRewrite();
+    
     if (!canUse) {
+      // User is on free plan, show premium modal
       setShowPremiumModal(true);
       return;
     }
-
+    
+    // User can use the rewrite feature
     setRewriteLoading(true);
+    // This simulates the transition to rewrite tab
     setTimeout(() => {
       setActiveTab('rewrite');
       setIsRewriteRequested(true);
@@ -50,6 +85,7 @@ const AnalysisResults = ({
     }, 500);
   };
 
+  // Calculate the current step
   let currentStep = 1;
   if (activeTab === 'rewrite' && isRewriteRequested) {
     currentStep = 3;
@@ -60,21 +96,47 @@ const AnalysisResults = ({
   return (
     <Card className="p-6 shadow-md rounded-xl">
       <div className="space-y-8">
-        {/* Stepper */}
+        {/* Progress steps */}
         <div className="mb-8">
           <div className="flex justify-between mb-2">
-            {["Analysis", "Review", "Optimize"].map((label, index) => (
-              <div key={label} className="flex flex-col items-center">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                  currentStep > index ? "bg-blue-600 text-white" : "bg-gray-200"
-                }`}>
-                  {index === 0 ? <FileSearch className="h-4 w-4" /> :
-                   index === 1 ? <CheckCheck className="h-4 w-4" /> :
-                   <FileText className="h-4 w-4" />}
-                </div>
-                <span className="text-xs mt-1">{label}</span>
+            <div className="flex flex-col items-center">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                currentStep >= 1 ? "bg-blue-600 text-white" : "bg-gray-200"
+              }`}>
+                <FileSearch className="h-4 w-4" />
               </div>
-            ))}
+              <span className="text-xs mt-1">Analysis</span>
+            </div>
+            <div className="relative flex-1 mt-4">
+              <div className="absolute top-1/2 w-full h-1 bg-gray-200 transform -translate-y-1/2"></div>
+              <div 
+                className="absolute top-1/2 h-1 bg-blue-600 transform -translate-y-1/2 transition-all duration-500" 
+                style={{ width: currentStep >= 2 ? '100%' : '0%' }}
+              ></div>
+            </div>
+            <div className="flex flex-col items-center">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                currentStep >= 2 ? "bg-blue-600 text-white" : "bg-gray-200"
+              }`}>
+                <CheckCheck className="h-4 w-4" />
+              </div>
+              <span className="text-xs mt-1">Review</span>
+            </div>
+            <div className="relative flex-1 mt-4">
+              <div className="absolute top-1/2 w-full h-1 bg-gray-200 transform -translate-y-1/2"></div>
+              <div 
+                className="absolute top-1/2 h-1 bg-blue-600 transform -translate-y-1/2 transition-all duration-500" 
+                style={{ width: currentStep >= 3 ? '100%' : '0%' }}
+              ></div>
+            </div>
+            <div className="flex flex-col items-center">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                currentStep >= 3 ? "bg-blue-600 text-white" : "bg-gray-200"
+              }`}>
+                <FileText className="h-4 w-4" />
+              </div>
+              <span className="text-xs mt-1">Optimize</span>
+            </div>
           </div>
           {rewriteLoading && (
             <div className="mt-2">
@@ -84,13 +146,17 @@ const AnalysisResults = ({
           )}
         </div>
 
-        {/* Header with tab switch */}
-        <AnalysisHeader
-          onReset={onReset}
+        <AnalysisHeader 
+          onReset={onReset} 
+          onExportPDF={handleExportFeedback}
           activeTab={activeTab}
           setActiveTab={(tab) => {
+            // Only allow switching to rewrite tab if it has been requested and user can access it
             if (tab === 'rewrite') {
-              if (!isRewriteRequested) return;
+              if (!isRewriteRequested) {
+                return;
+              }
+              
               if (!canUseRewrite()) {
                 setShowPremiumModal(true);
                 return;
@@ -101,43 +167,37 @@ const AnalysisResults = ({
           hasRewrite={isRewriteRequested && !!feedback.rewrittenResume && canUseRewrite()}
         />
 
-        {/* Download Button */}
-        <ResumeDownloadButton
-          currentResume={feedback.rewrittenResume || feedback.resume || ""}
-          roleSummary={feedback.jobTitle || "resume"}
-          selectedTheme={selectedTheme}
-        />
+        {exportError && (
+          <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-md mb-4">
+            {exportError}
+          </div>
+        )}
 
-        {/* Tab Content */}
         {activeTab === 'analysis' ? (
-          <ResultList
-            feedback={feedback}
-            onRequestRewrite={!isRewriteRequested ? handleRewriteRequest : undefined}
+          <ResultList 
+            feedback={feedback} 
+            onRequestRewrite={!isRewriteRequested ? handleRewriteRequest : undefined} 
           />
         ) : (
           isRewriteRequested && canUseRewrite() && (
-            <ResumeRewrite
-              rewrittenResume={feedback.rewrittenResume}
+            <ResumeRewrite 
+              rewrittenResume={feedback.rewrittenResume} 
               atsScores={feedback.atsScores}
               jobContext={feedback.jobContext}
               originalResume={feedback.resume}
               jobDescription={feedback.jobDescription}
-              originalATSScore={calculateATSScore(
-                feedback.resume || '',
-                feedback.jobDescription || ''
-              )}
+              originalATSScore={calculateATSScore(feedback.resume || '', feedback.jobDescription || '')}
             />
           )
         )}
 
-        {/* Feedback */}
-        <FeedbackForm
-          helpfulFeedback={helpfulFeedback}
+        <FeedbackForm 
+          helpfulFeedback={helpfulFeedback} 
           onFeedbackSubmit={onFeedbackSubmit}
         />
       </div>
-
-      <PremiumFeatureModal
+      
+      <PremiumFeatureModal 
         isOpen={showPremiumModal}
         onClose={() => setShowPremiumModal(false)}
         featureName="Resume Rewrite"

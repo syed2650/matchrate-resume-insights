@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
@@ -9,62 +10,51 @@ import { trackRewriteUsage } from "../utils";
 interface ResumeDownloadButtonProps {
   currentResume: string;
   roleSummary: string;
-  selectedTheme?: "teal" | "modern" | "minimal";
   disabled?: boolean;
 }
 
 const ResumeDownloadButton: React.FC<ResumeDownloadButtonProps> = ({
   currentResume,
   roleSummary,
-  selectedTheme = "teal",
-  disabled = false,
+  disabled = false
 }) => {
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const { toast } = useToast();
 
   const handleDownload = async () => {
     if (disabled || !currentResume) {
-      toast({
-        title: "Error",
-        description: "No resume content available to download",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "No resume content available to download", variant: "destructive" });
       return;
     }
 
     setIsProcessing(true);
-
+    
     try {
-      const docBlob = await generateFormattedDocx(currentResume, selectedTheme);
+      const docBlob = await generateFormattedDocx(currentResume);
       if (!docBlob) {
         throw new Error("Failed to generate document");
       }
-
+      
+      // Create a download link
       const url = URL.createObjectURL(docBlob);
       const a = document.createElement("a");
       a.href = url;
-
-      const dateStr = new Date().toISOString().split("T")[0];
-      const roleStr = roleSummary ? `-${roleSummary.replace(/\s+/g, "-")}` : "";
+      
+      // Set filename - with date and role if available
+      const dateStr = new Date().toISOString().split('T')[0];
+      const roleStr = roleSummary ? `-${roleSummary.replace(/\s+/g, '-')}` : '';
       a.download = `optimized-resume${roleStr}-${dateStr}.docx`;
-
+      
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-
+      
       trackRewriteUsage();
-      toast({
-        title: "Success",
-        description: "Resume downloaded successfully",
-      });
+      toast({ title: "Success", description: "Resume downloaded successfully" });
     } catch (error) {
       console.error("Error downloading resume:", error);
-      toast({
-        title: "Error",
-        description: "Failed to download resume",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "Failed to download resume", variant: "destructive" });
     } finally {
       setIsProcessing(false);
     }
@@ -72,8 +62,8 @@ const ResumeDownloadButton: React.FC<ResumeDownloadButtonProps> = ({
 
   return (
     <>
-      <Button
-        variant="outline"
+      <Button 
+        variant="outline" 
         size="sm"
         onClick={handleDownload}
         disabled={disabled}

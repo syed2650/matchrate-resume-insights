@@ -5,7 +5,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface AnalysisHeaderProps {
   onReset: () => void;
-  onExportPDF?: () => void; // Making this prop optional
+  onExportPDF: () => void;
   activeTab: 'analysis' | 'rewrite';
   setActiveTab: (tab: 'analysis' | 'rewrite') => void;
   hasRewrite: boolean;
@@ -41,7 +41,7 @@ const AnalysisHeader = ({
         )}
       </div>
       
-      {activeTab === 'analysis' && onExportPDF && (
+      {activeTab === 'analysis' && (
         <Button 
           variant="outline" 
           size="sm"
