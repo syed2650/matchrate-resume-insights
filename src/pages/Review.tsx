@@ -9,13 +9,14 @@ const Review = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   return (
-    <div>
-      <h1>Resume Optimizer</h1>
+    <div className="container mx-auto px-4 py-8 max-w-6xl">
+      <h1 className="text-3xl font-bold mb-6">Resume Optimizer</h1>
       <div className="mb-4">
-        <label className="mr-2">Choose Theme:</label>
+        <label className="mr-2 font-medium">Choose Theme:</label>
         <select 
           value={selectedTheme} 
           onChange={e => setSelectedTheme(e.target.value as "teal" | "modern" | "minimal")}
+          className="border border-gray-300 rounded px-3 py-2"
         >
           <option value="teal">Teal</option>
           <option value="modern">Modern</option>
