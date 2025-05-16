@@ -1,4 +1,3 @@
-
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, TabStopPosition, TabStopType, BorderStyle, Table, TableRow, TableCell, WidthType, IBorderOptions, VerticalAlign } from "docx";
 import { ResumeTemplate } from "@/utils/resumeRewriter";
 
@@ -58,7 +57,7 @@ function createTextRun(text: string, bold?: boolean, italic?: boolean, underline
     text: text,
     bold: bold,
     italic: italic,
-    underline: underline,
+    underline: underline ? {} : undefined, // Fix: Use an empty object for underline instead of boolean
     size: size,
     color: color,
   });
@@ -83,7 +82,7 @@ function createTableRow(cells: TableCell[]) {
 }
 
 // Function to create a table cell
-function createTableCell(text: string, bold?: boolean, italic?: boolean, alignment?: AlignmentType, verticalAlign?: VerticalAlign) {
+function createTableCell(text: string, bold?: boolean, italic?: boolean, alignment?: typeof AlignmentType, verticalAlign?: typeof VerticalAlign) {
   return new TableCell({
     children: [
       new Paragraph({
@@ -162,7 +161,7 @@ function createDocumentStyles(template?: ResumeTemplate) {
   };
 
   // Clean font name - remove quotes
-  const fontFamily = t.fontFamily.replace(/[''"]/g, '');
+  const fontFamily = t.fontFamily.replace(/['"']/g, '');
   const primaryColor = t.primaryColor.replace('#', '');
   
   // Spacing settings based on template spacing preference
@@ -451,4 +450,3 @@ async function generateResumeDocument(resumeData: any, template?: ResumeTemplate
 }
 
 export default generateResumeDocument;
-
