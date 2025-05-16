@@ -1,6 +1,7 @@
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, TabStopPosition, TabStopType, BorderStyle } from "docx";
+import { ResumeTemplate } from "@/utils/resumeRewriter";
 
-export async function generateFormattedDocx(resumeText: string): Promise<Blob | null> {
+export async function generateFormattedDocx(resumeText: string, template?: ResumeTemplate): Promise<Blob | null> {
   try {
     if (!resumeText || typeof resumeText !== 'string') {
       console.error("Invalid resume text provided");
@@ -15,7 +16,7 @@ export async function generateFormattedDocx(resumeText: string): Promise<Blob | 
       sections: [
         {
           properties: {},
-          children: createFormattedDocument(sections)
+          children: createFormattedDocument(sections, template)
         }
       ],
       styles: {
@@ -27,7 +28,7 @@ export async function generateFormattedDocx(resumeText: string): Promise<Blob | 
             next: "Normal",
             quickFormat: true,
             run: {
-              font: "Calibri",
+              font: template?.fontFamily.replace(/[''"]/g, '') || "Calibri",
               size: 22,
               color: "000000",
             },
@@ -35,7 +36,7 @@ export async function generateFormattedDocx(resumeText: string): Promise<Blob | 
               spacing: {
                 line: 276,
                 before: 0,
-                after: 200,
+                after: template?.spacing === 'airy' ? 300 : template?.spacing === 'standard' ? 200 : 100,
               },
             },
           },
@@ -46,10 +47,10 @@ export async function generateFormattedDocx(resumeText: string): Promise<Blob | 
             next: "Normal",
             quickFormat: true,
             run: {
-              font: "Calibri",
+              font: template?.fontFamily.replace(/[''"]/g, '') || "Calibri",
               size: 32,
               bold: true,
-              color: "000000",
+              color: template?.primaryColor.replace('#', '') || "000000",
             },
             paragraph: {
               spacing: {
@@ -66,14 +67,14 @@ export async function generateFormattedDocx(resumeText: string): Promise<Blob | 
             next: "Normal",
             quickFormat: true,
             run: {
-              font: "Calibri",
+              font: template?.fontFamily.replace(/[''"]/g, '') || "Calibri",
               size: 26,
-              bold: true,
-              color: "000000",
-              underline: {
+              bold: template?.headerStyle === 'bold' ? true : false,
+              color: template?.primaryColor.replace('#', '') || "000000",
+              underline: template?.sectionDividers ? {
                 type: "single",
-                color: "000000",
-              },
+                color: template?.primaryColor.replace('#', '') || "000000",
+              } : undefined,
             },
             paragraph: {
               spacing: {
@@ -89,7 +90,7 @@ export async function generateFormattedDocx(resumeText: string): Promise<Blob | 
             next: "Normal",
             quickFormat: true,
             run: {
-              font: "Calibri",
+              font: template?.fontFamily.replace(/[''"]/g, '') || "Calibri",
               size: 24,
               bold: true,
               color: "000000",
@@ -102,7 +103,7 @@ export async function generateFormattedDocx(resumeText: string): Promise<Blob | 
             next: "Normal",
             quickFormat: true,
             run: {
-              font: "Calibri",
+              font: template?.fontFamily.replace(/[''"]/g, '') || "Calibri",
               size: 22,
               bold: false,
               color: "000000",
@@ -115,7 +116,7 @@ export async function generateFormattedDocx(resumeText: string): Promise<Blob | 
             next: "Normal",
             quickFormat: true,
             run: {
-              font: "Calibri",
+              font: template?.fontFamily.replace(/[''"]/g, '') || "Calibri",
               size: 22,
               color: "000000",
             },
@@ -123,7 +124,7 @@ export async function generateFormattedDocx(resumeText: string): Promise<Blob | 
               spacing: {
                 line: 276,
                 before: 0,
-                after: 100,
+                after: template?.spacing === 'airy' ? 150 : template?.spacing === 'standard' ? 100 : 50,
               },
               indent: {
                 left: 720, // 0.5 inch indent for bullets
@@ -137,7 +138,7 @@ export async function generateFormattedDocx(resumeText: string): Promise<Blob | 
             next: "Normal",
             quickFormat: true,
             run: {
-              font: "Calibri",
+              font: template?.fontFamily.replace(/[''"]/g, '') || "Calibri",
               size: 22,
               color: "000000",
             },
@@ -220,7 +221,7 @@ function parseResumeIntoSections(resumeText: string): any {
   return sections;
 }
 
-function createFormattedDocument(sections: Record<string, string[]>) {
+function createFormattedDocument(sections: Record<string, string[]>, template?: ResumeTemplate) {
   const documentElements = [];
   
   // Name (centered, large)
@@ -249,16 +250,16 @@ function createFormattedDocument(sections: Record<string, string[]>) {
   if (sections.summary && sections.summary.length > 0) {
     documentElements.push(
       new Paragraph({
-        text: "SUMMARY",
+        text: template?.headerStyle === 'uppercase' ? "SUMMARY" : "Summary",
         heading: HeadingLevel.HEADING_2,
-        border: {
+        border: template?.sectionDividers ? {
           bottom: {
-            color: "auto",
+            color: template?.primaryColor.replace('#', '') || "auto",
             space: 1,
             style: BorderStyle.SINGLE,
             size: 6,
           },
-        },
+        } : undefined,
       })
     );
     
@@ -280,25 +281,20 @@ function createFormattedDocument(sections: Record<string, string[]>) {
   if (sections.experience && sections.experience.length > 0) {
     documentElements.push(
       new Paragraph({
-        text: "EXPERIENCE",
+        text: template?.headerStyle === 'uppercase' ? "EXPERIENCE" : "Experience",
         heading: HeadingLevel.HEADING_2,
-        border: {
+        border: template?.sectionDividers ? {
           bottom: {
-            color: "auto",
+            color: template?.primaryColor.replace('#', '') || "auto",
             space: 1,
             style: BorderStyle.SINGLE,
             size: 6,
           },
-        },
+        } : undefined,
       })
     );
     
-    // Parse experience entries - usually in format:
-    // Company Name | Location                            Date - Date
-    // Job Title
-    // • Bullet point
-    // • Bullet point
-    
+    // Parse experience entries
     let i = 0;
     while (i < sections.experience.length) {
       const line = sections.experience[i];
@@ -374,16 +370,16 @@ function createFormattedDocument(sections: Record<string, string[]>) {
   if (sections.education && sections.education.length > 0) {
     documentElements.push(
       new Paragraph({
-        text: "EDUCATION",
+        text: template?.headerStyle === 'uppercase' ? "EDUCATION" : "Education",
         heading: HeadingLevel.HEADING_2,
-        border: {
+        border: template?.sectionDividers ? {
           bottom: {
-            color: "auto",
+            color: template?.primaryColor.replace('#', '') || "auto",
             space: 1,
             style: BorderStyle.SINGLE,
             size: 6,
           },
-        },
+        } : undefined,
       })
     );
     
@@ -405,16 +401,16 @@ function createFormattedDocument(sections: Record<string, string[]>) {
   if (sections.skills && sections.skills.length > 0) {
     documentElements.push(
       new Paragraph({
-        text: "SKILLS",
+        text: template?.headerStyle === 'uppercase' ? "SKILLS" : "Skills",
         heading: HeadingLevel.HEADING_2,
-        border: {
+        border: template?.sectionDividers ? {
           bottom: {
-            color: "auto",
+            color: template?.primaryColor.replace('#', '') || "auto",
             space: 1,
             style: BorderStyle.SINGLE,
             size: 6,
           },
-        },
+        } : undefined,
       })
     );
     
@@ -441,16 +437,16 @@ function createFormattedDocument(sections: Record<string, string[]>) {
   if (sections.other && sections.other.length > 0) {
     documentElements.push(
       new Paragraph({
-        text: "ADDITIONAL INFORMATION",
+        text: template?.headerStyle === 'uppercase' ? "ADDITIONAL INFORMATION" : "Additional Information",
         heading: HeadingLevel.HEADING_2,
-        border: {
+        border: template?.sectionDividers ? {
           bottom: {
-            color: "auto",
+            color: template?.primaryColor.replace('#', '') || "auto",
             space: 1,
             style: BorderStyle.SINGLE,
             size: 6,
           },
-        },
+        } : undefined,
       })
     );
     

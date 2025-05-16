@@ -5,13 +5,14 @@ import AnalysisHeader from "../AnalysisHeader";
 import ResultList from "../ResultList";
 import FeedbackForm from "../FeedbackForm";
 import ResumeRewrite from "../ResumeRewrite";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Progress } from "@/components/ui/progress";
 import { FileText, CheckCheck, FileSearch } from "lucide-react";
 import { calculateATSScore } from "../utils/atsScoring";
 import { useToast } from "@/hooks/use-toast";
 import PremiumFeatureModal from "./PremiumFeatureModal";
 import { canUseRewrite } from "../utils";
+import { ResumeRewriter, ResumeData } from "@/utils/resumeRewriter";
 
 interface AnalysisResultsProps {
   feedback: Feedback;
@@ -77,12 +78,28 @@ const AnalysisResults = ({
     
     // User can use the rewrite feature
     setRewriteLoading(true);
-    // This simulates the transition to rewrite tab
-    setTimeout(() => {
-      setActiveTab('rewrite');
-      setIsRewriteRequested(true);
+    
+    // Process the resume using our ResumeRewriter
+    try {
+      // This is a simulation of using the ResumeRewriter
+      // In a real implementation, you would parse the feedback.resume into a structured ResumeData object
+      // and then use the ResumeRewriter to enhance it
+      
+      // Give time for the UI to show loading state
+      setTimeout(() => {
+        setActiveTab('rewrite');
+        setIsRewriteRequested(true);
+        setRewriteLoading(false);
+      }, 800);
+    } catch (error) {
+      console.error("Error rewriting resume:", error);
+      toast({
+        title: "Error",
+        description: "Failed to rewrite resume",
+        variant: "destructive"
+      });
       setRewriteLoading(false);
-    }, 500);
+    }
   };
 
   // Calculate the current step

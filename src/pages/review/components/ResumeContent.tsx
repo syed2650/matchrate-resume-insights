@@ -4,6 +4,8 @@ import { Card } from "@/components/ui/card";
 import { LockIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { ResumeTemplate } from "@/utils/resumeRewriter";
+import { templates } from "@/templates";
 
 interface ResumeContentProps {
   currentResume: string;
@@ -14,9 +16,15 @@ interface ResumeContentProps {
     tone: string;
   };
   isPremiumBlurred?: boolean;
+  template?: ResumeTemplate;
 }
 
-const ResumeContent: React.FC<ResumeContentProps> = ({ currentResume, jobContext, isPremiumBlurred = false }) => {
+const ResumeContent: React.FC<ResumeContentProps> = ({ 
+  currentResume, 
+  jobContext, 
+  isPremiumBlurred = false,
+  template = templates[0] 
+}) => {
   if (!currentResume) return null;
   
   const formatResume = (content: string) => {
@@ -27,7 +35,10 @@ const ResumeContent: React.FC<ResumeContentProps> = ({ currentResume, jobContext
     }
 
     return (
-      <div className="space-y-6 font-sans text-sm leading-relaxed">
+      <div 
+        className="space-y-6 text-sm leading-relaxed"
+        style={{ fontFamily: template.fontFamily }}
+      >
         {sections.map((section, index) => {
           // Check if this is a heading
           const isHeading = /^(#+\s.*|[A-Z\s]{5,})$/m.test(section);
@@ -39,8 +50,17 @@ const ResumeContent: React.FC<ResumeContentProps> = ({ currentResume, jobContext
               .replace(/^\s+|\s+$/g, '');
             
             return (
-              <h2 key={index} className="text-lg font-bold text-slate-800 border-b border-slate-200 pb-1">
-                {headingText.toUpperCase()}
+              <h2 
+                key={index} 
+                className="text-lg pb-1"
+                style={{ 
+                  borderBottom: template.sectionDividers ? `1px solid ${template.primaryColor}` : 'none',
+                  color: template.primaryColor,
+                  textTransform: template.headerStyle === 'uppercase' ? 'uppercase' : 'none',
+                  fontWeight: template.headerStyle === 'bold' ? 'bold' : 'normal'
+                }}
+              >
+                {template.headerStyle === 'uppercase' ? headingText.toUpperCase() : headingText}
               </h2>
             );
           } else {
@@ -165,7 +185,12 @@ const ResumeContent: React.FC<ResumeContentProps> = ({ currentResume, jobContext
             </div>
           </div>
           <div className="blur-sm opacity-60">
-            <div className="p-6 h-[500px] overflow-auto">
+            <div 
+              className="p-6 h-[500px] overflow-auto"
+              style={{ 
+                backgroundColor: template.secondaryColor,
+              }}
+            >
               {formatResume(currentResume)}
             </div>
           </div>
@@ -174,7 +199,12 @@ const ResumeContent: React.FC<ResumeContentProps> = ({ currentResume, jobContext
     }
     
     return (
-      <div className="p-6 max-h-[600px] overflow-auto">
+      <div 
+        className="p-6 max-h-[600px] overflow-auto"
+        style={{ 
+          backgroundColor: template.secondaryColor,
+        }}
+      >
         {formatResume(currentResume)}
       </div>
     );

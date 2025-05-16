@@ -13,6 +13,9 @@ import ResumeDownloadButton from "./components/ResumeDownloadButton";
 import { formatResumeContent, extractRoleSummary } from "./utils/resumeFormatter";
 import { ResumeRewriteProps } from "./types";
 import PremiumFeatureModal from "./components/PremiumFeatureModal";
+import TemplateSelector from "./components/TemplateSelector";
+import { ResumeRewriter } from "@/utils/resumeRewriter";
+import { templates } from "@/templates";
 
 const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ 
   rewrittenResume, 
@@ -28,14 +31,19 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
   const [isPremiumUser, setIsPremiumUser] = useState<boolean>(false);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [showPremiumModal, setShowPremiumModal] = useState<boolean>(false);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>("modern");
 
   const { currentResume: rawResume, generatedTimestamp } = useResumeVersion({ 
     rewrittenResume, 
     activeVersion: "general" 
   });
 
+  // Format the resume content
   const currentResume = formatResumeContent(rawResume);
   const roleSummary = extractRoleSummary(rawResume);
+  
+  // Get the selected template
+  const selectedTemplate = templates.find(t => t.id === selectedTemplateId) || templates[0];
   
   useEffect(() => {
     // Check if user has premium access
@@ -57,6 +65,10 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
 
   const handleClosePremiumModal = () => {
     setShowPremiumModal(false);
+  };
+
+  const handleTemplateChange = (templateId: string) => {
+    setSelectedTemplateId(templateId);
   };
 
   const currentAtsScore = (typeof stableAtsScores === 'object' && Object.values(stableAtsScores)[0]) || 0;
@@ -82,16 +94,29 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
         isPremiumLocked={!isPremiumUser}
       />
       
+      {isPremiumUser && (
+        <TemplateSelector 
+          selectedTemplateId={selectedTemplateId} 
+          onChange={handleTemplateChange} 
+        />
+      )}
+      
       <div className="flex gap-2 w-full">
         <ResumeCopyButton currentResume={currentResume} disabled={!isPremiumUser} />
         <ResumeDownloadButton 
           currentResume={currentResume} 
           roleSummary={roleSummary} 
+          templateId={selectedTemplateId}
           disabled={!isPremiumUser} 
         />
       </div>
 
-      <ResumeContent currentResume={currentResume} jobContext={jobContext} isPremiumBlurred={!isPremiumUser} />
+      <ResumeContent 
+        currentResume={currentResume} 
+        jobContext={jobContext} 
+        isPremiumBlurred={!isPremiumUser} 
+        template={selectedTemplate}
+      />
       
       {isPremiumUser ? <ExportInfo /> : (
         <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg">

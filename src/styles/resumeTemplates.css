@@ -1,0 +1,137 @@
+
+/* Resume Template Styles */
+
+/* Modern Template */
+.resume-template-modern {
+  font-family: 'Open Sans', sans-serif;
+  --primary-color: #2D74FF;
+  --secondary-color: #F7F9FC;
+}
+
+.resume-template-modern .resume-header {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 2rem;
+  text-align: center;
+}
+
+.resume-template-modern .resume-section-title {
+  color: var(--primary-color);
+  font-weight: bold;
+  border-bottom: 1px solid var(--primary-color);
+  padding-bottom: 0.5rem;
+}
+
+.resume-template-modern .resume-content {
+  background-color: var(--secondary-color);
+  padding: 1rem;
+}
+
+/* Professional Template */
+.resume-template-professional {
+  font-family: 'Georgia', serif;
+  --primary-color: #143564;
+  --secondary-color: #F5F5F5;
+}
+
+.resume-template-professional .resume-header {
+  color: var(--primary-color);
+  padding: 2rem;
+  text-align: center;
+  background-color: var(--secondary-color);
+  border-bottom: 2px solid var(--primary-color);
+}
+
+.resume-template-professional .resume-section-title {
+  color: var(--primary-color);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 1.5rem;
+}
+
+.resume-template-professional .resume-content {
+  line-height: 1.6;
+}
+
+/* Creative Template */
+.resume-template-creative {
+  font-family: 'Montserrat', sans-serif;
+  --primary-color: #6B3FA0;
+  --secondary-color: #FDF7FF;
+}
+
+.resume-template-creative .resume-header {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 2.5rem;
+  text-align: center;
+  border-radius: 0 0 2rem 2rem;
+}
+
+.resume-template-creative .resume-section-title {
+  color: var(--primary-color);
+  font-weight: bold;
+  border-bottom: 1px solid var(--primary-color);
+  padding-bottom: 0.5rem;
+  margin-top: 2rem;
+}
+
+.resume-template-creative .resume-content {
+  background-color: var(--secondary-color);
+  padding: 1.5rem;
+  line-height: 1.8;
+}
+
+/* Common Template Styles */
+.resume-section {
+  margin-bottom: 1.5rem;
+}
+
+.resume-job-title {
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+}
+
+.resume-job-company {
+  font-style: italic;
+}
+
+.resume-job-date {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.resume-bullet-list {
+  margin-top: 0.5rem;
+  padding-left: 1.5rem;
+}
+
+.resume-bullet-item {
+  margin-bottom: 0.25rem;
+}
+
+/* Template spacing variants */
+.spacing-compact .resume-section {
+  margin-bottom: 1rem;
+}
+
+.spacing-compact .resume-bullet-item {
+  margin-bottom: 0.15rem;
+}
+
+.spacing-standard .resume-section {
+  margin-bottom: 1.5rem;
+}
+
+.spacing-standard .resume-bullet-item {
+  margin-bottom: 0.25rem;
+}
+
+.spacing-airy .resume-section {
+  margin-bottom: 2.5rem;
+}
+
+.spacing-airy .resume-bullet-item {
+  margin-bottom: 0.5rem;
+  line-height: 1.8;
+}
