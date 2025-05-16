@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { canUseRewrite, trackRewriteUsage } from "./utils";
 import { useResumeVersion } from "./hooks/useResumeVersion";
 import ResumeHeader from "./components/ResumeHeader";
 import ResumeContent from "./components/ResumeContent";
@@ -38,44 +37,47 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
   const currentResume = formatResumeContent(rawResume);
   const roleSummary = extractRoleSummary(rawResume);
 
- const rewriteBullets = async (jobRole?: string) => {
-  const bullets = extractExperienceBullets(currentResume);
-  setIsProcessing(true);
-  try {
-    const rewritten = await Promise.all(
-      bullets.map(async (bullet) => {
-        const prompt = generateRewritePrompt(bullet, jobRole || jobContext || roleSummary || "Professional Role");
-
-        const response = await fetch("https://rodkrpeqxgqizngdypbl.supabase.co/functions/v1/resume-rewrite", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt })
-        });
-
-        const data = await response.json();
-        return data?.result || bullet;
-      })
-    );
-    setRewrittenBullets(rewritten);
-  } catch (error) {
-    toast({ title: "Error rewriting bullets", description: `${error}` });
-  }
-  setIsProcessing(false);
-};
-
+  const rewriteBullets = async (jobRole?: string) => {
+    const bullets = extractExperienceBullets(currentResume);
+    setIsProcessing(true);
+    try {
+      const rewritten = await Promise.all(
+        bullets.map(async (bullet) => {
+          const prompt = generateRewritePrompt(bullet, jobRole || jobContext || roleSummary || "Professional Role");
+          const response = await fetch("https://rodkrpeqxgqizngdypbl.supabase.co/functions/v1/resume-rewrite", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ prompt })
+          });
+          const data = await response.json();
+          return data?.result || bullet;
+        })
+      );
+      setRewrittenBullets(rewritten);
+    } catch (error) {
+      toast({ title: "Error rewriting bullets", description: `${error}` });
+    }
+    setIsProcessing(false);
+  };
 
   useEffect(() => {
-    const hasPremiumAccess = canUseRewrite();
-    setIsPremiumUser(hasPremiumAccess);
+    const init = async () => {
+      const { canUseRewrite, trackRewriteUsage } = await import("./utils");
 
-    if (Object.keys(atsScores).length > 0) {
-      setStableAtsScores(atsScores);
-    }
+      const hasPremiumAccess = await canUseRewrite();
+      setIsPremiumUser(hasPremiumAccess);
 
-    if (hasPremiumAccess) {
-      trackRewriteUsage();
-      rewriteBullets(); // <-- THIS WAS MISSING
-    }
+      if (Object.keys(atsScores).length > 0) {
+        setStableAtsScores(atsScores);
+      }
+
+      if (hasPremiumAccess) {
+        trackRewriteUsage();
+        rewriteBullets();
+      }
+    };
+
+    init();
   }, []);
 
   const handleRoleChange = (role: string) => {
