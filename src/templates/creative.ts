@@ -10,6 +10,8 @@ const creativeTemplate: ResumeTemplate = {
   headerStyle: "mixed",
   sectionDividers: true,
   spacing: "airy",
+  layout: "asymmetric",
+  accent: "#FCCE03", // Secondary accent color
   preview: "/templates/creative-preview.png" // This would be the path to a preview image
 };
 

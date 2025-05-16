@@ -5,7 +5,7 @@
 .resume-template-modern {
   font-family: 'Open Sans', sans-serif;
   --primary-color: #2D74FF;
-  --secondary-color: #F7F9FC;
+  --secondary-color: #E6F0FF;
 }
 
 .resume-template-modern .resume-header {
@@ -58,6 +58,7 @@
   font-family: 'Montserrat', sans-serif;
   --primary-color: #6B3FA0;
   --secondary-color: #FDF7FF;
+  --accent-color: #FCCE03;
 }
 
 .resume-template-creative .resume-header {
