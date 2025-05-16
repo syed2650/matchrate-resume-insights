@@ -1,5 +1,7 @@
+
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+
 import { useResumeVersion } from "./hooks/useResumeVersion";
 import ResumeHeader from "./components/ResumeHeader";
 import ResumeContent from "./components/ResumeContent";
@@ -8,7 +10,7 @@ import { ExportInfo } from "./components/ExportInfo";
 import ResumeOptimizedAlert from "./components/ResumeOptimizedAlert";
 import ResumeCopyButton from "./components/ResumeCopyButton";
 import ResumeDownloadButton from "./components/ResumeDownloadButton";
-import { formatResumeContent, extractRoleSummary, extractExperienceBullets, generateRewritePrompt } from "./utils/resumeFormatter";
+import { formatResumeContent, extractRoleSummary } from "./utils/resumeFormatter";
 import { ResumeRewriteProps } from "./types";
 import PremiumFeatureModal from "./components/PremiumFeatureModal";
 
@@ -23,58 +25,88 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
 }) => {
   const { toast } = useToast();
   const [stableAtsScores, setStableAtsScores] = useState<Record<string, number>>(atsScores);
+  const [isPremiumUser, setIsPremiumUser] = useState<boolean>(false);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  const [rewrittenBullets, setRewrittenBullets] = useState<string[]>([]);
-  const [selectedRole, setSelectedRole] = useState<string>("");
+  const [showPremiumModal, setShowPremiumModal] = useState<boolean>(false);
 
-  const { currentResume: rawResume } = useResumeVersion({ 
+  const { currentResume: rawResume, generatedTimestamp } = useResumeVersion({ 
     rewrittenResume, 
     activeVersion: "general" 
   });
 
   const currentResume = formatResumeContent(rawResume);
   const roleSummary = extractRoleSummary(rawResume);
-
-  const rewriteBullets = async (jobRole?: string) => {
-    const bullets = extractExperienceBullets(currentResume);
-    setIsProcessing(true);
-    try {
-      const rewritten = await Promise.all(
-        bullets.map(async (bullet) => {
-          const prompt = generateRewritePrompt(bullet, jobRole || jobContext || roleSummary || "Professional Role");
-          const response = await fetch("https://rodkrpeqxgqizngdypbl.supabase.co/functions/v1/rewrite-resume", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ prompt })
-          });
-          const data = await response.json();
-          return data?.result || bullet;
-        })
-      );
-      setRewrittenBullets(rewritten);
-    } catch (error) {
-      toast({ title: "Error rewriting bullets", description: `${error}` });
-    }
-    setIsProcessing(false);
-  };
-
+  
   useEffect(() => {
-    rewriteBullets();
-  }, []);
+    // Check if user has premium access
+    const hasPremiumAccess = canUseRewrite();
+    setIsPremiumUser(hasPremiumAccess);
+    
+    if (Object.keys(atsScores).length > 0) {
+      setStableAtsScores(atsScores);
+    }
+    
+    // Track usage if user has premium access
+    if (hasPremiumAccess) {
+      trackRewriteUsage();
+    } else {
+      // Show premium modal for non-premium users
+      setShowPremiumModal(true);
+    }
+  }, [atsScores]);
 
-  const handleRoleChange = (role: string) => {
-    setSelectedRole(role);
-    rewriteBullets(role);
+  const handleClosePremiumModal = () => {
+    setShowPremiumModal(false);
   };
+
+  const currentAtsScore = (typeof stableAtsScores === 'object' && Object.values(stableAtsScores)[0]) || 0;
+  const scoreDifference = currentAtsScore - originalATSScore;
+  const isInterviewReady = currentAtsScore >= 75;
+
+  if (!rewrittenResume) {
+    return <div className="py-8 text-center"><p className="text-slate-600">No rewritten resume available.</p></div>;
+  }
 
   return (
-    <div>
-      <ResumeHeader />
-      {rewrittenBullets.length > 0 ? (
-        <ResumeContent bullets={rewrittenBullets} jobRole={selectedRole} onRoleChange={handleRoleChange} />
-      ) : (
-        <p>Generating improved resume content...</p>
+    <div className="space-y-6">
+      {!isPremiumUser && <UpgradeBanner feature="resume rewriting" limit="15 rewrites per month" />}
+      <ResumeOptimizedAlert />
+      
+      <ResumeHeader
+        currentAtsScore={currentAtsScore}
+        roleSummary={roleSummary}
+        generatedTimestamp={generatedTimestamp}
+        isInterviewReady={isInterviewReady}
+        onCopy={() => {}}  // This will be handled by the ResumeCopyButton component
+        onDownload={() => {}} // This will be handled by the ResumeDownloadButton component
+        isPremiumLocked={!isPremiumUser}
+      />
+      
+      <div className="flex gap-2 w-full">
+        <ResumeCopyButton currentResume={currentResume} disabled={!isPremiumUser} />
+        <ResumeDownloadButton 
+          currentResume={currentResume} 
+          roleSummary={roleSummary} 
+          disabled={!isPremiumUser} 
+        />
+      </div>
+
+      <ResumeContent currentResume={currentResume} jobContext={jobContext} isPremiumBlurred={!isPremiumUser} />
+      
+      {isPremiumUser ? <ExportInfo /> : (
+        <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg">
+          <h3 className="font-medium text-amber-800">Premium Feature</h3>
+          <p className="text-sm text-amber-700 mt-1">
+            Resume rewriting is available on our paid plan with 15 rewrites per month. Upgrade to access this feature.
+          </p>
+        </div>
       )}
+
+      <PremiumFeatureModal
+        isOpen={showPremiumModal}
+        onClose={handleClosePremiumModal}
+        featureName="Resume rewriting"
+      />
     </div>
   );
 };
