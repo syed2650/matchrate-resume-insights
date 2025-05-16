@@ -22,7 +22,7 @@ const Auth = () => {
   // Redirect if already logged in
   useEffect(() => {
     const checkAuth = async () => {
-      const { data } = await typeof window !== "undefined" ? supabase.auth.getSession() : Promise.resolve({ data: { session: null } });
+      const { data } = await supabase.auth.getSession();
       if (data.session) {
         if (fromPricing && selectedPlan) {
           handleCheckout(selectedPlan);

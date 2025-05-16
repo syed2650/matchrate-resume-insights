@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-
+import { canUseRewrite, trackRewriteUsage } from "./utils";
 import { useResumeVersion } from "./hooks/useResumeVersion";
 import ResumeHeader from "./components/ResumeHeader";
 import ResumeContent from "./components/ResumeContent";

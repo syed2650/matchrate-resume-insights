@@ -17,7 +17,7 @@ const PaymentSuccess = () => {
     const checkSubscriptionStatus = async () => {
       try {
         // First, check if the user is a lifetime premium user
-        const { data: { session } } = await typeof window !== "undefined" ? supabase.auth.getSession() : Promise.resolve({ data: { session: null } });
+        const { data: { session } } = await supabase.auth.getSession();
         if (session) {
           const { data: profileData } = await supabase
             .from('profiles')

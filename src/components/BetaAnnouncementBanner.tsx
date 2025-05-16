@@ -7,12 +7,12 @@ const BetaAnnouncementBanner = () => {
   const storageKey = "beta-banner-dismissed";
   
   useEffect(() => {
-    const isDismissed = typeof window !== "undefined" && localStorage.getItem(storageKey) === "true";
+    const isDismissed = localStorage.getItem(storageKey) === "true";
     setVisible(!isDismissed);
   }, []);
   
   const dismissBanner = () => {
-    typeof window !== "undefined" && localStorage.setItem(storageKey, "true");
+    localStorage.setItem(storageKey, "true");
     setVisible(false);
   };
   

@@ -23,7 +23,7 @@ const Review = () => {
 
   // Debug usage stats when component loads in development
   useEffect(() => {
-    if ((typeof process !== "undefined" ? process.env.NODE_ENV : undefined) === 'development') {
+    if (process.env.NODE_ENV === 'development') {
       console.log('Usage stats:', getUsageStats());
     }
   }, []);
