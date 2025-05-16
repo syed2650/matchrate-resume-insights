@@ -127,25 +127,7 @@ export const canUseFeedback = () => {
   return stats.plan === 'free' ? stats.daily.count < 1 : true;
 };
 
-export const canUseRewrite = () => {
-  const stats = getUsageStats();
-  
-  // Check for lifetime premium users
-  if (stats.plan === 'paid') {
-    const checkLifetimePremium = async () => {
-      const authData = await supabase.auth.getSession();
-      if (authData.data.session) {
-        const profileData = await supabase
-          .from('profiles')
-          .select('is_lifetime_premium')
-          .eq('id', authData.data.session.user.id)
-          .single();
-        
-        // Lifetime premium users have unlimited rewrites
-        if (profileData.data && profileData.data.is_lifetime_premium) {
-          return true;
-        }
-      }
+}
       
       // Regular premium users have 15 rewrites per month
       return stats.monthly.rewrites < 15;
@@ -205,25 +187,7 @@ export const trackFeedbackUsage = () => {
 /**
  * Track usage of the resume rewrite feature
  */
-export const trackRewriteUsage = () => {
-  const plan = localStorage.getItem('user-plan');
-  if (plan === 'paid') {
-    // Check if the user is lifetime premium
-    const checkAndTrack = async () => {
-      const authData = await supabase.auth.getSession();
-      if (authData.data.session) {
-        const profileData = await supabase
-          .from('profiles')
-          .select('is_lifetime_premium')
-          .eq('id', authData.data.session.user.id)
-          .single();
-        
-        // Don't track usage for lifetime premium users
-        if (profileData.data && profileData.data.is_lifetime_premium) {
-          return;
-        }
-        
-        // For regular premium users, track monthly usage
+// For regular premium users, track monthly usage
         const month = new Date().toISOString().slice(0, 7); // YYYY-MM
         const monthlyKey = `premium-usage-${month}`;
         const monthlyData = JSON.parse(localStorage.getItem(monthlyKey) || '{"feedbacks": 0, "rewrites": 0}');
