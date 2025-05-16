@@ -8,7 +8,7 @@ const professionalTemplate: ResumeTemplate = {
   primaryColor: "#143564",
   secondaryColor: "#F8F9FA",
   headerStyle: "uppercase",
-  sectionDividers: false,
+  sectionDividers: true,
   spacing: "standard",
   layout: "single-column",
   preview: "/templates/professional-preview.png" // This would be the path to a preview image
