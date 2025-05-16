@@ -1,3 +1,4 @@
+
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, TabStopPosition, TabStopType, BorderStyle, Table, TableRow, TableCell, WidthType, IBorderOptions, VerticalAlign } from "docx";
 import { ResumeTemplate } from "@/utils/resumeRewriter";
 
@@ -56,8 +57,8 @@ function createTextRun(text: string, bold?: boolean, italic?: boolean, underline
   return new TextRun({
     text: text,
     bold: bold,
-    italic: italic,
-    underline: underline ? {} : undefined, // Fix: Use an empty object for underline instead of boolean
+    italics: italic, // Fix: Changed 'italic' to 'italics' to match IRunOptions interface
+    underline: underline ? {} : undefined,
     size: size,
     color: color,
   });
@@ -87,10 +88,10 @@ function createTableCell(text: string, bold?: boolean, italic?: boolean, alignme
     children: [
       new Paragraph({
         text: text,
-        alignment: alignment,
+        alignment: alignment ? alignment.toString() as any : undefined, // Fix: Convert enum to string value
       }),
     ],
-    verticalAlign: verticalAlign,
+    verticalAlign: verticalAlign ? verticalAlign.toString() as any : undefined, // Fix: Convert enum to string value
   });
 }
 
