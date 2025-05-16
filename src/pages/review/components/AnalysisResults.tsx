@@ -95,14 +95,15 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({
         <TabsContent value="results" className="space-y-8">
           <ScoreCard
             score={feedback.score}
-            verdict={feedback.wouldInterview}
-            fullAnalysis={true}
+            title="Overall Score"
+            explanation={feedback.wouldInterview}
+            icon={CheckCircle}
+            isLow={feedback.score < 70}
           />
 
           {feedback.missingKeywords && feedback.missingKeywords.length > 0 && (
             <MissingKeywords
               keywords={feedback.missingKeywords}
-              description="These keywords appear in the job description but are missing from your resume."
             />
           )}
 
@@ -111,10 +112,8 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({
           )}
 
           {feedback.weakBullets && feedback.weakBullets.length > 0 && (
-            <BulletImprovements items={feedback.weakBullets} />
+            <BulletImprovements bullets={feedback.weakBullets} />
           )}
-
-          {/* Only show if property exists - removed bulletSuggestions references */}
 
           {/* Switch to rewrite tab button */}
           <div className="flex justify-center pt-4">

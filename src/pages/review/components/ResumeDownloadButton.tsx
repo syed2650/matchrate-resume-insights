@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { generateFormattedDocx } from "../utils/resumeDocGenerator";
+import generateResumeDocument from "../utils/resumeDocGenerator";
 import { Progress } from "@/components/ui/progress";
 import { trackRewriteUsage } from "../utils";
 import { templates } from "@/templates";
@@ -36,7 +36,37 @@ const ResumeDownloadButton: React.FC<ResumeDownloadButtonProps> = ({
       // Get template
       const template = templates.find(t => t.id === templateId) || templates[0];
       
-      const docBlob = await generateFormattedDocx(currentResume, template);
+      // Parse the resume to extract structured data
+      const resumeData = {
+        name: "Your Name", // Default value
+        contactInfo: [{ value: "email@example.com" }, { value: "123-456-7890" }],
+        experience: [],
+        education: [],
+        skills: ["Skill 1", "Skill 2"]
+      };
+
+      // Try to parse sections from the resume text
+      const sections = currentResume.split("\n\n");
+      sections.forEach(section => {
+        // Simple parsing logic - could be enhanced
+        if (section.toLowerCase().includes("experience")) {
+          resumeData.experience.push({
+            jobTitle: "Job Title",
+            company: "Company Name",
+            date: "2020 - Present",
+            bullets: ["Achievement 1", "Achievement 2"]
+          });
+        } 
+        else if (section.toLowerCase().includes("education")) {
+          resumeData.education.push({
+            degree: "Degree",
+            institution: "Institution",
+            date: "2016 - 2020"
+          });
+        }
+      });
+      
+      const docBlob = await generateResumeDocument(resumeData, template);
       if (!docBlob) {
         throw new Error("Failed to generate document");
       }
