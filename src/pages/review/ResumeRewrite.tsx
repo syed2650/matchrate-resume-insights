@@ -38,28 +38,31 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
   const currentResume = formatResumeContent(rawResume);
   const roleSummary = extractRoleSummary(rawResume);
 
-  const rewriteBullets = async (jobRole?: string) => {
-    const bullets = extractExperienceBullets(currentResume);
-    setIsProcessing(true);
-    try {
-      const rewritten = await Promise.all(
-        bullets.map(async (bullet) => {
-          const prompt = generateRewritePrompt(bullet, jobRole || jobContext || roleSummary || "Professional Role");
-          const response = await fetch("/api/openai", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ prompt })
-          });
-          const data = await response.json();
-          return data?.result || bullet;
-        })
-      );
-      setRewrittenBullets(rewritten);
-    } catch (error) {
-      toast({ title: "Error rewriting bullets", description: `${error}` });
-    }
-    setIsProcessing(false);
-  };
+ const rewriteBullets = async (jobRole?: string) => {
+  const bullets = extractExperienceBullets(currentResume);
+  setIsProcessing(true);
+  try {
+    const rewritten = await Promise.all(
+      bullets.map(async (bullet) => {
+        const prompt = generateRewritePrompt(bullet, jobRole || jobContext || roleSummary || "Professional Role");
+
+        const response = await fetch("https://rodkrpeqxgqizngdypbl.supabase.co/functions/v1/resume-rewrite", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt })
+        });
+
+        const data = await response.json();
+        return data?.result || bullet;
+      })
+    );
+    setRewrittenBullets(rewritten);
+  } catch (error) {
+    toast({ title: "Error rewriting bullets", description: `${error}` });
+  }
+  setIsProcessing(false);
+};
+
 
   useEffect(() => {
     const hasPremiumAccess = canUseRewrite();
