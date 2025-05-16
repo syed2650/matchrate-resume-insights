@@ -98,7 +98,6 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({
             title="Overall Score"
             explanation={feedback.wouldInterview}
             icon={CheckCircle}
-            isLow={feedback.score < 70}
           />
 
           {feedback.missingKeywords && feedback.missingKeywords.length > 0 && (
@@ -112,7 +111,9 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({
           )}
 
           {feedback.weakBullets && feedback.weakBullets.length > 0 && (
-            <BulletImprovements bullets={feedback.weakBullets} />
+            <BulletImprovements
+              bullets={feedback.weakBullets}
+            />
           )}
 
           {/* Switch to rewrite tab button */}

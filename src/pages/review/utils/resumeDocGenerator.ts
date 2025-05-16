@@ -1,5 +1,5 @@
 
-import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, TabStopPosition, TabStopType, BorderStyle, Table, TableRow, TableCell, WidthType } from "docx";
+import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, TabStopPosition, TabStopType, BorderStyle, Table, TableRow, TableCell, WidthType, IBorderOptions, VerticalAlign } from "docx";
 import { ResumeTemplate } from "@/utils/resumeRewriter";
 
 // Function to convert inches to twips (1 inch = 1440 twips)
@@ -83,7 +83,7 @@ function createTableRow(cells: TableCell[]) {
 }
 
 // Function to create a table cell
-function createTableCell(text: string, bold?: boolean, italic?: boolean, alignment?: AlignmentType, verticalAlign?: number) {
+function createTableCell(text: string, bold?: boolean, italic?: boolean, alignment?: AlignmentType, verticalAlign?: VerticalAlign) {
   return new TableCell({
     children: [
       new Paragraph({
@@ -451,3 +451,4 @@ async function generateResumeDocument(resumeData: any, template?: ResumeTemplate
 }
 
 export default generateResumeDocument;
+
