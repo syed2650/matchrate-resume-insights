@@ -1,16 +1,18 @@
 
-import React, { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, CheckCircle, XCircle } from "lucide-react";
-import ScoreCard from "./ScoreCard";
-import MissingKeywords from "./MissingKeywords";
-import SectionFeedback from "./SectionFeedback";
-import SuggestedBullets from "./SuggestedBullets";
-import BulletImprovements from "./BulletImprovements";
-import ResumeRewrite from "../ResumeRewrite";
+import { Card } from "@/components/ui/card";
 import { Feedback } from "../types";
+import AnalysisHeader from "../AnalysisHeader";
+import ResultList from "../ResultList";
+import FeedbackForm from "../FeedbackForm";
+import ResumeRewrite from "../ResumeRewrite";
+import { useState, useEffect } from "react";
+import { Progress } from "@/components/ui/progress";
+import { FileText, CheckCheck, FileSearch } from "lucide-react";
+import { calculateATSScore } from "../utils/atsScoring";
 import { useToast } from "@/hooks/use-toast";
+import PremiumFeatureModal from "./PremiumFeatureModal";
+import { canUseRewrite } from "../utils";
+import { ResumeRewriter, ResumeData } from "@/utils/resumeRewriter";
 
 interface AnalysisResultsProps {
   feedback: Feedback;
@@ -19,124 +21,205 @@ interface AnalysisResultsProps {
   onFeedbackSubmit: (isHelpful: boolean) => void;
 }
 
-const AnalysisResults: React.FC<AnalysisResultsProps> = ({
-  feedback,
-  onReset,
-  helpfulFeedback,
-  onFeedbackSubmit,
-}) => {
-  const [activeTab, setActiveTab] = useState("results");
+const AnalysisResults = ({ 
+  feedback, 
+  onReset, 
+  helpfulFeedback, 
+  onFeedbackSubmit 
+}: AnalysisResultsProps) => {
+  const [activeTab, setActiveTab] = useState<'analysis' | 'rewrite'>('analysis');
+  const [exportError, setExportError] = useState<string | null>(null);
+  const [isRewriteRequested, setIsRewriteRequested] = useState(false);
+  const [rewriteLoading, setRewriteLoading] = useState(false);
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
   const { toast } = useToast();
 
-  if (!feedback) {
-    return null;
-  }
-
-  const handleFeedback = (isHelpful: boolean) => {
-    onFeedbackSubmit(isHelpful);
-    toast({
-      title: "Feedback Submitted",
-      description: "Thank you for your feedback. It helps us improve our service.",
-    });
+  const handleExportFeedback = async () => {
+    try {
+      // Import the DOCX generator and necessary helper functions
+      const { generateFeedbackDocx } = await import("../utils/feedbackDocxGenerator");
+      
+      // Generate the document blob - this now returns a Promise<Blob>
+      const blob = await generateFeedbackDocx(feedback);
+      
+      // Create a download link
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "matchrate-feedback-report.docx";
+      link.click();
+      URL.revokeObjectURL(url);
+      
+      setExportError(null);
+      toast({
+        title: "Success",
+        description: "Feedback report downloaded as DOCX",
+      });
+    } catch (error) {
+      console.error("Error exporting feedback report:", error);
+      setExportError("Failed to generate feedback report: " + (error instanceof Error ? error.message : "Unknown error"));
+      toast({
+        title: "Error",
+        description: "Failed to generate feedback report",
+        variant: "destructive"
+      });
+    }
   };
 
-  return (
-    <div className="space-y-8">
-      {/* Header with back button */}
-      <div className="flex justify-between items-center">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onReset}
-          className="text-slate-600"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Start New Analysis
-        </Button>
+  const handleRewriteRequest = () => {
+    // Check if user is allowed to use the rewrite feature
+    const canUse = canUseRewrite();
+    
+    if (!canUse) {
+      // User is on free plan, show premium modal
+      setShowPremiumModal(true);
+      return;
+    }
+    
+    // User can use the rewrite feature
+    setRewriteLoading(true);
+    
+    // Process the resume using our ResumeRewriter
+    try {
+      // This is a simulation of using the ResumeRewriter
+      // In a real implementation, you would parse the feedback.resume into a structured ResumeData object
+      // and then use the ResumeRewriter to enhance it
+      
+      // Give time for the UI to show loading state
+      setTimeout(() => {
+        setActiveTab('rewrite');
+        setIsRewriteRequested(true);
+        setRewriteLoading(false);
+      }, 800);
+    } catch (error) {
+      console.error("Error rewriting resume:", error);
+      toast({
+        title: "Error",
+        description: "Failed to rewrite resume",
+        variant: "destructive"
+      });
+      setRewriteLoading(false);
+    }
+  };
 
-        {/* Feedback buttons */}
-        {helpfulFeedback === null ? (
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-slate-600">Was this helpful?</span>
-            <Button
-              size="sm"
-              variant="outline"
-              className="text-green-600"
-              onClick={() => handleFeedback(true)}
-            >
-              <CheckCircle className="h-4 w-4 mr-1" /> Yes
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              className="text-red-600"
-              onClick={() => handleFeedback(false)}
-            >
-              <XCircle className="h-4 w-4 mr-1" /> No
-            </Button>
+  // Calculate the current step
+  let currentStep = 1;
+  if (activeTab === 'rewrite' && isRewriteRequested) {
+    currentStep = 3;
+  } else if (isRewriteRequested || feedback.rewrittenResume) {
+    currentStep = 2;
+  }
+
+  return (
+    <Card className="p-6 shadow-md rounded-xl">
+      <div className="space-y-8">
+        {/* Progress steps */}
+        <div className="mb-8">
+          <div className="flex justify-between mb-2">
+            <div className="flex flex-col items-center">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                currentStep >= 1 ? "bg-blue-600 text-white" : "bg-gray-200"
+              }`}>
+                <FileSearch className="h-4 w-4" />
+              </div>
+              <span className="text-xs mt-1">Analysis</span>
+            </div>
+            <div className="relative flex-1 mt-4">
+              <div className="absolute top-1/2 w-full h-1 bg-gray-200 transform -translate-y-1/2"></div>
+              <div 
+                className="absolute top-1/2 h-1 bg-blue-600 transform -translate-y-1/2 transition-all duration-500" 
+                style={{ width: currentStep >= 2 ? '100%' : '0%' }}
+              ></div>
+            </div>
+            <div className="flex flex-col items-center">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                currentStep >= 2 ? "bg-blue-600 text-white" : "bg-gray-200"
+              }`}>
+                <CheckCheck className="h-4 w-4" />
+              </div>
+              <span className="text-xs mt-1">Review</span>
+            </div>
+            <div className="relative flex-1 mt-4">
+              <div className="absolute top-1/2 w-full h-1 bg-gray-200 transform -translate-y-1/2"></div>
+              <div 
+                className="absolute top-1/2 h-1 bg-blue-600 transform -translate-y-1/2 transition-all duration-500" 
+                style={{ width: currentStep >= 3 ? '100%' : '0%' }}
+              ></div>
+            </div>
+            <div className="flex flex-col items-center">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                currentStep >= 3 ? "bg-blue-600 text-white" : "bg-gray-200"
+              }`}>
+                <FileText className="h-4 w-4" />
+              </div>
+              <span className="text-xs mt-1">Optimize</span>
+            </div>
           </div>
-        ) : (
-          <div className="text-sm text-slate-600">
-            {helpfulFeedback
-              ? "Thank you for your positive feedback!"
-              : "Thank you for your feedback. We'll work to improve."}
+          {rewriteLoading && (
+            <div className="mt-2">
+              <Progress value={50} className="h-2" />
+              <p className="text-sm text-center text-slate-600 mt-1">Rewriting your resume...</p>
+            </div>
+          )}
+        </div>
+
+        <AnalysisHeader 
+          onReset={onReset} 
+          onExportPDF={handleExportFeedback}
+          activeTab={activeTab}
+          setActiveTab={(tab) => {
+            // Only allow switching to rewrite tab if it has been requested and user can access it
+            if (tab === 'rewrite') {
+              if (!isRewriteRequested) {
+                return;
+              }
+              
+              if (!canUseRewrite()) {
+                setShowPremiumModal(true);
+                return;
+              }
+            }
+            setActiveTab(tab);
+          }}
+          hasRewrite={isRewriteRequested && !!feedback.rewrittenResume && canUseRewrite()}
+        />
+
+        {exportError && (
+          <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-md mb-4">
+            {exportError}
           </div>
         )}
+
+        {activeTab === 'analysis' ? (
+          <ResultList 
+            feedback={feedback} 
+            onRequestRewrite={!isRewriteRequested ? handleRewriteRequest : undefined} 
+          />
+        ) : (
+          isRewriteRequested && canUseRewrite() && (
+            <ResumeRewrite 
+              rewrittenResume={feedback.rewrittenResume} 
+              atsScores={feedback.atsScores}
+              jobContext={feedback.jobContext}
+              originalResume={feedback.resume}
+              jobDescription={feedback.jobDescription}
+              originalATSScore={calculateATSScore(feedback.resume || '', feedback.jobDescription || '')}
+            />
+          )
+        )}
+
+        <FeedbackForm 
+          helpfulFeedback={helpfulFeedback} 
+          onFeedbackSubmit={onFeedbackSubmit}
+        />
       </div>
-
-      {/* Main content with tabs */}
-      <Tabs defaultValue="results" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-2 md:w-[400px] mb-4">
-          <TabsTrigger value="results">Analysis Results</TabsTrigger>
-          <TabsTrigger value="rewrite">Optimized Resume</TabsTrigger>
-        </TabsList>
-
-        {/* Analysis Results Tab */}
-        <TabsContent value="results" className="space-y-8">
-          <ScoreCard
-            score={feedback.score}
-            title="Overall Score"
-            explanation={feedback.wouldInterview}
-            icon={CheckCircle}
-          />
-
-          {feedback.missingKeywords && feedback.missingKeywords.length > 0 && (
-            <MissingKeywords
-              keywords={feedback.missingKeywords}
-            />
-          )}
-
-          {feedback.sectionFeedback && Object.keys(feedback.sectionFeedback).length > 0 && (
-            <SectionFeedback feedback={feedback.sectionFeedback} />
-          )}
-
-          {feedback.weakBullets && feedback.weakBullets.length > 0 && (
-            <BulletImprovements
-              bullets={feedback.weakBullets}
-            />
-          )}
-
-          {/* Switch to rewrite tab button */}
-          <div className="flex justify-center pt-4">
-            <Button onClick={() => setActiveTab("rewrite")}>
-              View Optimized Resume
-            </Button>
-          </div>
-        </TabsContent>
-
-        {/* Rewritten Resume Tab */}
-        <TabsContent value="rewrite">
-          <ResumeRewrite
-            rewrittenResume={feedback.rewrittenResume}
-            atsScores={feedback.atsScores}
-            jobContext={feedback.jobContext}
-            originalResume={feedback.resume}
-            jobDescription={feedback.jobDescription}
-            originalATSScore={feedback.score}
-          />
-        </TabsContent>
-      </Tabs>
-    </div>
+      
+      <PremiumFeatureModal 
+        isOpen={showPremiumModal}
+        onClose={() => setShowPremiumModal(false)}
+        featureName="Resume Rewrite"
+      />
+    </Card>
   );
 };
 

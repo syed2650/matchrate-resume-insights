@@ -1,453 +1,464 @@
-
-import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, TabStopPosition, TabStopType, BorderStyle, Table, TableRow, TableCell, WidthType, IBorderOptions, VerticalAlign } from "docx";
+import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, TabStopPosition, TabStopType, BorderStyle } from "docx";
 import { ResumeTemplate } from "@/utils/resumeRewriter";
 
-// Function to convert inches to twips (1 inch = 1440 twips)
-const inchesToTwips = (inches: number) => {
-  return inches * 1440;
-};
-
-// Function to convert points to half points (1 point = 2 half points)
-const pointsToHalfPoints = (points: number) => {
-  return points * 2;
-};
-
-// Function to create a section heading
-function createSectionHeading(text: string, template?: ResumeTemplate) {
-  const t = template || {
-    id: "modern",
-    name: "Modern",
-    fontFamily: "Open Sans",
-    primaryColor: "#2D74FF",
-    secondaryColor: "#E6F0FF",
-    headerStyle: "bold" as const,
-    sectionDividers: true,
-    spacing: "compact" as const,
-    layout: "two-column" as const,
-  };
-
-  return new Paragraph({
-    text: text,
-    heading: HeadingLevel.HEADING_2,
-    style: "SectionHeading",
-  });
-}
-
-// Function to create a bullet point paragraph
-function createBulletPoint(text: string, template?: ResumeTemplate) {
-  return new Paragraph({
-    text: text,
-    style: "BulletPoint",
-    bullet: {
-      level: 0,
-    },
-  });
-}
-
-// Function to create a paragraph with a specific style
-function createStyledParagraph(text: string, style: string) {
-  return new Paragraph({
-    text: text,
-    style: style,
-  });
-}
-
-// Function to create a text run with specific formatting
-function createTextRun(text: string, bold?: boolean, italic?: boolean, underline?: boolean, size?: number, color?: string) {
-  return new TextRun({
-    text: text,
-    bold: bold,
-    italics: italic, // Fix: Changed 'italic' to 'italics' to match IRunOptions interface
-    underline: underline ? {} : undefined,
-    size: size,
-    color: color,
-  });
-}
-
-// Function to create a table with specific properties
-function createTable(rows: TableRow[]) {
-  return new Table({
-    rows: rows,
-    width: {
-      size: 100,
-      type: WidthType.PERCENTAGE,
-    },
-  });
-}
-
-// Function to create a table row
-function createTableRow(cells: TableCell[]) {
-  return new TableRow({
-    children: cells,
-  });
-}
-
-// Function to create a table cell
-function createTableCell(text: string, bold?: boolean, italic?: boolean, alignment?: typeof AlignmentType, verticalAlign?: typeof VerticalAlign) {
-  return new TableCell({
-    children: [
-      new Paragraph({
-        text: text,
-        alignment: alignment ? alignment.toString() as any : undefined, // Fix: Convert enum to string value
-      }),
-    ],
-    verticalAlign: verticalAlign ? verticalAlign.toString() as any : undefined, // Fix: Convert enum to string value
-  });
-}
-
-// Function to create a contact info paragraph
-function createContactInfoParagraph(text: string) {
-  return new Paragraph({
-    text: text,
-    style: "ContactInfo",
-  });
-}
-
-// Function to create a name paragraph
-function createNameParagraph(text: string) {
-  return new Paragraph({
-    text: text,
-    style: "Name",
-  });
-}
-
-// Function to create a job title paragraph
-function createJobTitleParagraph(text: string) {
-  return new Paragraph({
-    text: text,
-    style: "JobTitle",
-  });
-}
-
-// Function to create a company paragraph
-function createCompanyParagraph(text: string) {
-  return new Paragraph({
-    text: text,
-    style: "Company",
-  });
-}
-
-// Function to create a skills paragraph
-function createSkillsParagraph(skills: string[]) {
-  const skillRuns = skills.map((skill, index) => {
-    const run = new TextRun({
-      text: skill,
-      bold: true,
-    });
-
-    if (index < skills.length - 1) {
-      return [run, new TextRun({ text: ", " })];
-    }
-    return [run];
-  }).flat();
-
-  return new Paragraph({
-    children: skillRuns,
-  });
-}
-
-// Function to create a document styles object
-function createDocumentStyles(template?: ResumeTemplate) {
-  // Default to modern if no template provided
-  const t = template || {
-    id: "modern",
-    name: "Modern",
-    fontFamily: "Open Sans",
-    primaryColor: "#2D74FF",
-    secondaryColor: "#E6F0FF",
-    headerStyle: "bold" as const,
-    sectionDividers: true,
-    spacing: "compact" as const,
-    layout: "two-column" as const,
-  };
-
-  // Clean font name - remove quotes
-  const fontFamily = t.fontFamily.replace(/['"']/g, '');
-  const primaryColor = t.primaryColor.replace('#', '');
-  
-  // Spacing settings based on template spacing preference
-  const paragraphSpacing = {
-    compact: { before: 80, after: 80, line: 240 },
-    standard: { before: 120, after: 120, line: 276 },
-    airy: { before: 160, after: 160, line: 320 },
-  }[t.spacing];
-
-  return {
-    paragraphStyles: [
-      {
-        id: "Normal",
-        name: "Normal",
-        run: {
-          font: fontFamily,
-          size: 22, // ~11pt
-          color: "000000",
-        },
-        paragraph: {
-          spacing: {
-            line: paragraphSpacing.line,
-            before: 0,
-            after: paragraphSpacing.after,
-          },
-        },
-      },
-      {
-        id: "Name",
-        name: "Name",
-        basedOn: "Normal",
-        next: "Normal",
-        run: {
-          font: fontFamily,
-          size: 36, // ~18pt
-          bold: true,
-          color: t.id === "modern" ? primaryColor : "000000",
-        },
-        paragraph: {
-          alignment: AlignmentType.CENTER,
-          spacing: {
-            before: 0,
-            after: 80,
-          },
-        },
-      },
-      {
-        id: "ContactInfo",
-        name: "Contact Info",
-        basedOn: "Normal",
-        next: "Normal",
-        run: {
-          font: fontFamily,
-          size: 20, // ~10pt
-          color: "333333",
-        },
-        paragraph: {
-          alignment: AlignmentType.CENTER,
-          spacing: {
-            before: 0,
-            after: 160,
-          },
-        },
-      },
-      {
-        id: "SectionHeading",
-        name: "Section Heading",
-        basedOn: "Normal",
-        next: "Normal",
-        run: {
-          font: fontFamily,
-          size: 26, // ~13pt
-          bold: true,
-          color: primaryColor,
-          allCaps: t.headerStyle === "uppercase",
-        },
-        paragraph: {
-          spacing: {
-            before: 160,
-            after: 80,
-          },
-          border: t.sectionDividers ? {
-            bottom: {
-              color: primaryColor,
-              space: 4,
-              style: BorderStyle.SINGLE,
-              size: 8, // 0.5pt
-            },
-          } : undefined,
-        },
-      },
-      {
-        id: "JobTitle",
-        name: "Job Title",
-        basedOn: "Normal",
-        next: "Normal",
-        run: {
-          font: fontFamily,
-          size: 24, // ~12pt
-          bold: true,
-        },
-        paragraph: {
-          spacing: {
-            before: paragraphSpacing.before,
-            after: 40,
-          },
-        },
-      },
-      {
-        id: "Company",
-        name: "Company",
-        basedOn: "Normal",
-        next: "Normal",
-        run: {
-          font: fontFamily,
-          size: 22, // ~11pt
-          bold: false,
-        },
-      },
-      {
-        id: "BulletPoint",
-        name: "Bullet Point",
-        basedOn: "Normal",
-        next: "Normal",
-        run: {
-          font: fontFamily,
-          size: 22, // ~11pt
-        },
-        paragraph: {
-          spacing: {
-            line: paragraphSpacing.line,
-            before: 40,
-            after: 40,
-          },
-          indent: {
-            left: 360, // 0.25 inch indent for bullets
-          },
-        },
-      },
-    ]
-  };
-}
-
-function createTwoColumnLayout(sections: Record<string, any>, template?: ResumeTemplate) {
-  const t = template || {
-    id: "modern",
-    name: "Modern",
-    fontFamily: "Open Sans",
-    primaryColor: "#2D74FF",
-    secondaryColor: "#E6F0FF",
-    headerStyle: "bold" as const,
-    sectionDividers: true,
-    spacing: "compact" as const,
-    layout: "two-column" as const,
-  };
-
-  // Left column content (simple representation for now)
-  const leftColumnContent = [
-    new Paragraph({ text: "Contact Info Section" }),
-    new Paragraph({ text: "Skills Section" })
-  ];
-
-  // Right column content
-  const rightColumnContent = [
-    new Paragraph({ text: "Experience Section" }),
-    new Paragraph({ text: "Education Section" })
-  ];
-
-  // Create table with two columns
-  const table = new Table({
-    rows: [
-      new TableRow({
-        children: [
-          new TableCell({
-            children: leftColumnContent,
-            width: {
-              size: 30,
-              type: WidthType.PERCENTAGE,
-            },
-          }),
-          new TableCell({
-            children: rightColumnContent,
-            width: {
-              size: 70,
-              type: WidthType.PERCENTAGE,
-            },
-          }),
-        ],
-      }),
-    ],
-    width: {
-      size: 100,
-      type: WidthType.PERCENTAGE,
-    },
-  });
-
-  return table;
-}
-
-function createFormattedDocument(sections: Record<string, any>, template?: ResumeTemplate) {
-  const t = template || {
-    id: "modern",
-    name: "Modern",
-    fontFamily: "Open Sans",
-    primaryColor: "#2D74FF",
-    secondaryColor: "#E6F0FF",
-    headerStyle: "bold" as const,
-    sectionDividers: true,
-    spacing: "compact" as const,
-    layout: "two-column" as const,
-  };
-
-  const layout = t.layout;
-
-  // Create document content based on template layout
-  let documentContent = [];
-  
-  // Always add name at the top
-  documentContent.push(createNameParagraph(sections.name || "Your Name"));
-  
-  // Add contact info if available
-  if (sections.contactInfo && sections.contactInfo.length > 0) {
-    sections.contactInfo.forEach((info: any) => {
-      documentContent.push(createContactInfoParagraph(info.value));
-    });
-  }
-
-  // For two-column layout, use a table
-  if (layout === "two-column") {
-    documentContent.push(createTwoColumnLayout(sections, template));
-  } else {
-    // For single-column layout, add sections sequentially
-    
-    // Experience section
-    documentContent.push(createSectionHeading("Experience", template));
-    if (sections.experience && sections.experience.length > 0) {
-      sections.experience.forEach((exp: any) => {
-        documentContent.push(createJobTitleParagraph(exp.jobTitle));
-        documentContent.push(createCompanyParagraph(`${exp.company} | ${exp.date}`));
-        if (exp.bullets && exp.bullets.length > 0) {
-          exp.bullets.forEach((bullet: string) => {
-            documentContent.push(createBulletPoint(bullet, template));
-          });
-        }
-      });
-    }
-
-    // Education section
-    documentContent.push(createSectionHeading("Education", template));
-    if (sections.education && sections.education.length > 0) {
-      sections.education.forEach((edu: any) => {
-        documentContent.push(createJobTitleParagraph(edu.degree));
-        documentContent.push(createCompanyParagraph(`${edu.institution} | ${edu.date}`));
-      });
-    }
-
-    // Skills section
-    documentContent.push(createSectionHeading("Skills", template));
-    if (sections.skills && sections.skills.length > 0) {
-      documentContent.push(createSkillsParagraph(sections.skills));
-    }
-  }
-
-  // Create the document with the content
-  const doc = new Document({
-    styles: createDocumentStyles(template),
-    sections: [
-      {
-        children: documentContent,
-      },
-    ],
-  });
-
-  return doc;
-}
-
-async function generateResumeDocument(resumeData: any, template?: ResumeTemplate) {
+export async function generateFormattedDocx(resumeText: string, template?: ResumeTemplate): Promise<Blob | null> {
   try {
-    const doc = createFormattedDocument(resumeData, template);
-    const buffer = await Packer.toBuffer(doc);
-    return new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+    if (!resumeText || typeof resumeText !== 'string') {
+      console.error("Invalid resume text provided");
+      return null;
+    }
+    
+    // Parse resume text into sections
+    const sections = parseResumeIntoSections(resumeText);
+    
+    // Create document with proper styling
+    const doc = new Document({
+      sections: [
+        {
+          properties: {},
+          children: createFormattedDocument(sections, template)
+        }
+      ],
+      styles: {
+        paragraphStyles: [
+          {
+            id: "Normal",
+            name: "Normal",
+            basedOn: "Normal",
+            next: "Normal",
+            quickFormat: true,
+            run: {
+              font: template?.fontFamily.replace(/[''"]/g, '') || "Calibri",
+              size: 22,
+              color: "000000",
+            },
+            paragraph: {
+              spacing: {
+                line: 276,
+                before: 0,
+                after: template?.spacing === 'airy' ? 300 : template?.spacing === 'standard' ? 200 : 100,
+              },
+            },
+          },
+          {
+            id: "Heading1",
+            name: "Heading 1",
+            basedOn: "Normal",
+            next: "Normal",
+            quickFormat: true,
+            run: {
+              font: template?.fontFamily.replace(/[''"]/g, '') || "Calibri",
+              size: 32,
+              bold: true,
+              color: template?.primaryColor.replace('#', '') || "000000",
+            },
+            paragraph: {
+              spacing: {
+                before: 240,
+                after: 120,
+              },
+              alignment: AlignmentType.CENTER,
+            },
+          },
+          {
+            id: "Heading2",
+            name: "Heading 2",
+            basedOn: "Normal",
+            next: "Normal",
+            quickFormat: true,
+            run: {
+              font: template?.fontFamily.replace(/[''"]/g, '') || "Calibri",
+              size: 26,
+              bold: template?.headerStyle === 'bold' ? true : false,
+              color: template?.primaryColor.replace('#', '') || "000000",
+              underline: template?.sectionDividers ? {
+                type: "single",
+                color: template?.primaryColor.replace('#', '') || "000000",
+              } : undefined,
+            },
+            paragraph: {
+              spacing: {
+                before: 240,
+                after: 120,
+              },
+            },
+          },
+          {
+            id: "JobTitle",
+            name: "Job Title",
+            basedOn: "Normal",
+            next: "Normal",
+            quickFormat: true,
+            run: {
+              font: template?.fontFamily.replace(/[''"]/g, '') || "Calibri",
+              size: 24,
+              bold: true,
+              color: "000000",
+            },
+          },
+          {
+            id: "Company",
+            name: "Company",
+            basedOn: "Normal",
+            next: "Normal",
+            quickFormat: true,
+            run: {
+              font: template?.fontFamily.replace(/[''"]/g, '') || "Calibri",
+              size: 22,
+              bold: false,
+              color: "000000",
+            },
+          },
+          {
+            id: "BulletPoint",
+            name: "Bullet Point",
+            basedOn: "Normal",
+            next: "Normal",
+            quickFormat: true,
+            run: {
+              font: template?.fontFamily.replace(/[''"]/g, '') || "Calibri",
+              size: 22,
+              color: "000000",
+            },
+            paragraph: {
+              spacing: {
+                line: 276,
+                before: 0,
+                after: template?.spacing === 'airy' ? 150 : template?.spacing === 'standard' ? 100 : 50,
+              },
+              indent: {
+                left: 720, // 0.5 inch indent for bullets
+              },
+            },
+          },
+          {
+            id: "ContactInfo",
+            name: "Contact Info",
+            basedOn: "Normal",
+            next: "Normal",
+            quickFormat: true,
+            run: {
+              font: template?.fontFamily.replace(/[''"]/g, '') || "Calibri",
+              size: 22,
+              color: "000000",
+            },
+            paragraph: {
+              alignment: AlignmentType.CENTER,
+              spacing: {
+                before: 0,
+                after: 240,
+              },
+            },
+          },
+        ],
+      },
+    });
+    
+    // Convert to blob
+    const buffer = await Packer.toBlob(doc);
+    return buffer;
   } catch (error) {
-    console.error("Error generating document:", error);
+    console.error("Error generating DOCX:", error);
     return null;
   }
 }
 
-export default generateResumeDocument;
+function parseResumeIntoSections(resumeText: string): any {
+  // Split the text by double newlines to separate sections
+  const lines = resumeText.split(/\n/).filter(line => line.trim().length > 0);
+  
+  // First line is usually the name
+  const name = lines[0]?.trim() || "Resume";
+  
+  // Look for contact information in the first few lines
+  const contactInfo = lines.slice(1, 4).join(" • ");
+  
+  // Try to identify sections like "Experience", "Education", "Skills", etc.
+  const sections: Record<string, string[]> = {
+    name: [name],
+    contactInfo: [contactInfo],
+    summary: [],
+    experience: [],
+    education: [],
+    skills: [],
+    other: []
+  };
+  
+  // Simple heuristic to identify sections
+  let currentSection = "summary";
+  
+  for (let i = 4; i < lines.length; i++) {
+    const line = lines[i].trim();
+    
+    // Skip empty lines
+    if (!line) continue;
+    
+    // Check if this is a section header
+    if (line.toUpperCase() === line && line.length < 30) {
+      // This is likely a section header - determine which section
+      if (/EXPERIENCE|EMPLOYMENT|WORK|CAREER|PROFESSIONAL/i.test(line)) {
+        currentSection = "experience";
+        continue;
+      } else if (/EDUCATION|ACADEMIC|DEGREE|UNIVERSITY|COLLEGE/i.test(line)) {
+        currentSection = "education";
+        continue;
+      } else if (/SKILLS|TECHNOLOGIES|COMPETENCIES|PROFICIENCIES/i.test(line)) {
+        currentSection = "skills";
+        continue;
+      } else if (/SUMMARY|PROFILE|OBJECTIVE|ABOUT/i.test(line)) {
+        currentSection = "summary";
+        continue;
+      } else {
+        currentSection = "other";
+        continue;
+      }
+    }
+    
+    // Add the line to the current section
+    sections[currentSection].push(line);
+  }
+  
+  return sections;
+}
+
+function createFormattedDocument(sections: Record<string, string[]>, template?: ResumeTemplate) {
+  const documentElements = [];
+  
+  // Name (centered, large)
+  if (sections.name && sections.name.length > 0) {
+    documentElements.push(
+      new Paragraph({
+        text: sections.name[0],
+        heading: HeadingLevel.HEADING_1,
+        alignment: AlignmentType.CENTER,
+      })
+    );
+  }
+  
+  // Contact Info (centered)
+  if (sections.contactInfo && sections.contactInfo.length > 0) {
+    documentElements.push(
+      new Paragraph({
+        text: sections.contactInfo[0],
+        style: "ContactInfo",
+        alignment: AlignmentType.CENTER,
+      })
+    );
+  }
+  
+  // Summary
+  if (sections.summary && sections.summary.length > 0) {
+    documentElements.push(
+      new Paragraph({
+        text: template?.headerStyle === 'uppercase' ? "SUMMARY" : "Summary",
+        heading: HeadingLevel.HEADING_2,
+        border: template?.sectionDividers ? {
+          bottom: {
+            color: template?.primaryColor.replace('#', '') || "auto",
+            space: 1,
+            style: BorderStyle.SINGLE,
+            size: 6,
+          },
+        } : undefined,
+      })
+    );
+    
+    // Add each summary paragraph
+    sections.summary.forEach(paragraph => {
+      documentElements.push(
+        new Paragraph({
+          text: paragraph,
+          spacing: {
+            before: 100,
+            after: 100,
+          },
+        })
+      );
+    });
+  }
+  
+  // Experience
+  if (sections.experience && sections.experience.length > 0) {
+    documentElements.push(
+      new Paragraph({
+        text: template?.headerStyle === 'uppercase' ? "EXPERIENCE" : "Experience",
+        heading: HeadingLevel.HEADING_2,
+        border: template?.sectionDividers ? {
+          bottom: {
+            color: template?.primaryColor.replace('#', '') || "auto",
+            space: 1,
+            style: BorderStyle.SINGLE,
+            size: 6,
+          },
+        } : undefined,
+      })
+    );
+    
+    // Parse experience entries
+    let i = 0;
+    while (i < sections.experience.length) {
+      const line = sections.experience[i];
+      
+      // Check if this line contains a company name (often has a pipe or dash)
+      if (line.includes('|') || line.includes('-') || /\d{4}\s*-\s*\d{4}|\d{4}\s*-\s*(Present|Current)/.test(line)) {
+        // Company line with date
+        const companyParts = line.split(/\s{2,}|\t/);
+        
+        const companyText = companyParts[0];
+        const dateText = companyParts.length > 1 ? companyParts[companyParts.length - 1] : "";
+        
+        documentElements.push(
+          new Paragraph({
+            tabStops: [
+              {
+                type: TabStopType.RIGHT,
+                position: TabStopPosition.MAX,
+              },
+            ],
+            spacing: {
+              before: 240,
+            },
+            children: [
+              new TextRun({
+                text: companyText,
+                bold: true,
+                size: 24,
+              }),
+              new TextRun({
+                text: "\t",
+              }),
+              new TextRun({
+                text: dateText,
+                size: 22,
+              }),
+            ],
+          })
+        );
+        
+        // Next line may be the job title
+        if (i + 1 < sections.experience.length) {
+          i++;
+          documentElements.push(
+            new Paragraph({
+              text: sections.experience[i],
+              style: "JobTitle",
+            })
+          );
+        }
+      } else if (line.trim().startsWith('•') || line.trim().startsWith('-')) {
+        // This is a bullet point
+        documentElements.push(
+          new Paragraph({
+            text: line,
+            style: "BulletPoint",
+          })
+        );
+      } else {
+        // Regular text line
+        documentElements.push(
+          new Paragraph({
+            text: line,
+          })
+        );
+      }
+      
+      i++;
+    }
+  }
+  
+  // Education
+  if (sections.education && sections.education.length > 0) {
+    documentElements.push(
+      new Paragraph({
+        text: template?.headerStyle === 'uppercase' ? "EDUCATION" : "Education",
+        heading: HeadingLevel.HEADING_2,
+        border: template?.sectionDividers ? {
+          bottom: {
+            color: template?.primaryColor.replace('#', '') || "auto",
+            space: 1,
+            style: BorderStyle.SINGLE,
+            size: 6,
+          },
+        } : undefined,
+      })
+    );
+    
+    // Add education entries
+    sections.education.forEach(entry => {
+      documentElements.push(
+        new Paragraph({
+          text: entry,
+          spacing: {
+            before: 120,
+            after: 120,
+          },
+        })
+      );
+    });
+  }
+  
+  // Skills
+  if (sections.skills && sections.skills.length > 0) {
+    documentElements.push(
+      new Paragraph({
+        text: template?.headerStyle === 'uppercase' ? "SKILLS" : "Skills",
+        heading: HeadingLevel.HEADING_2,
+        border: template?.sectionDividers ? {
+          bottom: {
+            color: template?.primaryColor.replace('#', '') || "auto",
+            space: 1,
+            style: BorderStyle.SINGLE,
+            size: 6,
+          },
+        } : undefined,
+      })
+    );
+    
+    // Add skills entries
+    sections.skills.forEach(skill => {
+      if (skill.trim().startsWith('•') || skill.trim().startsWith('-')) {
+        documentElements.push(
+          new Paragraph({
+            text: skill,
+            style: "BulletPoint",
+          })
+        );
+      } else {
+        documentElements.push(
+          new Paragraph({
+            text: skill,
+          })
+        );
+      }
+    });
+  }
+  
+  // Other sections
+  if (sections.other && sections.other.length > 0) {
+    documentElements.push(
+      new Paragraph({
+        text: template?.headerStyle === 'uppercase' ? "ADDITIONAL INFORMATION" : "Additional Information",
+        heading: HeadingLevel.HEADING_2,
+        border: template?.sectionDividers ? {
+          bottom: {
+            color: template?.primaryColor.replace('#', '') || "auto",
+            space: 1,
+            style: BorderStyle.SINGLE,
+            size: 6,
+          },
+        } : undefined,
+      })
+    );
+    
+    // Add other entries
+    sections.other.forEach(entry => {
+      documentElements.push(
+        new Paragraph({
+          text: entry,
+        })
+      );
+    });
+  }
+  
+  return documentElements;
+}

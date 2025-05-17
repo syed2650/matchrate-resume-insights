@@ -1,4 +1,3 @@
-
 // ResumeRewriter TypeScript Interface and Implementation
 export interface ResumeTemplate {
   id: string;
@@ -11,7 +10,7 @@ export interface ResumeTemplate {
   spacing: 'compact' | 'standard' | 'airy';
   preview?: string; // Path to preview image
   accent?: string; // Optional accent color
-  layout: 'single-column' | 'two-column' | 'asymmetric';
+  layout?: 'single-column' | 'two-column' | 'asymmetric';
 }
 
 // Future implementation of the full ResumeRewriter class would go here
