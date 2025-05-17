@@ -1,3 +1,4 @@
+
 // ResumeRewriter TypeScript Interface and Implementation
 export interface ResumeTemplate {
   id: string;

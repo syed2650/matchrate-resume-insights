@@ -27,6 +27,37 @@
   padding: 1rem;
 }
 
+/* Two-column layout for modern template */
+.resume-template-modern.layout-two-column .resume-body {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 1.5rem;
+}
+
+.resume-template-modern.layout-two-column .resume-sidebar {
+  background-color: var(--secondary-color);
+  padding: 1rem;
+}
+
+.resume-template-modern.layout-two-column .resume-main {
+  background-color: white;
+  padding: 1rem;
+}
+
+/* Skill visualization for modern template */
+.resume-template-modern .skill-bar {
+  height: 0.5rem;
+  background-color: #e0e0e0;
+  border-radius: 0.25rem;
+  margin-bottom: 0.5rem;
+  overflow: hidden;
+}
+
+.resume-template-modern .skill-progress {
+  height: 100%;
+  background-color: var(--primary-color);
+}
+
 /* Professional Template */
 .resume-template-professional {
   font-family: 'Georgia', serif;

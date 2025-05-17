@@ -1,227 +1,311 @@
 
-import React from "react";
-import { Card } from "@/components/ui/card";
-import { LockIcon } from "lucide-react";
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { ResumeTemplate } from "@/utils/resumeRewriter";
-import { templates } from "@/templates";
+import React from 'react';
+import { ResumeTemplate } from '@/utils/resumeRewriter';
 
 interface ResumeContentProps {
   currentResume: string;
-  jobContext?: {
-    keywords: string[];
-    responsibilities: string[];
-    industry: string;
-    tone: string;
-  };
+  jobContext?: any;
   isPremiumBlurred?: boolean;
   template?: ResumeTemplate;
 }
 
-const ResumeContent: React.FC<ResumeContentProps> = ({ 
-  currentResume, 
-  jobContext, 
+const ResumeContent: React.FC<ResumeContentProps> = ({
+  currentResume,
+  jobContext,
   isPremiumBlurred = false,
-  template = templates[0] 
+  template
 }) => {
-  if (!currentResume) return null;
-  
-  const formatResume = (content: string) => {
-    // Split content by sections
-    const sections = content.split(/^(#+\s.*|[A-Z\s]{5,})$/m).filter(Boolean);
-    if (sections.length <= 1) {
-      return <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed">{content}</pre>;
-    }
+  // Parse resume content to identify sections
+  const resumeSections = parseResumeContent(currentResume);
 
-    return (
-      <div 
-        className="space-y-6 text-sm leading-relaxed"
-        style={{ fontFamily: template.fontFamily }}
-      >
-        {sections.map((section, index) => {
-          // Check if this is a heading
-          const isHeading = /^(#+\s.*|[A-Z\s]{5,})$/m.test(section);
-          
-          if (isHeading) {
-            // Clean up heading formatting
-            const headingText = section
-              .replace(/^#+\s*/g, '')
-              .replace(/^\s+|\s+$/g, '');
-            
-            return (
-              <h2 
-                key={index} 
-                className="text-lg pb-1"
-                style={{ 
-                  borderBottom: template.sectionDividers ? `1px solid ${template.primaryColor}` : 'none',
-                  color: template.primaryColor,
-                  textTransform: template.headerStyle === 'uppercase' ? 'uppercase' : 'none',
-                  fontWeight: template.headerStyle === 'bold' ? 'bold' : 'normal'
-                }}
-              >
-                {template.headerStyle === 'uppercase' ? headingText.toUpperCase() : headingText}
-              </h2>
-            );
-          } else {
-            // Process content section
-            const processedContent = section
-              .split('\n')
-              .map((line, lineIndex) => {
-                // Check if line is part of header (name) - usually at the very top
-                if (index === 1 && lineIndex === 0) {
-                  return (
-                    <div key={lineIndex} className="text-center font-bold text-xl mb-2">
-                      {line}
-                    </div>
-                  );
-                }
-                
-                // Check if line is part of contact info (usually below the name)
-                if (index === 1 && (lineIndex === 1 || lineIndex === 2) && 
-                    (line.includes('@') || line.includes('|') || line.includes('+') || 
-                     line.includes('Harrow') || line.includes('linkedin'))) {
-                  return (
-                    <div key={lineIndex} className="text-center mb-1">
-                      {line}
-                    </div>
-                  );
-                }
-                
-                // Check if line is a bullet point
-                if (line.trim().startsWith('•') || line.trim().startsWith('-')) {
-                  return (
-                    <li key={lineIndex} className="ml-4 list-disc list-outside mb-1">
-                      {line.replace(/^[•-]\s*/, '')}
-                    </li>
-                  );
-                }
-                
-                // Check if line is empty (spacer)
-                if (!line.trim()) {
-                  return <div key={lineIndex} className="h-2"></div>;
-                }
-                
-                // Check if line is a date range (format varies)
-                if (line.match(/^\d{1,2}\/\d{4}\s*-\s*\d{1,2}\/\d{4}/) || 
-                    line.match(/^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}/i)) {
-                  return (
-                    <div key={lineIndex} className="text-right font-bold mb-1">
-                      {line}
-                    </div>
-                  );
-                }
-                
-                // Check if line is a company name (usually followed by dates or job title)
-                // We'll remove any location info after '•' character
-                if ((index > 2 && lineIndex === 0) || 
-                    (line.match(/^[A-Z][a-zA-Z\s]+/) && 
-                    !line.match(/^(EDUCATION|SUMMARY|EXPERIENCE|SKILLS|RECOGNITION|PROJECTS)/i))) {
-                  // Remove location info if present (after the • symbol)
-                  const companyNameOnly = line.split('•')[0].trim();
-                  return <div key={lineIndex} className="font-bold mb-1">{companyNameOnly}</div>;
-                }
-                
-                // Check if line is job title (usually after company name)
-                if (index > 2 && lineIndex === 1 && line.match(/^[A-Z][a-z]+(\s+[A-Z][a-z]+)*/)) {
-                  return <div key={lineIndex} className="font-bold mb-2">{line}</div>;
-                }
-                
-                // Education section special formatting
-                // Check for education degree
-                if (index > 6 && line.match(/^[A-Z][a-zA-Z\s,]+$/) && !line.includes('•')) {
-                  return <div key={lineIndex} className="font-bold mb-1">{line}</div>;
-                }
-                
-                // Check for institution name in education section
-                if (index > 6 && lineIndex === 1) {
-                  return <div key={lineIndex} className="mb-1">{line}</div>;
-                }
-                
-                // Check for country in education (put on next line)
-                if (index > 6 && lineIndex === 2 && line.trim()) {
-                  return <div key={lineIndex} className="italic mb-1">{line}</div>;
-                }
-                
-                // Check for year in education (put on next line)
-                if (index > 6 && lineIndex === 3 && line.trim()) {
-                  return <div key={lineIndex} className="font-bold mb-3">{line}</div>;
-                }
+  // Determine template class name
+  const templateClass = template ? `resume-template-${template.id}` : 'resume-template-modern';
+  const layoutClass = template?.layout ? `layout-${template.layout}` : '';
+  const spacingClass = template?.spacing ? `spacing-${template.spacing}` : '';
 
-                // Default formatting - don't make all summary text bold
-                return <div key={lineIndex} className="mb-1">{line}</div>;
-              });
-
-            return (
-              <div key={index} className="space-y-1">
-                {processedContent}
-              </div>
-            );
-          }
-        })}
-      </div>
-    );
-  };
-  
-  const renderContent = () => {
-    if (isPremiumBlurred) {
-      return (
-        <div className="relative">
-          <div 
-            className="absolute inset-0 flex items-center justify-center z-10 bg-white/80 backdrop-blur-[2px]"
-          >
-            <div className="text-center p-6 max-w-md">
-              <div className="mx-auto bg-amber-100 w-12 h-12 rounded-full flex items-center justify-center mb-4">
-                <LockIcon className="h-6 w-6 text-amber-600" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">Premium Feature</h3>
-              <p className="text-slate-600 mb-4">
-                Resume rewriting is available on our paid plan.
-                Upgrade now to access this feature.
-              </p>
-              <Button asChild>
-                <Link to="/pricing">Upgrade to Paid Plan</Link>
-              </Button>
-            </div>
-          </div>
-          <div className="blur-sm opacity-60">
-            <div 
-              className="p-6 h-[500px] overflow-auto"
-              style={{ 
-                backgroundColor: template.secondaryColor,
-              }}
-            >
-              {formatResume(currentResume)}
-            </div>
-          </div>
-        </div>
-      );
-    }
-    
-    return (
-      <div 
-        className="p-6 max-h-[600px] overflow-auto"
-        style={{ 
-          backgroundColor: template.secondaryColor,
-        }}
-      >
-        {formatResume(currentResume)}
-      </div>
-    );
-  };
+  // Generate skills with progress bars for demonstration
+  const skills = generateSkillsFromResume(currentResume);
 
   return (
-    <Card className="overflow-hidden">
-      {jobContext && (
-        <div className="bg-slate-50 p-3 border-b border-slate-100 text-xs text-slate-600 flex flex-wrap gap-2">
-          <span className="font-semibold">Industry:</span> {jobContext.industry}
-          <span className="mx-1">•</span>
-          <span className="font-semibold">Tone:</span> {jobContext.tone}
+    <div className={`border rounded-lg overflow-hidden ${templateClass} ${layoutClass} ${spacingClass}`}>
+      {isPremiumBlurred && (
+        <div className="absolute inset-0 bg-white/60 backdrop-blur-sm z-10 flex items-center justify-center">
+          <div className="text-center p-6">
+            <p className="text-lg font-medium text-slate-800">Premium Feature</p>
+            <p className="text-sm text-slate-600 mt-1">Upgrade to view and download your optimized resume</p>
+          </div>
         </div>
       )}
-      {renderContent()}
-    </Card>
+
+      <div className="resume-header">
+        <h1 className="text-2xl font-bold">{resumeSections.name || 'Your Name'}</h1>
+        <div className="mt-2">{resumeSections.contact || 'email@example.com | (123) 456-7890 | Location'}</div>
+      </div>
+
+      {template?.layout === 'two-column' ? (
+        <div className="resume-body">
+          <div className="resume-sidebar">
+            {/* Sidebar content - Skills, Education, etc. */}
+            <div className="resume-section">
+              <h2 className="resume-section-title">Skills</h2>
+              <div className="mt-3">
+                {skills.map((skill, index) => (
+                  <div key={index} className="mb-2">
+                    <div className="flex justify-between text-sm mb-1">
+                      <span>{skill.name}</span>
+                      <span>{skill.level}%</span>
+                    </div>
+                    <div className="skill-bar">
+                      <div className="skill-progress" style={{ width: `${skill.level}%` }}></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {resumeSections.education && (
+              <div className="resume-section">
+                <h2 className="resume-section-title">Education</h2>
+                <div className="mt-3" dangerouslySetInnerHTML={{ __html: formatSection(resumeSections.education) }}></div>
+              </div>
+            )}
+            
+            {resumeSections.certifications && (
+              <div className="resume-section">
+                <h2 className="resume-section-title">Certifications</h2>
+                <div className="mt-3" dangerouslySetInnerHTML={{ __html: formatSection(resumeSections.certifications) }}></div>
+              </div>
+            )}
+          </div>
+          
+          <div className="resume-main">
+            {/* Main content - Summary, Experience, etc. */}
+            {resumeSections.summary && (
+              <div className="resume-section">
+                <h2 className="resume-section-title">Summary</h2>
+                <div className="mt-3" dangerouslySetInnerHTML={{ __html: formatSection(resumeSections.summary) }}></div>
+              </div>
+            )}
+            
+            {resumeSections.experience && (
+              <div className="resume-section">
+                <h2 className="resume-section-title">Experience</h2>
+                <div className="mt-3" dangerouslySetInnerHTML={{ __html: formatSection(resumeSections.experience) }}></div>
+              </div>
+            )}
+            
+            {resumeSections.projects && (
+              <div className="resume-section">
+                <h2 className="resume-section-title">Projects</h2>
+                <div className="mt-3" dangerouslySetInnerHTML={{ __html: formatSection(resumeSections.projects) }}></div>
+              </div>
+            )}
+            
+            {resumeSections.other && (
+              <div className="resume-section">
+                <h2 className="resume-section-title">Additional Information</h2>
+                <div className="mt-3" dangerouslySetInnerHTML={{ __html: formatSection(resumeSections.other) }}></div>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
+        // Single column layout
+        <div className="resume-content p-6">
+          {resumeSections.summary && (
+            <div className="resume-section">
+              <h2 className="resume-section-title">Summary</h2>
+              <div className="mt-3" dangerouslySetInnerHTML={{ __html: formatSection(resumeSections.summary) }}></div>
+            </div>
+          )}
+          
+          {resumeSections.experience && (
+            <div className="resume-section">
+              <h2 className="resume-section-title">Experience</h2>
+              <div className="mt-3" dangerouslySetInnerHTML={{ __html: formatSection(resumeSections.experience) }}></div>
+            </div>
+          )}
+          
+          {resumeSections.education && (
+            <div className="resume-section">
+              <h2 className="resume-section-title">Education</h2>
+              <div className="mt-3" dangerouslySetInnerHTML={{ __html: formatSection(resumeSections.education) }}></div>
+            </div>
+          )}
+          
+          {resumeSections.skills && (
+            <div className="resume-section">
+              <h2 className="resume-section-title">Skills</h2>
+              <div className="mt-3" dangerouslySetInnerHTML={{ __html: formatSection(resumeSections.skills) }}></div>
+            </div>
+          )}
+          
+          {resumeSections.projects && (
+            <div className="resume-section">
+              <h2 className="resume-section-title">Projects</h2>
+              <div className="mt-3" dangerouslySetInnerHTML={{ __html: formatSection(resumeSections.projects) }}></div>
+            </div>
+          )}
+          
+          {resumeSections.other && (
+            <div className="resume-section">
+              <h2 className="resume-section-title">Additional Information</h2>
+              <div className="mt-3" dangerouslySetInnerHTML={{ __html: formatSection(resumeSections.other) }}></div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
 };
+
+// Helper function to parse resume content into sections
+function parseResumeContent(content: string) {
+  const lines = content.split('\n');
+  const sections: Record<string, string> = {
+    name: '',
+    contact: '',
+    summary: '',
+    experience: '',
+    education: '',
+    skills: '',
+    projects: '',
+    certifications: '',
+    other: ''
+  };
+  
+  // Extract name and contact info from the first few lines
+  if (lines.length > 0) {
+    sections.name = lines[0];
+    if (lines.length > 1) {
+      sections.contact = lines.slice(1, 3).join(' | ');
+    }
+  }
+  
+  // Simple parsing logic to identify sections
+  let currentSection = 'summary';
+  let startLine = 3; // Start after name and contact
+  
+  for (let i = startLine; i < lines.length; i++) {
+    const line = lines[i].trim();
+    
+    if (!line) continue;
+    
+    // Try to identify section headers
+    if ((line === line.toUpperCase() && line.length < 30) || 
+        line.toLowerCase().includes('experience') || 
+        line.toLowerCase().includes('education') ||
+        line.toLowerCase().includes('skills') ||
+        line.toLowerCase().includes('summary') ||
+        line.toLowerCase().includes('projects') ||
+        line.toLowerCase().includes('certifications')) {
+      
+      if (line.toLowerCase().includes('experience')) {
+        currentSection = 'experience';
+        continue;
+      } else if (line.toLowerCase().includes('education')) {
+        currentSection = 'education';
+        continue;
+      } else if (line.toLowerCase().includes('skills')) {
+        currentSection = 'skills';
+        continue;
+      } else if (line.toLowerCase().includes('summary') || line.toLowerCase().includes('objective')) {
+        currentSection = 'summary';
+        continue;
+      } else if (line.toLowerCase().includes('projects')) {
+        currentSection = 'projects';
+        continue;
+      } else if (line.toLowerCase().includes('certifications')) {
+        currentSection = 'certifications';
+        continue;
+      } else {
+        currentSection = 'other';
+        continue;
+      }
+    }
+    
+    // Add content to current section
+    sections[currentSection] += (sections[currentSection] ? '\n' : '') + line;
+  }
+  
+  return sections;
+}
+
+// Helper function to format section content with HTML
+function formatSection(content: string) {
+  if (!content) return '';
+  
+  // Format bullet points
+  let formatted = content.replace(/^[\s-]*•[\s]*/gm, '<li class="resume-bullet-item">');
+  formatted = formatted.replace(/^[\s-]*-[\s]*/gm, '<li class="resume-bullet-item">');
+  
+  // Wrap lists in <ul>
+  if (formatted.includes('<li class="resume-bullet-item">')) {
+    formatted = '<ul class="resume-bullet-list">' + formatted + '</ul>';
+  }
+  
+  // Replace newlines with <br> for non-list content
+  formatted = formatted.replace(/\n(?!<li)/g, '<br>');
+  
+  // Format job titles, companies, dates
+  const lines = formatted.split('<br>');
+  let inJob = false;
+  let formattedLines = lines.map(line => {
+    // Try to identify job title lines
+    if (line.includes('|') || /\d{4}\s*-\s*\d{4}|\d{4}\s*-\s*(Present|Current)/i.test(line)) {
+      inJob = true;
+      const parts = line.split('|');
+      if (parts.length > 1) {
+        return `<div class="resume-job-title">${parts[0].trim()}</div><div class="resume-job-company">${parts[1].trim()}</div>`;
+      }
+      return `<div class="resume-job-company">${line}</div>`;
+    }
+    
+    // Format strong for job titles
+    if (inJob) {
+      inJob = false;
+      return `<div class="resume-job-title">${line}</div>`;
+    }
+    
+    return line;
+  });
+  
+  formatted = formattedLines.join('<br>');
+  
+  return formatted;
+}
+
+// Generate fake skills with progress bars for demonstration
+function generateSkillsFromResume(content: string) {
+  // In a real implementation, we would extract skills from the resume
+  // For now, we'll return some example skills
+  const defaultSkills = [
+    { name: 'Communication', level: 90 },
+    { name: 'Leadership', level: 85 },
+    { name: 'Problem Solving', level: 95 },
+    { name: 'Teamwork', level: 90 },
+    { name: 'Time Management', level: 80 }
+  ];
+  
+  // Try to extract real skills from the resume content
+  const skills: {name: string, level: number}[] = [];
+  const skillSection = content.match(/SKILLS[\s\S]*?(?=\n\n\w|\n\w{5,}|$)/i);
+  
+  if (skillSection) {
+    const skillText = skillSection[0];
+    const skillLines = skillText.split('\n').slice(1); // Skip the "SKILLS" header
+    
+    skillLines.forEach(line => {
+      const skill = line.replace(/^[-•\s]+/, '').trim();
+      if (skill) {
+        // Assign a random level between 75 and 95
+        const level = Math.floor(Math.random() * 20) + 75;
+        skills.push({ name: skill, level });
+      }
+    });
+  }
+  
+  return skills.length > 0 ? skills : defaultSkills;
+}
 
 export default ResumeContent;

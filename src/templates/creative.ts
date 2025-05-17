@@ -11,8 +11,8 @@ const creativeTemplate: ResumeTemplate = {
   sectionDividers: true,
   spacing: "airy",
   layout: "asymmetric",
-  accent: "#FCCE03", // Secondary accent color
-  preview: "/templates/creative-preview.png" // This would be the path to a preview image
+  preview: "/templates/creative-preview.png", // This would be the path to a preview image
+  accent: "#FCCE03" // Accent color for creative template
 };
 
 export default creativeTemplate;
