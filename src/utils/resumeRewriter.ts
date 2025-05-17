@@ -14,6 +14,45 @@ export interface ResumeTemplate {
   layout?: 'single-column' | 'two-column' | 'asymmetric';
 }
 
+// Define the ResumeData interface that was missing and causing the error
+export interface ResumeData {
+  header?: {
+    name?: string;
+    title?: string;
+    contact?: {
+      email?: string;
+      phone?: string;
+      location?: string;
+      linkedin?: string;
+      website?: string;
+    };
+  };
+  summary?: string;
+  experience?: Array<{
+    company?: string;
+    position?: string;
+    date?: string;
+    bullets?: string[];
+  }>;
+  education?: Array<{
+    institution?: string;
+    degree?: string;
+    date?: string;
+    details?: string[];
+  }>;
+  skills?: Array<{
+    name?: string;
+    level?: number;
+  }>;
+  projects?: Array<{
+    name?: string;
+    description?: string;
+    bullets?: string[];
+  }>;
+  certifications?: string[];
+  achievements?: string[];
+}
+
 // Future implementation of the full ResumeRewriter class would go here
 // This would include all the enhanced functionality for rewriting resumes
 // with action verbs, optimizing for ATS, etc.
@@ -26,7 +65,7 @@ export class ResumeRewriter {
   }
 
   // Implementation placeholder for future development
-  rewriteResume(resumeData: any, jobDescription: string = "", templateId: string = "modern") {
+  rewriteResume(resumeData: ResumeData, jobDescription: string = "", templateId: string = "modern") {
     // To be implemented
     return {
       content: resumeData,
