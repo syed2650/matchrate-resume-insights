@@ -1,6 +1,6 @@
 
 import React from 'react';
-import '../../../styles/resumeTemplates.css';
+import '@/styles/resumeTemplates.css';
 
 interface ResumeContentProps {
   resumeData: any;

@@ -10,7 +10,7 @@ import { ExportInfo } from "./components/ExportInfo";
 import ResumeOptimizedAlert from "./components/ResumeOptimizedAlert";
 import ResumeCopyButton from "./components/ResumeCopyButton";
 import ResumeDownloadButton from "./components/ResumeDownloadButton";
-import { formatResumeContent, extractRoleSummary } from "./utils/resumeFormatter";
+import { formatResumeContent, extractRoleSummary, parseRoleSummary } from "./utils/resumeFormatter";
 import { ResumeRewriteProps } from "./types";
 import PremiumFeatureModal from "./components/PremiumFeatureModal";
 import TemplateSelector from "./components/TemplateSelector";
@@ -39,7 +39,10 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
 
   // Format the resume content
   const currentResume = formatResumeContent(rawResume);
-  const roleSummary = extractRoleSummary(rawResume);
+  const roleSummaryText = extractRoleSummary(rawResume);
+  
+  // Parse the roleSummary into an object with the required fields
+  const roleSummary = parseRoleSummary(roleSummaryText);
   
   // Get the selected template
   const selectedTemplateObj = templates.find(t => t.name === selectedTemplate) || templates[0];
@@ -74,13 +77,13 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
   const scoreDifference = currentAtsScore - originalATSScore;
   const isInterviewReady = currentAtsScore >= 75;
 
-  // Create safe resumeData object with proper types
+  // Create safe resumeData object with proper types and fallbacks
   const resumeData = currentResume ? {
-    name: roleSummary ? roleSummary.name || 'John Doe' : 'John Doe',
-    email: roleSummary ? roleSummary.email || 'email@example.com' : 'email@example.com',
-    phone: roleSummary ? roleSummary.phone || '555-123-4567' : '555-123-4567',
-    location: roleSummary ? roleSummary.location || 'City, State' : 'City, State',
-    summary: roleSummary ? roleSummary.summary || currentResume.substring(0, 200) : currentResume.substring(0, 200),
+    name: roleSummary?.name || 'John Doe',
+    email: roleSummary?.email || 'email@example.com',
+    phone: roleSummary?.phone || '555-123-4567',
+    location: roleSummary?.location || 'City, State',
+    summary: roleSummary?.summary || currentResume.substring(0, 200),
     experience: [],
     education: [],
     skills: [],
@@ -98,7 +101,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
       
       <ResumeHeader
         currentAtsScore={currentAtsScore}
-        roleSummary={roleSummary}
+        roleSummary={roleSummaryText}
         generatedTimestamp={generatedTimestamp}
         isInterviewReady={isInterviewReady}
         onCopy={() => {}}  // This will be handled by the ResumeCopyButton component
@@ -118,7 +121,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
         <ResumeCopyButton currentResume={currentResume} disabled={!isPremiumUser} />
         <ResumeDownloadButton 
           currentResume={currentResume} 
-          roleSummary={roleSummary} 
+          roleSummary={roleSummaryText} 
           templateId={selectedTemplateObj.id || "modern"}
           disabled={!isPremiumUser} 
         />

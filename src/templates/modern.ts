@@ -11,7 +11,8 @@ const modernTemplate: ResumeTemplate = {
   sectionDividers: true,
   spacing: "compact",
   layout: "two-column", // 70/30 split
-  // columnRatio: 70, // Left column takes 70% of width - removed as not in the interface
+  columnRatio: 70, // Left column takes 70% of width
+  headerSpanColumns: true, // Header spans both columns
 };
 
 export default modernTemplate;

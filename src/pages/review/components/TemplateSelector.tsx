@@ -1,6 +1,5 @@
 
 import React from 'react';
-import '../../../styles/templateSelector.css';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 
@@ -18,27 +17,25 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   return (
     <div className="template-selector">
       <h3 className="font-medium text-lg text-slate-900 mb-4">Choose Template</h3>
-      <RadioGroup
-        value={selectedTemplate}
-        onValueChange={onSelectTemplate}
+      <RadioGroup 
+        value={selectedTemplate} 
+        onValueChange={onSelectTemplate} 
         className="grid grid-cols-3 gap-4"
       >
         {templates.map((template) => (
-          <div key={template.name}>
-            <RadioGroupItem
-              value={template.name}
+          <div key={template.id}>
+            <RadioGroupItem 
+              value={template.name} 
               id={`template-${template.name}`}
               className="peer sr-only"
             />
-            <Label
+            <Label 
               htmlFor={`template-${template.name}`}
               className="flex flex-col items-center gap-2 rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
             >
               <div 
                 className="template-preview w-full h-32" 
-                style={{ 
-                  borderColor: template.primaryColor || '#ccc',
-                }}
+                style={{ borderColor: template.primaryColor || '#ccc' }}
               >
                 {/* Modern Template Preview */}
                 {template.name === 'Modern' && (
@@ -87,7 +84,7 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                   </div>
                 )}
               </div>
-              <span>{template.name}</span>
+              <span className="text-center text-sm font-medium">{template.name}</span>
             </Label>
           </div>
         ))}
