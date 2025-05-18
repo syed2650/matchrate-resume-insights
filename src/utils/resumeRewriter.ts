@@ -1,4 +1,4 @@
-// src/utils/resumeRewriter.ts
+import { parseResumeIntoData } from './parseresumeintodata';
 
 /**
  * Resume Template interface - defines the structure of resume templates
@@ -25,9 +25,10 @@ export interface ResumeTemplate {
 }
 
 /**
- * Resume Data interface - defines the data structure for a resume
+ * Enhanced Resume Data interface - used for the template system
+ * This is different from the original ResumeData in parseresumeintodata.ts
  */
-export interface ResumeData {
+export interface EnhancedResumeData {
   header: {
     name: string;
     contact: {
@@ -117,12 +118,74 @@ export const resumeTemplates: ResumeTemplate[] = [
 ];
 
 /**
+ * Convert from the original ResumeData structure to the enhanced ResumData structure
+ * @param originalData Original data from parseResumeIntoData
+ * @returns Enhanced ResumeData structure for templates
+ */
+export function convertToEnhancedResumeData(originalData: ReturnType<typeof parseResumeIntoData>): EnhancedResumeData {
+  // Extract contact information
+  const contactParts = originalData.contact.split(/\s*\|\s*/);
+  const contactInfo = {
+    email: contactParts.find(part => part.includes('@')) || '',
+    phone: contactParts.find(part => /\+?\d[\d\s-]+\d/.test(part)) || '',
+    location: contactParts.find(part => !part.includes('@') && !/\+?\d[\d\s-]+\d/.test(part)) || ''
+  };
+
+  // Convert summary
+  const summary = originalData.summary.join('\n');
+
+  // Convert experience
+  const experience = originalData.experiences.map(exp => ({
+    position: exp.title,
+    company: exp.company,
+    date: exp.dates,
+    bullets: exp.bullets
+  }));
+
+  // Convert education
+  const education = originalData.education.map(edu => {
+    const parts = edu.split(/,\s*/);
+    return {
+      degree: parts[0] || '',
+      institution: parts[1] || '',
+      date: parts[2] || '',
+      details: [] as string[]
+    };
+  });
+
+  // Convert skills with skill levels
+  const skills = originalData.skills.map((skill, index) => {
+    // Generate a skill level based on position - earlier skills are usually more proficient
+    const level = Math.max(70, Math.min(98, 95 - index * 2));
+    return {
+      name: skill,
+      level
+    };
+  });
+
+  // Convert recognition to achievements
+  const achievements = originalData.recognition || [];
+
+  return {
+    header: {
+      name: originalData.name,
+      contact: contactInfo
+    },
+    summary,
+    experience,
+    education,
+    skills,
+    achievements
+  };
+}
+
+/**
  * Enhanced resume content with stronger action verbs and quantifiable achievements
- * @param resumeData Original resume data
+ * @param resumeData Resume data to enhance
  * @returns Enhanced resume data
  */
-export function enhanceContent(resumeData: ResumeData): ResumeData {
-  const enhanced = JSON.parse(JSON.stringify(resumeData)) as ResumeData;
+export function enhanceContent(resumeData: EnhancedResumeData): EnhancedResumeData {
+  const enhanced = JSON.parse(JSON.stringify(resumeData)) as EnhancedResumeData;
   
   // Enhance summary with stronger language
   if (enhanced.summary) {
@@ -130,7 +193,7 @@ export function enhanceContent(resumeData: ResumeData): ResumeData {
       .replace(/^(.*) with over (\d+) years of experience in (.*)$/i, 
         "Results-driven, strategic $1 with $2+ years of proven expertise in $3.")
       .replace(/detailed oriented/i, "detail-oriented")
-      .replace(/help/i, "drive")
+      .replace(/helps?/i, "drives")
       .replace(/worked on/i, "spearheaded")
       .replace(/responsible for/i, "led");
   }
@@ -148,14 +211,13 @@ export function enhanceContent(resumeData: ResumeData): ResumeData {
           .replace(/^was responsible for/i, "Led")
           .replace(/^responsible for/i, "Led")
           .replace(/^did/i, "Executed")
-          .replace(/^made/i, "Developed");
+          .replace(/^made/i, "Developed")
+          .replace(/^created/i, "Designed")
+          .replace(/^wrote/i, "Authored")
+          .replace(/^managed/i, "Orchestrated")
+          .replace(/^built/i, "Constructed");
         
-        // Add metrics if not present
-        if (!enhanced.match(/\d+%|\$\d+|\d+ [a-z]+/i)) {
-          // Don't add metrics placeholder in production, just for illustration
-          // enhanced += ", resulting in significant improvements";
-        }
-        
+        // Don't add metrics placeholder in production
         return enhanced;
       });
     }
@@ -176,7 +238,7 @@ export function enhanceContent(resumeData: ResumeData): ResumeData {
  * @param resumeData Resume data to analyze
  * @returns Format name (chronological, functional, hybrid)
  */
-export function selectBestFormat(resumeData: ResumeData): string {
+export function selectBestFormat(resumeData: EnhancedResumeData): string {
   // Calculate total years of experience
   const totalExperience = resumeData.experience.reduce((total, job) => {
     if (job.date) {
@@ -223,10 +285,17 @@ function extractYearsFromDateRange(dateRange: string): number {
 
 /**
  * Extract year from date string
- * @param dateStr Date string (e.g., "Jan 2020")
+ * @param dateStr Date string (e.g., "Jan 2020" or "01/2020")
  * @returns Year as number
  */
 function extractYearFromDateString(dateStr: string): number {
+  // Check for MM/YYYY format
+  const slashFormat = dateStr.match(/\d+\/(\d{4})/);
+  if (slashFormat && slashFormat[1]) {
+    return parseInt(slashFormat[1]);
+  }
+
+  // Check for Month YYYY format
   const yearMatch = dateStr.match(/\b(19|20)\d{2}\b/);
   return yearMatch ? parseInt(yearMatch[0]) : new Date().getFullYear();
 }
@@ -236,7 +305,7 @@ function extractYearFromDateString(dateStr: string): number {
  * @param experience Experience array
  * @returns True if gaps found
  */
-function checkForEmploymentGaps(experience: ResumeData['experience']): boolean {
+function checkForEmploymentGaps(experience: EnhancedResumeData['experience']): boolean {
   const sortedExperience = [...experience].sort((a, b) => {
     const aYear = a.date ? extractYearFromDateString(a.date.split(/[-–—]/)[0]) : 0;
     const bYear = b.date ? extractYearFromDateString(b.date.split(/[-–—]/)[0]) : 0;
@@ -271,7 +340,7 @@ function checkForEmploymentGaps(experience: ResumeData['experience']): boolean {
  * @param experience Experience array
  * @returns True if career changes found
  */
-function checkForCareerChanges(experience: ResumeData['experience']): boolean {
+function checkForCareerChanges(experience: EnhancedResumeData['experience']): boolean {
   const titles = experience.map(job => job.position || '');
   
   // Simple heuristic - check if job titles are very different
@@ -324,14 +393,77 @@ function titlesAreRelated(title1: string, title2: string): boolean {
 }
 
 /**
- * Generate preview for a resume template
- * @param template Template to generate preview for
- * @returns HTML/CSS for preview
+ * Generate a sample template preview
+ * @param template Template configuration
+ * @returns HTML string for preview
  */
 export function generateTemplatePreview(template: ResumeTemplate): string {
-  // This would generate HTML/CSS for the template preview
-  // In a real implementation, this might return a React component or HTML string
-  return `<div class="template-preview ${template.id}">
-    <!-- Preview content for ${template.name} template -->
-  </div>`;
+  switch (template.id) {
+    case 'modern':
+      return `
+        <div class="template-preview modern">
+          <div class="preview-header" style="background-color: ${template.primaryColor}"></div>
+          <div class="preview-content">
+            <div class="preview-main" style="width: ${template.columnRatio}%"></div>
+            <div class="preview-sidebar" style="width: ${100 - (template.columnRatio || 70)}%; background-color: ${template.secondaryColor}"></div>
+          </div>
+        </div>
+      `;
+    case 'professional':
+      return `
+        <div class="template-preview professional">
+          <div class="preview-header" style="border-bottom-color: ${template.primaryColor}"></div>
+          <div class="preview-content">
+            <div class="preview-section">
+              <div class="preview-section-title" style="color: ${template.primaryColor}; border-bottom-color: ${template.primaryColor}"></div>
+              <div class="preview-section-content"></div>
+            </div>
+          </div>
+        </div>
+      `;
+    case 'creative':
+      return `
+        <div class="template-preview creative">
+          <div class="preview-header" style="background-color: ${template.primaryColor}">
+            <div class="preview-accent" style="background-color: ${template.secondaryColor}"></div>
+          </div>
+          <div class="preview-content">
+            <div class="preview-section">
+              <div class="preview-section-title" style="color: ${template.primaryColor}; border-left-color: ${template.primaryColor}"></div>
+              <div class="preview-section-content"></div>
+            </div>
+            <div class="preview-accent" style="background-color: ${template.secondaryColor}"></div>
+          </div>
+        </div>
+      `;
+    default:
+      return `<div class="template-preview default"></div>`;
+  }
 }
+
+/**
+ * Process a resume through the template system
+ * @param resumeText Raw resume text
+ * @param template Selected template
+ * @returns Enhanced and formatted resume data
+ */
+export function processResume(resumeText: string, template: ResumeTemplate): EnhancedResumeData {
+  // Parse the resume text to structured data
+  const parsedData = parseResumeIntoData(resumeText);
+  
+  // Convert to enhanced data structure
+  const enhancedData = convertToEnhancedResumeData(parsedData);
+  
+  // Enhance content with better wording
+  const improvedData = enhanceContent(enhancedData);
+  
+  return improvedData;
+}
+
+export default {
+  resumeTemplates,
+  processResume,
+  enhanceContent,
+  selectBestFormat,
+  generateTemplatePreview
+};
