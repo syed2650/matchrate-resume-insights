@@ -1,4 +1,3 @@
-
 // ResumeRewriter TypeScript Interface and Implementation
 export interface ResumeTemplate {
   id: string;
@@ -12,6 +11,8 @@ export interface ResumeTemplate {
   preview?: string; // Path to preview image
   accent?: string; // Optional accent color
   layout?: 'single-column' | 'two-column' | 'asymmetric';
+  columnRatio?: number; // Added this property for two-column layout ratio
+  headerSpanColumns?: boolean; // Added this property to control if header spans columns
 }
 
 // Define the ResumeData interface that was missing and causing the error
