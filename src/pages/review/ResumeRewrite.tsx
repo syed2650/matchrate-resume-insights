@@ -10,10 +10,11 @@ import { ExportInfo } from "./components/ExportInfo";
 import ResumeOptimizedAlert from "./components/ResumeOptimizedAlert";
 import ResumeCopyButton from "./components/ResumeCopyButton";
 import ResumeDownloadButton from "./components/ResumeDownloadButton";
-import { formatResumeContent, extractRoleSummary, parseRoleSummary } from "./utils/resumeFormatter";
+import { formatResumeContent, extractRoleSummary } from "./utils/resumeFormatter";
 import { ResumeRewriteProps } from "./types";
 import PremiumFeatureModal from "./components/PremiumFeatureModal";
 import TemplateSelector from "./components/TemplateSelector";
+import { ResumeRewriter } from "@/utils/resumeRewriter";
 import { templates } from "@/templates";
 
 const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ 
@@ -30,7 +31,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
   const [isPremiumUser, setIsPremiumUser] = useState<boolean>(false);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [showPremiumModal, setShowPremiumModal] = useState<boolean>(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<string>("Modern");
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>("modern");
 
   const { currentResume: rawResume, generatedTimestamp } = useResumeVersion({ 
     rewrittenResume, 
@@ -39,13 +40,10 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
 
   // Format the resume content
   const currentResume = formatResumeContent(rawResume);
-  const roleSummaryText = extractRoleSummary(rawResume);
-  
-  // Parse the roleSummary into an object with the required fields
-  const roleSummary = parseRoleSummary(roleSummaryText);
+  const roleSummary = extractRoleSummary(rawResume);
   
   // Get the selected template
-  const selectedTemplateObj = templates.find(t => t.name === selectedTemplate) || templates[0];
+  const selectedTemplate = templates.find(t => t.id === selectedTemplateId) || templates[0];
   
   useEffect(() => {
     // Check if user has premium access
@@ -69,26 +67,13 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
     setShowPremiumModal(false);
   };
 
-  const handleTemplateChange = (templateName: string) => {
-    setSelectedTemplate(templateName);
+  const handleTemplateChange = (templateId: string) => {
+    setSelectedTemplateId(templateId);
   };
 
   const currentAtsScore = (typeof stableAtsScores === 'object' && Object.values(stableAtsScores)[0]) || 0;
   const scoreDifference = currentAtsScore - originalATSScore;
   const isInterviewReady = currentAtsScore >= 75;
-
-  // Create safe resumeData object with proper types and fallbacks
-  const resumeData = currentResume ? {
-    name: roleSummary?.name || 'John Doe',
-    email: roleSummary?.email || 'email@example.com',
-    phone: roleSummary?.phone || '555-123-4567',
-    location: roleSummary?.location || 'City, State',
-    summary: roleSummary?.summary || currentResume.substring(0, 200),
-    experience: [],
-    education: [],
-    skills: [],
-    awards: []
-  } : null;
 
   if (!rewrittenResume) {
     return <div className="py-8 text-center"><p className="text-slate-600">No rewritten resume available.</p></div>;
@@ -101,7 +86,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
       
       <ResumeHeader
         currentAtsScore={currentAtsScore}
-        roleSummary={roleSummaryText}
+        roleSummary={roleSummary}
         generatedTimestamp={generatedTimestamp}
         isInterviewReady={isInterviewReady}
         onCopy={() => {}}  // This will be handled by the ResumeCopyButton component
@@ -111,9 +96,8 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
       
       {isPremiumUser && (
         <TemplateSelector 
-          selectedTemplate={selectedTemplate} 
-          onSelectTemplate={handleTemplateChange}
-          templates={templates}
+          selectedTemplateId={selectedTemplateId} 
+          onChange={handleTemplateChange} 
         />
       )}
       
@@ -121,15 +105,17 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
         <ResumeCopyButton currentResume={currentResume} disabled={!isPremiumUser} />
         <ResumeDownloadButton 
           currentResume={currentResume} 
-          roleSummary={roleSummaryText} 
-          templateId={selectedTemplateObj.id || "modern"}
+          roleSummary={roleSummary} 
+          templateId={selectedTemplateId}
           disabled={!isPremiumUser} 
         />
       </div>
 
       <ResumeContent 
-        resumeData={resumeData} 
-        template={selectedTemplateObj} 
+        currentResume={currentResume} 
+        jobContext={jobContext} 
+        isPremiumBlurred={!isPremiumUser} 
+        template={selectedTemplate}
       />
       
       {isPremiumUser ? <ExportInfo /> : (

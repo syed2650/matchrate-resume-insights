@@ -48,7 +48,7 @@ const ResumeDownloadButton: React.FC<ResumeDownloadButtonProps> = ({
       
       // Set filename - with date and role if available
       const dateStr = new Date().toISOString().split('T')[0];
-      const roleStr = roleSummary ? `-${roleSummary.substring(0, 30).replace(/\s+/g, '-')}` : '';
+      const roleStr = roleSummary ? `-${roleSummary.replace(/\s+/g, '-').substring(0, 30)}` : '';
       // Include template name in the filename
       const templateStr = template ? `-${template.name}` : '';
       a.download = `optimized-resume${roleStr}${templateStr}-${dateStr}.docx`;

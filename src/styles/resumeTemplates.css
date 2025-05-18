@@ -1,195 +1,223 @@
 
-/* Font imports */
-@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Georgia&family=Montserrat:wght@400;600;700&family=Lato&display=swap');
+/* Resume Template Styles */
 
-/* Modern Template Styles */
+/* Modern Template */
 .resume-template-modern {
-  display: grid;
-  grid-template-columns: 70% 30%;
-  grid-gap: 0;
   font-family: 'Open Sans', sans-serif;
-  line-height: 1.4;
-  color: #333;
-  max-width: 100%;
-  overflow-x: hidden;
+  --primary-color: #2D74FF;
+  --secondary-color: #E6F0FF;
 }
 
 .resume-template-modern .resume-header {
-  grid-column: 1 / -1;
-  background-color: #2D74FF;
+  background-color: var(--primary-color);
   color: white;
-  padding: 20px 30px;
+  padding: 2rem;
   text-align: center;
+  grid-column: 1 / -1;
 }
 
 .resume-template-modern .resume-name {
   font-size: 28px;
-  font-weight: 700;
-  margin: 0 0 10px 0;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.resume-template-modern .resume-title {
+  font-size: 16px;
+  margin-bottom: 0.75rem;
 }
 
 .resume-template-modern .resume-contact {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  flex-wrap: wrap;
   font-size: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
 }
 
-.resume-template-modern .resume-main-column {
-  padding: 20px 30px;
-  border-right: 1px solid #e0e0e0;
-}
-
-.resume-template-modern .resume-sidebar {
-  background-color: #E6F0FF;
-  padding: 20px;
-}
-
-.resume-template-modern .section-title {
-  font-size: 16px;
-  font-weight: 600;
+.resume-template-modern .resume-section-title {
+  color: var(--primary-color);
+  font-weight: bold;
+  border-bottom: 1px solid var(--primary-color);
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  margin: 30px 0 15px 0;
-  border-bottom: 1px solid #2D74FF;
-  padding-bottom: 5px;
-  color: #2D74FF;
+  font-size: 16px;
+  letter-spacing: 0.05em;
 }
 
-.resume-template-modern .resume-sidebar .section-title {
-  margin-top: 0;
+/* Two-column layout for modern template */
+.resume-template-modern.layout-two-column .resume-body {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 1.5rem;
 }
 
-.resume-template-modern .job {
-  margin-bottom: 25px;
-  page-break-inside: avoid;
+.resume-template-modern.layout-two-column .resume-sidebar {
+  background-color: var(--secondary-color);
+  padding: 1.5rem;
 }
 
-.resume-template-modern .job-header {
+.resume-template-modern.layout-two-column .resume-main {
+  padding: 1.5rem;
+}
+
+/* Skill visualization for modern template */
+.resume-template-modern .skill-bar {
+  height: 0.5rem;
+  background-color: #e0e0e0;
+  border-radius: 0.25rem;
+  margin-bottom: 0.75rem;
+  overflow: hidden;
+}
+
+.resume-template-modern .skill-progress {
+  height: 100%;
+  background-color: var(--primary-color);
+}
+
+.resume-template-modern .skill-info {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 8px;
+  margin-bottom: 0.25rem;
+  font-size: 0.875rem;
 }
 
-.resume-template-modern .job-title {
+/* Professional Template */
+.resume-template-professional {
+  font-family: 'Georgia', serif;
+  --primary-color: #143564;
+  --secondary-color: #F5F5F5;
+}
+
+.resume-template-professional .resume-header {
+  color: var(--primary-color);
+  padding: 2rem;
+  text-align: center;
+  background-color: var(--secondary-color);
+  border-bottom: 2px solid var(--primary-color);
+}
+
+.resume-template-professional .resume-section-title {
+  color: var(--primary-color);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+  font-weight: bold;
+}
+
+/* Creative Template */
+.resume-template-creative {
+  font-family: 'Montserrat', sans-serif;
+  --primary-color: #6B3FA0;
+  --secondary-color: #FDF7FF;
+  --accent-color: #FCCE03;
+}
+
+.resume-template-creative .resume-header {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 2.5rem;
+  text-align: center;
+  border-radius: 0 0 2rem 2rem;
+}
+
+.resume-template-creative .resume-section-title {
+  color: var(--primary-color);
+  font-weight: bold;
+  border-bottom: 1px solid var(--primary-color);
+  padding-bottom: 0.5rem;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+/* Common Template Styles */
+.resume-section {
+  margin-bottom: 1.5rem;
+}
+
+.resume-experience-item {
+  margin-bottom: 1.25rem;
+}
+
+.resume-job-title {
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+}
+
+.resume-job-company {
   font-weight: 600;
-  font-size: 14px;
-  margin: 0;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
 }
 
-.resume-template-modern .job-company {
-  font-style: italic;
-  font-size: 14px;
-  margin: 2px 0;
+.resume-job-date {
+  color: #666;
+  font-size: 0.9rem;
+  font-weight: normal;
 }
 
-.resume-template-modern .job-date {
-  color: #555;
-  font-size: 12px;
-  text-align: right;
-  white-space: nowrap;
+.resume-bullet-list {
+  margin-top: 0.5rem;
+  padding-left: 1.25rem;
+  list-style-type: disc;
 }
 
-.resume-template-modern .job-bullets {
-  margin: 0;
-  padding-left: 20px;
+.resume-bullet-item {
+  margin-bottom: 0.35rem;
+  line-height: 1.5;
 }
 
-.resume-template-modern .job-bullet {
-  margin-bottom: 5px;
-  position: relative;
+.resume-education-item {
+  margin-bottom: 1rem;
 }
 
-.resume-template-modern .skill-item {
-  margin-bottom: 15px;
+.resume-education-institution {
+  font-weight: bold;
+  margin-bottom: 0.25rem;
 }
 
-.resume-template-modern .skill-name {
-  font-size: 13px;
-  margin-bottom: 5px;
+.resume-education-degree {
+  margin-bottom: 0.25rem;
 }
 
-.resume-template-modern .skill-bar-container {
-  height: 8px;
-  background-color: #eaeaea;
-  border-radius: 4px;
-  margin-bottom: 5px;
+.resume-summary {
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
 }
 
-.resume-template-modern .skill-bar {
-  height: 8px;
-  background-color: #2D74FF;
-  border-radius: 4px;
+/* Template spacing variants */
+.spacing-compact .resume-section {
+  margin-bottom: 1rem;
 }
 
-.resume-template-modern .skill-percentage {
-  font-size: 11px;
-  text-align: right;
-  color: #777;
+.spacing-compact .resume-bullet-item {
+  margin-bottom: 0.15rem;
 }
 
-.resume-template-modern .education-item {
-  margin-bottom: 15px;
+.spacing-standard .resume-section {
+  margin-bottom: 1.5rem;
 }
 
-.resume-template-modern .degree {
-  font-weight: 600;
-  font-size: 14px;
-  margin: 0;
+.spacing-standard .resume-bullet-item {
+  margin-bottom: 0.25rem;
 }
 
-.resume-template-modern .institution {
-  font-size: 13px;
-  margin: 2px 0;
+.spacing-airy .resume-section {
+  margin-bottom: 2.5rem;
 }
 
-.resume-template-modern .education-date {
-  font-size: 12px;
-  color: #555;
+.spacing-airy .resume-bullet-item {
+  margin-bottom: 0.5rem;
+  line-height: 1.8;
 }
 
-.resume-template-modern .resume-awards {
-  list-style-type: none;
-  padding-left: 0;
+/* Document layout styling */
+.resume-document {
+  max-width: 850px;
+  margin: 0 auto;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
 }
-
-.resume-template-modern .award-item {
-  margin-bottom: 8px;
-  font-size: 13px;
-}
-
-/* Print styles for Modern template */
-@media print {
-  .resume-template-modern {
-    font-size: 11pt;
-  }
-  
-  .resume-template-modern .resume-header {
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-  
-  .resume-template-modern .resume-sidebar {
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-  
-  .resume-template-modern .section-title {
-    margin-top: 20pt;
-  }
-}
-
-/* Fix for Word export */
-.docx-container .resume-template-modern {
-  display: block;
-}
-
-.docx-container .resume-template-modern .resume-main-column,
-.docx-container .resume-template-modern .resume-sidebar {
-  display: block;
-  width: 100%;
-}
-
-/* Add other template styles below */
