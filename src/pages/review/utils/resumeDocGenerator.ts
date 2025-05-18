@@ -1,5 +1,6 @@
+
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, TabStopPosition, TabStopType, BorderStyle } from "docx";
-import { ResumeTemplate } from "@/utils/resumeRewriter";
+import { ResumeTemplate, ResumeData } from "@/utils/resumeRewriter";
 
 export async function generateFormattedDocx(resumeText: string, template?: ResumeTemplate): Promise<Blob | null> {
   try {
@@ -143,7 +144,7 @@ export async function generateFormattedDocx(resumeText: string, template?: Resum
               color: "000000",
             },
             paragraph: {
-              alignment: AlignmentType.CENTER,
+              alignment: "center" as AlignmentType,
               spacing: {
                 before: 0,
                 after: 240,
@@ -230,7 +231,7 @@ function createFormattedDocument(sections: Record<string, string[]>, template?: 
       new Paragraph({
         text: sections.name[0],
         heading: HeadingLevel.HEADING_1,
-        alignment: AlignmentType.CENTER,
+        alignment: "center" as AlignmentType,
       })
     );
   }
@@ -241,7 +242,7 @@ function createFormattedDocument(sections: Record<string, string[]>, template?: 
       new Paragraph({
         text: sections.contactInfo[0],
         style: "ContactInfo",
-        alignment: AlignmentType.CENTER,
+        alignment: "center" as AlignmentType,
       })
     );
   }
