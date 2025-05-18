@@ -1,411 +1,672 @@
-/* Resume Template Styles */
+import React from 'react';
+import { ResumeTemplate, ResumeData } from '@/utils/resumeRewriter';
 
-/* Import necessary fonts */
-@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Georgia:wght@400;700&family=Montserrat:wght@400;600;700&family=Lato&display=swap');
-
-/* Modern Template */
-.resume-template-modern {
-  font-family: 'Open Sans', sans-serif;
-  --primary-color: #2D74FF;
-  --secondary-color: #E6F0FF;
-  color: #333;
-  line-height: 1.5;
-  letter-spacing: 0.01em;
+interface ResumeContentProps {
+  currentResume: string;
+  jobContext?: any;
+  isPremiumBlurred?: boolean;
+  template?: ResumeTemplate;
 }
 
-.resume-template-modern .resume-header {
-  background-color: var(--primary-color);
-  color: white;
-  padding: 2rem;
-  text-align: center;
-  grid-column: 1 / -1;
-}
+const ResumeContent: React.FC<ResumeContentProps> = ({
+  currentResume,
+  jobContext,
+  isPremiumBlurred = false,
+  template = { 
+    id: 'modern', 
+    name: 'Modern',
+    fontFamily: "'Open Sans', sans-serif",
+    primaryColor: "#2D74FF",
+    secondaryColor: "#E6F0FF",
+    headerStyle: "bold",
+    sectionDividers: true,
+    spacing: "compact",
+    layout: "two-column"
+  }
+}) => {
+  // Parse resume content to identify sections
+  const resumeSections = parseResumeContent(currentResume);
+  
+  // Create resume data structure that will be used for both preview and download
+  const resumeData = convertToResumeData(resumeSections);
 
-.resume-template-modern .resume-name {
-  font-size: 28px;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-  letter-spacing: 0.05em;
-}
+  // Determine template class name
+  const templateClass = `resume-template-${template.id}`;
+  const layoutClass = template?.layout ? `layout-${template.layout}` : '';
+  const spacingClass = template?.spacing ? `spacing-${template.spacing}` : '';
 
-.resume-template-modern .resume-title {
-  font-size: 16px;
-  margin-bottom: 0.75rem;
-}
+  return (
+    <div className={`resume-document ${templateClass} ${layoutClass} ${spacingClass}`}>
+      {isPremiumBlurred && (
+        <div className="absolute inset-0 bg-white/60 backdrop-blur-sm z-10 flex items-center justify-center">
+          <div className="text-center p-6">
+            <p className="text-lg font-medium text-slate-800">Premium Feature</p>
+            <p className="text-sm text-slate-600 mt-1">Upgrade to view and download your optimized resume</p>
+          </div>
+        </div>
+      )}
 
-.resume-template-modern .resume-contact {
-  font-size: 14px;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 1rem;
-}
+      <div className="resume-header">
+        <div className="resume-name">{resumeSections.name || 'Your Name'}</div>
+        <div className="resume-contact">{formatContactInfo(resumeSections.contact || '')}</div>
+      </div>
 
-.resume-template-modern .resume-contact-item {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-}
+      {template?.layout === 'two-column' ? (
+        <div className="resume-body">
+          <div className="resume-main">
+            {/* Main content - Summary, Experience, etc. */}
+            
+            {/* Summary Section */}
+            {resumeData.summary && (
+              <div className="resume-section">
+                <h2 className="resume-section-title">Professional Summary</h2>
+                <div className="resume-summary">{resumeData.summary}</div>
+              </div>
+            )}
+            
+            {/* Experience Section */}
+            {resumeData.experience && resumeData.experience.length > 0 && (
+              <div className="resume-section">
+                <h2 className="resume-section-title">Professional Experience</h2>
+                <div className="mt-3">
+                  {resumeData.experience.map((exp, index) => (
+                    <div key={index} className="resume-experience-item">
+                      <div className="resume-job-title">{exp.position}</div>
+                      <div className="resume-job-company">
+                        <span>{exp.company}</span>
+                        {exp.date && <span className="resume-job-date">{exp.date}</span>}
+                      </div>
+                      
+                      {exp.bullets && exp.bullets.length > 0 && (
+                        <ul className="resume-bullet-list">
+                          {exp.bullets.map((bullet, idx) => (
+                            <li key={idx} className="resume-bullet-item">{bullet}</li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Projects Section */}
+            {resumeData.projects && resumeData.projects.length > 0 && (
+              <div className="resume-section">
+                <h2 className="resume-section-title">Projects</h2>
+                <div className="mt-3">
+                  {resumeData.projects.map((project, index) => (
+                    <div key={index} className="resume-experience-item">
+                      <div className="resume-job-title">{project.name}</div>
+                      {project.description && (
+                        <div className="mb-2">{project.description}</div>
+                      )}
+                      
+                      {project.bullets && project.bullets.length > 0 && (
+                        <ul className="resume-bullet-list">
+                          {project.bullets.map((bullet, idx) => (
+                            <li key={idx} className="resume-bullet-item">{bullet}</li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Achievements Section (if in main column) */}
+            {resumeData.achievements && resumeData.achievements.length > 0 && template.id !== 'modern' && (
+              <div className="resume-section">
+                <h2 className="resume-section-title">Achievements</h2>
+                <ul className="resume-bullet-list">
+                  {resumeData.achievements.map((achievement, index) => (
+                    <li key={index} className="resume-bullet-item">{achievement}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+          
+          <div className="resume-sidebar">
+            {/* Sidebar content - Skills, Education, etc. */}
+            
+            {/* Skills Section */}
+            {resumeData.skills && resumeData.skills.length > 0 && (
+              <div className="resume-section">
+                <h2 className="resume-section-title">Skills</h2>
+                <div className="mt-3">
+                  {resumeData.skills.map((skill, index) => (
+                    <div key={index} className="mb-2">
+                      <div className="skill-info">
+                        <span className="skill-name">{skill.name}</span>
+                        <span className="skill-level">{skill.level}%</span>
+                      </div>
+                      <div className="skill-bar">
+                        <div className="skill-progress" style={{ width: `${skill.level}%` }}></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Education Section */}
+            {resumeData.education && resumeData.education.length > 0 && (
+              <div className="resume-section">
+                <h2 className="resume-section-title">Education</h2>
+                <div className="mt-3">
+                  {resumeData.education.map((edu, index) => (
+                    <div key={index} className="resume-education-item">
+                      <div className="resume-education-degree">
+                        {edu.degree}
+                      </div>
+                      <div className="resume-education-institution">
+                        {edu.institution}
+                      </div>
+                      {edu.date && <div className="resume-job-date">{edu.date}</div>}
+                      {edu.details && edu.details.length > 0 && (
+                        <ul className="resume-bullet-list">
+                          {edu.details.map((detail, idx) => (
+                            <li key={idx} className="resume-bullet-item">{detail}</li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Certifications Section */}
+            {resumeData.certifications && resumeData.certifications.length > 0 && (
+              <div className="resume-section">
+                <h2 className="resume-section-title">Certifications</h2>
+                <ul className="resume-bullet-list">
+                  {resumeData.certifications.map((cert, index) => (
+                    <li key={index} className="resume-bullet-item">{cert}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            
+            {/* Achievements Section (if in sidebar) */}
+            {resumeData.achievements && resumeData.achievements.length > 0 && template.id === 'modern' && (
+              <div className="resume-section">
+                <h2 className="resume-section-title">Additional Information</h2>
+                <ul className="resume-bullet-list">
+                  {resumeData.achievements.map((achievement, index) => (
+                    <li key={index} className="resume-bullet-item">{achievement}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
+        // Single column layout
+        <div className="p-6">
+          {/* Summary Section */}
+          {resumeData.summary && (
+            <div className="resume-section">
+              <h2 className="resume-section-title">Professional Summary</h2>
+              <div className="resume-summary">{resumeData.summary}</div>
+            </div>
+          )}
+          
+          {/* Experience Section */}
+          {resumeData.experience && resumeData.experience.length > 0 && (
+            <div className="resume-section">
+              <h2 className="resume-section-title">Professional Experience</h2>
+              <div className="mt-3">
+                {resumeData.experience.map((exp, index) => (
+                  <div key={index} className="resume-experience-item">
+                    <div className="resume-job-title">{exp.position}</div>
+                    <div className="resume-job-company">
+                      <span>{exp.company}</span>
+                      {exp.date && <span className="resume-job-date">{exp.date}</span>}
+                    </div>
+                    
+                    {exp.bullets && exp.bullets.length > 0 && (
+                      <ul className="resume-bullet-list">
+                        {exp.bullets.map((bullet, idx) => (
+                          <li key={idx} className="resume-bullet-item">{bullet}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* Education Section */}
+          {resumeData.education && resumeData.education.length > 0 && (
+            <div className="resume-section">
+              <h2 className="resume-section-title">Education</h2>
+              <div className="mt-3">
+                {resumeData.education.map((edu, index) => (
+                  <div key={index} className="resume-education-item">
+                    <div className="resume-education-degree">
+                      {edu.degree}
+                    </div>
+                    <div className="resume-education-institution">
+                      {edu.institution}
+                    </div>
+                    {edu.date && <div className="resume-job-date">{edu.date}</div>}
+                    {edu.details && edu.details.length > 0 && (
+                      <ul className="resume-bullet-list">
+                        {edu.details.map((detail, idx) => (
+                          <li key={idx} className="resume-bullet-item">{detail}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* Skills Section */}
+          {resumeData.skills && resumeData.skills.length > 0 && (
+            <div className="resume-section">
+              <h2 className="resume-section-title">Skills</h2>
+              <div className="mt-3 grid grid-cols-2 gap-4">
+                {resumeData.skills.map((skill, index) => (
+                  <div key={index} className="mb-2">
+                    <div className="skill-info">
+                      <span className="skill-name">{skill.name}</span>
+                      <span className="skill-level">{skill.level}%</span>
+                    </div>
+                    <div className="skill-bar">
+                      <div className="skill-progress" style={{ width: `${skill.level}%` }}></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* Projects Section */}
+          {resumeData.projects && resumeData.projects.length > 0 && (
+            <div className="resume-section">
+              <h2 className="resume-section-title">Projects</h2>
+              <div className="mt-3">
+                {resumeData.projects.map((project, index) => (
+                  <div key={index} className="resume-experience-item">
+                    <div className="resume-job-title">{project.name}</div>
+                    {project.description && (
+                      <div className="mb-2">{project.description}</div>
+                    )}
+                    
+                    {project.bullets && project.bullets.length > 0 && (
+                      <ul className="resume-bullet-list">
+                        {project.bullets.map((bullet, idx) => (
+                          <li key={idx} className="resume-bullet-item">{bullet}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* Certifications and Achievements */}
+          {resumeData.certifications && resumeData.certifications.length > 0 && (
+            <div className="resume-section">
+              <h2 className="resume-section-title">Certifications</h2>
+              <ul className="resume-bullet-list">
+                {resumeData.certifications.map((cert, index) => (
+                  <li key={index} className="resume-bullet-item">{cert}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          
+          {resumeData.achievements && resumeData.achievements.length > 0 && (
+            <div className="resume-section">
+              <h2 className="resume-section-title">Additional Information</h2>
+              <ul className="resume-bullet-list">
+                {resumeData.achievements.map((achievement, index) => (
+                  <li key={index} className="resume-bullet-item">{achievement}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
 
-.resume-template-modern .resume-contact-icon {
-  width: 16px;
-  height: 16px;
-  fill: white;
-}
-
-.resume-template-modern .resume-section-title {
-  color: var(--primary-color);
-  font-weight: 700;
-  border-bottom: 1px solid var(--primary-color);
-  padding-bottom: 0.5rem;
-  margin-bottom: 1rem;
-  text-transform: uppercase;
-  font-size: 16px;
-  letter-spacing: 0.05em;
-}
-
-/* Two-column layout for modern template */
-.resume-template-modern.layout-two-column {
-  display: grid;
-  grid-template-rows: auto 1fr;
-  grid-template-columns: 1fr;
-  min-height: 100%;
-}
-
-.resume-template-modern.layout-two-column .resume-body {
-  display: grid;
-  grid-template-columns: 70% 30%;
-  min-height: 100%;
-}
-
-.resume-template-modern.layout-two-column .resume-sidebar {
-  background-color: var(--secondary-color);
-  padding: 1.5rem;
-  overflow-wrap: break-word;
-  word-wrap: break-word;
-  hyphens: auto;
-}
-
-.resume-template-modern.layout-two-column .resume-main {
-  padding: 1.5rem;
-  overflow-wrap: break-word;
-  word-wrap: break-word;
-  hyphens: auto;
-}
-
-/* Skill visualization for modern template */
-.resume-template-modern .skill-bar {
-  height: 8px;
-  background-color: #e0e0e0;
-  border-radius: 4px;
-  margin-bottom: 0.75rem;
-  overflow: hidden;
-}
-
-.resume-template-modern .skill-progress {
-  height: 100%;
-  background-color: var(--primary-color);
-  border-radius: 4px;
-}
-
-.resume-template-modern .skill-info {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 0.25rem;
-  font-size: 0.875rem;
-}
-
-.resume-template-modern .skill-name {
-  font-weight: 600;
-}
-
-.resume-template-modern .skill-level {
-  color: #666;
-}
-
-/* Professional Template */
-.resume-template-professional {
-  font-family: 'Georgia', serif;
-  --primary-color: #143564;
-  --secondary-color: #F5F5F5;
-  color: #333;
-  line-height: 1.4;
-}
-
-.resume-template-professional .resume-header {
-  color: var(--primary-color);
-  padding: 2rem;
-  text-align: center;
-  background-color: var(--secondary-color);
-  border-bottom: 2px solid var(--primary-color);
-}
-
-.resume-template-professional .resume-name {
-  font-size: 24px;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-}
-
-.resume-template-professional .resume-section-title {
-  color: var(--primary-color);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-top: 1.5rem;
-  margin-bottom: 1rem;
-  font-weight: 700;
-  font-size: 16px;
-  border-bottom: 1px solid var(--primary-color);
-  padding-bottom: 0.25rem;
-}
-
-/* Creative Template */
-.resume-template-creative {
-  font-family: 'Montserrat', sans-serif;
-  --primary-color: #6B3FA0;
-  --secondary-color: #FDF7FF;
-  --accent-color: #FCCE03;
-  color: #333;
-  line-height: 1.5;
-}
-
-.resume-template-creative .resume-header {
-  background-color: var(--primary-color);
-  color: white;
-  padding: 2.5rem;
-  text-align: center;
-  border-radius: 0 0 2rem 2rem;
-  position: relative;
-}
-
-.resume-template-creative .resume-header:after {
-  content: "";
-  position: absolute;
-  right: 1rem;
-  top: 1rem;
-  width: 2rem;
-  height: 2rem;
-  background-color: var(--accent-color);
-  border-radius: 50%;
-}
-
-.resume-template-creative .resume-header:before {
-  content: "";
-  position: absolute;
-  left: 1.5rem;
-  bottom: 1.5rem;
-  width: 1.5rem;
-  height: 1.5rem;
-  background-color: var(--accent-color);
-  border-radius: 50%;
-}
-
-.resume-template-creative .resume-name {
-  font-size: 28px;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-  letter-spacing: 0.05em;
-}
-
-.resume-template-creative .resume-section-title {
-  color: var(--primary-color);
-  font-weight: 700;
-  margin-top: 2rem;
-  margin-bottom: 1rem;
-  position: relative;
-  font-size: 18px;
-  padding-left: 1rem;
-}
-
-.resume-template-creative .resume-section-title:before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 4px;
-  background-color: var(--primary-color);
-  border-radius: 4px;
-}
-
-/* Common Template Styles */
-.resume-section {
-  margin-bottom: 1.5rem;
-  page-break-inside: avoid;
-}
-
-.resume-experience-item {
-  margin-bottom: 1.25rem;
-  page-break-inside: avoid;
-}
-
-.resume-job-title {
-  font-weight: 700;
-  margin-bottom: 0.25rem;
-  font-size: 1.05rem;
-}
-
-.resume-job-company {
-  font-weight: 600;
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 0.5rem;
-  color: #444;
-}
-
-.resume-job-date {
-  color: #666;
-  font-size: 0.9rem;
-  font-weight: normal;
-}
-
-.resume-bullet-list {
-  margin-top: 0.5rem;
-  padding-left: 1.25rem;
-  list-style-type: disc;
-}
-
-.resume-template-modern .resume-bullet-list {
-  list-style-type: none;
-  padding-left: 1rem;
-}
-
-.resume-template-modern .resume-bullet-item {
-  position: relative;
-  padding-left: 0.75rem;
-}
-
-.resume-template-modern .resume-bullet-item:before {
-  content: "•";
-  position: absolute;
-  left: 0;
-  top: 0;
-  color: var(--primary-color);
-  font-weight: bold;
-}
-
-.resume-bullet-item {
-  margin-bottom: 0.35rem;
-  line-height: 1.5;
-}
-
-.resume-education-item {
-  margin-bottom: 1rem;
-  page-break-inside: avoid;
-}
-
-.resume-education-institution {
-  font-weight: 700;
-  margin-bottom: 0.25rem;
-}
-
-.resume-education-degree {
-  margin-bottom: 0.25rem;
-}
-
-.resume-summary {
-  margin-bottom: 1.5rem;
-  line-height: 1.6;
-}
-
-/* Template spacing variants */
-.spacing-compact .resume-section {
-  margin-bottom: 1rem;
-}
-
-.spacing-compact .resume-bullet-item {
-  margin-bottom: 0.15rem;
-  line-height: 1.3;
-}
-
-.spacing-compact .resume-bullet-list {
-  margin-top: 0.25rem;
-}
-
-.spacing-standard .resume-section {
-  margin-bottom: 1.5rem;
-}
-
-.spacing-standard .resume-bullet-item {
-  margin-bottom: 0.25rem;
-  line-height: 1.5;
-}
-
-.spacing-airy .resume-section {
-  margin-bottom: 2.5rem;
-}
-
-.spacing-airy .resume-bullet-item {
-  margin-bottom: 0.5rem;
-  line-height: 1.8;
-}
-
-/* Document layout styling */
-.resume-document {
-  max-width: 850px;
-  margin: 0 auto;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e5e7eb;
-  background-color: white;
-  overflow: hidden;
-  min-height: 1100px; /* Approximate A4 height */
-}
-
-/* Print styles */
-@media print {
-  .resume-document {
-    box-shadow: none;
-    border: none;
-    max-width: 100%;
-    width: 100%;
-    margin: 0;
-    padding: 0;
+// Helper function to parse resume content into sections
+function parseResumeContent(content: string) {
+  const lines = content.split('\n');
+  const sections: Record<string, string> = {
+    name: '',
+    contact: '',
+    summary: '',
+    experience: '',
+    education: '',
+    skills: '',
+    projects: '',
+    certifications: '',
+    achievements: '',
+    other: ''
+  };
+  
+  // Extract name and contact info from the first few lines
+  if (lines.length > 0) {
+    sections.name = lines[0].trim();
+    
+    // Get contact info - look for lines with email, phone, location
+    let contactLines: string[] = [];
+    for (let i = 1; i < Math.min(5, lines.length); i++) {
+      const line = lines[i].trim();
+      if (line && !line.match(/^(SUMMARY|EXPERIENCE|EDUCATION|SKILLS)/i)) {
+        // Skip divider lines
+        if (!line.match(/^-+$/)) {
+          contactLines.push(line);
+        }
+      } else {
+        break;
+      }
+    }
+    sections.contact = contactLines.join(' | ');
   }
   
-  .resume-template-modern .resume-header {
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
+  // Simple parsing logic to identify sections
+  let currentSection = '';
+  let inSummary = false;
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    
+    if (!line) continue;
+    
+    // Try to identify section headers
+    if (line.match(/SUMMARY|PROFESSIONAL\s+SUMMARY/i)) {
+      currentSection = 'summary';
+      inSummary = true;
+      continue;
+    } else if (line.match(/EXPERIENCE|PROFESSIONAL\s+EXPERIENCE|WORK\s+EXPERIENCE/i)) {
+      currentSection = 'experience';
+      inSummary = false;
+      continue;
+    } else if (line.match(/EDUCATION|ACADEMIC/i)) {
+      currentSection = 'education';
+      inSummary = false;
+      continue;
+    } else if (line.match(/SKILLS|TECHNICAL\s+SKILLS|KEY\s+SKILLS/i)) {
+      currentSection = 'skills';
+      inSummary = false;
+      continue;
+    } else if (line.match(/PROJECTS|PERSONAL\s+PROJECTS/i)) {
+      currentSection = 'projects';
+      inSummary = false;
+      continue;
+    } else if (line.match(/CERTIFICATIONS|CERTIFICATES/i)) {
+      currentSection = 'certifications';
+      inSummary = false;
+      continue;
+    } else if (line.match(/ACHIEVEMENTS|AWARDS|RECOGNITION|ADDITIONAL\s+INFORMATION/i)) {
+      currentSection = 'achievements';
+      inSummary = false;
+      continue;
+    }
+    
+    // If no section is identified yet but we're past the contact info,
+    // and we haven't found a summary section, this might be the summary
+    if (!currentSection && !line.match(/^-+$/) && i > 2) {
+      currentSection = 'summary';
+      inSummary = true;
+    }
+    
+    // Add content to current section
+    if (currentSection) {
+      sections[currentSection] += (sections[currentSection] ? '\n' : '') + line;
+    }
   }
   
-  .resume-template-modern.layout-two-column .resume-sidebar {
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-  
-  .resume-template-professional .resume-header {
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-  
-  .resume-template-creative .resume-header,
-  .resume-template-creative .resume-header:before,
-  .resume-template-creative .resume-header:after {
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-  
-  .resume-bullet-list {
-    break-inside: avoid;
-  }
-  
-  .resume-document {
-    min-height: auto;
-  }
+  return sections;
 }
 
-/* Address DOCX specific styling issues */
-.docx-export .resume-template-modern.layout-two-column {
-  display: block;
+// Helper function to convert parsed sections to ResumeData structure
+function convertToResumeData(sections: Record<string, string>): ResumeData {
+  const resumeData: ResumeData = {
+    header: {
+      name: sections.name,
+      contact: {
+        email: extractEmail(sections.contact) || '',
+        phone: extractPhone(sections.contact) || '',
+        location: extractLocation(sections.contact) || ''
+      }
+    },
+    summary: sections.summary,
+    experience: [],
+    education: [],
+    skills: [],
+    achievements: []
+  };
+  
+  // Parse experience section
+  if (sections.experience) {
+    const experienceLines = sections.experience.split('\n');
+    const experiences: any[] = [];
+    let currentExp: any = null;
+    
+    for (let i = 0; i < experienceLines.length; i++) {
+      const line = experienceLines[i].trim();
+      if (!line) continue;
+      
+      // Check if this is a new job entry (typically starts with a job title or company)
+      if (
+        i === 0 || // First line is always a new entry
+        line.match(/^\*\*.*\*\*$/) || // Bold text (job title)
+        line.match(/^[A-Z][A-Za-z\s]+\s+\|\s+[A-Za-z\s]+$/) || // Title | Company format
+        line.match(/^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4}\s+[-–—]\s+(Present|\d{4})$/) || // Date range
+        (experienceLines[i-1] && !experienceLines[i-1].trim()) // Line after a blank line
+      ) {
+        // Save previous experience if exists
+        if (currentExp) {
+          experiences.push(currentExp);
+        }
+        
+        // Start new experience
+        currentExp = {
+          position: '',
+          company: '',
+          date: '',
+          bullets: []
+        };
+        
+        // Parse this line
+        if (line.match(/^\*\*.*\*\*$/)) {
+          // Bold format: **Job Title | Company**
+          const content = line.replace(/^\*\*|\*\*$/g, '');
+          if (content.includes('|')) {
+            const [position, company] = content.split('|').map(s => s.trim());
+            currentExp.position = position;
+            currentExp.company = company;
+          } else {
+            currentExp.position = content;
+          }
+        } else if (line.match(/^[A-Z][A-Za-z\s]+\s+\|\s+[A-Za-z\s]+$/)) {
+          // Title | Company format
+          const [position, company] = line.split('|').map(s => s.trim());
+          currentExp.position = position;
+          currentExp.company = company;
+        } else if (line.match(/^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4}\s+[-–—]\s+(Present|\d{4})$/)) {
+          // Date format
+          currentExp.date = line;
+        } else {
+          // Assume it's a company or job title
+          currentExp.position = line;
+        }
+      } else if (line.match(/^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4}\s+[-–—]\s+(Present|\d{4})$/)) {
+        // Date line
+        currentExp.date = line;
+      } else if (line.startsWith('•') || line.startsWith('-')) {
+        // Bullet point
+        const bullet = line.substring(1).trim();
+        if (currentExp && bullet) {
+          currentExp.bullets.push(bullet);
+        }
+      } else if (currentExp && !currentExp.company) {
+        // If we have a position but no company, this might be the company
+        currentExp.company = line;
+      } else {
+        // Otherwise add as a bullet point
+        if (currentExp && line) {
+          currentExp.bullets.push(line);
+        }
+      }
+    }
+    
+    // Add the last experience
+    if (currentExp) {
+      experiences.push(currentExp);
+    }
+    
+    resumeData.experience = experiences;
+  }
+  
+  // Parse education section
+  if (sections.education) {
+    const educationLines = sections.education.split('\n');
+    const educations: any[] = [];
+    let currentEdu: any = null;
+    
+    for (let i = 0; i < educationLines.length; i++) {
+      const line = educationLines[i].trim();
+      if (!line) continue;
+      
+      if (i === 0 || (educationLines[i-1] && !educationLines[i-1].trim())) {
+        // Save previous education if exists
+        if (currentEdu) {
+          educations.push(currentEdu);
+        }
+        
+        // Start new education
+        currentEdu = {
+          degree: '',
+          institution: '',
+          date: '',
+          details: []
+        };
+        
+        // First line is typically the degree
+        currentEdu.degree = line;
+      } else if (line.match(/^[A-Z]/)) {
+        // Capitalized line is likely the institution
+        currentEdu.institution = line;
+      } else if (line.match(/\d{4}/)) {
+        // Line with a year is likely the date
+        currentEdu.date = line;
+      } else if (line.startsWith('•') || line.startsWith('-')) {
+        // Bullet point
+        const detail = line.substring(1).trim();
+        if (currentEdu && detail) {
+          currentEdu.details.push(detail);
+        }
+      } else {
+        // Details
+        if (currentEdu && line) {
+          currentEdu.details.push(line);
+        }
+      }
+    }
+    
+    // Add the last education
+    if (currentEdu) {
+      educations.push(currentEdu);
+    }
+    
+    resumeData.education = educations;
+  }
+  
+  // Parse skills section
+  if (sections.skills) {
+    const skillLines = sections.skills.split('\n')
+      .filter(line => line.trim().length > 0);
+    
+    resumeData.skills = skillLines.map(skill => {
+      // Remove bullet points or other markers
+      const cleanSkill = skill.replace(/^[•\-]\s*/, '').trim();
+      
+      // Assign a realistic skill level based on positioning in resume
+      // Earlier skills usually are stronger
+      const position = skillLines.indexOf(skill);
+      const baseLevel = 90 - (position * 3);
+      const level = Math.max(Math.min(baseLevel, 96), 70); // Keep between 70-96%
+      
+      return {
+        name: cleanSkill,
+        level
+      };
+    });
+  }
+  
+  // Parse achievements
+  if (sections.achievements) {
+    resumeData.achievements = sections.achievements.split('\n')
+      .filter(line => line.trim().length > 0)
+      .map(line => line.replace(/^[•\-]\s*/, '').trim());
+  }
+  
+  // Parse certifications if they exist
+  if (sections.certifications) {
+    resumeData.certifications = sections.certifications.split('\n')
+      .filter(line => line.trim().length > 0)
+      .map(line => line.replace(/^[•\-]\s*/, '').trim());
+  }
+  
+  return resumeData;
 }
 
-.docx-export .resume-template-modern.layout-two-column .resume-body {
-  display: flex;
-  flex-direction: row-reverse;
+// Extract email from contact string
+function extractEmail(contact: string): string | null {
+  const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/;
+  const match = contact.match(emailRegex);
+  return match ? match[0] : null;
 }
 
-.docx-export .resume-template-modern.layout-two-column .resume-sidebar {
-  width: 30%;
+// Extract phone from contact string
+function extractPhone(contact: string): string | null {
+  const phoneRegex = /\b(?:\+\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b/;
+  const match = contact.match(phoneRegex);
+  return match ? match[0] : null;
 }
 
-.docx-export .resume-template-modern.layout-two-column .resume-main {
-  width: 70%;
+// Extract location from contact string
+function extractLocation(contact: string): string | null {
+  // This is a simple approach - assuming location is part of the contact line
+  // A more sophisticated approach would look for city/state patterns
+  const parts = contact.split(/\||\•/).map(p => p.trim());
+  
+  // Remove email and phone parts
+  const locationParts = parts.filter(part => 
+    !extractEmail(part) && !extractPhone(part)
+  );
+  
+  return locationParts.length > 0 ? locationParts[0] : null;
 }
+
+// Format contact information into separate elements
+function formatContactInfo(contactStr: string) {
+  const parts = contactStr.split(/\||\s{2,}|\•/).map(part => part.trim()).filter(Boolean);
+  
+  return (
+    <>
+      {parts.map((part, idx) => (
+        <React.Fragment key={idx}>
+          <span>{part}</span>
+          {idx < parts.length - 1 && <span className="mx-2">•</span>}
+        </React.Fragment>
+      ))}
+    </>
+  );
+}
+
+export default ResumeContent;
