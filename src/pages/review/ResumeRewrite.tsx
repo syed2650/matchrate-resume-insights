@@ -14,7 +14,6 @@ import { formatResumeContent, extractRoleSummary } from "./utils/resumeFormatter
 import { ResumeRewriteProps } from "./types";
 import PremiumFeatureModal from "./components/PremiumFeatureModal";
 import TemplateSelector from "./components/TemplateSelector";
-import { ResumeRewriter } from "@/utils/resumeRewriter";
 import { templates } from "@/templates";
 
 const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ 
@@ -31,7 +30,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
   const [isPremiumUser, setIsPremiumUser] = useState<boolean>(false);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [showPremiumModal, setShowPremiumModal] = useState<boolean>(false);
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string>("modern");
+  const [selectedTemplate, setSelectedTemplate] = useState<string>("Modern");
 
   const { currentResume: rawResume, generatedTimestamp } = useResumeVersion({ 
     rewrittenResume, 
@@ -43,7 +42,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
   const roleSummary = extractRoleSummary(rawResume);
   
   // Get the selected template
-  const selectedTemplate = templates.find(t => t.id === selectedTemplateId) || templates[0];
+  const selectedTemplateObj = templates.find(t => t.name === selectedTemplate) || templates[0];
   
   useEffect(() => {
     // Check if user has premium access
@@ -67,13 +66,25 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
     setShowPremiumModal(false);
   };
 
-  const handleTemplateChange = (templateId: string) => {
-    setSelectedTemplateId(templateId);
+  const handleTemplateChange = (templateName: string) => {
+    setSelectedTemplate(templateName);
   };
 
   const currentAtsScore = (typeof stableAtsScores === 'object' && Object.values(stableAtsScores)[0]) || 0;
   const scoreDifference = currentAtsScore - originalATSScore;
   const isInterviewReady = currentAtsScore >= 75;
+
+  const resumeData = currentResume ? parseResumeData({
+    name: roleSummary?.name || 'John Doe',
+    email: roleSummary?.email || 'email@example.com',
+    phone: roleSummary?.phone || '555-123-4567',
+    location: roleSummary?.location || 'City, State',
+    summary: roleSummary?.summary || currentResume.substring(0, 200),
+    experience: [],
+    education: [],
+    skills: [],
+    awards: []
+  }) : null;
 
   if (!rewrittenResume) {
     return <div className="py-8 text-center"><p className="text-slate-600">No rewritten resume available.</p></div>;
@@ -96,8 +107,9 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
       
       {isPremiumUser && (
         <TemplateSelector 
-          selectedTemplateId={selectedTemplateId} 
-          onChange={handleTemplateChange} 
+          selectedTemplate={selectedTemplate} 
+          onSelectTemplate={handleTemplateChange}
+          templates={templates}
         />
       )}
       
@@ -106,16 +118,14 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
         <ResumeDownloadButton 
           currentResume={currentResume} 
           roleSummary={roleSummary} 
-          templateId={selectedTemplateId}
+          templateId={selectedTemplateObj.id || "modern"}
           disabled={!isPremiumUser} 
         />
       </div>
 
       <ResumeContent 
-        currentResume={currentResume} 
-        jobContext={jobContext} 
-        isPremiumBlurred={!isPremiumUser} 
-        template={selectedTemplate}
+        resumeData={resumeData} 
+        template={selectedTemplateObj} 
       />
       
       {isPremiumUser ? <ExportInfo /> : (
@@ -134,6 +144,54 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
       />
     </div>
   );
+};
+
+// Helper function to parse resume data for the template
+const parseResumeData = (rawData: any) => {
+  try {
+    const parsed = {
+      name: rawData.name || '',
+      email: rawData.email || '',
+      phone: rawData.phone || '',
+      location: rawData.location || '',
+      summary: rawData.summary || '',
+      
+      // Parse experience
+      experience: (rawData.experience || []).map((job: any) => ({
+        title: job.title || job.position || '',
+        company: job.company || '',
+        date: job.date || '',
+        bullets: Array.isArray(job.bullets) ? job.bullets : []
+      })),
+      
+      // Parse education
+      education: (rawData.education || []).map((edu: any) => ({
+        degree: edu.degree || '',
+        institution: edu.institution || '',
+        date: edu.date || '',
+        gpa: edu.gpa || null
+      })),
+      
+      // Parse skills and awards
+      skills: rawData.skills || [],
+      awards: rawData.awards || []
+    };
+    
+    return parsed;
+  } catch (error) {
+    console.error('Error parsing resume data:', error);
+    return {
+      name: 'Example Name',
+      email: 'email@example.com',
+      phone: '555-123-4567',
+      location: 'City, State',
+      summary: 'Resume summary placeholder.',
+      experience: [],
+      education: [],
+      skills: [],
+      awards: []
+    };
+  }
 };
 
 export default ResumeRewrite;

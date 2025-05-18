@@ -1,6 +1,6 @@
 
 import React from 'react';
-import '../../styles/templateSelector.css';
+import '../../../styles/templateSelector.css';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 
