@@ -144,7 +144,7 @@ export async function generateFormattedDocx(resumeText: string, template?: Resum
               color: "000000",
             },
             paragraph: {
-              alignment: "center" as AlignmentType,
+              alignment: AlignmentType.CENTER,
               spacing: {
                 before: 0,
                 after: 240,
@@ -231,7 +231,7 @@ function createFormattedDocument(sections: Record<string, string[]>, template?: 
       new Paragraph({
         text: sections.name[0],
         heading: HeadingLevel.HEADING_1,
-        alignment: "center" as AlignmentType,
+        alignment: AlignmentType.CENTER,
       })
     );
   }
@@ -242,7 +242,7 @@ function createFormattedDocument(sections: Record<string, string[]>, template?: 
       new Paragraph({
         text: sections.contactInfo[0],
         style: "ContactInfo",
-        alignment: "center" as AlignmentType,
+        alignment: AlignmentType.CENTER,
       })
     );
   }
