@@ -1,10 +1,10 @@
+
 import React from 'react';
 import '../../../styles/resumeTemplates.css';
-import { ResumeTemplate } from "@/utils/resumeRewriter";
 
 interface ResumeContentProps {
   resumeData: any;
-  template: ResumeTemplate;
+  template: any;
 }
 
 const ResumeContent: React.FC<ResumeContentProps> = ({ resumeData, template }) => {
@@ -33,7 +33,7 @@ const ResumeContent: React.FC<ResumeContentProps> = ({ resumeData, template }) =
     return (
       <div className="resume-template-modern">
         {/* Header - spans both columns */}
-        <div className="resume-header" style={{ backgroundColor: template.primaryColor }}>
+        <div className="resume-header">
           <h1 className="resume-name">{resumeData.name}</h1>
           <div className="resume-contact">
             <span>{resumeData.location}</span>
@@ -48,13 +48,13 @@ const ResumeContent: React.FC<ResumeContentProps> = ({ resumeData, template }) =
         <div className="resume-main-column">
           {/* Summary Section */}
           <div className="resume-summary">
-            <h2 className="section-title" style={{ borderBottomColor: template.primaryColor, color: template.primaryColor }}>SUMMARY</h2>
+            <h2 className="section-title">SUMMARY</h2>
             <p>{resumeData.summary}</p>
           </div>
           
           {/* Experience Section */}
           <div className="resume-experience">
-            <h2 className="section-title" style={{ borderBottomColor: template.primaryColor, color: template.primaryColor }}>PROFESSIONAL EXPERIENCE</h2>
+            <h2 className="section-title">PROFESSIONAL EXPERIENCE</h2>
             {resumeData.experience.map((job: any, index: number) => (
               <div key={index} className="job">
                 <div className="job-header">
@@ -65,7 +65,7 @@ const ResumeContent: React.FC<ResumeContentProps> = ({ resumeData, template }) =
                   <div className="job-date">{job.date}</div>
                 </div>
                 <ul className="job-bullets">
-                  {renderBullets(job.bullets)}
+                  {renderBullets(job.bullets || [])}
                 </ul>
               </div>
             ))}
@@ -73,17 +73,17 @@ const ResumeContent: React.FC<ResumeContentProps> = ({ resumeData, template }) =
         </div>
         
         {/* Sidebar - Skills, Education, Awards */}
-        <div className="resume-sidebar" style={{ backgroundColor: template.secondaryColor }}>
+        <div className="resume-sidebar">
           {/* Skills Section */}
           <div className="resume-skills">
-            <h2 className="section-title" style={{ borderBottomColor: template.primaryColor, color: template.primaryColor }}>SKILLS</h2>
+            <h2 className="section-title">SKILLS</h2>
             {skills.map((skill: any, index: number) => (
               <div key={index} className="skill-item">
                 <div className="skill-name">{skill.name}</div>
                 <div className="skill-bar-container">
                   <div 
                     className="skill-bar" 
-                    style={{ width: `${skill.percentage}%`, backgroundColor: template.primaryColor }}
+                    style={{ width: `${skill.percentage}%` }}
                   ></div>
                 </div>
                 <div className="skill-percentage">{skill.percentage}%</div>
@@ -93,7 +93,7 @@ const ResumeContent: React.FC<ResumeContentProps> = ({ resumeData, template }) =
           
           {/* Education Section */}
           <div className="resume-education">
-            <h2 className="section-title" style={{ borderBottomColor: template.primaryColor, color: template.primaryColor }}>EDUCATION</h2>
+            <h2 className="section-title">EDUCATION</h2>
             {resumeData.education.map((edu: any, index: number) => (
               <div key={index} className="education-item">
                 <div className="degree">{edu.degree}</div>
@@ -107,7 +107,7 @@ const ResumeContent: React.FC<ResumeContentProps> = ({ resumeData, template }) =
           {/* Additional Information */}
           {resumeData.awards && resumeData.awards.length > 0 && (
             <div className="resume-additional">
-              <h2 className="section-title" style={{ borderBottomColor: template.primaryColor, color: template.primaryColor }}>ADDITIONAL INFORMATION</h2>
+              <h2 className="section-title">ADDITIONAL INFORMATION</h2>
               <ul className="resume-awards">
                 {resumeData.awards.map((award: string, index: number) => (
                   <li key={index} className="award-item">{award}</li>
@@ -120,7 +120,6 @@ const ResumeContent: React.FC<ResumeContentProps> = ({ resumeData, template }) =
     );
   }
   
-  // Other templates would be implemented here
   // Default fallback
   return (
     <div className="resume-template-default">

@@ -74,17 +74,18 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
   const scoreDifference = currentAtsScore - originalATSScore;
   const isInterviewReady = currentAtsScore >= 75;
 
-  const resumeData = currentResume ? parseResumeData({
-    name: roleSummary?.name || 'John Doe',
-    email: roleSummary?.email || 'email@example.com',
-    phone: roleSummary?.phone || '555-123-4567',
-    location: roleSummary?.location || 'City, State',
-    summary: roleSummary?.summary || currentResume.substring(0, 200),
+  // Create safe resumeData object with proper types
+  const resumeData = currentResume ? {
+    name: roleSummary ? roleSummary.name || 'John Doe' : 'John Doe',
+    email: roleSummary ? roleSummary.email || 'email@example.com' : 'email@example.com',
+    phone: roleSummary ? roleSummary.phone || '555-123-4567' : '555-123-4567',
+    location: roleSummary ? roleSummary.location || 'City, State' : 'City, State',
+    summary: roleSummary ? roleSummary.summary || currentResume.substring(0, 200) : currentResume.substring(0, 200),
     experience: [],
     education: [],
     skills: [],
     awards: []
-  }) : null;
+  } : null;
 
   if (!rewrittenResume) {
     return <div className="py-8 text-center"><p className="text-slate-600">No rewritten resume available.</p></div>;
@@ -144,54 +145,6 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
       />
     </div>
   );
-};
-
-// Helper function to parse resume data for the template
-const parseResumeData = (rawData: any) => {
-  try {
-    const parsed = {
-      name: rawData.name || '',
-      email: rawData.email || '',
-      phone: rawData.phone || '',
-      location: rawData.location || '',
-      summary: rawData.summary || '',
-      
-      // Parse experience
-      experience: (rawData.experience || []).map((job: any) => ({
-        title: job.title || job.position || '',
-        company: job.company || '',
-        date: job.date || '',
-        bullets: Array.isArray(job.bullets) ? job.bullets : []
-      })),
-      
-      // Parse education
-      education: (rawData.education || []).map((edu: any) => ({
-        degree: edu.degree || '',
-        institution: edu.institution || '',
-        date: edu.date || '',
-        gpa: edu.gpa || null
-      })),
-      
-      // Parse skills and awards
-      skills: rawData.skills || [],
-      awards: rawData.awards || []
-    };
-    
-    return parsed;
-  } catch (error) {
-    console.error('Error parsing resume data:', error);
-    return {
-      name: 'Example Name',
-      email: 'email@example.com',
-      phone: '555-123-4567',
-      location: 'City, State',
-      summary: 'Resume summary placeholder.',
-      experience: [],
-      education: [],
-      skills: [],
-      awards: []
-    };
-  }
 };
 
 export default ResumeRewrite;
