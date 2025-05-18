@@ -1,0 +1,144 @@
+
+.template-selector {
+  margin: 20px 0;
+}
+
+.template-options {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.template-option {
+  width: 180px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.template-option:hover {
+  transform: translateY(-5px);
+}
+
+.template-option.selected .template-preview {
+  box-shadow: 0 0 0 2px #000, 0 0 0 4px #2D74FF;
+}
+
+.template-preview {
+  height: 200px;
+  width: 100%;
+  border: 1px solid #e0e0e0;
+  border-radius: 5px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.template-name {
+  text-align: center;
+  font-size: 14px;
+  padding: 5px 0;
+}
+
+/* Modern template preview */
+.preview-modern {
+  display: grid;
+  grid-template-columns: 70% 30%;
+  height: 100%;
+}
+
+.preview-modern .preview-header {
+  grid-column: 1 / -1;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preview-modern .preview-name {
+  color: white;
+  font-weight: bold;
+}
+
+.preview-modern .preview-left-column {
+  padding: 10px;
+}
+
+.preview-modern .preview-right-column {
+  padding: 10px;
+}
+
+.preview-modern .preview-section {
+  height: 15px;
+  background-color: #ddd;
+  margin-bottom: 10px;
+  border-radius: 3px;
+}
+
+/* Professional template preview */
+.preview-professional {
+  height: 100%;
+  padding: 10px;
+}
+
+.preview-professional .preview-header {
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preview-professional .preview-name {
+  height: 15px;
+  width: 80%;
+  background-color: #ddd;
+  border-radius: 3px;
+}
+
+.preview-professional .preview-section-title {
+  height: 8px;
+  margin: 15px 0 10px;
+  border-radius: 3px;
+}
+
+.preview-professional .preview-section {
+  height: 15px;
+  background-color: #ddd;
+  margin-bottom: 10px;
+  border-radius: 3px;
+}
+
+/* Creative template preview */
+.preview-creative {
+  height: 100%;
+  position: relative;
+}
+
+.preview-creative .preview-header {
+  height: 50px;
+  position: relative;
+}
+
+.preview-creative .preview-accent {
+  position: absolute;
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  top: 15px;
+  right: 15px;
+}
+
+.preview-creative .preview-body {
+  padding: 20px;
+  position: relative;
+}
+
+.preview-creative .preview-section {
+  height: 15px;
+  background-color: #ddd;
+  margin-bottom: 15px;
+  border-radius: 3px;
+}
+
+.preview-creative .preview-body .preview-accent {
+  top: 50px;
+  left: 15px;
+}

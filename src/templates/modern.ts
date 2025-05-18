@@ -10,8 +10,9 @@ const modernTemplate: ResumeTemplate = {
   headerStyle: "bold",
   sectionDividers: true,
   spacing: "compact",
-  layout: "two-column",
-  preview: "/templates/modern-preview.png" // This would be the path to a preview image
+  layout: "two-column", // 70/30 split
+  columnRatio: 70, // Left column takes 70% of width
+  headerSpanColumns: true, // Header spans both columns
 };
 
 export default modernTemplate;
