@@ -77,8 +77,8 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
         roleSummary={roleSummary}
         generatedTimestamp={generatedTimestamp}
         isInterviewReady={isInterviewReady}
-        onCopy={() => {}}  // This will be handled by the ResumeCopyButton component
-        onDownload={() => {}} // This will be handled by the ResumeDownloadButton component
+        onCopy={() => {}}
+        onDownload={() => {}}
         isPremiumLocked={!isPremiumUser}
       />
       

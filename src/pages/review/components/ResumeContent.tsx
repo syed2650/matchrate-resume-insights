@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { parseResumeText } from "../utils/resumeParser";
 import ResumePreview from "./ResumePreview";
+import { parseResumeIntoData } from "../utils/parseResumeIntoData";
 
 interface ResumeContentProps {
   currentResume: string;
@@ -21,8 +22,8 @@ interface ResumeContentProps {
 const ResumeContent: React.FC<ResumeContentProps> = ({ currentResume, jobContext, isPremiumBlurred = false }) => {
   if (!currentResume) return null;
   
-  // Parse the resume content into structured data
-  const parsedResume = parseResumeText(currentResume);
+  // Parse the resume content into structured data using the more robust parser
+  const resumeData = parseResumeIntoData(currentResume);
   
   const renderContent = () => {
     if (isPremiumBlurred) {
@@ -45,12 +46,12 @@ const ResumeContent: React.FC<ResumeContentProps> = ({ currentResume, jobContext
               </Button>
             </div>
           </div>
-          <ResumePreview data={parsedResume.data} isPremiumBlurred={true} />
+          <ResumePreview data={resumeData} isPremiumBlurred={true} />
         </div>
       );
     }
     
-    return <ResumePreview data={parsedResume.data} />;
+    return <ResumePreview data={resumeData} />;
   };
 
   return (
