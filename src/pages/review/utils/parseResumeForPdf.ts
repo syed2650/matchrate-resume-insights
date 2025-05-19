@@ -16,9 +16,9 @@ interface ResumeData {
 }
 
 export function parseResumeForPdf(currentResume: string): ResumeData {
-  const lines = currentResume.split("\n").map(line => line.trim()).filter(Boolean);
+  const lines = currentResume.split("\n").map(line => line.trim());
 
-  let name = "Your Name";
+  let name = "";
   let contact = "";
   const summary: string[] = [];
   const skills: string[] = [];
@@ -29,109 +29,125 @@ export function parseResumeForPdf(currentResume: string): ResumeData {
   let currentSection = "";
   let currentExperience: ResumeData["experiences"][0] | null = null;
 
-  for (const line of lines) {
-    const cleanLine = line.trim();
+  // First pass - identify the name from the first non-empty line
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i] && !lines[i].includes('@') && !lines[i].includes('•') && !lines[i].includes('|')) {
+      name = lines[i];
+      break;
+    }
+  }
 
-    // Handle section headers with better detection
-    const upperLine = cleanLine.toUpperCase();
+  // Second pass - identify contact info (usually after name, contains email, phone, LinkedIn, etc.)
+  for (let i = 0; i < 5; i++) {
+    if (lines[i] && (lines[i].includes('@') || lines[i].includes('•') || lines[i].includes('|'))) {
+      contact = lines[i];
+      break;
+    }
+  }
+
+  // Main parsing pass
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+
+    // Section detection using common resume section headers
+    const upperLine = line.toUpperCase();
     if (upperLine === "EDUCATION" || upperLine.includes("EDUCATION")) {
       currentSection = "education";
       continue;
     }
-    if (upperLine === "PROFESSIONAL SUMMARY" || upperLine === "SUMMARY" || upperLine === "PROFILE") {
+    if (upperLine === "PROFESSIONAL SUMMARY" || upperLine === "SUMMARY" || upperLine === "PROFILE" || upperLine === "ABOUT") {
       currentSection = "summary";
       continue;
     }
-    if (upperLine === "SKILLS" || upperLine === "KEY SKILLS" || upperLine === "TECHNICAL SKILLS") {
+    if (upperLine === "SKILLS" || upperLine === "KEY SKILLS" || upperLine === "TECHNICAL SKILLS" || upperLine.includes("SKILLS")) {
       currentSection = "skills";
       continue;
     }
-    if (upperLine === "EXPERIENCE" || upperLine === "WORK EXPERIENCE" || upperLine === "PROFESSIONAL EXPERIENCE") {
+    if (upperLine === "EXPERIENCE" || upperLine === "WORK EXPERIENCE" || upperLine === "PROFESSIONAL EXPERIENCE" || upperLine.includes("EXPERIENCE")) {
       currentSection = "experience";
       continue;
     }
-    if (upperLine === "RECOGNITION" || upperLine === "AWARDS" || upperLine === "ACHIEVEMENTS") {
+    if (upperLine === "RECOGNITION" || upperLine === "AWARDS" || upperLine === "ACHIEVEMENTS" || upperLine.includes("RECOGNITION")) {
       currentSection = "recognition";
       continue;
     }
 
-    // Detect header information (name and contact)
-    if (!currentSection) {
-      if (name === "Your Name" && cleanLine.length > 0 && !cleanLine.includes("@") && !cleanLine.includes("•")) {
-        name = cleanLine;
-        continue;
-      }
-      if (cleanLine.includes("@") || cleanLine.includes("•") || cleanLine.includes("|")) {
-        contact = cleanLine;
-        continue;
-      }
-    }
-
-    // Parse sections
+    // Parse sections based on current section
     switch (currentSection) {
       case "education":
-        if (cleanLine !== "") {
-          education.push(cleanLine);
-        }
+        education.push(line);
         break;
 
       case "summary":
-        if (cleanLine !== "") {
-          summary.push(cleanLine);
-        }
+        summary.push(line);
         break;
 
       case "skills":
-        if (cleanLine !== "") {
-          if (cleanLine.includes(",")) {
-            skills.push(...cleanLine.split(",").map(s => s.trim()));
-          } else if (cleanLine.startsWith("•") || cleanLine.startsWith("-")) {
-            skills.push(cleanLine.replace(/^[•-]\s*/, "").trim());
-          } else {
-            skills.push(cleanLine);
-          }
+        if (line.includes(",")) {
+          skills.push(...line.split(",").map(s => s.trim()).filter(Boolean));
+        } else if (line.startsWith("•") || line.startsWith("-")) {
+          skills.push(line.replace(/^[•-]\s*/, "").trim());
+        } else if (!line.toUpperCase().includes("SKILLS")) {
+          skills.push(line);
         }
         break;
 
       case "recognition":
-        if (cleanLine !== "") {
-          recognition.push(cleanLine);
+        if (!line.toUpperCase().includes("RECOGNITION")) {
+          recognition.push(line);
         }
         break;
 
       case "experience":
-        const datePattern = /(\d{1,2}\/\d{4}|Present)\s*(?:-|–|to)\s*(\d{1,2}\/\d{4}|Present)/i;
-        const dateMatch = cleanLine.match(datePattern);
+        // Check if line contains a date pattern (common in experience entries)
+        const datePattern = /(\d{1,2}\/\d{4}|\d{4})\s*(?:-|–|to)\s*(\d{1,2}\/\d{4}|\d{4}|Present)/i;
+        const dateMatch = line.match(datePattern);
 
-        if (dateMatch) {
+        if (dateMatch && currentExperience) {
+          // This is a date line for the current experience
+          currentExperience.dates = line;
+        } else if (line.startsWith("•") || line.startsWith("-")) {
+          // This is a bullet point for the current experience
           if (currentExperience) {
-            currentExperience.dates = cleanLine;
+            currentExperience.bullets.push(line.replace(/^[•-]\s*/, ""));
           }
-        } else if (cleanLine.startsWith("•") || cleanLine.startsWith("-")) {
-          if (currentExperience) {
-            currentExperience.bullets.push(cleanLine.replace(/^[•-]\s*/, ""));
-          }
-        } else if (cleanLine) {
+        } else if (currentExperience && !currentExperience.title && currentExperience.company) {
+          // This might be the title line (follows company line)
+          currentExperience.title = line;
+        } else {
           // New experience entry
           currentExperience = {
-            company: cleanLine,
+            company: line,
             location: "",
             dates: "",
-            title: cleanLine,
+            title: "",
             bullets: []
           };
           experiences.push(currentExperience);
 
-          // Try to extract location if it exists (usually after a comma or bullet)
-          const locationMatch = cleanLine.match(/[,•]\s*([^,•]+)$/);
+          // Try to extract location if it exists (typically after a comma, hyphen, or bullet)
+          const locationMatch = line.match(/[,•|-]\s*([^,•|-]+)$/);
           if (locationMatch) {
             currentExperience.location = locationMatch[1].trim();
-            currentExperience.company = cleanLine.replace(locationMatch[0], "").trim();
+            currentExperience.company = line.replace(locationMatch[0], "").trim();
           }
         }
         break;
     }
   }
+
+  // If no name was found, provide a default
+  if (!name) {
+    name = "Your Name";
+  }
+
+  // Ensure experiences have titles
+  experiences.forEach(exp => {
+    if (!exp.title) {
+      exp.title = exp.company;
+    }
+  });
 
   return {
     name,

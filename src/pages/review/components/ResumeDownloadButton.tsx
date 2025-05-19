@@ -5,19 +5,22 @@ import { Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
 import { trackRewriteUsage } from "../utils";
-import { parseResumeText } from "../utils/resumeParser";
+import { downloadResumeAsPdf } from "../utils/downloadResumeAsPdf";
 import { generateFormattedDocx } from "../utils/resumeDocxGenerator";
+import { parseResumeText } from "../utils/resumeParser";
 
 interface ResumeDownloadButtonProps {
   currentResume: string;
   roleSummary: string;
   disabled?: boolean;
+  downloadType?: "pdf" | "docx";
 }
 
 const ResumeDownloadButton: React.FC<ResumeDownloadButtonProps> = ({
   currentResume,
   roleSummary,
-  disabled = false
+  disabled = false,
+  downloadType = "docx"
 }) => {
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const { toast } = useToast();
@@ -31,32 +34,35 @@ const ResumeDownloadButton: React.FC<ResumeDownloadButtonProps> = ({
     setIsProcessing(true);
     
     try {
-      // Parse the resume text into structured data
-      const parsedResume = parseResumeText(currentResume);
-      
-      // Generate the DOCX file
-      const docBlob = await generateFormattedDocx(parsedResume.data);
-      if (!docBlob) {
-        throw new Error("Failed to generate document");
+      if (downloadType === "pdf") {
+        // Download as PDF
+        await downloadResumeAsPdf(currentResume);
+      } else {
+        // Download as DOCX
+        const parsedResume = parseResumeText(currentResume);
+        const docBlob = await generateFormattedDocx(parsedResume.data);
+        if (!docBlob) {
+          throw new Error("Failed to generate document");
+        }
+        
+        // Create a download link
+        const url = URL.createObjectURL(docBlob);
+        const a = document.createElement("a");
+        a.href = url;
+        
+        // Set filename - with date and role if available
+        const dateStr = new Date().toISOString().split('T')[0];
+        const roleStr = roleSummary ? `-${roleSummary.replace(/\s+/g, '-')}` : '';
+        a.download = `optimized-resume${roleStr}-${dateStr}.docx`;
+        
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
       }
       
-      // Create a download link
-      const url = URL.createObjectURL(docBlob);
-      const a = document.createElement("a");
-      a.href = url;
-      
-      // Set filename - with date and role if available
-      const dateStr = new Date().toISOString().split('T')[0];
-      const roleStr = roleSummary ? `-${roleSummary.replace(/\s+/g, '-')}` : '';
-      a.download = `optimized-resume${roleStr}-${dateStr}.docx`;
-      
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      
       trackRewriteUsage();
-      toast({ title: "Success", description: "Resume downloaded successfully" });
+      toast({ title: "Success", description: `Resume downloaded successfully as ${downloadType.toUpperCase()}` });
     } catch (error) {
       console.error("Error downloading resume:", error);
       toast({ title: "Error", description: "Failed to download resume", variant: "destructive" });
@@ -74,7 +80,7 @@ const ResumeDownloadButton: React.FC<ResumeDownloadButtonProps> = ({
         disabled={disabled}
         className="flex-1 sm:flex-none"
       >
-        <Download className="mr-1.5 h-4 w-4" /> Download
+        <Download className="mr-1.5 h-4 w-4" /> Download {downloadType.toUpperCase()}
       </Button>
       {isProcessing && (
         <div className="mt-3 bg-blue-50 p-4 border border-blue-100 rounded-lg">
