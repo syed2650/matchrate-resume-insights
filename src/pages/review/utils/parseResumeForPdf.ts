@@ -1,4 +1,5 @@
 
+
 interface ResumeData {
   name: string;
   contact: string;
@@ -68,7 +69,9 @@ export function parseResumeForPdf(currentResume: string): ResumeData {
         skills.push(cleanLine.replace(/^[-•*]\s*/, ""));
       }
     } else if (currentSection === "experiences") {
-      if (cleanLine.match(/(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|January|February|March|April|May|June|July|August|September|October|November|December)/i)) {
+      // Fix: Use a safer date regex pattern
+      const dateRegex = /(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|January|February|March|April|May|June|July|August|September|October|November|December)/i;
+      if (cleanLine.match(dateRegex)) {
         if (experiences.length > 0) {
           experiences[experiences.length - 1].dates = cleanLine;
         }

@@ -124,7 +124,8 @@ function extractExperience(lines: string[], fullText: string): ResumeData['exper
     let firstLine = lines[0];
     
     // Check if it contains a date pattern
-    const dateMatch = firstLine.match(/(0?[1-9]|1[0-2])\/\d{4}\s*(?:-|–|to)\s*(0?[1-9]|1[0-2])\/\d{4}|(0?[1-9]|1[0-2])\/\d{4}\s*(?:-|–|to)\s*Present/i);
+    const dateRegex = /(0?[1-9]|1[0-2])\/\d{4}\s*(?:-|–|to)\s*(0?[1-9]|1[0-2])\/\d{4}|(0?[1-9]|1[0-2])\/\d{4}\s*(?:-|–|to)\s*Present/i;
+    const dateMatch = firstLine.match(dateRegex);
     
     if (dateMatch) {
       // If first line has dates, it's likely "Company - Location [tab] Dates"
@@ -162,7 +163,7 @@ function extractExperience(lines: string[], fullText: string): ResumeData['exper
       // Second line might be the title
       if (lines.length > 1) {
         // Check if second line has dates
-        const secondDateMatch = lines[1].match(/(0?[1-9]|1[0-2])\/\d{4}\s*(?:-|–|to)\s*(0?[1-9]|1[0-2])\/\d{4}|(0?[1-9]|1[0-2])\/\d{4}\s*(?:-|–|to)\s*Present/i);
+        const secondDateMatch = lines[1].match(dateRegex);
         
         if (secondDateMatch) {
           const parts = lines[1].split(/\s{2,}|\t/);
@@ -173,7 +174,7 @@ function extractExperience(lines: string[], fullText: string): ResumeData['exper
           
           // Third line might have dates
           if (lines.length > 2) {
-            const thirdDateMatch = lines[2].match(/(0?[1-9]|1[0-2])\/\d{4}\s*(?:-|–|to)\s*(0?[1-9]|1[0-2])\/\d{4}|(0?[1-9]|1[0-2])\/\d{4}\s*(?:-|–|to)\s*Present/i);
+            const thirdDateMatch = lines[2].match(dateRegex);
             
             if (thirdDateMatch) {
               dates = lines[2];
@@ -184,7 +185,7 @@ function extractExperience(lines: string[], fullText: string): ResumeData['exper
       
       // Bullets start after title and dates
       let bulletStart = 2;
-      if (lines.length > 2 && lines[2].match(/(0?[1-9]|1[0-2])\/\d{4}\s*(?:-|–|to)\s*(0?[1-9]|1[0-2])\/\d{4}|(0?[1-9]|1[0-2])\/\d{4}\s*(?:-|–|to)\s*Present/i)) {
+      if (lines.length > 2 && lines[2].match(dateRegex)) {
         bulletStart = 3;
       }
       
@@ -260,8 +261,10 @@ function extractEducation(lines: string[], fullText: string): ResumeData['educat
     }
     
     // Check for dates in any line
+    const dateRegex = /(0?[1-9]|1[0-2])\/\d{4}\s*(?:-|–|to)\s*(0?[1-9]|1[0-2])\/\d{4}|(0?[1-9]|1[0-2])\/\d{4}\s*(?:-|–|to)\s*Present|\d{4}\s*(?:-|–|to)\s*\d{4}|\d{4}/i;
+    
     for (let i = 0; i < lines.length; i++) {
-      const dateMatch = lines[i].match(/(0?[1-9]|1[0-2])\/\d{4}\s*(?:-|–|to)\s*(0?[1-9]|1[0-2])\/\d{4}|(0?[1-9]|1[0-2])\/\d{4}\s*(?:-|–|to)\s*Present|\d{4}\s*(?:-|–|to)\s*\d{4}|\d{4}/i);
+      const dateMatch = lines[i].match(dateRegex);
       
       if (dateMatch) {
         dates = lines[i];
@@ -483,7 +486,10 @@ function extractProjects(lines: string[], fullText: string): ResumeData['project
       }
       
       // Check for dates in the line
-      const dateMatch = line.match(/(0?[1-9]|1[0-2])\/\d{4}\s*(?:-|–|to)\s*(0?[1-9]|1[0-2])\/\d{4}|(0?[1-9]|1[0-2])\/\d{4}\s*(?:-|–|to)\s*Present|\d{4}\s*(?:-|–|to)\s*\d{4}|\d{4}-\d{2}|\d{4})/);
+      // Fixed: Use a safer date regex pattern
+      const dateRegex = /(0?[1-9]|1[0-2])\/\d{4}\s*(?:-|–|to)\s*(0?[1-9]|1[0-2])\/\d{4}|(0?[1-9]|1[0-2])\/\d{4}\s*(?:-|–|to)\s*Present|\d{4}\s*(?:-|–|to)\s*\d{4}|\d{4}-\d{2}|\d{4}/i;
+      const dateMatch = line.match(dateRegex);
+      
       if (dateMatch) {
         currentProject.dates = dateMatch[0];
         currentProject.name = currentProject.name.replace(dateMatch[0], '').trim();
@@ -503,7 +509,10 @@ function extractProjects(lines: string[], fullText: string): ResumeData['project
       }
       // Check if it's a date
       else {
-        const dateMatch = line.match(/(0?[1-9]|1[0-2])\/\d{4}\s*(?:-|–|to)\s*(0?[1-9]|1[0-2])\/\d{4}|(0?[1-9]|1[0-2])\/\d{4}\s*(?:-|–|to)\s*Present|\d{4}\s*(?:-|–|to)\s*\d{4}|\d{4})/);
+        // Fixed: Use a safer date regex pattern
+        const dateRegex = /(0?[1-9]|1[0-2])\/\d{4}\s*(?:-|–|to)\s*(0?[1-9]|1[0-2])\/\d{4}|(0?[1-9]|1[0-2])\/\d{4}\s*(?:-|–|to)\s*Present|\d{4}\s*(?:-|–|to)\s*\d{4}|\d{4}/i;
+        const dateMatch = line.match(dateRegex);
+        
         if (dateMatch) {
           currentProject.dates = dateMatch[0];
         } else {
@@ -578,7 +587,9 @@ function extractVolunteering(lines: string[], fullText: string): ResumeData['vol
         
         // The last part might be a date
         const lastPart = parts[parts.length - 1];
-        const dateMatch = lastPart.match(/(0?[1-9]|1[0-2])\/\d{4}\s*(?:-|–|to)\s*(0?[1-9]|1[0-2])\/\d{4}|(0?[1-9]|1[0-2])\/\d{4}\s*(?:-|–|to)\s*Present|\d{4}\s*(?:-|–|to)\s*\d{4}|\d{4})/);
+        // Fixed: Use a safer date regex pattern
+        const dateRegex = /(0?[1-9]|1[0-2])\/\d{4}\s*(?:-|–|to)\s*(0?[1-9]|1[0-2])\/\d{4}|(0?[1-9]|1[0-2])\/\d{4}\s*(?:-|–|to)\s*Present|\d{4}\s*(?:-|–|to)\s*\d{4}|\d{4}/i;
+        const dateMatch = lastPart.match(dateRegex);
         
         if (dateMatch) {
           currentRole.dates = lastPart;
@@ -592,7 +603,10 @@ function extractVolunteering(lines: string[], fullText: string): ResumeData['vol
       }
       
       // Check for dates in the current line or the role line
-      const dateMatch = (currentRole.role || line).match(/(0?[1-9]|1[0-2])\/\d{4}\s*(?:-|–|to)\s*(0?[1-9]|1[0-2])\/\d{4}|(0?[1-9]|1[0-2])\/\d{4}\s*(?:-|–|to)\s*Present|\d{4}\s*(?:-|–|to)\s*\d{4}|\d{4})/);
+      // Fixed: Use a safer date regex pattern
+      const dateRegex = /(0?[1-9]|1[0-2])\/\d{4}\s*(?:-|–|to)\s*(0?[1-9]|1[0-2])\/\d{4}|(0?[1-9]|1[0-2])\/\d{4}\s*(?:-|–|to)\s*Present|\d{4}\s*(?:-|–|to)\s*\d{4}|\d{4}/i;
+      const dateMatch = (currentRole.role || line).match(dateRegex);
+      
       if (dateMatch) {
         currentRole.dates = dateMatch[0];
         
@@ -609,7 +623,10 @@ function extractVolunteering(lines: string[], fullText: string): ResumeData['vol
     // This might be additional information
     else if (line && currentRole) {
       // Check if it's a date
-      const dateMatch = line.match(/(0?[1-9]|1[0-2])\/\d{4}\s*(?:-|–|to)\s*(0?[1-9]|1[0-2])\/\d{4}|(0?[1-9]|1[0-2])\/\d{4}\s*(?:-|–|to)\s*Present|\d{4}\s*(?:-|–|to)\s*\d{4}|\d{4})/);
+      // Fixed: Use a safer date regex pattern
+      const dateRegex = /(0?[1-9]|1[0-2])\/\d{4}\s*(?:-|–|to)\s*(0?[1-9]|1[0-2])\/\d{4}|(0?[1-9]|1[0-2])\/\d{4}\s*(?:-|–|to)\s*Present|\d{4}\s*(?:-|–|to)\s*\d{4}|\d{4}/i;
+      const dateMatch = line.match(dateRegex);
+      
       if (dateMatch && !currentRole.dates) {
         currentRole.dates = line;
       }
