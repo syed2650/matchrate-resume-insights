@@ -1,3 +1,4 @@
+
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, TabStopPosition, TabStopType, BorderStyle } from "docx";
 import { ResumeData } from "./standardResumeTemplate";
 
@@ -412,12 +413,17 @@ function createFormattedDocument(resumeData: ResumeData) {
     if (resumeData.skills.technical && resumeData.skills.technical.length > 0) {
       documentElements.push(
         new Paragraph({
-          text: "Technical Skills",
+          children: [
+            new TextRun({
+              text: "Technical Skills",
+              bold: true,
+              size: 24,
+            })
+          ],
           spacing: {
             before: 120, // 6pt
             after: 60, // 3pt
           },
-          bold: true,
         })
       );
       
@@ -435,12 +441,17 @@ function createFormattedDocument(resumeData: ResumeData) {
     if (resumeData.skills.soft && resumeData.skills.soft.length > 0) {
       documentElements.push(
         new Paragraph({
-          text: "Soft Skills",
+          children: [
+            new TextRun({
+              text: "Soft Skills",
+              bold: true,
+              size: 24,
+            })
+          ],
           spacing: {
             before: 120, // 6pt
             after: 60, // 3pt
           },
-          bold: true,
         })
       );
       
@@ -458,12 +469,17 @@ function createFormattedDocument(resumeData: ResumeData) {
     if (resumeData.skills.other && resumeData.skills.other.length > 0) {
       documentElements.push(
         new Paragraph({
-          text: "Additional Skills",
+          children: [
+            new TextRun({
+              text: "Additional Skills",
+              bold: true,
+              size: 24,
+            })
+          ],
           spacing: {
             before: 120, // 6pt
             after: 60, // 3pt
           },
-          bold: true,
         })
       );
       

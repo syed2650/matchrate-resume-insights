@@ -491,7 +491,7 @@ function extractProjects(lines: string[], fullText: string): ResumeData['project
       }
     }
     // Check if this is a bullet point for the current project
-    else if (line && line.startsWith('•') || line.startsWith('-')) {
+    else if (line && (line.startsWith('•') || line.startsWith('-'))) {
       bullets.push(line.substring(1).trim());
     }
     // This might be a description or other information
