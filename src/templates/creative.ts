@@ -10,7 +10,8 @@ const creativeTemplate: ResumeTemplate = {
   fontFamily: 'Montserrat, sans-serif',
   sectionTitleCase: 'capitalize',
   layout: 'two-column',
-  headerStyle: 'bordered'
+  headerStyle: 'bordered',
+  spacing: 'standard'
 };
 
 export default creativeTemplate;

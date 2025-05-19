@@ -1,6 +1,6 @@
 
-import { Document, Paragraph, TextRun, AlignmentType } from "docx";
-import { ResumeTemplate } from "./resumeRewriter";
+import { Document, Paragraph, TextRun, AlignmentType, Packer } from "docx";
+import { ResumeTemplate, ResumeData } from "./resumeRewriter";
 
 /**
  * Generate a formatted DOCX document from resume content using the specified template
@@ -31,7 +31,7 @@ export const generateFormattedDocx = async (resumeContent: string, template: Res
  * @param template Template to use
  * @returns DOCX Document object
  */
-const generateResumeDocx = (resumeData: any, template: ResumeTemplate): Document => {
+const generateResumeDocx = (resumeData: ResumeData, template: ResumeTemplate): Document => {
   // Create basic document with proper styles
   const doc = new Document({
     sections: [{
@@ -39,14 +39,14 @@ const generateResumeDocx = (resumeData: any, template: ResumeTemplate): Document
       children: [
         // Header with name
         new Paragraph({
-          text: resumeData.name || "Your Name",
+          text: resumeData.header.name || "Your Name",
           alignment: AlignmentType.CENTER,
           spacing: {
             after: 200,
           },
           children: [
             new TextRun({
-              text: resumeData.name || "Your Name",
+              text: resumeData.header.name || "Your Name",
               bold: true,
               size: 36, // 18pt
             }),
@@ -98,7 +98,7 @@ const generateResumeDocx = (resumeData: any, template: ResumeTemplate): Document
  * @returns Blob
  */
 const docToBlob = async (doc: Document): Promise<Blob> => {
-  return await doc.Packer.toBlob(doc);
+  return await Packer.toBlob(doc);
 };
 
 /**
@@ -106,12 +106,18 @@ const docToBlob = async (doc: Document): Promise<Blob> => {
  * @param content Resume content as text
  * @returns Parsed resume data
  */
-const parseResumeContent = (content: string): Record<string, any> => {
+const parseResumeContent = (content: string): ResumeData => {
   const lines = content.split('\n').map(line => line.trim()).filter(Boolean);
   
-  const parsedData: Record<string, any> = {
-    name: '',
-    contact: '',
+  const parsedData: ResumeData = {
+    header: {
+      name: '',
+      contact: {
+        email: '',
+        phone: '',
+        location: ''
+      }
+    },
     summary: '',
     experience: [],
     education: [],
@@ -120,11 +126,31 @@ const parseResumeContent = (content: string): Record<string, any> => {
   
   // Basic parsing - extract name from first line
   if (lines.length > 0) {
-    parsedData.name = lines[0];
+    parsedData.header.name = lines[0];
     
     // Get contact info (typically line 2)
     if (lines.length > 1) {
-      parsedData.contact = lines[1];
+      const contactLine = lines[1];
+      // Extract email
+      const emailMatch = contactLine.match(/[\w.-]+@[\w.-]+\.\w+/);
+      if (emailMatch) {
+        parsedData.header.contact.email = emailMatch[0];
+      }
+      
+      // Extract phone
+      const phoneMatch = contactLine.match(/\+?[\d-\s()]{10,}/);
+      if (phoneMatch) {
+        parsedData.header.contact.phone = phoneMatch[0];
+      }
+      
+      // Extract location (anything remaining)
+      let location = contactLine
+        .replace(parsedData.header.contact.email, '')
+        .replace(parsedData.header.contact.phone, '')
+        .replace(/[|,]\s*/g, '')
+        .trim();
+      
+      parsedData.header.contact.location = location;
     }
   }
   
@@ -145,7 +171,10 @@ const parseResumeContent = (content: string): Record<string, any> => {
       } else if (currentSection === 'EDUCATION') {
         parsedData.education = processEducationSection(sectionContent);
       } else if (currentSection === 'SKILLS') {
-        parsedData.skills = sectionContent;
+        parsedData.skills = sectionContent.map((skill, index) => ({
+          name: skill,
+          level: Math.max(60, Math.min(95, 95 - index * 3)) // Assign higher proficiency to earlier skills
+        }));
       }
       
       // Start new section
@@ -165,7 +194,10 @@ const parseResumeContent = (content: string): Record<string, any> => {
   } else if (currentSection === 'EDUCATION') {
     parsedData.education = processEducationSection(sectionContent);
   } else if (currentSection === 'SKILLS') {
-    parsedData.skills = sectionContent;
+    parsedData.skills = sectionContent.map((skill, index) => ({
+      name: skill,
+      level: Math.max(60, Math.min(95, 95 - index * 3))
+    }));
   }
   
   return parsedData;

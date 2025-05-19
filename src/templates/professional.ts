@@ -7,10 +7,11 @@ const professionalTemplate: ResumeTemplate = {
   fontFamily: "'Georgia', serif",
   primaryColor: "#143564",
   secondaryColor: "#F8F9FA",
-  headerStyle: "uppercase",
+  headerStyle: "centered",
   sectionDividers: false,
   spacing: "standard",
   layout: "single-column",
+  sectionTitleCase: "capitalize",
   preview: "/templates/professional-preview.png" // This would be the path to a preview image
 };
 

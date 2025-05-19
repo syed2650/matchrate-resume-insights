@@ -1,3 +1,4 @@
+
 import { ResumeTemplate } from "../utils/resumeRewriter";
 
 const modernTemplate: ResumeTemplate = {
@@ -6,7 +7,7 @@ const modernTemplate: ResumeTemplate = {
   fontFamily: "'Open Sans', sans-serif",
   primaryColor: "#2D74FF",
   secondaryColor: "#E6F0FF",
-  headerStyle: "bold",
+  headerStyle: "centered",
   sectionDividers: true,
   spacing: "compact",
   layout: "two-column",

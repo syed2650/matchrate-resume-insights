@@ -5,13 +5,59 @@ import { Document, Paragraph, TextRun, AlignmentType } from "docx";
 export interface ResumeTemplate {
   id: string;
   name: string;
-  description: string;
+  description?: string;
   primaryColor: string;
   secondaryColor: string;
   fontFamily: string;
-  sectionTitleCase: 'uppercase' | 'capitalize';
+  sectionTitleCase?: 'uppercase' | 'capitalize';
   layout: 'single-column' | 'two-column';
-  headerStyle: 'centered' | 'left-aligned' | 'bordered';
+  headerStyle: 'centered' | 'left-aligned' | 'bordered' | 'bold' | 'uppercase';
+  sectionDividers?: boolean;
+  spacing?: 'compact' | 'standard' | 'wide';
+  preview?: string;
+  columnRatio?: number;
+  headerSpanColumns?: boolean;
+  sidebarSection?: 'left' | 'right';
+  skillStyle?: 'bar' | 'text';
+  borderRadius?: string;
+  iconSet?: string;
+  bulletStyle?: string;
+}
+
+// Define the ResumeData interface for structured resume data
+export interface ResumeData {
+  header: {
+    name: string;
+    contact: {
+      email: string;
+      phone: string;
+      location: string;
+    }
+  };
+  summary: string;
+  experience: Array<{
+    position?: string;
+    company?: string;
+    date?: string;
+    bullets?: string[];
+  }>;
+  education: Array<{
+    degree?: string;
+    institution?: string;
+    date?: string;
+    details?: string[];
+  }>;
+  skills: Array<{
+    name: string;
+    level: number;
+  }>;
+  projects?: Array<{
+    name?: string;
+    description?: string;
+    bullets?: string[];
+  }>;
+  certifications?: string[];
+  achievements?: string[];
 }
 
 // Define the resume templates
@@ -26,6 +72,15 @@ export const resumeTemplates: ResumeTemplate[] = [
     sectionTitleCase: 'uppercase',
     layout: 'two-column',
     headerStyle: 'centered',
+    spacing: 'compact',
+    sectionDividers: true,
+    columnRatio: 70,
+    headerSpanColumns: true,
+    sidebarSection: 'right',
+    skillStyle: 'bar',
+    borderRadius: '4px',
+    iconSet: 'minimal',
+    bulletStyle: 'circle'
   },
   {
     id: 'professional',
@@ -37,6 +92,8 @@ export const resumeTemplates: ResumeTemplate[] = [
     sectionTitleCase: 'capitalize',
     layout: 'single-column',
     headerStyle: 'centered',
+    spacing: 'standard',
+    sectionDividers: false
   },
   {
     id: 'creative',
@@ -48,6 +105,7 @@ export const resumeTemplates: ResumeTemplate[] = [
     sectionTitleCase: 'capitalize',
     layout: 'two-column',
     headerStyle: 'bordered',
+    spacing: 'standard'
   }
 ];
 
@@ -56,7 +114,7 @@ export const resumeTemplates: ResumeTemplate[] = [
  * @param resumeContent Raw resume text
  * @returns Structured resume data
  */
-export function parseResumeContent(resumeContent: string): any {
+export function parseResumeContent(resumeContent: string): ResumeData {
   // Basic implementation to parse resume text
   const lines = resumeContent.split('\n').filter(line => line.trim().length > 0);
   
