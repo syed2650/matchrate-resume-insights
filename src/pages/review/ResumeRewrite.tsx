@@ -14,8 +14,7 @@ import { formatResumeContent, extractRoleSummary } from "./utils/resumeFormatter
 import { ResumeRewriteProps } from "./types";
 import PremiumFeatureModal from "./components/PremiumFeatureModal";
 import TemplateSelector from "./components/TemplateSelector";
-import { ResumeRewriter } from "@/utils/resumeRewriter";
-import { templates } from "@/templates";
+import { resumeTemplates } from "@/utils/resumeRewriter";
 
 const ResumeRewrite: React.FC<ResumeRewriteProps> = ({ 
   rewrittenResume, 
@@ -43,7 +42,7 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
   const roleSummary = extractRoleSummary(rawResume);
   
   // Get the selected template
-  const selectedTemplate = templates.find(t => t.id === selectedTemplateId) || templates[0];
+  const selectedTemplate = resumeTemplates.find(t => t.id === selectedTemplateId) || resumeTemplates[0];
   
   useEffect(() => {
     // Check if user has premium access
@@ -96,8 +95,8 @@ const ResumeRewrite: React.FC<ResumeRewriteProps> = ({
       
       {isPremiumUser && (
         <TemplateSelector 
-          selectedTemplateId={selectedTemplateId} 
-          onChange={handleTemplateChange} 
+          selectedTemplate={selectedTemplateId} 
+          onSelectTemplate={handleTemplateChange} 
         />
       )}
       

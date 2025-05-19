@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { generateFormattedDocx } from "../utils/resumeDocGenerator";
 import { Progress } from "@/components/ui/progress";
 import { trackRewriteUsage } from "../utils";
-import { templates } from "@/templates";
+import { resumeTemplates } from "@/utils/resumeRewriter";
 
 interface ResumeDownloadButtonProps {
   currentResume: string;
@@ -34,7 +34,7 @@ const ResumeDownloadButton: React.FC<ResumeDownloadButtonProps> = ({
     
     try {
       // Get template
-      const template = templates.find(t => t.id === templateId) || templates[0];
+      const template = resumeTemplates.find(t => t.id === templateId) || resumeTemplates[0];
       
       const docBlob = await generateFormattedDocx(currentResume, template);
       if (!docBlob) {

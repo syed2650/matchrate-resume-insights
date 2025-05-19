@@ -1,3 +1,4 @@
+
 import { parseResumeIntoData } from './parseresumeintodata';
 
 /**
@@ -22,6 +23,44 @@ export interface ResumeTemplate {
   iconSet?: string;
   bulletStyle?: string;
   preview?: string;
+}
+
+/**
+ * Resume Data interface - used for template implementation
+ */
+export interface ResumeData {
+  header: {
+    name: string;
+    contact: {
+      email: string;
+      phone: string;
+      location: string;
+    }
+  };
+  summary: string;
+  experience: Array<{
+    position?: string;
+    company?: string;
+    date?: string;
+    bullets?: string[];
+  }>;
+  education: Array<{
+    degree?: string;
+    institution?: string;
+    date?: string;
+    details?: string[];
+  }>;
+  skills: Array<{
+    name: string;
+    level: number;
+  }>;
+  projects?: Array<{
+    name?: string;
+    description?: string;
+    bullets?: string[];
+  }>;
+  certifications?: string[];
+  achievements?: string[];
 }
 
 /**
