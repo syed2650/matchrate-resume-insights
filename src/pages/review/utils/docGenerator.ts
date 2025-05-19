@@ -29,6 +29,7 @@ const SPACING = {
   sectionSpace: 300, // Space after sections
   headingAfter: 120, // Space after heading title
   betweenParagraphs: 100, // Space between bullet points
+  betweenExperiences: 240, // Space between experience entries
 };
 
 export const generateDocument = async (data: ResumeData) => {
@@ -144,96 +145,64 @@ export const generateDocument = async (data: ResumeData) => {
             spacing: { after: SPACING.headingAfter },
           }),
 
-          ...data.experiences.flatMap((exp) => [
-            // Company and role in left, dates in extreme right
-            new Table({
-              width: { size: 100, type: "pct" },
-              borders: {
-                top: { style: BorderStyle.NONE },
-                bottom: { style: BorderStyle.NONE },
-                left: { style: BorderStyle.NONE },
-                right: { style: BorderStyle.NONE },
-                insideHorizontal: { style: BorderStyle.NONE },
-                insideVertical: { style: BorderStyle.NONE },
-              },
-              rows: [
-                new TableRow({
-                  children: [
-                    new TableCell({
-                      width: { size: 70, type: WidthType.PERCENTAGE },
-                      children: [
-                        new Paragraph({
-                          children: [
-                            new TextRun({
-                              text: exp.company.split('•')[0].trim(), // Only take company name, remove location
-                              bold: true, // Make company name bold
-                              size: 22,
-                              font: FONT.main,
-                            }),
-                          ],
-                        }),
-                      ],
-                      borders: {
-                        top: { style: BorderStyle.NONE },
-                        bottom: { style: BorderStyle.NONE },
-                        left: { style: BorderStyle.NONE },
-                        right: { style: BorderStyle.NONE },
-                      },
-                    }),
-                    new TableCell({
-                      width: { size: 30, type: WidthType.PERCENTAGE },
-                      children: [
-                        new Paragraph({
-                          alignment: AlignmentType.RIGHT,
-                          children: [
-                            new TextRun({
-                              text: exp.dates,
-                              bold: true, // Make dates bold
-                              size: 22,
-                              font: FONT.main,
-                            }),
-                          ],
-                        }),
-                      ],
-                      borders: {
-                        top: { style: BorderStyle.NONE },
-                        bottom: { style: BorderStyle.NONE },
-                        left: { style: BorderStyle.NONE },
-                        right: { style: BorderStyle.NONE },
-                      },
-                    }),
-                  ],
-                }),
-                // Job title in a separate row
-                new TableRow({
-                  children: [
-                    new TableCell({
-                      width: { size: 100, type: WidthType.PERCENTAGE },
-                      children: [
-                        new Paragraph({
-                          children: [
-                            new TextRun({
-                              text: exp.title,
-                              bold: true, // Make job title bold
-                              size: 22,
-                              font: FONT.main,
-                            }),
-                          ],
-                          spacing: { after: 80 },
-                        }),
-                      ],
-                      columnSpan: 2,
-                      borders: {
-                        top: { style: BorderStyle.NONE },
-                        bottom: { style: BorderStyle.NONE },
-                        left: { style: BorderStyle.NONE },
-                        right: { style: BorderStyle.NONE },
-                      },
-                    }),
-                  ],
+          ...data.experiences.flatMap((exp, expIndex) => [
+            // Job title - Bold
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: exp.title,
+                  bold: true,
+                  size: 22,
+                  font: FONT.main,
                 }),
               ],
+              spacing: { after: 80 },
             }),
+            
+            // Company name - Bold
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: exp.company,
+                  bold: true,
+                  size: 22,
+                  font: FONT.main,
+                }),
+              ],
+              spacing: { after: 80 },
+            }),
+            
+            // Dates - Not bold
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: exp.dates,
+                  bold: false, // Not bold
+                  size: 22,
+                  font: FONT.main,
+                  color: "666666", // Light gray to match the preview
+                }),
+              ],
+              spacing: { after: 80 },
+            }),
+            
+            // Location (if available) - Not bold
+            ...(exp.location ? [
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: exp.location,
+                    bold: false, // Not bold
+                    size: 22,
+                    font: FONT.main,
+                    color: "666666", // Light gray to match the preview
+                  }),
+                ],
+                spacing: { after: 120 }, // More space before bullet points
+              })
+            ] : []),
+            
+            // Bullet points - Not bold with round bullets
             ...exp.bullets.map((bullet) =>
               new Paragraph({
                 children: [
@@ -246,13 +215,20 @@ export const generateDocument = async (data: ResumeData) => {
                     text: bullet,
                     size: 22,
                     font: FONT.main,
+                    bold: false, // Not bold
                   }),
                 ],
                 indent: { left: 360 },
                 spacing: { after: SPACING.betweenParagraphs, line: 360 },
               })
             ),
-            new Paragraph({ spacing: { after: SPACING.betweenParagraphs } }),
+            
+            // Add spacing between experiences (except after the last one)
+            ...(expIndex < data.experiences.length - 1 ? [
+              new Paragraph({ 
+                spacing: { after: SPACING.betweenExperiences }
+              })
+            ] : []),
           ]),
 
           // KEY SKILLS - Bold heading
