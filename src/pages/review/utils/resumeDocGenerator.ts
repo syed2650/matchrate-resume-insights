@@ -17,7 +17,9 @@ import {
   PageNumber,
   PageBreak,
   ShadingType,
-  ExternalHyperlink
+  ExternalHyperlink,
+  IStylesOptions,
+  IRunOptions
 } from 'docx';
 import { ResumeTemplate } from '@/utils/resumeRewriter';
 
@@ -64,7 +66,6 @@ export const generateResumeDocx = (resumeData: ResumeData, template: ResumeTempl
     creator: "MatchRate Resume Builder",
     description: "Professional resume created with MatchRate",
     lastModifiedBy: "MatchRate",
-    sections: []
   };
 
   // Select template-specific generator
@@ -97,7 +98,7 @@ function generateModernDocx(
   const secondaryColor = template.secondaryColor.replace('#', '');
   
   // Document styles
-  const styles = {
+  const styles: IStylesOptions = {
     paragraphStyles: [
       {
         id: 'Normal',
@@ -209,7 +210,6 @@ function generateModernDocx(
           spacing: {
             after: 80,
           },
-          // Fixed bullet to use numbered approach instead
           numbering: {
             reference: 'bulletList',
             level: 0,
@@ -217,24 +217,6 @@ function generateModernDocx(
         },
       },
     ],
-    // Adding numbered lists for bullets
-    default: {
-      numbering: {
-        config: [
-          {
-            reference: 'bulletList',
-            levels: [
-              {
-                level: 0,
-                format: 'bullet',
-                text: '•',
-                alignment: AlignmentType.LEFT,
-              }
-            ]
-          }
-        ]
-      }
-    }
   };
 
   // Create the document with proper sections

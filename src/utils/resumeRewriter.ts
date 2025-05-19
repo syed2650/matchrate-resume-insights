@@ -1,509 +1,299 @@
-import { parseResumeIntoData } from '../pages/review/utils/parseResumeIntoData';
 
-/**
- * Resume Template interface - defines the structure of resume templates
- */
+import { Document, Paragraph, TextRun, AlignmentType } from "docx";
+
+// Define the resume template interface
 export interface ResumeTemplate {
   id: string;
   name: string;
-  fontFamily: string;
+  description: string;
   primaryColor: string;
   secondaryColor: string;
-  headerStyle: string;
-  sectionDividers: boolean;
-  spacing: string;
-  layout: string;
-  columnRatio?: number;
-  headerSpanColumns?: boolean;
-  sidebarSection?: string;
-  skillStyle?: string;
-  borderRadius?: string;
-  sectionTitleCase?: string;
-  iconSet?: string;
-  bulletStyle?: string;
-  preview?: string;
-  accent?: string; // Added for creative template
+  fontFamily: string;
+  sectionTitleCase: 'uppercase' | 'capitalize';
+  layout: 'single-column' | 'two-column';
+  headerStyle: 'centered' | 'left-aligned' | 'bordered';
 }
 
-/**
- * Resume Data interface - used for template implementation
- */
-export interface ResumeData {
-  header: {
-    name: string;
-    contact: {
-      email: string;
-      phone: string;
-      location: string;
-    }
-  };
-  summary: string;
-  experience: Array<{
-    position?: string;
-    company?: string;
-    date?: string;
-    bullets?: string[];
-  }>;
-  education: Array<{
-    degree?: string;
-    institution?: string;
-    date?: string;
-    details?: string[];
-  }>;
-  skills: Array<{
-    name: string;
-    level: number;
-  }>;
-  projects?: Array<{
-    name?: string;
-    description?: string;
-    bullets?: string[];
-  }>;
-  certifications?: string[];
-  achievements?: string[];
-}
-
-/**
- * Enhanced Resume Data interface - used for the template system
- * This is different from the original ResumeData in parseresumeintodata.ts
- */
-export interface EnhancedResumeData {
-  header: {
-    name: string;
-    contact: {
-      email: string;
-      phone: string;
-      location: string;
-    }
-  };
-  summary: string;
-  experience: Array<{
-    position?: string;
-    company?: string;
-    date?: string;
-    bullets?: string[];
-  }>;
-  education: Array<{
-    degree?: string;
-    institution?: string;
-    date?: string;
-    details?: string[];
-  }>;
-  skills: Array<{
-    name: string;
-    level: number;
-  }>;
-  projects?: Array<{
-    name?: string;
-    description?: string;
-    bullets?: string[];
-  }>;
-  certifications?: string[];
-  achievements?: string[];
-}
-
-/**
- * Available templates for resume
- */
+// Define the resume templates
 export const resumeTemplates: ResumeTemplate[] = [
   {
     id: 'modern',
     name: 'Modern',
-    fontFamily: "'Open Sans', sans-serif",
-    primaryColor: "#2D74FF",
-    secondaryColor: "#E6F0FF",
-    headerStyle: "bold",
-    sectionDividers: true,
-    spacing: "compact",
-    layout: "two-column",
-    columnRatio: 70,
-    headerSpanColumns: true,
-    sidebarSection: "right",
-    skillStyle: "bar",
-    borderRadius: "4px",
-    sectionTitleCase: "uppercase",
-    iconSet: "minimal",
-    bulletStyle: "circle"
+    description: 'Clean, professional design with two-column layout',
+    primaryColor: '#3B82F6',
+    secondaryColor: '#1E293B',
+    fontFamily: 'Inter, sans-serif',
+    sectionTitleCase: 'uppercase',
+    layout: 'two-column',
+    headerStyle: 'centered',
   },
   {
     id: 'professional',
     name: 'Professional',
-    fontFamily: "'Georgia', serif",
-    primaryColor: "#143564",
-    secondaryColor: "#F5F5F5",
-    headerStyle: "uppercase",
-    sectionDividers: true,
-    spacing: "standard",
-    layout: "single-column",
-    sectionTitleCase: "uppercase",
-    bulletStyle: "square"
+    description: 'Traditional single-column layout with subtle styling',
+    primaryColor: '#1E293B',
+    secondaryColor: '#475569',
+    fontFamily: 'Georgia, serif',
+    sectionTitleCase: 'capitalize',
+    layout: 'single-column',
+    headerStyle: 'centered',
   },
   {
     id: 'creative',
     name: 'Creative',
-    fontFamily: "'Montserrat', sans-serif",
-    primaryColor: "#6B3FA0",
-    secondaryColor: "#FDF7FF",
-    headerStyle: "mixed",
-    sectionDividers: false,
-    spacing: "airy",
-    layout: "asymmetric",
-    skillStyle: "circle",
-    borderRadius: "8px",
-    sectionTitleCase: "titlecase",
-    iconSet: "decorative",
-    bulletStyle: "dash",
-    accent: "#FFD700" // Added accent color for creative template
+    description: 'Modern design with accent colors and bold typography',
+    primaryColor: '#8B5CF6',
+    secondaryColor: '#1E293B',
+    fontFamily: 'Montserrat, sans-serif',
+    sectionTitleCase: 'capitalize',
+    layout: 'two-column',
+    headerStyle: 'bordered',
   }
 ];
 
 /**
- * Convert from the original ResumeData structure to the enhanced ResumData structure
- * @param originalData Original data from parseResumeIntoData
- * @returns Enhanced ResumeData structure for templates
+ * Parse resume content into structured data for templates
+ * @param resumeContent Raw resume text
+ * @returns Structured resume data
  */
-export function convertToEnhancedResumeData(originalData: ReturnType<typeof parseResumeIntoData>): EnhancedResumeData {
-  // Extract contact information
-  const contactParts = originalData.contact.split(/\s*\|\s*/);
-  const contactInfo = {
-    email: contactParts.find(part => part.includes('@')) || '',
-    phone: contactParts.find(part => /\+?\d[\d\s-]+\d/.test(part)) || '',
-    location: contactParts.find(part => !part.includes('@') && !/\+?\d[\d\s-]+\d/.test(part)) || ''
-  };
-
-  // Convert summary
-  const summary = originalData.summary.join('\n');
-
-  // Convert experience
-  const experience = originalData.experiences.map(exp => ({
-    position: exp.title,
-    company: exp.company,
-    date: exp.dates,
-    bullets: exp.bullets
-  }));
-
-  // Convert education
-  const education = originalData.education.map(edu => {
-    const parts = edu.split(/,\s*/);
-    return {
-      degree: parts[0] || '',
-      institution: parts[1] || '',
-      date: parts[2] || '',
-      details: [] as string[]
-    };
-  });
-
-  // Convert skills with skill levels
-  const skills = originalData.skills.map((skill, index) => {
-    // Generate a skill level based on position - earlier skills are usually more proficient
-    const level = Math.max(70, Math.min(98, 95 - index * 2));
-    return {
-      name: skill,
-      level
-    };
-  });
-
-  // Convert recognition to achievements
-  const achievements = originalData.recognition || [];
-
+export function parseResumeContent(resumeContent: string): any {
+  // Basic implementation to parse resume text
+  const lines = resumeContent.split('\n').filter(line => line.trim().length > 0);
+  
+  // Extract name and contact info from the first lines
+  const name = lines.length > 0 ? lines[0] : 'John Doe';
+  
+  // Extract contact info (typically in the second line)
+  const contactLine = lines.length > 1 ? lines[1] : '';
+  const email = contactLine.match(/[\w.-]+@[\w.-]+\.\w+/) ? 
+    contactLine.match(/[\w.-]+@[\w.-]+\.\w+/)![0] : '';
+  const phone = contactLine.match(/\+?[\d-\s()]{10,}/) ? 
+    contactLine.match(/\+?[\d-\s()]{10,}/)![0] : '';
+  
+  // Everything else is the location
+  const location = contactLine
+    .replace(email, '')
+    .replace(phone, '')
+    .replace(/[|,]\s*/g, '')
+    .trim();
+  
+  // Find sections
+  let currentSection = '';
+  let sectionContent: string[] = [];
+  const sections: Record<string, string[]> = {};
+  
+  for (let i = 2; i < lines.length; i++) {
+    const line = lines[i].trim();
+    
+    // Check if this is a section header (all caps, at least 4 chars)
+    if (line === line.toUpperCase() && line.length > 3 && !/\d/.test(line)) {
+      // Save previous section
+      if (currentSection) {
+        sections[currentSection] = sectionContent;
+      }
+      
+      // Start new section
+      currentSection = line;
+      sectionContent = [];
+    } else if (currentSection) {
+      sectionContent.push(line);
+    }
+  }
+  
+  // Save the last section
+  if (currentSection) {
+    sections[currentSection] = sectionContent;
+  }
+  
+  // Extract summary
+  const summary = sections['SUMMARY'] ? sections['SUMMARY'].join(' ') : 
+    'Professional with experience in the industry.';
+  
+  // Parse experience
+  const experience = parseExperience(sections['EXPERIENCE'] || []);
+  
+  // Parse education
+  const education = parseEducation(sections['EDUCATION'] || []);
+  
+  // Parse skills
+  const skills = parseSkills(sections['SKILLS'] || []);
+  
   return {
     header: {
-      name: originalData.name,
-      contact: contactInfo
+      name,
+      contact: {
+        email,
+        phone,
+        location
+      }
     },
     summary,
     experience,
     education,
     skills,
-    achievements
+    achievements: sections['ACHIEVEMENTS'] || []
   };
 }
 
 /**
- * Enhanced resume content with stronger action verbs and quantifiable achievements
- * @param resumeData Resume data to enhance
- * @returns Enhanced resume data
+ * Parse experience section into structured format
  */
-export function enhanceContent(resumeData: EnhancedResumeData): EnhancedResumeData {
-  const enhanced = JSON.parse(JSON.stringify(resumeData)) as EnhancedResumeData;
+function parseExperience(lines: string[]): any[] {
+  if (lines.length === 0) return [];
   
-  // Enhance summary with stronger language
-  if (enhanced.summary) {
-    enhanced.summary = enhanced.summary
-      .replace(/^(.*) with over (\d+) years of experience in (.*)$/i, 
-        "Results-driven, strategic $1 with $2+ years of proven expertise in $3.")
-      .replace(/detailed oriented/i, "detail-oriented")
-      .replace(/helps?/i, "drives")
-      .replace(/worked on/i, "Spearheaded")
-      .replace(/responsible for/i, "Led");
-  }
+  const experience: any[] = [];
+  let currentJob: {
+    position?: string;
+    company?: string;
+    date?: string;
+    bullets: string[];
+  } | null = null;
   
-  // Enhance experience bullets with stronger action verbs and metrics
-  enhanced.experience = enhanced.experience.map(job => {
-    const enhancedJob = {...job};
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
     
-    // Enhance bullets with stronger action verbs
-    if (enhancedJob.bullets) {
-      enhancedJob.bullets = enhancedJob.bullets.map(bullet => {
-        let enhanced = bullet
-          .replace(/^worked on/i, "Spearheaded")
-          .replace(/^helped/i, "Contributed to")
-          .replace(/^was responsible for/i, "Led")
-          .replace(/^responsible for/i, "Led")
-          .replace(/^did/i, "Executed")
-          .replace(/^made/i, "Developed")
-          .replace(/^created/i, "Designed")
-          .replace(/^wrote/i, "Authored")
-          .replace(/^managed/i, "Orchestrated")
-          .replace(/^built/i, "Constructed");
-        
-        // Don't add metrics placeholder in production
-        return enhanced;
-      });
+    // Check if this is a new job entry (contains company and date)
+    const isJobHeader = /\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}\b/.test(line) ||
+      /\b\d{4}\s*(-|–|—)\s*(?:\d{4}|Present)\b/i.test(line);
+    
+    if (isJobHeader) {
+      // Save previous job if exists
+      if (currentJob) {
+        experience.push(currentJob);
+      }
+      
+      // Start new job
+      const dateMatch = line.match(/\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}\s*(-|–|—)\s*(?:\w+\s+\d{4}|Present)\b/i) ||
+        line.match(/\b\d{4}\s*(-|–|—)\s*(?:\d{4}|Present)\b/i);
+      
+      const date = dateMatch ? dateMatch[0] : '';
+      
+      // What remains should be company and position
+      let remaining = line.replace(date, '').trim();
+      remaining = remaining.replace(/[,|]/, '');
+      
+      // Try to split company and position
+      const parts = remaining.split(/\s+[-|]\s+|,\s+/);
+      
+      currentJob = {
+        position: parts.length > 1 ? parts[0] : '',
+        company: parts.length > 1 ? parts[1] : parts[0],
+        date,
+        bullets: []
+      };
+    } else if (line.startsWith('•') || line.startsWith('-') || line.startsWith('*') || /^\d+\./.test(line)) {
+      // This is a bullet point
+      if (currentJob) {
+        currentJob.bullets.push(line.replace(/^[•\-*]\s*|^\d+\.\s*/, ''));
+      }
+    } else if (currentJob && !currentJob.position && line) {
+      // This might be the position if it wasn't in the header
+      currentJob.position = line;
+    } else if (currentJob && line) {
+      // This is probably a continuation or a non-bullet description
+      currentJob.bullets.push(line);
     }
+  }
+  
+  // Add the last job
+  if (currentJob) {
+    experience.push(currentJob);
+  }
+  
+  return experience;
+}
+
+/**
+ * Parse education section into structured format
+ */
+function parseEducation(lines: string[]): any[] {
+  if (lines.length === 0) return [];
+  
+  const education: any[] = [];
+  let currentEdu: {
+    degree?: string;
+    institution?: string;
+    date?: string;
+    details: string[];
+  } | null = null;
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
     
-    return enhancedJob;
-  });
-  
-  // Enhance skills - sort by relevance
-  if (enhanced.skills.length > 0) {
-    enhanced.skills.sort((a, b) => b.level - a.level);
-  }
-  
-  return enhanced;
-}
-
-/**
- * Select the best resume format based on career stage
- * @param resumeData Resume data to analyze
- * @returns Format name (chronological, functional, hybrid)
- */
-export function selectBestFormat(resumeData: EnhancedResumeData): string {
-  // Calculate total years of experience
-  const totalExperience = resumeData.experience.reduce((total, job) => {
-    if (job.date) {
-      const years = extractYearsFromDateRange(job.date);
-      return total + years;
-    }
-    return total;
-  }, 0);
-  
-  // Check for employment gaps
-  const hasGaps = checkForEmploymentGaps(resumeData.experience);
-  
-  // Check for career changes
-  const hasCareerChanges = checkForCareerChanges(resumeData.experience);
-  
-  if (totalExperience < 2 || hasGaps) {
-    return "functional"; // Skills-based for less experience or gaps
-  } else if (hasCareerChanges) {
-    return "hybrid"; // Combination for career changers
-  } else {
-    return "chronological"; // Standard for consistent career path
-  }
-}
-
-/**
- * Extract years of experience from a date range string
- * @param dateRange Date range string (e.g., "Jan 2020 - Present")
- * @returns Number of years
- */
-function extractYearsFromDateRange(dateRange: string): number {
-  const parts = dateRange.split(/[-–—]/);
-  if (parts.length !== 2) return 0;
-  
-  const startDateStr = parts[0].trim();
-  const endDateStr = parts[1].trim();
-  
-  const startYear = extractYearFromDateString(startDateStr);
-  const endYear = endDateStr.toLowerCase() === 'present' 
-    ? new Date().getFullYear() 
-    : extractYearFromDateString(endDateStr);
-  
-  return endYear - startYear;
-}
-
-/**
- * Extract year from date string
- * @param dateStr Date string (e.g., "Jan 2020" or "01/2020")
- * @returns Year as number
- */
-function extractYearFromDateString(dateStr: string): number {
-  // Check for MM/YYYY format
-  const slashFormat = dateStr.match(/\d+\/(\d{4})/);
-  if (slashFormat && slashFormat[1]) {
-    return parseInt(slashFormat[1]);
-  }
-
-  // Check for Month YYYY format
-  const yearMatch = dateStr.match(/\b(19|20)\d{2}\b/);
-  return yearMatch ? parseInt(yearMatch[0]) : new Date().getFullYear();
-}
-
-/**
- * Check for employment gaps in experience
- * @param experience Experience array
- * @returns True if gaps found
- */
-function checkForEmploymentGaps(experience: EnhancedResumeData['experience']): boolean {
-  const sortedExperience = [...experience].sort((a, b) => {
-    const aYear = a.date ? extractYearFromDateString(a.date.split(/[-–—]/)[0]) : 0;
-    const bYear = b.date ? extractYearFromDateString(b.date.split(/[-–—]/)[0]) : 0;
-    return bYear - aYear;
-  });
-  
-  for (let i = 0; i < sortedExperience.length - 1; i++) {
-    const currentJob = sortedExperience[i];
-    const nextJob = sortedExperience[i + 1];
+    // Check if this is a new education entry
+    const isEduHeader = /\b(?:Bachelor|Master|PhD|Associate|Diploma|Certificate|University|College|School)\b/i.test(line) &&
+      !/^•\s/.test(line);
     
-    if (currentJob.date && nextJob.date) {
-      const currentEndDateStr = currentJob.date.split(/[-–—]/)[1].trim();
-      const nextStartDateStr = nextJob.date.split(/[-–—]/)[0].trim();
+    if (isEduHeader) {
+      // Save previous education if exists
+      if (currentEdu) {
+        education.push(currentEdu);
+      }
       
-      const currentEndYear = currentEndDateStr.toLowerCase() === 'present' 
-        ? new Date().getFullYear() 
-        : extractYearFromDateString(currentEndDateStr);
+      // Extract date if present
+      const dateMatch = line.match(/\b\d{4}\s*(-|–|—)\s*(?:\d{4}|Present)\b/i) ||
+        line.match(/\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}\b/i);
       
-      const nextStartYear = extractYearFromDateString(nextStartDateStr);
+      const date = dateMatch ? dateMatch[0] : '';
       
-      if (currentEndYear - nextStartYear > 1) {
-        return true; // Gap of more than 1 year
+      // Extract institution and degree
+      let remaining = line.replace(date, '').trim();
+      remaining = remaining.replace(/[,|]/, '');
+      
+      const parts = remaining.split(/\s*[,-]\s*/);
+      
+      currentEdu = {
+        degree: parts.length > 0 ? parts[0] : '',
+        institution: parts.length > 1 ? parts[1] : '',
+        date,
+        details: []
+      };
+    } else if (line.startsWith('•') || line.startsWith('-') || line.startsWith('*')) {
+      // This is a bullet point
+      if (currentEdu) {
+        currentEdu.details.push(line.replace(/^[•\-*]\s*/, ''));
+      }
+    } else if (currentEdu && line) {
+      // This is probably additional information
+      if (!currentEdu.institution) {
+        currentEdu.institution = line;
+      } else {
+        currentEdu.details.push(line);
       }
     }
   }
   
-  return false;
+  // Add the last education
+  if (currentEdu) {
+    education.push(currentEdu);
+  }
+  
+  return education;
 }
 
 /**
- * Check for career changes in experience
- * @param experience Experience array
- * @returns True if career changes found
+ * Parse skills section into structured format
  */
-function checkForCareerChanges(experience: EnhancedResumeData['experience']): boolean {
-  const titles = experience.map(job => job.position || '');
+function parseSkills(lines: string[]): any[] {
+  if (lines.length === 0) return [];
   
-  // Simple heuristic - check if job titles are very different
-  for (let i = 0; i < titles.length - 1; i++) {
-    if (!titlesAreRelated(titles[i], titles[i + 1])) {
-      return true;
-    }
-  }
+  // Flatten all lines into one string
+  const skillsStr = lines.join(' ').replace(/\s+/g, ' ');
   
-  return false;
-}
-
-/**
- * Check if two job titles are related
- * @param title1 First job title
- * @param title2 Second job title
- * @returns True if related
- */
-function titlesAreRelated(title1: string, title2: string): boolean {
-  // Convert to lowercase for comparison
-  const t1 = title1.toLowerCase();
-  const t2 = title2.toLowerCase();
+  // Split by common separators
+  const skillsSplit = skillsStr.split(/[,|•]/);
   
-  // Common job title words
-  const commonWords = [
-    'manager', 'director', 'lead', 'senior', 'junior',
-    'engineer', 'developer', 'analyst', 'specialist',
-    'coordinator', 'assistant', 'associate'
-  ];
-  
-  // Check if they share common job words
-  for (const word of commonWords) {
-    if (t1.includes(word) && t2.includes(word)) {
-      return true;
-    }
-  }
-  
-  // Check if they share other words (excluding common stopwords)
-  const stopwords = ['and', 'or', 'the', 'of', 'in', 'a', 'an', 'for'];
-  const words1 = t1.split(/\s+/).filter(w => !stopwords.includes(w));
-  const words2 = t2.split(/\s+/).filter(w => !stopwords.includes(w));
-  
-  for (const word of words1) {
-    if (word.length > 3 && words2.includes(word)) {
-      return true;
-    }
-  }
-  
-  return false;
-}
-
-/**
- * Generate a sample template preview
- * @param template Template configuration
- * @returns HTML string for preview
- */
-export function generateTemplatePreview(template: ResumeTemplate): string {
-  switch (template.id) {
-    case 'modern':
-      return `
-        <div class="template-preview modern">
-          <div class="preview-header" style="background-color: ${template.primaryColor}"></div>
-          <div class="preview-content">
-            <div class="preview-main" style="width: ${template.columnRatio}%"></div>
-            <div class="preview-sidebar" style="width: ${100 - (template.columnRatio || 70)}%; background-color: ${template.secondaryColor}"></div>
-          </div>
-        </div>
-      `;
-    case 'professional':
-      return `
-        <div class="template-preview professional">
-          <div class="preview-header" style="border-bottom-color: ${template.primaryColor}"></div>
-          <div class="preview-content">
-            <div class="preview-section">
-              <div class="preview-section-title" style="color: ${template.primaryColor}; border-bottom-color: ${template.primaryColor}"></div>
-              <div class="preview-section-content"></div>
-            </div>
-          </div>
-        </div>
-      `;
-    case 'creative':
-      return `
-        <div class="template-preview creative">
-          <div class="preview-header" style="background-color: ${template.primaryColor}">
-            <div class="preview-accent" style="background-color: ${template.secondaryColor}"></div>
-          </div>
-          <div class="preview-content">
-            <div class="preview-section">
-              <div class="preview-section-title" style="color: ${template.primaryColor}; border-left-color: ${template.primaryColor}"></div>
-              <div class="preview-section-content"></div>
-            </div>
-            <div class="preview-accent" style="background-color: ${template.secondaryColor}"></div>
-          </div>
-        </div>
-      `;
-    default:
-      return `<div class="template-preview default"></div>`;
-  }
-}
-
-/**
- * Process a resume through the template system
- * @param resumeText Raw resume text
- * @param template Selected template
- * @returns Enhanced and formatted resume data
- */
-export function processResume(resumeText: string, template: ResumeTemplate): EnhancedResumeData {
-  // Parse the resume text to structured data
-  const parsedData = parseResumeIntoData(resumeText);
-  
-  // Convert to enhanced data structure
-  const enhancedData = convertToEnhancedResumeData(parsedData);
-  
-  // Enhance content with better wording
-  const improvedData = enhanceContent(enhancedData);
-  
-  return improvedData;
+  // Map to skill objects with randomly assigned proficiency
+  return skillsSplit
+    .map(s => s.trim())
+    .filter(s => s.length > 0)
+    .map((name, index) => {
+      // Assign higher proficiency to earlier skills
+      const level = Math.max(60, Math.min(95, 95 - index * 3));
+      return { name, level };
+    });
 }
 
 export default {
-  resumeTemplates,
-  processResume,
-  enhanceContent,
-  selectBestFormat,
-  generateTemplatePreview
+  parseResumeContent
 };

@@ -1,6 +1,6 @@
+
 import { Document, Paragraph, TextRun, AlignmentType } from "docx";
 import { ResumeTemplate } from "./resumeRewriter";
-import { parseResumeContent } from "../pages/review/utils/resumeRewriter";
 
 /**
  * Generate a formatted DOCX document from resume content using the specified template

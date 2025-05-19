@@ -1,18 +1,16 @@
 
-import { ResumeTemplate } from "../utils/resumeRewriter";
+import { ResumeTemplate } from '@/utils/resumeRewriter';
 
 const creativeTemplate: ResumeTemplate = {
-  id: "creative",
-  name: "Creative",
-  fontFamily: "'Montserrat', sans-serif",
-  primaryColor: "#6B3FA0",
-  secondaryColor: "#FDF7FF",
-  headerStyle: "mixed",
-  sectionDividers: true,
-  spacing: "airy",
-  layout: "asymmetric",
-  preview: "/templates/creative-preview.png", // This would be the path to a preview image
-  accent: "#FCCE03" // Accent color for creative template
+  id: 'creative',
+  name: 'Creative',
+  description: 'Modern design with accent colors and bold typography',
+  primaryColor: '#8B5CF6',
+  secondaryColor: '#1E293B',
+  fontFamily: 'Montserrat, sans-serif',
+  sectionTitleCase: 'capitalize',
+  layout: 'two-column',
+  headerStyle: 'bordered'
 };
 
 export default creativeTemplate;

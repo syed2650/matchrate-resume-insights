@@ -1,16 +1,24 @@
-import React from 'react';
+
+import React, { useState } from 'react';
+import { Card } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { FileSearch, CheckCheck, FileText } from "lucide-react";
 import ScoreCard from './ScoreCard';
 import MissingKeywords from './MissingKeywords';
 import SectionFeedback from './SectionFeedback';
 import SuggestedBullets from './SuggestedBullets';
-import { ResumeAnalysisData } from '../types';
+import { Feedback } from '../types';
 import InterviewReadyIndicator from './InterviewReadyIndicator';
 import BulletImprovements from './BulletImprovements';
 import BulletRewriteSuggestions from './BulletRewriteSuggestions';
 import ResumePdfTemplate from './ResumePdfTemplate';
-
-// Fix import to use default export from resumeRewriter
-import resumeRewriter from "@/utils/resumeRewriter";
+import { useToast } from "@/hooks/use-toast";
+import { canUseRewrite, calculateATSScore } from '../utils';
+import AnalysisHeader from '../AnalysisHeader';
+import ResultList from '../ResultList';
+import ResumeRewrite from '../ResumeRewrite';
+import FeedbackForm from '../FeedbackForm';
+import PremiumFeatureModal from './PremiumFeatureModal';
 import { useResumeVersion } from '../hooks/useResumeVersion';
 
 interface AnalysisResultsProps {
