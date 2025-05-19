@@ -3,9 +3,10 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { generateFormattedDocx } from "../utils/resumeDocGenerator";
 import { Progress } from "@/components/ui/progress";
 import { trackRewriteUsage } from "../utils";
+import { parseResumeText } from "../utils/resumeParser";
+import { generateFormattedDocx } from "../utils/resumeDocxGenerator";
 
 interface ResumeDownloadButtonProps {
   currentResume: string;
@@ -30,7 +31,11 @@ const ResumeDownloadButton: React.FC<ResumeDownloadButtonProps> = ({
     setIsProcessing(true);
     
     try {
-      const docBlob = await generateFormattedDocx(currentResume);
+      // Parse the resume text into structured data
+      const parsedResume = parseResumeText(currentResume);
+      
+      // Generate the DOCX file
+      const docBlob = await generateFormattedDocx(parsedResume.data);
       if (!docBlob) {
         throw new Error("Failed to generate document");
       }
