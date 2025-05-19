@@ -40,9 +40,9 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
             <div key={i} className="mb-6">
               <p className="font-bold text-base">{exp.title}</p>
               <p className="font-bold">{exp.company}</p>
-              <p className="text-sm text-slate-600 mb-1">{exp.dates}</p>
-              {exp.location && <p className="text-sm text-slate-600 mb-1">{exp.location}</p>}
-              <ul className="list-disc pl-5 mt-1">
+              <p className="text-sm text-slate-600">{exp.dates}</p>
+              {exp.location && <p className="text-sm text-slate-600 mb-2">{exp.location}</p>}
+              <ul className="list-disc pl-5">
                 {exp.bullets && exp.bullets.map((bullet, j) => (
                   <li key={j} className="mb-1">{bullet}</li>
                 ))}
