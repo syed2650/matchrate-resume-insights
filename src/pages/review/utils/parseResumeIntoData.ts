@@ -1,3 +1,4 @@
+
 export interface ResumeData {
   name: string;
   contact: string;
@@ -103,66 +104,68 @@ export function parseResumeIntoData(content: string): ResumeData {
         break;
         
       case "experience":
-        // Try to detect if this is a new company/position
-        const isDateLine = /\d{1,2}\/\d{4}\s*-\s*(\d{1,2}\/\d{4}|Present)|^\d{4}\s*-\s*(\d{4}|Present)/i.test(line);
-        const isBulletPoint = line.startsWith('•') || line.startsWith('-');
+        // Check if this line looks like a job title (often starting with a capital letter)
+        const possibleJobTitle = line.match(/^[A-Z][a-zA-Z\s]+/);
         
-        // If it looks like a company name (not a date, not a bullet)
-        if (!isDateLine && !isBulletPoint && line.length > 0) {
-          // If we have a previous experience, push it
+        // Detect new job position by looking for titles and company names
+        if (possibleJobTitle && !line.startsWith('•') && !line.startsWith('-') && 
+            !line.match(/^\d{1,2}\/\d{4}/) && !line.match(/^\d{4}/)) {
+          
+          // If we have a previous experience object, save it
           if (currentExperience) {
             resumeData.experiences.push(currentExperience);
           }
           
-          // Start a new experience
+          // Create new experience object
           currentExperience = {
-            company: line,
-            title: "",
+            company: "",
+            title: line,  // This line looks like a job title
             location: "",
             dates: "",
             bullets: []
           };
+        }
+        // Check if this is a company name (often follows the job title)
+        else if (currentExperience && !currentExperience.company && 
+                !line.startsWith('•') && !line.startsWith('-')) {
+          currentExperience.company = line;
           
-          // Check if company has location in the same line (separated by comma or bullet)
-          if (line.includes(',') || line.includes('•') || line.includes('|')) {
-            const seperator = line.includes(',') ? ',' : (line.includes('•') ? '•' : '|');
-            const parts = line.split(seperator).map(p => p.trim());
-            
+          // Check if company includes location
+          if (line.includes(',')) {
+            const parts = line.split(',').map(p => p.trim());
             currentExperience.company = parts[0];
-            if (parts.length > 1) {
-              // Last part might be a location
-              currentExperience.location = parts[parts.length - 1];
-            }
+            currentExperience.location = parts.slice(1).join(', ');
           }
-        } 
-        // If it looks like a date
-        else if (isDateLine && currentExperience) {
+        }
+        // Check if this is a date range
+        else if (currentExperience && !currentExperience.dates && 
+                (line.match(/^\d{1,2}\/\d{4}\s*[-–]\s*(\d{1,2}\/\d{4}|Present)/) || 
+                 line.match(/^\d{4}\s*[-–]\s*(\d{4}|Present)/))) {
           currentExperience.dates = line;
         }
-        // If this is the next line after company (likely title)
-        else if (currentExperience && !currentExperience.title) {
-          currentExperience.title = line;
+        // Check if this is a bullet point
+        else if (currentExperience && (line.startsWith('•') || line.startsWith('-'))) {
+          const bulletText = line.substring(1).trim();
+          if (bulletText) {
+            currentExperience.bullets.push(bulletText);
+          }
         }
-        // If this is a bullet point
-        else if (isBulletPoint && currentExperience) {
-          currentExperience.bullets.push(line.substring(1).trim());
-        }
-        // Otherwise it's additional info
+        // If line doesn't match any of the above patterns but we're in experience section
         else if (currentExperience) {
-          // If we have bullets already, this might be a continuation
+          // If bullets exist, this might be continuation of a bullet
           if (currentExperience.bullets.length > 0) {
             currentExperience.bullets[currentExperience.bullets.length - 1] += " " + line;
-          } 
-          // Otherwise it might be part of the title
-          else if (currentExperience.title) {
-            currentExperience.title += " " + line;
+          }
+          // If no bullets yet, this might be additional info about company/role
+          else if (!currentExperience.dates) {
+            currentExperience.dates = line;
           }
         }
         break;
     }
   }
   
-  // Don't forget to add the last experience if it exists
+  // Don't forget to add the last experience
   if (currentSection === "experience" && currentExperience) {
     resumeData.experiences.push(currentExperience);
   }

@@ -37,13 +37,11 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
         <div className="mb-4">
           <h2 className="text-lg font-bold uppercase border-b border-slate-200 pb-1 mb-2">Experience</h2>
           {data.experiences.map((exp, i) => (
-            <div key={i} className="mb-3">
-              <div className="flex justify-between flex-wrap">
-                <span className="font-bold">{exp.company}</span>
-                <span className="text-sm text-slate-600">{exp.dates}</span>
-              </div>
-              {exp.location && <p className="text-sm text-slate-600">{exp.location}</p>}
-              <p className="font-semibold">{exp.title}</p>
+            <div key={i} className="mb-4">
+              <p className="font-bold text-base">{exp.title}</p>
+              <p className="font-bold">{exp.company}</p>
+              <p className="text-sm text-slate-600 mb-1">{exp.dates}</p>
+              {exp.location && <p className="text-sm text-slate-600 mb-1">{exp.location}</p>}
               <ul className="list-disc pl-5 mt-1">
                 {exp.bullets && exp.bullets.map((bullet, j) => (
                   <li key={j} className="mb-1">{bullet}</li>
