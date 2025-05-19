@@ -37,7 +37,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
         <div className="mb-4">
           <h2 className="text-lg font-bold uppercase border-b border-slate-200 pb-1 mb-2">Experience</h2>
           {data.experiences.map((exp, i) => (
-            <div key={i} className="mb-4">
+            <div key={i} className="mb-6">
               <p className="font-bold text-base">{exp.title}</p>
               <p className="font-bold">{exp.company}</p>
               <p className="text-sm text-slate-600 mb-1">{exp.dates}</p>
