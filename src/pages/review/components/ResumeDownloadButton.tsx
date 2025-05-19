@@ -3,22 +3,19 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { generateFormattedDocx } from "../utils/resumeDocGenerator";
 import { Progress } from "@/components/ui/progress";
 import { trackRewriteUsage } from "../utils";
-import { resumeTemplates } from "@/utils/resumeRewriter";
-import { generateFormattedDocx } from "@/utils/resumeDocGenerator";
 
 interface ResumeDownloadButtonProps {
   currentResume: string;
   roleSummary: string;
-  templateId?: string;
   disabled?: boolean;
 }
 
 const ResumeDownloadButton: React.FC<ResumeDownloadButtonProps> = ({
   currentResume,
   roleSummary,
-  templateId = "modern",
   disabled = false
 }) => {
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
@@ -33,10 +30,7 @@ const ResumeDownloadButton: React.FC<ResumeDownloadButtonProps> = ({
     setIsProcessing(true);
     
     try {
-      // Get template
-      const template = resumeTemplates.find(t => t.id === templateId) || resumeTemplates[0];
-      
-      const docBlob = await generateFormattedDocx(currentResume, template);
+      const docBlob = await generateFormattedDocx(currentResume);
       if (!docBlob) {
         throw new Error("Failed to generate document");
       }
@@ -48,10 +42,8 @@ const ResumeDownloadButton: React.FC<ResumeDownloadButtonProps> = ({
       
       // Set filename - with date and role if available
       const dateStr = new Date().toISOString().split('T')[0];
-      const roleStr = roleSummary ? `-${roleSummary.replace(/\s+/g, '-').substring(0, 30)}` : '';
-      // Include template name in the filename
-      const templateStr = template ? `-${template.name}` : '';
-      a.download = `optimized-resume${roleStr}${templateStr}-${dateStr}.docx`;
+      const roleStr = roleSummary ? `-${roleSummary.replace(/\s+/g, '-')}` : '';
+      a.download = `optimized-resume${roleStr}-${dateStr}.docx`;
       
       document.body.appendChild(a);
       a.click();

@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 /**
@@ -158,68 +159,6 @@ export const canUseRewrite = () => {
   
   // Free plan users cannot use rewrites
   return false;
-};
-
-/**
- * Calculate ATS score based on resume and job description
- * @param resumeText Resume content
- * @param jobDescriptionText Job description content
- * @returns ATS score (0-100)
- */
-export const calculateATSScore = (resumeText: string, jobDescriptionText: string): number => {
-  if (!resumeText || !jobDescriptionText) {
-    return 0;
-  }
-
-  // Simple implementation:
-  // 1. Check length of the resume (should be 1-2 pages, not too long or short)
-  const wordCount = resumeText.split(/\s+/).length;
-  let lengthScore = 0;
-  if (wordCount >= 300 && wordCount <= 800) {
-    lengthScore = 25; // Ideal length scores full points
-  } else if (wordCount > 800 && wordCount <= 1000) {
-    lengthScore = 20; // A bit too long
-  } else if (wordCount >= 200 && wordCount < 300) {
-    lengthScore = 15; // A bit too short
-  } else {
-    lengthScore = 10; // Far too short or long
-  }
-
-  // 2. Check for formatting issues (bullets, section headings, etc)
-  const hasBulletPoints = /•|-|\*/.test(resumeText);
-  const hasSectionHeadings = /EXPERIENCE|EDUCATION|SKILLS|SUMMARY/i.test(resumeText);
-  
-  const formattingScore = 
-    (hasBulletPoints ? 15 : 0) + 
-    (hasSectionHeadings ? 15 : 0);
-
-  // 3. Check for keyword matches from job description
-  const jobWords = jobDescriptionText.toLowerCase().split(/\W+/).filter(w => w.length > 3);
-  const uniqueJobWords = [...new Set(jobWords)];
-  const resumeText_lower = resumeText.toLowerCase();
-  
-  let matchCount = 0;
-  for (const word of uniqueJobWords) {
-    if (resumeText_lower.includes(word)) {
-      matchCount++;
-    }
-  }
-  
-  const keywordScore = Math.min(45, Math.floor((matchCount / uniqueJobWords.length) * 100));
-
-  // 4. Check for contact information
-  const hasEmail = /[\w.-]+@[\w.-]+\.\w+/.test(resumeText);
-  const hasPhone = /\+?[\d-\s()]{10,}/.test(resumeText);
-  
-  const contactScore = 
-    (hasEmail ? 7.5 : 0) + 
-    (hasPhone ? 7.5 : 0);
-
-  // Calculate total score (0-100)
-  const totalScore = lengthScore + formattingScore + keywordScore + contactScore;
-  
-  // Ensure score is within 0-100 range
-  return Math.min(100, Math.max(0, Math.round(totalScore)));
 };
 
 /**

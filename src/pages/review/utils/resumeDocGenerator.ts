@@ -1,440 +1,468 @@
+import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, TabStopPosition, TabStopType, BorderStyle } from "docx";
 
-import { 
-  Document, 
-  Paragraph, 
-  TextRun, 
-  HeadingLevel, 
-  BorderStyle, 
-  Table, 
-  TableRow, 
-  TableCell, 
-  WidthType, 
-  AlignmentType,
-  UnderlineType,
-  ImageRun,
-  Header,
-  Footer,
-  PageNumber,
-  PageBreak,
-  ShadingType,
-  ExternalHyperlink,
-  IStylesOptions,
-  IRunOptions
-} from 'docx';
-import { ResumeTemplate } from '@/utils/resumeRewriter';
-
-// Define a simple ResumeData interface for this file
-interface ResumeData {
-  header: {
-    name: string;
-    contact: {
-      email: string;
-      phone: string;
-      location: string;
+export async function generateFormattedDocx(resumeText: string): Promise<Blob | null> {
+  try {
+    if (!resumeText || typeof resumeText !== 'string') {
+      console.error("Invalid resume text provided");
+      return null;
     }
-  };
-  summary: string;
-  experience: Array<{
-    position?: string;
-    company?: string;
-    date?: string;
-    bullets?: string[];
-  }>;
-  education: Array<{
-    degree?: string;
-    institution?: string;
-    date?: string;
-    details?: string[];
-  }>;
-  skills: Array<{
-    name: string;
-    level: number;
-  }>;
-  achievements?: string[];
+    
+    // Parse resume text into sections
+    const sections = parseResumeIntoSections(resumeText);
+    
+    // Create document with proper styling
+    const doc = new Document({
+      sections: [
+        {
+          properties: {},
+          children: createFormattedDocument(sections)
+        }
+      ],
+      styles: {
+        paragraphStyles: [
+          {
+            id: "Normal",
+            name: "Normal",
+            basedOn: "Normal",
+            next: "Normal",
+            quickFormat: true,
+            run: {
+              font: "Calibri",
+              size: 22,
+              color: "000000",
+            },
+            paragraph: {
+              spacing: {
+                line: 276,
+                before: 0,
+                after: 200,
+              },
+            },
+          },
+          {
+            id: "Heading1",
+            name: "Heading 1",
+            basedOn: "Normal",
+            next: "Normal",
+            quickFormat: true,
+            run: {
+              font: "Calibri",
+              size: 32,
+              bold: true,
+              color: "000000",
+            },
+            paragraph: {
+              spacing: {
+                before: 240,
+                after: 120,
+              },
+              alignment: AlignmentType.CENTER,
+            },
+          },
+          {
+            id: "Heading2",
+            name: "Heading 2",
+            basedOn: "Normal",
+            next: "Normal",
+            quickFormat: true,
+            run: {
+              font: "Calibri",
+              size: 26,
+              bold: true,
+              color: "000000",
+              underline: {
+                type: "single",
+                color: "000000",
+              },
+            },
+            paragraph: {
+              spacing: {
+                before: 240,
+                after: 120,
+              },
+            },
+          },
+          {
+            id: "JobTitle",
+            name: "Job Title",
+            basedOn: "Normal",
+            next: "Normal",
+            quickFormat: true,
+            run: {
+              font: "Calibri",
+              size: 24,
+              bold: true,
+              color: "000000",
+            },
+          },
+          {
+            id: "Company",
+            name: "Company",
+            basedOn: "Normal",
+            next: "Normal",
+            quickFormat: true,
+            run: {
+              font: "Calibri",
+              size: 22,
+              bold: false,
+              color: "000000",
+            },
+          },
+          {
+            id: "BulletPoint",
+            name: "Bullet Point",
+            basedOn: "Normal",
+            next: "Normal",
+            quickFormat: true,
+            run: {
+              font: "Calibri",
+              size: 22,
+              color: "000000",
+            },
+            paragraph: {
+              spacing: {
+                line: 276,
+                before: 0,
+                after: 100,
+              },
+              indent: {
+                left: 720, // 0.5 inch indent for bullets
+              },
+            },
+          },
+          {
+            id: "ContactInfo",
+            name: "Contact Info",
+            basedOn: "Normal",
+            next: "Normal",
+            quickFormat: true,
+            run: {
+              font: "Calibri",
+              size: 22,
+              color: "000000",
+            },
+            paragraph: {
+              alignment: AlignmentType.CENTER,
+              spacing: {
+                before: 0,
+                after: 240,
+              },
+            },
+          },
+        ],
+      },
+    });
+    
+    // Convert to blob
+    const buffer = await Packer.toBlob(doc);
+    return buffer;
+  } catch (error) {
+    console.error("Error generating DOCX:", error);
+    return null;
+  }
 }
 
-/**
- * Generate a DOCX document from resume data using the specified template
- * @param resumeData Resume data
- * @param template Template to use
- * @returns DOCX Document object
- */
-export const generateResumeDocx = (resumeData: ResumeData, template: ResumeTemplate): Document => {
-  // Define document properties
-  const documentProperties = {
-    title: `${resumeData.header.name} - Resume`,
-    creator: "MatchRate Resume Builder",
-    description: "Professional resume created with MatchRate",
-    lastModifiedBy: "MatchRate",
-  };
-
-  // Select template-specific generator
-  switch (template.id) {
-    case 'modern':
-      return generateModernDocx(resumeData, template, documentProperties);
-    case 'professional':
-      return generateProfessionalDocx(resumeData, template, documentProperties);
-    case 'creative':
-      return generateCreativeDocx(resumeData, template, documentProperties);
-    default:
-      return generateModernDocx(resumeData, template, documentProperties);
-  }
-};
-
-/**
- * Generate a Modern template DOCX document
- * @param resumeData Resume data
- * @param template Template configuration
- * @param properties Document properties
- * @returns DOCX Document object
- */
-function generateModernDocx(
-  resumeData: ResumeData, 
-  template: ResumeTemplate, 
-  properties: any
-): Document {
-  // Set primary and secondary colors from template
-  const primaryColor = template.primaryColor.replace('#', '');
-  const secondaryColor = template.secondaryColor.replace('#', '');
+function parseResumeIntoSections(resumeText: string): any {
+  // Split the text by double newlines to separate sections
+  const lines = resumeText.split(/\n/).filter(line => line.trim().length > 0);
   
-  // Document styles
-  const styles: IStylesOptions = {
-    paragraphStyles: [
-      {
-        id: 'Normal',
-        name: 'Normal',
-        basedOn: 'Normal',
-        quickFormat: true,
-        run: {
-          font: template.fontFamily.replace(/'/g, '').split(',')[0].trim(),
-          size: 22,
-          color: '333333'
-        },
-        paragraph: {
-          spacing: {
-            after: 120
-          }
-        }
-      },
-      {
-        id: 'Heading1',
-        name: 'Heading 1',
-        basedOn: 'Normal',
-        next: 'Normal',
-        quickFormat: true,
-        run: {
-          font: template.fontFamily.replace(/'/g, '').split(',')[0].trim(),
-          size: 36,
-          bold: true,
-          color: 'FFFFFF'
-        },
-        paragraph: {
-          alignment: AlignmentType.CENTER,
-          spacing: {
-            after: 200,
+  // First line is usually the name
+  const name = lines[0]?.trim() || "Resume";
+  
+  // Look for contact information in the first few lines
+  const contactInfo = lines.slice(1, 4).join(" • ");
+  
+  // Try to identify sections like "Experience", "Education", "Skills", etc.
+  const sections: Record<string, string[]> = {
+    name: [name],
+    contactInfo: [contactInfo],
+    summary: [],
+    experience: [],
+    education: [],
+    skills: [],
+    other: []
+  };
+  
+  // Simple heuristic to identify sections
+  let currentSection = "summary";
+  
+  for (let i = 4; i < lines.length; i++) {
+    const line = lines[i].trim();
+    
+    // Skip empty lines
+    if (!line) continue;
+    
+    // Check if this is a section header
+    if (line.toUpperCase() === line && line.length < 30) {
+      // This is likely a section header - determine which section
+      if (/EXPERIENCE|EMPLOYMENT|WORK|CAREER|PROFESSIONAL/i.test(line)) {
+        currentSection = "experience";
+        continue;
+      } else if (/EDUCATION|ACADEMIC|DEGREE|UNIVERSITY|COLLEGE/i.test(line)) {
+        currentSection = "education";
+        continue;
+      } else if (/SKILLS|TECHNOLOGIES|COMPETENCIES|PROFICIENCIES/i.test(line)) {
+        currentSection = "skills";
+        continue;
+      } else if (/SUMMARY|PROFILE|OBJECTIVE|ABOUT/i.test(line)) {
+        currentSection = "summary";
+        continue;
+      } else {
+        currentSection = "other";
+        continue;
+      }
+    }
+    
+    // Add the line to the current section
+    sections[currentSection].push(line);
+  }
+  
+  return sections;
+}
+
+function createFormattedDocument(sections: Record<string, string[]>) {
+  const documentElements = [];
+  
+  // Name (centered, large)
+  if (sections.name && sections.name.length > 0) {
+    documentElements.push(
+      new Paragraph({
+        text: sections.name[0],
+        heading: HeadingLevel.HEADING_1,
+        alignment: AlignmentType.CENTER,
+      })
+    );
+  }
+  
+  // Contact Info (centered)
+  if (sections.contactInfo && sections.contactInfo.length > 0) {
+    documentElements.push(
+      new Paragraph({
+        text: sections.contactInfo[0],
+        style: "ContactInfo",
+        alignment: AlignmentType.CENTER,
+      })
+    );
+  }
+  
+  // Summary
+  if (sections.summary && sections.summary.length > 0) {
+    documentElements.push(
+      new Paragraph({
+        text: "SUMMARY",
+        heading: HeadingLevel.HEADING_2,
+        border: {
+          bottom: {
+            color: "auto",
+            space: 1,
+            style: BorderStyle.SINGLE,
+            size: 6,
           },
         },
-      },
-      {
-        id: 'Heading2',
-        name: 'Heading 2',
-        basedOn: 'Normal',
-        next: 'Normal',
-        quickFormat: true,
-        run: {
-          font: template.fontFamily.replace(/'/g, '').split(',')[0].trim(),
-          size: 28,
-          bold: true,
-          color: primaryColor,
-          allCaps: template.sectionTitleCase === 'uppercase',
-        },
-        paragraph: {
+      })
+    );
+    
+    // Add each summary paragraph
+    sections.summary.forEach(paragraph => {
+      documentElements.push(
+        new Paragraph({
+          text: paragraph,
           spacing: {
-            before: 240,
+            before: 100,
+            after: 100,
+          },
+        })
+      );
+    });
+  }
+  
+  // Experience
+  if (sections.experience && sections.experience.length > 0) {
+    documentElements.push(
+      new Paragraph({
+        text: "EXPERIENCE",
+        heading: HeadingLevel.HEADING_2,
+        border: {
+          bottom: {
+            color: "auto",
+            space: 1,
+            style: BorderStyle.SINGLE,
+            size: 6,
+          },
+        },
+      })
+    );
+    
+    // Parse experience entries - usually in format:
+    // Company Name | Location                            Date - Date
+    // Job Title
+    // • Bullet point
+    // • Bullet point
+    
+    let i = 0;
+    while (i < sections.experience.length) {
+      const line = sections.experience[i];
+      
+      // Check if this line contains a company name (often has a pipe or dash)
+      if (line.includes('|') || line.includes('-') || /\d{4}\s*-\s*\d{4}|\d{4}\s*-\s*(Present|Current)/.test(line)) {
+        // Company line with date
+        const companyParts = line.split(/\s{2,}|\t/);
+        
+        const companyText = companyParts[0];
+        const dateText = companyParts.length > 1 ? companyParts[companyParts.length - 1] : "";
+        
+        documentElements.push(
+          new Paragraph({
+            tabStops: [
+              {
+                type: TabStopType.RIGHT,
+                position: TabStopPosition.MAX,
+              },
+            ],
+            spacing: {
+              before: 240,
+            },
+            children: [
+              new TextRun({
+                text: companyText,
+                bold: true,
+                size: 24,
+              }),
+              new TextRun({
+                text: "\t",
+              }),
+              new TextRun({
+                text: dateText,
+                size: 22,
+              }),
+            ],
+          })
+        );
+        
+        // Next line may be the job title
+        if (i + 1 < sections.experience.length) {
+          i++;
+          documentElements.push(
+            new Paragraph({
+              text: sections.experience[i],
+              style: "JobTitle",
+            })
+          );
+        }
+      } else if (line.trim().startsWith('•') || line.trim().startsWith('-')) {
+        // This is a bullet point
+        documentElements.push(
+          new Paragraph({
+            text: line,
+            style: "BulletPoint",
+          })
+        );
+      } else {
+        // Regular text line
+        documentElements.push(
+          new Paragraph({
+            text: line,
+          })
+        );
+      }
+      
+      i++;
+    }
+  }
+  
+  // Education
+  if (sections.education && sections.education.length > 0) {
+    documentElements.push(
+      new Paragraph({
+        text: "EDUCATION",
+        heading: HeadingLevel.HEADING_2,
+        border: {
+          bottom: {
+            color: "auto",
+            space: 1,
+            style: BorderStyle.SINGLE,
+            size: 6,
+          },
+        },
+      })
+    );
+    
+    // Add education entries
+    sections.education.forEach(entry => {
+      documentElements.push(
+        new Paragraph({
+          text: entry,
+          spacing: {
+            before: 120,
             after: 120,
           },
-          border: {
-            bottom: {
-              color: primaryColor,
-              style: BorderStyle.SINGLE,
-              size: 1,
-            },
-          },
-        },
-      },
-      {
-        id: 'JobTitle',
-        name: 'Job Title',
-        basedOn: 'Normal',
-        quickFormat: true,
-        run: {
-          font: template.fontFamily.replace(/'/g, '').split(',')[0].trim(),
-          size: 24,
-          bold: true,
-          color: '333333'
-        },
-        paragraph: {
-          spacing: {
-            after: 60,
-          },
-        },
-      },
-      {
-        id: 'JobCompany',
-        name: 'Job Company',
-        basedOn: 'Normal',
-        quickFormat: true,
-        run: {
-          font: template.fontFamily.replace(/'/g, '').split(',')[0].trim(),
-          size: 22,
-          italics: true, // Fixed from italic to italics
-          color: '444444'
-        },
-        paragraph: {
-          spacing: {
-            after: 60,
-          },
-        },
-      },
-      {
-        id: 'BulletList',
-        name: 'Bullet List',
-        basedOn: 'Normal',
-        quickFormat: true,
-        run: {
-          font: template.fontFamily.replace(/'/g, '').split(',')[0].trim(),
-          size: 22,
-          color: '333333'
-        },
-        paragraph: {
-          spacing: {
-            after: 80,
-          },
-          numbering: {
-            reference: 'bulletList',
-            level: 0,
-          }
-        },
-      },
-    ],
-  };
-
-  // Create the document with proper sections
-  const document = new Document({
-    creator: properties.creator,
-    title: properties.title,
-    description: properties.description,
-    styles,
-    sections: [
-      {
-        properties: {
-          page: {
-            margin: {
-              top: 720,
-              right: 720,
-              bottom: 720,
-              left: 720,
-            },
-          },
-        },
-        children: [
-          // Create a simple header with the name
-          new Paragraph({
-            text: resumeData.header.name,
-            heading: HeadingLevel.HEADING_1,
-            alignment: AlignmentType.CENTER,
-          }),
-          
-          // Basic resume sections
-          new Paragraph({ text: "Summary", heading: HeadingLevel.HEADING_2 }),
-          new Paragraph({ text: resumeData.summary }),
-          
-          // Experience section
-          new Paragraph({ text: "Experience", heading: HeadingLevel.HEADING_2 }),
-          
-          // Add experience entries
-          ...resumeData.experience.flatMap(job => [
-            new Paragraph({ 
-              text: job.position || '', 
-              style: "JobTitle" 
-            }),
-            new Paragraph({ 
-              text: `${job.company || ''} | ${job.date || ''}`,
-              style: "JobCompany"
-            }),
-            ...(job.bullets || []).map(bullet => 
-              new Paragraph({
-                text: bullet,
-                style: "BulletList"
-              })
-            )
-          ]),
-          
-          // Education section
-          new Paragraph({ text: "Education", heading: HeadingLevel.HEADING_2 }),
-          
-          // Add education entries
-          ...resumeData.education.flatMap(edu => [
-            new Paragraph({ 
-              text: edu.degree || '', 
-              style: "JobTitle"
-            }),
-            new Paragraph({ 
-              text: `${edu.institution || ''} | ${edu.date || ''}`,
-              style: "JobCompany"
-            }),
-            ...(edu.details || []).map(detail => 
-              new Paragraph({
-                text: detail,
-                style: "BulletList"
-              })
-            )
-          ]),
-          
-          // Skills section
-          new Paragraph({ text: "Skills", heading: HeadingLevel.HEADING_2 }),
-          new Paragraph({
-            text: resumeData.skills.map(skill => skill.name).join(' • ')
-          })
-        ]
-      }
-    ],
-  });
-  
-  return document;
-}
-
-/**
- * Generate a Professional template DOCX document
- * @param resumeData Resume data
- * @param template Template configuration
- * @param properties Document properties
- * @returns DOCX Document object
- */
-function generateProfessionalDocx(
-  resumeData: ResumeData, 
-  template: ResumeTemplate, 
-  properties: any
-): Document {
-  // Simplified implementation for Professional template
-  const document = new Document({
-    creator: properties.creator,
-    title: properties.title,
-    description: properties.description,
-    sections: [
-      {
-        properties: {
-          page: {
-            margin: {
-              top: 720,
-              right: 720,
-              bottom: 720,
-              left: 720,
-            },
-          },
-        },
-        children: [
-          // Add simple header
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: resumeData.header.name,
-                bold: true,
-                size: 36,
-              }),
-            ],
-            alignment: AlignmentType.CENTER,
-          }),
-          
-          // Basic contact info
-          new Paragraph({
-            text: formatContactString(resumeData),
-            alignment: AlignmentType.CENTER,
-          })
-        ]
-      }
-    ],
-  });
-  
-  return document;
-}
-
-/**
- * Generate a Creative template DOCX document
- * @param resumeData Resume data
- * @param template Template configuration
- * @param properties Document properties
- * @returns DOCX Document object
- */
-function generateCreativeDocx(
-  resumeData: ResumeData, 
-  template: ResumeTemplate, 
-  properties: any
-): Document {
-  // Simplified implementation for Creative template
-  const document = new Document({
-    creator: properties.creator,
-    title: properties.title,
-    description: properties.description,
-    sections: [
-      {
-        properties: {
-          page: {
-            margin: {
-              top: 720,
-              right: 720,
-              bottom: 720,
-              left: 720,
-            },
-          },
-        },
-        children: [
-          // Add simple header
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: resumeData.header.name,
-                bold: true,
-                size: 36,
-              }),
-            ],
-            alignment: AlignmentType.CENTER,
-          }),
-          
-          // Basic contact info
-          new Paragraph({
-            text: formatContactString(resumeData),
-            alignment: AlignmentType.CENTER,
-          })
-        ]
-      }
-    ],
-  });
-  
-  return document;
-}
-
-/**
- * Format contact information as a string
- * @param resumeData Resume data
- * @returns Formatted contact string
- */
-function formatContactString(resumeData: ResumeData): string {
-  const contactParts = [];
-  
-  if (resumeData.header.contact.location) {
-    contactParts.push(resumeData.header.contact.location);
+        })
+      );
+    });
   }
   
-  if (resumeData.header.contact.phone) {
-    contactParts.push(resumeData.header.contact.phone);
+  // Skills
+  if (sections.skills && sections.skills.length > 0) {
+    documentElements.push(
+      new Paragraph({
+        text: "SKILLS",
+        heading: HeadingLevel.HEADING_2,
+        border: {
+          bottom: {
+            color: "auto",
+            space: 1,
+            style: BorderStyle.SINGLE,
+            size: 6,
+          },
+        },
+      })
+    );
+    
+    // Add skills entries
+    sections.skills.forEach(skill => {
+      if (skill.trim().startsWith('•') || skill.trim().startsWith('-')) {
+        documentElements.push(
+          new Paragraph({
+            text: skill,
+            style: "BulletPoint",
+          })
+        );
+      } else {
+        documentElements.push(
+          new Paragraph({
+            text: skill,
+          })
+        );
+      }
+    });
   }
   
-  if (resumeData.header.contact.email) {
-    contactParts.push(resumeData.header.contact.email);
+  // Other sections
+  if (sections.other && sections.other.length > 0) {
+    documentElements.push(
+      new Paragraph({
+        text: "ADDITIONAL INFORMATION",
+        heading: HeadingLevel.HEADING_2,
+        border: {
+          bottom: {
+            color: "auto",
+            space: 1,
+            style: BorderStyle.SINGLE,
+            size: 6,
+          },
+        },
+      })
+    );
+    
+    // Add other entries
+    sections.other.forEach(entry => {
+      documentElements.push(
+        new Paragraph({
+          text: entry,
+        })
+      );
+    });
   }
   
-  return contactParts.join(' | ');
+  return documentElements;
 }
-
-export default generateResumeDocx;
