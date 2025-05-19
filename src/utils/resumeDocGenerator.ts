@@ -1,6 +1,6 @@
-
 import { Document, Paragraph, TextRun, AlignmentType } from "docx";
 import { ResumeTemplate } from "./resumeRewriter";
+import { parseResumeContent } from "../pages/review/utils/resumeRewriter";
 
 /**
  * Generate a formatted DOCX document from resume content using the specified template
@@ -34,61 +34,59 @@ export const generateFormattedDocx = async (resumeContent: string, template: Res
 const generateResumeDocx = (resumeData: any, template: ResumeTemplate): Document => {
   // Create basic document with proper styles
   const doc = new Document({
-    sections: [
-      {
-        properties: {},
-        children: [
-          // Header with name
-          new Paragraph({
-            text: resumeData.name || "Your Name",
-            alignment: AlignmentType.CENTER,
-            spacing: {
-              after: 200,
-            },
-            children: [
-              new TextRun({
-                text: resumeData.name || "Your Name",
-                bold: true,
-                size: 36, // 18pt
-              }),
-            ],
-          }),
-          
-          // Contact info
-          new Paragraph({
-            text: resumeData.contact || "",
-            alignment: AlignmentType.CENTER,
-            spacing: {
-              after: 400,
-            },
-          }),
-          
-          // Summary section
-          new Paragraph({
-            text: "SUMMARY",
-            spacing: {
-              before: 200,
-              after: 80,
-            },
-            children: [
-              new TextRun({
-                text: "SUMMARY",
-                bold: true,
-                size: 28, // 14pt
-              }),
-            ],
-          }),
-          new Paragraph({
-            text: resumeData.summary || "",
-            spacing: {
-              after: 200,
-            },
-          }),
-          
-          // More sections could be added here...
-        ],
-      },
-    ],
+    sections: [{
+      properties: {},
+      children: [
+        // Header with name
+        new Paragraph({
+          text: resumeData.name || "Your Name",
+          alignment: AlignmentType.CENTER,
+          spacing: {
+            after: 200,
+          },
+          children: [
+            new TextRun({
+              text: resumeData.name || "Your Name",
+              bold: true,
+              size: 36, // 18pt
+            }),
+          ],
+        }),
+        
+        // Contact info
+        new Paragraph({
+          text: resumeData.contact || "",
+          alignment: AlignmentType.CENTER,
+          spacing: {
+            after: 400,
+          },
+        }),
+        
+        // Summary section
+        new Paragraph({
+          text: "SUMMARY",
+          spacing: {
+            before: 200,
+            after: 80,
+          },
+          children: [
+            new TextRun({
+              text: "SUMMARY",
+              bold: true,
+              size: 28, // 14pt
+            }),
+          ],
+        }),
+        new Paragraph({
+          text: resumeData.summary || "",
+          spacing: {
+            after: 200,
+          },
+        }),
+        
+        // More sections could be added here...
+      ],
+    }],
   });
   
   return doc;

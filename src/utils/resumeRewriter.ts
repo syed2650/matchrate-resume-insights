@@ -1,5 +1,4 @@
-
-import { parseResumeIntoData } from './parseresumeintodata';
+import { parseResumeIntoData } from '../pages/review/utils/parseResumeIntoData';
 
 /**
  * Resume Template interface - defines the structure of resume templates
@@ -23,6 +22,7 @@ export interface ResumeTemplate {
   iconSet?: string;
   bulletStyle?: string;
   preview?: string;
+  accent?: string; // Added for creative template
 }
 
 /**
@@ -152,7 +152,8 @@ export const resumeTemplates: ResumeTemplate[] = [
     borderRadius: "8px",
     sectionTitleCase: "titlecase",
     iconSet: "decorative",
-    bulletStyle: "dash"
+    bulletStyle: "dash",
+    accent: "#FFD700" // Added accent color for creative template
   }
 ];
 
@@ -233,8 +234,8 @@ export function enhanceContent(resumeData: EnhancedResumeData): EnhancedResumeDa
         "Results-driven, strategic $1 with $2+ years of proven expertise in $3.")
       .replace(/detailed oriented/i, "detail-oriented")
       .replace(/helps?/i, "drives")
-      .replace(/worked on/i, "spearheaded")
-      .replace(/responsible for/i, "led");
+      .replace(/worked on/i, "Spearheaded")
+      .replace(/responsible for/i, "Led");
   }
   
   // Enhance experience bullets with stronger action verbs and metrics

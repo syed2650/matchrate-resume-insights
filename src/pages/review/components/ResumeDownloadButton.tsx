@@ -3,10 +3,10 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { generateFormattedDocx } from "../utils/resumeDocGenerator";
 import { Progress } from "@/components/ui/progress";
 import { trackRewriteUsage } from "../utils";
 import { resumeTemplates } from "@/utils/resumeRewriter";
+import { generateFormattedDocx } from "@/utils/resumeDocGenerator";
 
 interface ResumeDownloadButtonProps {
   currentResume: string;
