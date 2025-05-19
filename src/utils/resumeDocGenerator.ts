@@ -55,7 +55,7 @@ const generateResumeDocx = (resumeData: ResumeData, template: ResumeTemplate): D
         
         // Contact info
         new Paragraph({
-          text: resumeData.contact || "",
+          text: formatContactString(resumeData.header.contact) || "",
           alignment: AlignmentType.CENTER,
           spacing: {
             after: 400,
