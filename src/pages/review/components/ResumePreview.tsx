@@ -37,14 +37,14 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
         <div className="mb-4">
           <h2 className="text-lg font-bold uppercase border-b border-slate-200 pb-1 mb-2">Experience</h2>
           {data.experiences.map((exp, i) => (
-            <div key={i} className="mb-4"> {/* Reduced bottom margin from mb-8 to mb-4 */}
+            <div key={i} className="mb-4">
               <p className="font-bold text-base">{exp.title}</p>
               <p className="font-bold">{exp.company}</p>
               <p className="text-sm text-slate-600">{exp.dates}</p>
               {exp.location && <p className="text-sm text-slate-600 mb-2">{exp.location}</p>}
               <ul className="list-none pl-5 mt-1">
                 {exp.bullets && exp.bullets.map((bullet, j) => (
-                  <li key={j} className="mb-1 font-normal">• {bullet}</li> {/* Added bullet symbol manually */}
+                  <li key={j} className="mb-1 font-normal">• {bullet}</li>
                 ))}
               </ul>
             </div>
@@ -70,7 +70,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
           <h2 className="text-lg font-bold uppercase border-b border-slate-200 pb-1 mb-2">Skills</h2>
           <ul className="list-none pl-5 grid grid-cols-1 md:grid-cols-2 gap-x-4">
             {data.skills.map((skill, i) => (
-              <li key={i} className="mb-1 font-normal">• {skill}</li> {/* Added bullet symbol manually */}
+              <li key={i} className="mb-1 font-normal">• {skill}</li>
             ))}
           </ul>
         </div>
@@ -82,7 +82,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
           <h2 className="text-lg font-bold uppercase border-b border-slate-200 pb-1 mb-2">Recognition</h2>
           <ul className="list-none pl-5">
             {data.recognition.map((item, i) => (
-              <li key={i} className="mb-1 font-normal">• {item}</li> {/* Added bullet symbol manually */}
+              <li key={i} className="mb-1 font-normal">• {item}</li>
             ))}
           </ul>
         </div>
