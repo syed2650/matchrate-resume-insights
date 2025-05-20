@@ -36,7 +36,7 @@ const SPACING = {
   sectionSpace: 180,       // Space after sections
   headingAfter: 120,       // Space after heading title
   betweenParagraphs: 60,   // Space between bullet points
-  betweenExperiences: 160, // Space between experience entries
+  betweenExperiences: 120, // Reduced space between experience entries (was 160)
   lineSpacing: 240,        // Line spacing (1.0 = 240)
 };
 
@@ -168,11 +168,11 @@ export const generateDocument = async (data: ResumeData) => {
               spacing: { after: SPACING.headingAfter },
             }),
             ...data.experiences.flatMap((exp, expIndex) => [
-              // Job title - BOLD
+              // Company name - BOLD
               new Paragraph({
                 children: [
                   new TextRun({
-                    text: exp.title,
+                    text: exp.company,
                     bold: true,
                     size: FONT_SIZE.normal,
                     font: FONT.main,
@@ -181,11 +181,11 @@ export const generateDocument = async (data: ResumeData) => {
                 spacing: { after: 0 }, // No spacing
               }),
               
-              // Company name - BOLD
+              // Job title - BOLD
               new Paragraph({
                 children: [
                   new TextRun({
-                    text: exp.company,
+                    text: exp.title,
                     bold: true,
                     size: FONT_SIZE.normal,
                     font: FONT.main,
@@ -229,7 +229,7 @@ export const generateDocument = async (data: ResumeData) => {
                 })
               ]),
               
-              // Bullet points - Using Word's built-in bullets with proper indentation
+              // Simplified bullet points with consistent formatting
               ...exp.bullets.map((bullet, bulletIndex) =>
                 new Paragraph({
                   children: [
@@ -243,12 +243,8 @@ export const generateDocument = async (data: ResumeData) => {
                   bullet: { 
                     level: 0 
                   },
-                  indent: { 
-                    left: 360, 
-                    hanging: 260 
-                  },
                   spacing: { 
-                    after: bulletIndex < exp.bullets.length - 1 ? 40 : 60, // Less space between bullets
+                    after: bulletIndex < exp.bullets.length - 1 ? 20 : 30, // Reduced space between bullets
                     line: SPACING.lineSpacing 
                   },
                 })
@@ -303,7 +299,7 @@ export const generateDocument = async (data: ResumeData) => {
                   hanging: 260 
                 },
                 spacing: {
-                  after: skillIndex < data.skills.length - 1 ? 40 : 60,
+                  after: skillIndex < data.skills.length - 1 ? 20 : 30, // Reduced spacing
                   line: SPACING.lineSpacing
                 },
               })
@@ -402,7 +398,7 @@ export const generateDocument = async (data: ResumeData) => {
                       font: FONT.main,
                     }),
                   ],
-                  spacing: { after: i < data.education.length - 1 ? 80 : SPACING.sectionSpace },
+                  spacing: { after: i < data.education.length - 1 ? 60 : SPACING.sectionSpace },
                 }) : null,
               ].filter(Boolean); // Remove null elements
             })
@@ -449,7 +445,7 @@ export const generateDocument = async (data: ResumeData) => {
                       hanging: 260 
                     },
                     spacing: {
-                      after: recIndex < data.recognition.length - 1 ? 40 : 60,
+                      after: recIndex < data.recognition.length - 1 ? 20 : 30, // Reduced spacing
                       line: SPACING.lineSpacing
                     },
                   })
