@@ -1,4 +1,3 @@
-
 import {
   Document,
   Paragraph,
@@ -35,8 +34,8 @@ const FONT_SIZE = {
 const SPACING = {
   sectionSpace: 200, // Space after sections
   headingAfter: 120, // Space after heading title
-  betweenParagraphs: 20, // Space between bullet points
-  betweenExperiences: 60, // Space between experience entries
+  betweenParagraphs: 80, // Space between bullet points
+  betweenExperiences: 160, // Space between experience entries
 };
 
 export const generateDocument = async (data: ResumeData) => {
@@ -177,7 +176,7 @@ export const generateDocument = async (data: ResumeData) => {
                   font: FONT.main,
                 }),
               ],
-              spacing: { after: 20 }, // Reduced spacing
+              spacing: { after: 0 }, // Minimal spacing
             }),
             
             // Company name - Bold
@@ -190,7 +189,7 @@ export const generateDocument = async (data: ResumeData) => {
                   font: FONT.main,
                 }),
               ],
-              spacing: { after: 20 }, // Reduced spacing
+              spacing: { after: 0 }, // Minimal spacing
             }),
             
             // Dates - Not bold, gray color
@@ -204,7 +203,7 @@ export const generateDocument = async (data: ResumeData) => {
                   color: COLORS.gray,
                 }),
               ],
-              spacing: { after: 20 }, // Reduced spacing
+              spacing: { after: 0 }, // Minimal spacing
             }),
             
             // Location (if available) - Not bold, gray color
@@ -219,36 +218,37 @@ export const generateDocument = async (data: ResumeData) => {
                     color: COLORS.gray,
                   }),
                 ],
-                spacing: { after: 40 }, // Reduced space before bullet points
+                spacing: { after: 20 }, // Small space before bullet points
               })
-            ] : []),
+            ] : [
+              // If no location, still add a small space before bullet points
+              new Paragraph({
+                children: [new TextRun({ text: "" })],
+                spacing: { after: 20 },
+              })
+            ]),
             
-            // Bullet points - Using manual bullet character, not bold
+            // Bullet points - using document bullets
             ...exp.bullets.map((bullet) =>
               new Paragraph({
                 children: [
                   new TextRun({
-                    text: "• ", // Manual bullet character
-                    size: FONT_SIZE.bullet,
-                    font: FONT.main,
-                    bold: false,
-                  }),
-                  new TextRun({
                     text: bullet,
-                    size: FONT_SIZE.bullet, // Same font size for bullet content
+                    size: FONT_SIZE.normal,
                     font: FONT.main,
                     bold: false, // Explicitly not bold
                   }),
                 ],
-                indent: { left: 360 },
-                spacing: { after: SPACING.betweenParagraphs, line: 240 }, // Reduced line spacing
+                bullet: { level: 0 }, // Using document's native bullets
+                indent: { left: 360, hanging: 260 },
+                spacing: { after: 0, line: 240 }, // Minimal spacing between bullets
               })
             ),
             
-            // Add spacing between experiences (except after the last one)
+            // Add spacing between experiences
             ...(expIndex < data.experiences.length - 1 ? [
               new Paragraph({ 
-                spacing: { after: SPACING.betweenExperiences } // Reduced space between experiences
+                spacing: { after: SPACING.betweenExperiences }
               })
             ] : []),
           ]),
@@ -278,20 +278,15 @@ export const generateDocument = async (data: ResumeData) => {
             new Paragraph({
               children: [
                 new TextRun({
-                  text: "• ", // Manual bullet character
-                  size: FONT_SIZE.bullet,
-                  font: FONT.main,
-                  bold: false,
-                }),
-                new TextRun({
                   text: skill,
-                  size: FONT_SIZE.bullet,
+                  size: FONT_SIZE.normal,
                   font: FONT.main,
                   bold: false, // Explicitly not bold
                 }),
               ],
-              indent: { left: 360 },
-              spacing: { after: SPACING.betweenParagraphs, line: 240 }, // Reduced line spacing
+              bullet: { level: 0 }, // Using document's native bullets
+              indent: { left: 360, hanging: 260 },
+              spacing: { after: 0, line: 240 }, // Reduced line spacing
             })
           ),
           new Paragraph({ spacing: { after: SPACING.sectionSpace } }),
@@ -349,7 +344,7 @@ export const generateDocument = async (data: ResumeData) => {
                     font: FONT.main,
                   }),
                 ],
-                spacing: { after: 20 }, // Reduced spacing
+                spacing: { after: 0 }, // Minimal spacing
               }),
               // Institution
               new Paragraph({
@@ -361,7 +356,7 @@ export const generateDocument = async (data: ResumeData) => {
                     bold: false,
                   }),
                 ],
-                spacing: { after: 20 }, // Reduced spacing
+                spacing: { after: 0 }, // Minimal spacing
               }),
               // Country on next line
               country && new Paragraph({
@@ -374,7 +369,7 @@ export const generateDocument = async (data: ResumeData) => {
                     bold: false,
                   }),
                 ],
-                spacing: { after: 20 }, // Reduced spacing
+                spacing: { after: 0 }, // Minimal spacing
               }),
               // Year on next line after country
               year && new Paragraph({
@@ -386,7 +381,7 @@ export const generateDocument = async (data: ResumeData) => {
                     font: FONT.main,
                   }),
                 ],
-                spacing: { after: SPACING.sectionSpace },
+                spacing: { after: 80 }, // Space after full education entry
               }),
             ];
           }),
@@ -418,20 +413,15 @@ export const generateDocument = async (data: ResumeData) => {
                   new Paragraph({
                     children: [
                       new TextRun({
-                        text: "• ", // Manual bullet character
-                        size: FONT_SIZE.bullet,
-                        font: FONT.main,
-                        bold: false,
-                      }),
-                      new TextRun({
                         text: item,
-                        size: FONT_SIZE.bullet,
+                        size: FONT_SIZE.normal,
                         font: FONT.main,
                         bold: false, // Explicitly not bold
                       }),
                     ],
-                    indent: { left: 360 },
-                    spacing: { after: SPACING.betweenParagraphs, line: 240 }, // Reduced line spacing
+                    bullet: { level: 0 }, // Using document's native bullets
+                    indent: { left: 360, hanging: 260 },
+                    spacing: { after: 0, line: 240 }, // Reduced line spacing
                   })
                 ),
               ]
