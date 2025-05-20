@@ -29,8 +29,8 @@ const FONT = {
 const SPACING = {
   sectionSpace: 300, // Space after sections
   headingAfter: 200, // Space after heading title
-  betweenParagraphs: 100, // Space between bullet points
-  betweenExperiences: 240, // Space between experience entries
+  betweenParagraphs: 80, // Reduced space between bullet points
+  betweenExperiences: 160, // Reduced space between experience entries
 };
 
 export const generateDocument = async (data: ResumeData) => {
@@ -212,33 +212,36 @@ export const generateDocument = async (data: ResumeData) => {
                     color: COLORS.gray,
                   }),
                 ],
-                spacing: { after: 120 }, // More space before bullet points
+                spacing: { after: 100 }, // Reduced space before bullet points
               })
             ] : []),
             
-            // Bullet points - Not bold with native document bullets
+            // Bullet points - Using manual bullet character and not bold
             ...exp.bullets.map((bullet) =>
               new Paragraph({
                 children: [
                   new TextRun({
+                    text: "• ", // Manual bullet character
+                    size: 22,
+                    font: FONT.main,
+                    bold: false,
+                  }),
+                  new TextRun({
                     text: bullet,
                     size: 22,
                     font: FONT.main,
-                    bold: false, // Explicitly not bold
+                    bold: false, // Not bold
                   }),
                 ],
-                bullet: {
-                  level: 0, // First level of bullets
-                },
                 indent: { left: 360 },
-                spacing: { after: SPACING.betweenParagraphs, line: 360 },
+                spacing: { after: SPACING.betweenParagraphs, line: 320 }, // Reduced line spacing
               })
             ),
             
             // Add spacing between experiences (except after the last one)
             ...(expIndex < data.experiences.length - 1 ? [
               new Paragraph({ 
-                spacing: { after: SPACING.betweenExperiences }
+                spacing: { after: SPACING.betweenExperiences } // Reduced space between experiences
               })
             ] : []),
           ]),
@@ -268,16 +271,20 @@ export const generateDocument = async (data: ResumeData) => {
             new Paragraph({
               children: [
                 new TextRun({
+                  text: "• ", // Manual bullet character
+                  size: 22,
+                  font: FONT.main,
+                  bold: false,
+                }),
+                new TextRun({
                   text: skill,
                   size: 22,
                   font: FONT.main,
+                  bold: false, // Not bold
                 }),
               ],
-              bullet: {
-                level: 0,
-              },
               indent: { left: 360 },
-              spacing: { after: SPACING.betweenParagraphs, line: 360 },
+              spacing: { after: SPACING.betweenParagraphs, line: 320 }, // Reduced line spacing
             })
           ),
           new Paragraph({ spacing: { after: SPACING.sectionSpace } }),
@@ -402,16 +409,20 @@ export const generateDocument = async (data: ResumeData) => {
                   new Paragraph({
                     children: [
                       new TextRun({
+                        text: "• ", // Manual bullet character
+                        size: 22,
+                        font: FONT.main,
+                        bold: false,
+                      }),
+                      new TextRun({
                         text: item,
                         size: 22,
                         font: FONT.main,
+                        bold: false, // Not bold
                       }),
                     ],
-                    bullet: {
-                      level: 0,
-                    },
                     indent: { left: 360 },
-                    spacing: { after: SPACING.betweenParagraphs, line: 360 },
+                    spacing: { after: SPACING.betweenParagraphs, line: 320 }, // Reduced line spacing
                   })
                 ),
               ]
