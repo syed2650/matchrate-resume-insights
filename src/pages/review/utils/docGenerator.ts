@@ -35,8 +35,8 @@ const FONT_SIZE = {
 const SPACING = {
   sectionSpace: 180,       // Space after sections
   headingAfter: 120,       // Space after heading title
-  betweenParagraphs: 60,   // Space between bullet points
-  betweenExperiences: 120, // Reduced space between experience entries (was 160)
+  betweenParagraphs: 20,   // Minimal space between paragraphs (was 60)
+  betweenExperiences: 80,  // Reduced space between experience entries (was 160, then 120)
   lineSpacing: 240,        // Line spacing (1.0 = 240)
 };
 
@@ -178,7 +178,7 @@ export const generateDocument = async (data: ResumeData) => {
                     font: FONT.main,
                   }),
                 ],
-                spacing: { after: 0 }, // No spacing
+                spacing: { after: 0 }, // No spacing between company and title
               }),
               
               // Job title - BOLD
@@ -191,7 +191,7 @@ export const generateDocument = async (data: ResumeData) => {
                     font: FONT.main,
                   }),
                 ],
-                spacing: { after: 0 }, // No spacing
+                spacing: { after: 0 }, // No spacing between title and dates
               }),
               
               // Dates - NOT BOLD with gray color
@@ -199,13 +199,13 @@ export const generateDocument = async (data: ResumeData) => {
                 children: [
                   new TextRun({
                     text: exp.dates,
-                    bold: false, // Explicitly NOT BOLD
+                    bold: false, 
                     size: FONT_SIZE.small,
                     font: FONT.main,
                     color: COLORS.gray,
                   }),
                 ],
-                spacing: { after: 0 }, // No spacing
+                spacing: { after: 0 }, // No spacing between dates and location
               }),
               
               // Location (if available) - NOT BOLD with gray color
@@ -214,22 +214,17 @@ export const generateDocument = async (data: ResumeData) => {
                   children: [
                     new TextRun({
                       text: exp.location,
-                      bold: false, // Explicitly NOT BOLD
+                      bold: false,
                       size: FONT_SIZE.small,
                       font: FONT.main,
                       color: COLORS.gray,
                     }),
                   ],
-                  spacing: { after: 20 }, // Small space before bullets
+                  spacing: { after: 0 }, // Minimal spacing before bullet paragraphs
                 })
-              ] : [
-                // If no location, still add a small space before bullet points
-                new Paragraph({
-                  spacing: { after: 20 },
-                })
-              ]),
+              ] : []),
               
-              // Changed from bullet points to regular paragraphs
+              // Regular paragraphs with minimal spacing
               ...exp.bullets.map((bullet, bulletIndex) =>
                 new Paragraph({
                   children: [
@@ -240,15 +235,15 @@ export const generateDocument = async (data: ResumeData) => {
                       bold: false,
                     }),
                   ],
-                  indent: { left: 0 }, // No indentation
                   spacing: { 
-                    after: bulletIndex < exp.bullets.length - 1 ? 20 : 30, // Reduced space between paragraphs
+                    before: 0,
+                    after: 0, // Minimal spacing between paragraphs
                     line: SPACING.lineSpacing 
                   },
                 })
               ),
               
-              // Add spacing between experiences
+              // Add spacing between experiences (only if not the last one)
               ...(expIndex < data.experiences.length - 1 ? [
                 new Paragraph({ 
                   spacing: { after: SPACING.betweenExperiences } 

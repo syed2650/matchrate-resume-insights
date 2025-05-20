@@ -32,7 +32,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
         <div className="mb-3">
           <h2 className="text-lg font-bold uppercase border-b border-slate-200 pb-1 mb-2">Summary</h2>
           {data.summary.map((paragraph, i) => (
-            <p key={i} className="mb-2 text-sm" style={{ fontFamily: 'Calibri, sans-serif', fontSize: '12pt', fontWeight: 'normal' }}>
+            <p key={i} className="mb-1 text-sm" style={{ fontFamily: 'Calibri, sans-serif', fontSize: '12pt', fontWeight: 'normal' }}>
               {paragraph}
             </p>
           ))}
@@ -44,27 +44,30 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
         <div className="mb-3">
           <h2 className="text-lg font-bold uppercase border-b border-slate-200 pb-1 mb-2">Experience</h2>
           {data.experiences.map((exp, i) => (
-            <div key={i} className="mb-3">
-              {/* Only job title should be bold */}
-              <p className="font-bold" style={{ fontFamily: 'Calibri, sans-serif', fontSize: '12pt' }}>
+            <div key={i} className={i > 0 ? "mt-2" : ""}>
+              {/* Job title */}
+              <p className="font-bold" style={{ fontFamily: 'Calibri, sans-serif', fontSize: '12pt', marginBottom: '0' }}>
                 {exp.title}
               </p>
-              <p className="font-bold" style={{ fontFamily: 'Calibri, sans-serif', fontSize: '12pt' }}>
+              {/* Company */}
+              <p className="font-bold" style={{ fontFamily: 'Calibri, sans-serif', fontSize: '12pt', marginBottom: '0', marginTop: '0' }}>
                 {exp.company}
               </p>
-              <p className="text-sm text-slate-600" style={{ fontFamily: 'Calibri, sans-serif', fontSize: '12pt', fontWeight: 'normal' }}>
+              {/* Dates */}
+              <p className="text-sm text-slate-600" style={{ fontFamily: 'Calibri, sans-serif', fontSize: '12pt', fontWeight: 'normal', marginBottom: '0', marginTop: '0' }}>
                 {exp.dates}
               </p>
+              {/* Location if available */}
               {exp.location && (
-                <p className="text-sm text-slate-600 mb-1" style={{ fontFamily: 'Calibri, sans-serif', fontSize: '12pt', fontWeight: 'normal' }}>
+                <p className="text-sm text-slate-600" style={{ fontFamily: 'Calibri, sans-serif', fontSize: '12pt', fontWeight: 'normal', marginBottom: '0', marginTop: '0' }}>
                   {exp.location}
                 </p>
               )}
               
-              {/* Changed from bullet list to normal paragraphs */}
-              <div className="mt-1 space-y-1">
+              {/* Regular paragraphs with minimal spacing */}
+              <div className="mt-0">
                 {exp.bullets && exp.bullets.map((bullet, j) => (
-                  <p key={j} className="ml-0" style={{ fontFamily: 'Calibri, sans-serif', fontSize: '12pt', fontWeight: 'normal' }}>
+                  <p key={j} style={{ fontFamily: 'Calibri, sans-serif', fontSize: '12pt', fontWeight: 'normal', marginTop: '0', marginBottom: '0' }}>
                     {bullet}
                   </p>
                 ))}
