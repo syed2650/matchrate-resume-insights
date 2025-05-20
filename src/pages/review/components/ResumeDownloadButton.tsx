@@ -6,8 +6,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
 import { trackRewriteUsage } from "../utils";
 import { downloadResumeAsPdf } from "../utils/downloadResumeAsPdf";
-import { generateFormattedDocx } from "../utils/resumeDocxGenerator";
-import { parseResumeText } from "../utils/resumeParser";
+import { generateDocument } from "../utils/docGenerator";
+import { parseResumeIntoData } from "../utils/parseResumeIntoData";
 
 interface ResumeDownloadButtonProps {
   currentResume: string;
@@ -38,9 +38,9 @@ const ResumeDownloadButton: React.FC<ResumeDownloadButtonProps> = ({
         // Download as PDF
         await downloadResumeAsPdf(currentResume);
       } else {
-        // Download as DOCX
-        const parsedResume = parseResumeText(currentResume);
-        const docBlob = await generateFormattedDocx(parsedResume.data);
+        // Download as DOCX - now using the same parser as the preview
+        const parsedResume = parseResumeIntoData(currentResume);
+        const docBlob = await generateDocument(parsedResume);
         if (!docBlob) {
           throw new Error("Failed to generate document");
         }
