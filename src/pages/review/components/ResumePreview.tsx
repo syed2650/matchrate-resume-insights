@@ -37,16 +37,16 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
           <h2 className="text-lg font-bold uppercase border-b border-slate-200 pb-1 mb-2">Experience</h2>
           {data.experiences.map((exp, i) => (
             <div key={i} className="mb-4">
-              {/* Only the job title and company should be bold */}
-              <p className="font-bold text-base mb-1">{exp.title}</p>
-              <p className="font-bold mb-1">{exp.company}</p>
-              <p className="text-sm text-slate-600 mb-1">{exp.dates}</p>
-              {exp.location && <p className="text-sm text-slate-600 mb-2">{exp.location}</p>}
+              {/* Only job title and company name should be bold */}
+              <p className="font-bold">{exp.title}</p>
+              <p className="font-bold">{exp.company}</p>
+              <p className="text-sm text-slate-600 font-normal">{exp.dates}</p>
+              {exp.location && <p className="text-sm text-slate-600 mb-1 font-normal">{exp.location}</p>}
               
-              {/* Bullets with proper spacing */}
-              <ul className="list-disc pl-5 space-y-1">
+              {/* Using standard list-disc for bullet points and ensuring they're not bold */}
+              <ul className="list-disc pl-5 mt-1 space-y-1">
                 {exp.bullets && exp.bullets.map((bullet, j) => (
-                  <li key={j} className="text-sm font-normal">
+                  <li key={j} className="text-sm font-normal not-italic" style={{fontWeight: 'normal'}}>
                     {bullet}
                   </li>
                 ))}
@@ -74,7 +74,9 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
           <h2 className="text-lg font-bold uppercase border-b border-slate-200 pb-1 mb-2">Skills</h2>
           <ul className="list-disc pl-5 grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1">
             {data.skills.map((skill, i) => (
-              <li key={i} className="text-sm font-normal">{skill}</li>
+              <li key={i} className="text-sm font-normal not-italic" style={{fontWeight: 'normal'}}>
+                {skill}
+              </li>
             ))}
           </ul>
         </div>
@@ -86,7 +88,9 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
           <h2 className="text-lg font-bold uppercase border-b border-slate-200 pb-1 mb-2">Recognition</h2>
           <ul className="list-disc pl-5 space-y-1">
             {data.recognition.map((item, i) => (
-              <li key={i} className="text-sm font-normal">{item}</li>
+              <li key={i} className="text-sm font-normal not-italic" style={{fontWeight: 'normal'}}>
+                {item}
+              </li>
             ))}
           </ul>
         </div>
