@@ -229,7 +229,7 @@ export const generateDocument = async (data: ResumeData) => {
                 })
               ]),
               
-              // Simplified bullet points with consistent formatting
+              // Changed from bullet points to regular paragraphs
               ...exp.bullets.map((bullet, bulletIndex) =>
                 new Paragraph({
                   children: [
@@ -237,14 +237,12 @@ export const generateDocument = async (data: ResumeData) => {
                       text: bullet,
                       size: FONT_SIZE.normal,
                       font: FONT.main,
-                      bold: false, // Explicitly NOT BOLD
+                      bold: false,
                     }),
                   ],
-                  bullet: { 
-                    level: 0 
-                  },
+                  indent: { left: 0 }, // No indentation
                   spacing: { 
-                    after: bulletIndex < exp.bullets.length - 1 ? 20 : 30, // Reduced space between bullets
+                    after: bulletIndex < exp.bullets.length - 1 ? 20 : 30, // Reduced space between paragraphs
                     line: SPACING.lineSpacing 
                   },
                 })

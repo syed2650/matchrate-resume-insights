@@ -61,14 +61,14 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                 </p>
               )}
               
-              {/* Simplifying the bullet points to ensure consistent formatting */}
-              <ul className="list-disc pl-5 mt-1 space-y-0.5">
+              {/* Changed from bullet list to normal paragraphs */}
+              <div className="mt-1 space-y-1">
                 {exp.bullets && exp.bullets.map((bullet, j) => (
-                  <li key={j} style={{ fontFamily: 'Calibri, sans-serif', fontSize: '12pt', fontWeight: 'normal' }}>
+                  <p key={j} className="ml-0" style={{ fontFamily: 'Calibri, sans-serif', fontSize: '12pt', fontWeight: 'normal' }}>
                     {bullet}
-                  </li>
+                  </p>
                 ))}
-              </ul>
+              </div>
             </div>
           ))}
         </div>
