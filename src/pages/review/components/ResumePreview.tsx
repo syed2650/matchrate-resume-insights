@@ -45,12 +45,12 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
           <h2 className="text-lg font-bold uppercase border-b border-slate-200 pb-1 mb-2">Experience</h2>
           {data.experiences.map((exp, i) => (
             <div key={i} className={i > 0 ? "mt-2" : ""}>
-              {/* Job title */}
-              <p className="font-bold" style={{ fontFamily: 'Calibri, sans-serif', fontSize: '12pt', marginBottom: '0' }}>
+              {/* Job title - CHANGED TO NORMAL */}
+              <p style={{ fontFamily: 'Calibri, sans-serif', fontSize: '12pt', fontWeight: 'normal', marginBottom: '0' }}>
                 {exp.title}
               </p>
-              {/* Company */}
-              <p className="font-bold" style={{ fontFamily: 'Calibri, sans-serif', fontSize: '12pt', marginBottom: '0', marginTop: '0' }}>
+              {/* Company - CHANGED TO NORMAL */}
+              <p style={{ fontFamily: 'Calibri, sans-serif', fontSize: '12pt', fontWeight: 'normal', marginBottom: '0', marginTop: '0' }}>
                 {exp.company}
               </p>
               {/* Dates */}
