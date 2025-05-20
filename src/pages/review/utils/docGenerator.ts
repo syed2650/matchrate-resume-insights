@@ -1,3 +1,4 @@
+
 import {
   Document,
   Paragraph,
@@ -28,8 +29,8 @@ const FONT = {
 const SPACING = {
   sectionSpace: 240, // Reduced space after sections
   headingAfter: 160, // Reduced space after heading title
-  betweenParagraphs: 60, // Reduced space between bullet points
-  betweenExperiences: 120, // Reduced space between experience entries
+  betweenParagraphs: 40, // Further reduced space between bullet points
+  betweenExperiences: 80, // Further reduced space between experience entries
 };
 
 export const generateDocument = async (data: ResumeData) => {
@@ -169,7 +170,7 @@ export const generateDocument = async (data: ResumeData) => {
                   font: FONT.main,
                 }),
               ],
-              spacing: { after: 60 }, // Reduced spacing
+              spacing: { after: 40 }, // Further reduced spacing
             }),
             
             // Company name - Bold
@@ -182,7 +183,7 @@ export const generateDocument = async (data: ResumeData) => {
                   font: FONT.main,
                 }),
               ],
-              spacing: { after: 60 }, // Reduced spacing
+              spacing: { after: 40 }, // Further reduced spacing
             }),
             
             // Dates - Not bold, gray color
@@ -196,7 +197,7 @@ export const generateDocument = async (data: ResumeData) => {
                   color: COLORS.gray,
                 }),
               ],
-              spacing: { after: 60 }, // Reduced spacing
+              spacing: { after: 40 }, // Further reduced spacing
             }),
             
             // Location (if available) - Not bold, gray color
@@ -211,29 +212,29 @@ export const generateDocument = async (data: ResumeData) => {
                     color: COLORS.gray,
                   }),
                 ],
-                spacing: { after: 80 }, // Reduced space before bullet points
+                spacing: { after: 60 }, // Reduced space before bullet points
               })
             ] : []),
             
-            // Bullet points - Using manual bullet character and not bold
+            // Bullet points - Using manual bullet character, not bold, smaller font
             ...exp.bullets.map((bullet) =>
               new Paragraph({
                 children: [
                   new TextRun({
                     text: "• ", // Manual bullet character
-                    size: 22,
+                    size: 18,
                     font: FONT.main,
                     bold: false,
                   }),
                   new TextRun({
                     text: bullet,
-                    size: 22,
+                    size: 18, // Smaller font size for bullet content
                     font: FONT.main,
                     bold: false, // Not bold
                   }),
                 ],
                 indent: { left: 360 },
-                spacing: { after: SPACING.betweenParagraphs, line: 300 }, // Reduced line spacing
+                spacing: { after: SPACING.betweenParagraphs, line: 260 }, // Reduced line spacing
               })
             ),
             
@@ -271,19 +272,19 @@ export const generateDocument = async (data: ResumeData) => {
               children: [
                 new TextRun({
                   text: "• ", // Manual bullet character
-                  size: 22,
+                  size: 18, // Smaller font size for bullets
                   font: FONT.main,
                   bold: false,
                 }),
                 new TextRun({
                   text: skill,
-                  size: 22,
+                  size: 18, // Smaller font size for bullet content
                   font: FONT.main,
                   bold: false, // Not bold
                 }),
               ],
               indent: { left: 360 },
-              spacing: { after: SPACING.betweenParagraphs, line: 300 }, // Reduced line spacing
+              spacing: { after: SPACING.betweenParagraphs, line: 260 }, // Reduced line spacing
             })
           ),
           new Paragraph({ spacing: { after: SPACING.sectionSpace } }),
@@ -341,7 +342,7 @@ export const generateDocument = async (data: ResumeData) => {
                     font: FONT.main,
                   }),
                 ],
-                spacing: { after: 60 }, // Reduced spacing
+                spacing: { after: 40 }, // Further reduced spacing
               }),
               // Institution
               new Paragraph({
@@ -352,7 +353,7 @@ export const generateDocument = async (data: ResumeData) => {
                     font: FONT.main,
                   }),
                 ],
-                spacing: { after: 60 }, // Reduced spacing
+                spacing: { after: 40 }, // Further reduced spacing
               }),
               // Country on next line
               country && new Paragraph({
@@ -364,7 +365,7 @@ export const generateDocument = async (data: ResumeData) => {
                     italics: true,
                   }),
                 ],
-                spacing: { after: 60 }, // Reduced spacing
+                spacing: { after: 40 }, // Further reduced spacing
               }),
               // Year on next line after country
               year && new Paragraph({
@@ -409,19 +410,19 @@ export const generateDocument = async (data: ResumeData) => {
                     children: [
                       new TextRun({
                         text: "• ", // Manual bullet character
-                        size: 22,
+                        size: 18, // Smaller font size for bullets
                         font: FONT.main,
                         bold: false,
                       }),
                       new TextRun({
                         text: item,
-                        size: 22,
+                        size: 18, // Smaller font size for bullet content
                         font: FONT.main,
                         bold: false, // Not bold
                       }),
                     ],
                     indent: { left: 360 },
-                    spacing: { after: SPACING.betweenParagraphs, line: 300 }, // Reduced line spacing
+                    spacing: { after: SPACING.betweenParagraphs, line: 260 }, // Reduced line spacing
                   })
                 ),
               ]
