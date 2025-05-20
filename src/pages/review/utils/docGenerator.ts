@@ -26,11 +26,17 @@ const FONT = {
   main: "Calibri",
 };
 
+const FONT_SIZE = {
+  normal: 24, // 12pt (24 half-points)
+  small: 22,  // 11pt (22 half-points)
+  bullet: 24, // 12pt for bullets (24 half-points)
+};
+
 const SPACING = {
-  sectionSpace: 240, // Reduced space after sections
-  headingAfter: 160, // Reduced space after heading title
-  betweenParagraphs: 40, // Further reduced space between bullet points
-  betweenExperiences: 80, // Further reduced space between experience entries
+  sectionSpace: 200, // Space after sections
+  headingAfter: 120, // Space after heading title
+  betweenParagraphs: 20, // Space between bullet points
+  betweenExperiences: 60, // Space between experience entries
 };
 
 export const generateDocument = async (data: ResumeData) => {
@@ -70,11 +76,11 @@ export const generateDocument = async (data: ResumeData) => {
               children: contactParts.map((part, i) => [
                 new TextRun({
                   text: part,
-                  size: 20,
+                  size: FONT_SIZE.small,
                   font: FONT.main,
                   color: COLORS.gray,
                 }),
-                i < contactParts.length - 1 ? new TextRun({ text: " | ", size: 20, font: FONT.main, color: COLORS.gray }) : new TextRun({ text: "" })
+                i < contactParts.length - 1 ? new TextRun({ text: " | ", size: FONT_SIZE.small, font: FONT.main, color: COLORS.gray }) : new TextRun({ text: "" })
               ]).flat(),
               alignment: AlignmentType.CENTER,
               spacing: { after: SPACING.sectionSpace },
@@ -101,7 +107,7 @@ export const generateDocument = async (data: ResumeData) => {
 
           // Space after horizontal line
           new Paragraph({
-            spacing: { after: SPACING.sectionSpace },
+            spacing: { after: SPACING.sectionSpace / 2 },
           }),
 
           // SUMMARY - Section heading with border bottom instead of underline
@@ -111,7 +117,7 @@ export const generateDocument = async (data: ResumeData) => {
                 text: "SUMMARY",
                 bold: true,
                 color: COLORS.darkBlue,
-                size: 22,
+                size: FONT_SIZE.normal,
                 font: FONT.main,
               }),
             ],
@@ -131,7 +137,8 @@ export const generateDocument = async (data: ResumeData) => {
               new TextRun({
                 text: data.summary.join(" "),
                 font: FONT.main,
-                size: 22,
+                size: FONT_SIZE.normal,
+                bold: false,
               }),
             ],
             spacing: { after: SPACING.sectionSpace },
@@ -144,7 +151,7 @@ export const generateDocument = async (data: ResumeData) => {
                 text: "EXPERIENCE",
                 bold: true,
                 color: COLORS.darkBlue,
-                size: 22,
+                size: FONT_SIZE.normal,
                 font: FONT.main,
               }),
             ],
@@ -166,11 +173,11 @@ export const generateDocument = async (data: ResumeData) => {
                 new TextRun({
                   text: exp.title,
                   bold: true,
-                  size: 22,
+                  size: FONT_SIZE.normal,
                   font: FONT.main,
                 }),
               ],
-              spacing: { after: 40 }, // Further reduced spacing
+              spacing: { after: 20 }, // Reduced spacing
             }),
             
             // Company name - Bold
@@ -179,11 +186,11 @@ export const generateDocument = async (data: ResumeData) => {
                 new TextRun({
                   text: exp.company,
                   bold: true,
-                  size: 22,
+                  size: FONT_SIZE.normal,
                   font: FONT.main,
                 }),
               ],
-              spacing: { after: 40 }, // Further reduced spacing
+              spacing: { after: 20 }, // Reduced spacing
             }),
             
             // Dates - Not bold, gray color
@@ -192,12 +199,12 @@ export const generateDocument = async (data: ResumeData) => {
                 new TextRun({
                   text: exp.dates,
                   bold: false, // Not bold
-                  size: 22,
+                  size: FONT_SIZE.small,
                   font: FONT.main,
                   color: COLORS.gray,
                 }),
               ],
-              spacing: { after: 40 }, // Further reduced spacing
+              spacing: { after: 20 }, // Reduced spacing
             }),
             
             // Location (if available) - Not bold, gray color
@@ -207,34 +214,34 @@ export const generateDocument = async (data: ResumeData) => {
                   new TextRun({
                     text: exp.location,
                     bold: false, // Not bold
-                    size: 22,
+                    size: FONT_SIZE.small,
                     font: FONT.main,
                     color: COLORS.gray,
                   }),
                 ],
-                spacing: { after: 60 }, // Reduced space before bullet points
+                spacing: { after: 40 }, // Reduced space before bullet points
               })
             ] : []),
             
-            // Bullet points - Using manual bullet character, not bold, smaller font
+            // Bullet points - Using manual bullet character, not bold
             ...exp.bullets.map((bullet) =>
               new Paragraph({
                 children: [
                   new TextRun({
                     text: "• ", // Manual bullet character
-                    size: 18,
+                    size: FONT_SIZE.bullet,
                     font: FONT.main,
                     bold: false,
                   }),
                   new TextRun({
                     text: bullet,
-                    size: 18, // Smaller font size for bullet content
+                    size: FONT_SIZE.bullet, // Same font size for bullet content
                     font: FONT.main,
-                    bold: false, // Not bold
+                    bold: false, // Explicitly not bold
                   }),
                 ],
                 indent: { left: 360 },
-                spacing: { after: SPACING.betweenParagraphs, line: 260 }, // Reduced line spacing
+                spacing: { after: SPACING.betweenParagraphs, line: 240 }, // Reduced line spacing
               })
             ),
             
@@ -253,7 +260,7 @@ export const generateDocument = async (data: ResumeData) => {
                 text: "SKILLS",
                 bold: true,
                 color: COLORS.darkBlue,
-                size: 22,
+                size: FONT_SIZE.normal,
                 font: FONT.main,
               }),
             ],
@@ -272,19 +279,19 @@ export const generateDocument = async (data: ResumeData) => {
               children: [
                 new TextRun({
                   text: "• ", // Manual bullet character
-                  size: 18, // Smaller font size for bullets
+                  size: FONT_SIZE.bullet,
                   font: FONT.main,
                   bold: false,
                 }),
                 new TextRun({
                   text: skill,
-                  size: 18, // Smaller font size for bullet content
+                  size: FONT_SIZE.bullet,
                   font: FONT.main,
-                  bold: false, // Not bold
+                  bold: false, // Explicitly not bold
                 }),
               ],
               indent: { left: 360 },
-              spacing: { after: SPACING.betweenParagraphs, line: 260 }, // Reduced line spacing
+              spacing: { after: SPACING.betweenParagraphs, line: 240 }, // Reduced line spacing
             })
           ),
           new Paragraph({ spacing: { after: SPACING.sectionSpace } }),
@@ -296,7 +303,7 @@ export const generateDocument = async (data: ResumeData) => {
                 text: "EDUCATION",
                 bold: true,
                 color: COLORS.darkBlue,
-                size: 22,
+                size: FONT_SIZE.normal,
                 font: FONT.main,
               }),
             ],
@@ -338,42 +345,44 @@ export const generateDocument = async (data: ResumeData) => {
                   new TextRun({
                     text: degree,
                     bold: true,
-                    size: 22,
+                    size: FONT_SIZE.normal,
                     font: FONT.main,
                   }),
                 ],
-                spacing: { after: 40 }, // Further reduced spacing
+                spacing: { after: 20 }, // Reduced spacing
               }),
               // Institution
               new Paragraph({
                 children: [
                   new TextRun({
                     text: institution,
-                    size: 22,
+                    size: FONT_SIZE.normal,
                     font: FONT.main,
+                    bold: false,
                   }),
                 ],
-                spacing: { after: 40 }, // Further reduced spacing
+                spacing: { after: 20 }, // Reduced spacing
               }),
               // Country on next line
               country && new Paragraph({
                 children: [
                   new TextRun({
                     text: country,
-                    size: 22,
+                    size: FONT_SIZE.normal,
                     font: FONT.main,
                     italics: true,
+                    bold: false,
                   }),
                 ],
-                spacing: { after: 40 }, // Further reduced spacing
+                spacing: { after: 20 }, // Reduced spacing
               }),
               // Year on next line after country
               year && new Paragraph({
                 children: [
                   new TextRun({
                     text: year,
-                    bold: true, // Make year bold
-                    size: 22,
+                    bold: false, // Not bold
+                    size: FONT_SIZE.normal,
                     font: FONT.main,
                   }),
                 ],
@@ -391,7 +400,7 @@ export const generateDocument = async (data: ResumeData) => {
                       text: "RECOGNITION",
                       bold: true,
                       color: COLORS.darkBlue,
-                      size: 22,
+                      size: FONT_SIZE.normal,
                       font: FONT.main,
                     }),
                   ],
@@ -410,19 +419,19 @@ export const generateDocument = async (data: ResumeData) => {
                     children: [
                       new TextRun({
                         text: "• ", // Manual bullet character
-                        size: 18, // Smaller font size for bullets
+                        size: FONT_SIZE.bullet,
                         font: FONT.main,
                         bold: false,
                       }),
                       new TextRun({
                         text: item,
-                        size: 18, // Smaller font size for bullet content
+                        size: FONT_SIZE.bullet,
                         font: FONT.main,
-                        bold: false, // Not bold
+                        bold: false, // Explicitly not bold
                       }),
                     ],
                     indent: { left: 360 },
-                    spacing: { after: SPACING.betweenParagraphs, line: 260 }, // Reduced line spacing
+                    spacing: { after: SPACING.betweenParagraphs, line: 240 }, // Reduced line spacing
                   })
                 ),
               ]
