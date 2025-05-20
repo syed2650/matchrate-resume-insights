@@ -26,16 +26,18 @@ const FONT = {
 };
 
 const FONT_SIZE = {
-  normal: 24, // 12pt (24 half-points)
-  small: 22,  // 11pt (22 half-points)
-  bullet: 24, // 12pt for bullets (24 half-points)
+  name: 28,    // 14pt (28 half-points)
+  normal: 24,  // 12pt (24 half-points)
+  small: 22,   // 11pt (22 half-points)
+  bullet: 24,  // 12pt for bullets (24 half-points)
 };
 
 const SPACING = {
-  sectionSpace: 200, // Space after sections
-  headingAfter: 120, // Space after heading title
-  betweenParagraphs: 80, // Space between bullet points
+  sectionSpace: 180,       // Space after sections
+  headingAfter: 120,       // Space after heading title
+  betweenParagraphs: 60,   // Space between bullet points
   betweenExperiences: 160, // Space between experience entries
+  lineSpacing: 240,        // Line spacing (1.0 = 240)
 };
 
 export const generateDocument = async (data: ResumeData) => {
@@ -59,7 +61,7 @@ export const generateDocument = async (data: ResumeData) => {
               new TextRun({
                 text: data.name.toUpperCase(),
                 bold: true,
-                size: 28,
+                size: FONT_SIZE.name,
                 font: FONT.main,
               }),
             ],
@@ -69,7 +71,6 @@ export const generateDocument = async (data: ResumeData) => {
 
           // Contact Info - centered below name
           (() => {
-            // Parse contact information (expecting phone, email, location, etc.)
             const contactParts = data.contact.split('|').map(part => part.trim());
             return new Paragraph({
               children: contactParts.map((part, i) => [
@@ -110,281 +111,302 @@ export const generateDocument = async (data: ResumeData) => {
           }),
 
           // SUMMARY - Section heading with border bottom instead of underline
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: "SUMMARY",
-                bold: true,
-                color: COLORS.darkBlue,
-                size: FONT_SIZE.normal,
-                font: FONT.main,
-              }),
-            ],
-            heading: HeadingLevel.HEADING_2,
-            border: {
-              bottom: {
-                color: "CCCCCC",
-                style: BorderStyle.SINGLE,
-                size: 1,
+          ...(data.summary && data.summary.length > 0 ? [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "SUMMARY",
+                  bold: true,
+                  color: COLORS.darkBlue,
+                  size: FONT_SIZE.normal,
+                  font: FONT.main,
+                }),
+              ],
+              heading: HeadingLevel.HEADING_2,
+              border: {
+                bottom: {
+                  color: "CCCCCC",
+                  style: BorderStyle.SINGLE,
+                  size: 1,
+                },
               },
-            },
-            spacing: { after: SPACING.headingAfter },
-          }),
-
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: data.summary.join(" "),
-                font: FONT.main,
-                size: FONT_SIZE.normal,
-                bold: false,
-              }),
-            ],
-            spacing: { after: SPACING.sectionSpace },
-          }),
+              spacing: { after: SPACING.headingAfter },
+            }),
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: data.summary.join(" "),
+                  font: FONT.main,
+                  size: FONT_SIZE.normal,
+                  bold: false,
+                }),
+              ],
+              spacing: { after: SPACING.sectionSpace },
+            })
+          ] : []),
 
           // EXPERIENCE - Section heading with border bottom
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: "EXPERIENCE",
-                bold: true,
-                color: COLORS.darkBlue,
-                size: FONT_SIZE.normal,
-                font: FONT.main,
-              }),
-            ],
-            heading: HeadingLevel.HEADING_2,
-            border: {
-              bottom: {
-                color: "CCCCCC",
-                style: BorderStyle.SINGLE,
-                size: 1,
-              },
-            },
-            spacing: { after: SPACING.headingAfter },
-          }),
-
-          ...data.experiences.flatMap((exp, expIndex) => [
-            // Job title - Bold
+          ...(data.experiences && data.experiences.length > 0 ? [
             new Paragraph({
               children: [
                 new TextRun({
-                  text: exp.title,
+                  text: "EXPERIENCE",
                   bold: true,
+                  color: COLORS.darkBlue,
                   size: FONT_SIZE.normal,
                   font: FONT.main,
                 }),
               ],
-              spacing: { after: 0 }, // Minimal spacing
-            }),
-            
-            // Company name - Bold
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: exp.company,
-                  bold: true,
-                  size: FONT_SIZE.normal,
-                  font: FONT.main,
-                }),
-              ],
-              spacing: { after: 0 }, // Minimal spacing
-            }),
-            
-            // Dates - Not bold, gray color
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: exp.dates,
-                  bold: false, // Not bold
-                  size: FONT_SIZE.small,
-                  font: FONT.main,
-                  color: COLORS.gray,
-                }),
-              ],
-              spacing: { after: 0 }, // Minimal spacing
-            }),
-            
-            // Location (if available) - Not bold, gray color
-            ...(exp.location ? [
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text: exp.location,
-                    bold: false, // Not bold
-                    size: FONT_SIZE.small,
-                    font: FONT.main,
-                    color: COLORS.gray,
-                  }),
-                ],
-                spacing: { after: 20 }, // Small space before bullet points
-              })
-            ] : [
-              // If no location, still add a small space before bullet points
-              new Paragraph({
-                children: [new TextRun({ text: "" })],
-                spacing: { after: 20 },
-              })
-            ]),
-            
-            // Bullet points - using document bullets
-            ...exp.bullets.map((bullet) =>
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text: bullet,
-                    size: FONT_SIZE.normal,
-                    font: FONT.main,
-                    bold: false, // Explicitly not bold
-                  }),
-                ],
-                bullet: { level: 0 }, // Using document's native bullets
-                indent: { left: 360, hanging: 260 },
-                spacing: { after: 0, line: 240 }, // Minimal spacing between bullets
-              })
-            ),
-            
-            // Add spacing between experiences
-            ...(expIndex < data.experiences.length - 1 ? [
-              new Paragraph({ 
-                spacing: { after: SPACING.betweenExperiences }
-              })
-            ] : []),
-          ]),
-
-          // KEY SKILLS - Section heading with border bottom
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: "SKILLS",
-                bold: true,
-                color: COLORS.darkBlue,
-                size: FONT_SIZE.normal,
-                font: FONT.main,
-              }),
-            ],
-            heading: HeadingLevel.HEADING_2,
-            border: {
-              bottom: {
-                color: "CCCCCC",
-                style: BorderStyle.SINGLE,
-                size: 1,
+              heading: HeadingLevel.HEADING_2,
+              border: {
+                bottom: {
+                  color: "CCCCCC",
+                  style: BorderStyle.SINGLE,
+                  size: 1,
+                },
               },
-            },
-            spacing: { after: SPACING.headingAfter },
-          }),
-          ...data.skills.map((skill) =>
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: skill,
-                  size: FONT_SIZE.normal,
-                  font: FONT.main,
-                  bold: false, // Explicitly not bold
-                }),
-              ],
-              bullet: { level: 0 }, // Using document's native bullets
-              indent: { left: 360, hanging: 260 },
-              spacing: { after: 0, line: 240 }, // Reduced line spacing
-            })
-          ),
-          new Paragraph({ spacing: { after: SPACING.sectionSpace } }),
-
-          // EDUCATION - Section heading with border bottom
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: "EDUCATION",
-                bold: true,
-                color: COLORS.darkBlue,
-                size: FONT_SIZE.normal,
-                font: FONT.main,
-              }),
-            ],
-            heading: HeadingLevel.HEADING_2,
-            border: {
-              bottom: {
-                color: "CCCCCC",
-                style: BorderStyle.SINGLE,
-                size: 1,
-              },
-            },
-            spacing: { after: SPACING.headingAfter },
-          }),
-          ...data.education.flatMap((edu) => {
-            // Parse education entry
-            const parts = edu.split('|');
-            const degree = parts[0] ? parts[0].trim() : '';
-            
-            // Extract institution and additional info
-            let institution = '';
-            let country = '';
-            let year = '';
-            
-            if (parts.length > 1) {
-              const institutionParts = parts[1].trim().split('•');
-              institution = institutionParts[0] ? institutionParts[0].trim() : '';
-              
-              if (institutionParts.length > 1) {
-                const locationParts = institutionParts[1].trim().split('–');
-                country = locationParts[0] ? locationParts[0].trim() : '';
-                year = locationParts.length > 1 ? locationParts[1].trim() : '';
-              }
-            }
-            
-            return [
-              // Degree - Bold
+              spacing: { after: SPACING.headingAfter },
+            }),
+            ...data.experiences.flatMap((exp, expIndex) => [
+              // Job title - BOLD
               new Paragraph({
                 children: [
                   new TextRun({
-                    text: degree,
+                    text: exp.title,
                     bold: true,
                     size: FONT_SIZE.normal,
                     font: FONT.main,
                   }),
                 ],
-                spacing: { after: 0 }, // Minimal spacing
+                spacing: { after: 0 }, // No spacing
               }),
-              // Institution
+              
+              // Company name - BOLD
               new Paragraph({
                 children: [
                   new TextRun({
-                    text: institution,
+                    text: exp.company,
+                    bold: true,
                     size: FONT_SIZE.normal,
                     font: FONT.main,
-                    bold: false,
                   }),
                 ],
-                spacing: { after: 0 }, // Minimal spacing
+                spacing: { after: 0 }, // No spacing
               }),
-              // Country on next line
-              country && new Paragraph({
+              
+              // Dates - NOT BOLD with gray color
+              new Paragraph({
                 children: [
                   new TextRun({
-                    text: country,
-                    size: FONT_SIZE.normal,
+                    text: exp.dates,
+                    bold: false, // Explicitly NOT BOLD
+                    size: FONT_SIZE.small,
                     font: FONT.main,
-                    italics: true,
-                    bold: false,
+                    color: COLORS.gray,
                   }),
                 ],
-                spacing: { after: 0 }, // Minimal spacing
+                spacing: { after: 0 }, // No spacing
               }),
-              // Year on next line after country
-              year && new Paragraph({
+              
+              // Location (if available) - NOT BOLD with gray color
+              ...(exp.location ? [
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: exp.location,
+                      bold: false, // Explicitly NOT BOLD
+                      size: FONT_SIZE.small,
+                      font: FONT.main,
+                      color: COLORS.gray,
+                    }),
+                  ],
+                  spacing: { after: 20 }, // Small space before bullets
+                })
+              ] : [
+                // If no location, still add a small space before bullet points
+                new Paragraph({
+                  spacing: { after: 20 },
+                })
+              ]),
+              
+              // Bullet points - Using Word's built-in bullets with proper indentation
+              ...exp.bullets.map((bullet, bulletIndex) =>
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: bullet,
+                      size: FONT_SIZE.normal,
+                      font: FONT.main,
+                      bold: false, // Explicitly NOT BOLD
+                    }),
+                  ],
+                  bullet: { 
+                    level: 0 
+                  },
+                  indent: { 
+                    left: 360, 
+                    hanging: 260 
+                  },
+                  spacing: { 
+                    after: bulletIndex < exp.bullets.length - 1 ? 40 : 60, // Less space between bullets
+                    line: SPACING.lineSpacing 
+                  },
+                })
+              ),
+              
+              // Add spacing between experiences
+              ...(expIndex < data.experiences.length - 1 ? [
+                new Paragraph({ 
+                  spacing: { after: SPACING.betweenExperiences } 
+                })
+              ] : []),
+            ])
+          ] : []),
+
+          // SKILLS - Section heading with border bottom
+          ...(data.skills && data.skills.length > 0 ? [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "SKILLS",
+                  bold: true,
+                  color: COLORS.darkBlue,
+                  size: FONT_SIZE.normal,
+                  font: FONT.main,
+                }),
+              ],
+              heading: HeadingLevel.HEADING_2,
+              border: {
+                bottom: {
+                  color: "CCCCCC",
+                  style: BorderStyle.SINGLE,
+                  size: 1,
+                },
+              },
+              spacing: { after: SPACING.headingAfter },
+            }),
+            ...data.skills.map((skill, skillIndex) =>
+              new Paragraph({
                 children: [
                   new TextRun({
-                    text: year,
-                    bold: false, // Not bold
+                    text: skill,
                     size: FONT_SIZE.normal,
                     font: FONT.main,
+                    bold: false, // Explicitly NOT BOLD
                   }),
                 ],
-                spacing: { after: 80 }, // Space after full education entry
-              }),
-            ];
-          }),
+                bullet: {
+                  level: 0,
+                },
+                indent: { 
+                  left: 360, 
+                  hanging: 260 
+                },
+                spacing: {
+                  after: skillIndex < data.skills.length - 1 ? 40 : 60,
+                  line: SPACING.lineSpacing
+                },
+              })
+            ),
+            new Paragraph({ spacing: { after: SPACING.sectionSpace } })
+          ] : []),
+
+          // EDUCATION - Section heading with border bottom
+          ...(data.education && data.education.length > 0 ? [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "EDUCATION",
+                  bold: true,
+                  color: COLORS.darkBlue,
+                  size: FONT_SIZE.normal,
+                  font: FONT.main,
+                }),
+              ],
+              heading: HeadingLevel.HEADING_2,
+              border: {
+                bottom: {
+                  color: "CCCCCC",
+                  style: BorderStyle.SINGLE,
+                  size: 1,
+                },
+              },
+              spacing: { after: SPACING.headingAfter },
+            }),
+            ...data.education.flatMap((edu, i) => {
+              // Parse education entry
+              const parts = edu.split('|');
+              const degree = parts[0] ? parts[0].trim() : '';
+              
+              // Extract institution and additional info
+              let institution = '';
+              let country = '';
+              let year = '';
+              
+              if (parts.length > 1) {
+                const institutionParts = parts[1].trim().split('•');
+                institution = institutionParts[0] ? institutionParts[0].trim() : '';
+                
+                if (institutionParts.length > 1) {
+                  const locationParts = institutionParts[1].trim().split('–');
+                  country = locationParts[0] ? locationParts[0].trim() : '';
+                  year = locationParts.length > 1 ? locationParts[1].trim() : '';
+                }
+              }
+              
+              return [
+                // Degree - Bold
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: degree,
+                      bold: true,
+                      size: FONT_SIZE.normal,
+                      font: FONT.main,
+                    }),
+                  ],
+                  spacing: { after: 0 }, // No spacing
+                }),
+                // Institution
+                institution ? new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: institution,
+                      size: FONT_SIZE.normal,
+                      font: FONT.main,
+                      bold: false, // NOT BOLD
+                    }),
+                  ],
+                  spacing: { after: 0 }, // No spacing
+                }) : null,
+                // Country on next line
+                country ? new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: country,
+                      size: FONT_SIZE.normal,
+                      font: FONT.main,
+                      italics: true,
+                      bold: false, // NOT BOLD
+                    }),
+                  ],
+                  spacing: { after: 0 }, // No spacing
+                }) : null,
+                // Year on next line after country
+                year ? new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: year,
+                      bold: false, // NOT BOLD
+                      size: FONT_SIZE.normal,
+                      font: FONT.main,
+                    }),
+                  ],
+                  spacing: { after: i < data.education.length - 1 ? 80 : SPACING.sectionSpace },
+                }) : null,
+              ].filter(Boolean); // Remove null elements
+            })
+          ] : []),
 
           // RECOGNITION (if available) - Section heading with border bottom
           ...(data.recognition && data.recognition.length > 0
@@ -409,19 +431,27 @@ export const generateDocument = async (data: ResumeData) => {
                   },
                   spacing: { after: SPACING.headingAfter },
                 }),
-                ...data.recognition.map((item) =>
+                ...data.recognition.map((item, recIndex) =>
                   new Paragraph({
                     children: [
                       new TextRun({
                         text: item,
                         size: FONT_SIZE.normal,
                         font: FONT.main,
-                        bold: false, // Explicitly not bold
+                        bold: false, // Explicitly NOT BOLD
                       }),
                     ],
-                    bullet: { level: 0 }, // Using document's native bullets
-                    indent: { left: 360, hanging: 260 },
-                    spacing: { after: 0, line: 240 }, // Reduced line spacing
+                    bullet: {
+                      level: 0,
+                    },
+                    indent: { 
+                      left: 360, 
+                      hanging: 260 
+                    },
+                    spacing: {
+                      after: recIndex < data.recognition.length - 1 ? 40 : 60,
+                      line: SPACING.lineSpacing
+                    },
                   })
                 ),
               ]
