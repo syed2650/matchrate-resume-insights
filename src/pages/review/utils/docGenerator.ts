@@ -36,8 +36,8 @@ const SPACING = {
   sectionSpace: 180,       // Space after sections
   headingAfter: 120,       // Space after heading title
   betweenParagraphs: 20,   // Minimal space between paragraphs (was 60)
-  betweenExperiences: 80,  // Reduced space between experience entries (was 160, then 120)
-  lineSpacing: 240,        // Line spacing (1.0 = 240)
+  betweenExperiences: 20,  // Reduced space between experience entries (was 160, then 120)
+  lineSpacing: 220,        // Line spacing (1.0 = 240)
 };
 
 export const generateDocument = async (data: ResumeData) => {
@@ -229,8 +229,8 @@ export const generateDocument = async (data: ResumeData) => {
                 new Paragraph({
                   children: [
                     new TextRun({
-                      text: bullet,
-                      size: FONT_SIZE.normal,
+                      text: exp.bullet,
+                      size: FONT_SIZE.small,
                       font: FONT.main,
                       bold: false,
                     }),
