@@ -67,7 +67,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
               {/* Regular paragraphs with minimal spacing */}
               <div className="mt-0">
                 {exp.bullets && exp.bullets.map((bullet, j) => (
-                  <p key={j} style={{ fontFamily: 'Calibri, sans-serif', fontSize: '12pt', fontWeight: 'normal', marginTop: '0', marginBottom: '0' }}>
+                  <p className="text-sm text-slate-600"  style={{ fontFamily: 'Calibri, sans-serif', fontSize: '12pt', fontWeight: 'normal', marginTop: '0', marginBottom: '0' }}>
                     {bullet}
                   </p>
                 ))}
