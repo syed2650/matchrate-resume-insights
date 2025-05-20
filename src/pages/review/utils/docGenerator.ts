@@ -17,8 +17,9 @@ import {
 import { ResumeData } from "./parseResumeIntoData";
 
 const COLORS = {
-  darkBlue: "000000", // Changed to black for better professional look
+  darkBlue: "000000", // Black for main text
   text: "222222",
+  gray: "666666", // Gray for secondary text (dates, locations)
 };
 
 const FONT = {
@@ -27,7 +28,7 @@ const FONT = {
 
 const SPACING = {
   sectionSpace: 300, // Space after sections
-  headingAfter: 120, // Space after heading title
+  headingAfter: 200, // Space after heading title
   betweenParagraphs: 100, // Space between bullet points
   betweenExperiences: 240, // Space between experience entries
 };
@@ -39,9 +40,9 @@ export const generateDocument = async (data: ResumeData) => {
         properties: {
           page: {
             margin: {
-              top: convertInchesToTwip(0.5),
+              top: convertInchesToTwip(0.7),
               right: convertInchesToTwip(0.7),
-              bottom: convertInchesToTwip(0.5),
+              bottom: convertInchesToTwip(0.7),
               left: convertInchesToTwip(0.7),
             },
           },
@@ -71,8 +72,9 @@ export const generateDocument = async (data: ResumeData) => {
                   text: part,
                   size: 20,
                   font: FONT.main,
+                  color: COLORS.gray,
                 }),
-                i < contactParts.length - 1 ? new TextRun({ text: " | ", size: 20, font: FONT.main }) : new TextRun({ text: "" })
+                i < contactParts.length - 1 ? new TextRun({ text: " | ", size: 20, font: FONT.main, color: COLORS.gray }) : new TextRun({ text: "" })
               ]).flat(),
               alignment: AlignmentType.CENTER,
               spacing: { after: SPACING.sectionSpace },
@@ -83,7 +85,7 @@ export const generateDocument = async (data: ResumeData) => {
           new Table({
             width: { size: 100, type: "pct" },
             borders: {
-              top: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+              top: { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" },
               bottom: { style: BorderStyle.NONE },
               left: { style: BorderStyle.NONE },
               right: { style: BorderStyle.NONE },
@@ -102,7 +104,7 @@ export const generateDocument = async (data: ResumeData) => {
             spacing: { after: SPACING.sectionSpace },
           }),
 
-          // SUMMARY - Bold heading
+          // SUMMARY - Section heading with border bottom instead of underline
           new Paragraph({
             children: [
               new TextRun({
@@ -111,10 +113,16 @@ export const generateDocument = async (data: ResumeData) => {
                 color: COLORS.darkBlue,
                 size: 22,
                 font: FONT.main,
-                underline: {},
               }),
             ],
             heading: HeadingLevel.HEADING_2,
+            border: {
+              bottom: {
+                color: "CCCCCC",
+                style: BorderStyle.SINGLE,
+                size: 1,
+              },
+            },
             spacing: { after: SPACING.headingAfter },
           }),
 
@@ -129,19 +137,25 @@ export const generateDocument = async (data: ResumeData) => {
             spacing: { after: SPACING.sectionSpace },
           }),
 
-          // PROFESSIONAL EXPERIENCE - Bold heading
+          // EXPERIENCE - Section heading with border bottom
           new Paragraph({
             children: [
               new TextRun({
-                text: "PROFESSIONAL EXPERIENCE",
+                text: "EXPERIENCE",
                 bold: true,
                 color: COLORS.darkBlue,
                 size: 22,
                 font: FONT.main,
-                underline: {},
               }),
             ],
             heading: HeadingLevel.HEADING_2,
+            border: {
+              bottom: {
+                color: "CCCCCC",
+                style: BorderStyle.SINGLE,
+                size: 1,
+              },
+            },
             spacing: { after: SPACING.headingAfter },
           }),
 
@@ -172,7 +186,7 @@ export const generateDocument = async (data: ResumeData) => {
               spacing: { after: 80 },
             }),
             
-            // Dates - Not bold
+            // Dates - Not bold, gray color
             new Paragraph({
               children: [
                 new TextRun({
@@ -180,13 +194,13 @@ export const generateDocument = async (data: ResumeData) => {
                   bold: false, // Not bold
                   size: 22,
                   font: FONT.main,
-                  color: "666666", // Light gray to match the preview
+                  color: COLORS.gray,
                 }),
               ],
               spacing: { after: 80 },
             }),
             
-            // Location (if available) - Not bold
+            // Location (if available) - Not bold, gray color
             ...(exp.location ? [
               new Paragraph({
                 children: [
@@ -195,29 +209,27 @@ export const generateDocument = async (data: ResumeData) => {
                     bold: false, // Not bold
                     size: 22,
                     font: FONT.main,
-                    color: "666666", // Light gray to match the preview
+                    color: COLORS.gray,
                   }),
                 ],
                 spacing: { after: 120 }, // More space before bullet points
               })
             ] : []),
             
-            // Bullet points - Not bold with round bullets
+            // Bullet points - Not bold with native document bullets
             ...exp.bullets.map((bullet) =>
               new Paragraph({
                 children: [
                   new TextRun({
-                    text: "• ",
-                    size: 22,
-                    font: FONT.main,
-                  }),
-                  new TextRun({
                     text: bullet,
                     size: 22,
                     font: FONT.main,
-                    bold: false, // Not bold
+                    bold: false, // Explicitly not bold
                   }),
                 ],
+                bullet: {
+                  level: 0, // First level of bullets
+                },
                 indent: { left: 360 },
                 spacing: { after: SPACING.betweenParagraphs, line: 360 },
               })
@@ -231,42 +243,46 @@ export const generateDocument = async (data: ResumeData) => {
             ] : []),
           ]),
 
-          // KEY SKILLS - Bold heading
+          // KEY SKILLS - Section heading with border bottom
           new Paragraph({
             children: [
               new TextRun({
-                text: "KEY SKILLS",
+                text: "SKILLS",
                 bold: true,
                 color: COLORS.darkBlue,
                 size: 22,
                 font: FONT.main,
-                underline: {},
               }),
             ],
             heading: HeadingLevel.HEADING_2,
+            border: {
+              bottom: {
+                color: "CCCCCC",
+                style: BorderStyle.SINGLE,
+                size: 1,
+              },
+            },
             spacing: { after: SPACING.headingAfter },
           }),
           ...data.skills.map((skill) =>
             new Paragraph({
               children: [
                 new TextRun({
-                  text: "• ",
-                  size: 22,
-                  font: FONT.main,
-                }),
-                new TextRun({
                   text: skill,
                   size: 22,
                   font: FONT.main,
                 }),
               ],
+              bullet: {
+                level: 0,
+              },
               indent: { left: 360 },
               spacing: { after: SPACING.betweenParagraphs, line: 360 },
             })
           ),
           new Paragraph({ spacing: { after: SPACING.sectionSpace } }),
 
-          // EDUCATION - Bold heading
+          // EDUCATION - Section heading with border bottom
           new Paragraph({
             children: [
               new TextRun({
@@ -275,10 +291,16 @@ export const generateDocument = async (data: ResumeData) => {
                 color: COLORS.darkBlue,
                 size: 22,
                 font: FONT.main,
-                underline: {},
               }),
             ],
             heading: HeadingLevel.HEADING_2,
+            border: {
+              bottom: {
+                color: "CCCCCC",
+                style: BorderStyle.SINGLE,
+                size: 1,
+              },
+            },
             spacing: { after: SPACING.headingAfter },
           }),
           ...data.education.flatMap((edu) => {
@@ -353,7 +375,7 @@ export const generateDocument = async (data: ResumeData) => {
             ];
           }),
 
-          // RECOGNITION (if available) - Bold heading
+          // RECOGNITION (if available) - Section heading with border bottom
           ...(data.recognition && data.recognition.length > 0
             ? [
                 new Paragraph({
@@ -364,26 +386,30 @@ export const generateDocument = async (data: ResumeData) => {
                       color: COLORS.darkBlue,
                       size: 22,
                       font: FONT.main,
-                      underline: {},
                     }),
                   ],
                   heading: HeadingLevel.HEADING_2,
+                  border: {
+                    bottom: {
+                      color: "CCCCCC",
+                      style: BorderStyle.SINGLE,
+                      size: 1,
+                    },
+                  },
                   spacing: { after: SPACING.headingAfter },
                 }),
                 ...data.recognition.map((item) =>
                   new Paragraph({
                     children: [
                       new TextRun({
-                        text: "• ",
-                        size: 22,
-                        font: FONT.main,
-                      }),
-                      new TextRun({
                         text: item,
                         size: 22,
                         font: FONT.main,
                       }),
                     ],
+                    bullet: {
+                      level: 0,
+                    },
                     indent: { left: 360 },
                     spacing: { after: SPACING.betweenParagraphs, line: 360 },
                   })

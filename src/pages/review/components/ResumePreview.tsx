@@ -37,14 +37,14 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
         <div className="mb-4">
           <h2 className="text-lg font-bold uppercase border-b border-slate-200 pb-1 mb-2">Experience</h2>
           {data.experiences.map((exp, i) => (
-            <div key={i} className="mb-6">
+            <div key={i} className="mb-8"> {/* Increased bottom margin for spacing between experiences */}
               <p className="font-bold text-base">{exp.title}</p>
               <p className="font-bold">{exp.company}</p>
               <p className="text-sm text-slate-600">{exp.dates}</p>
               {exp.location && <p className="text-sm text-slate-600 mb-2">{exp.location}</p>}
-              <ul className="list-disc pl-5">
+              <ul style={{listStyleType: 'disc'}} className="list-disc pl-5">
                 {exp.bullets && exp.bullets.map((bullet, j) => (
-                  <li key={j} className="mb-1">{bullet}</li>
+                  <li key={j} className="mb-1 font-normal">{bullet}</li>
                 ))}
               </ul>
             </div>
@@ -68,9 +68,9 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
       {data.skills && data.skills.length > 0 && (
         <div className="mb-4">
           <h2 className="text-lg font-bold uppercase border-b border-slate-200 pb-1 mb-2">Skills</h2>
-          <ul className="list-disc pl-5 grid grid-cols-1 md:grid-cols-2 gap-x-4">
+          <ul style={{listStyleType: 'disc'}} className="list-disc pl-5 grid grid-cols-1 md:grid-cols-2 gap-x-4">
             {data.skills.map((skill, i) => (
-              <li key={i} className="mb-1">{skill}</li>
+              <li key={i} className="mb-1 font-normal">{skill}</li>
             ))}
           </ul>
         </div>
@@ -80,9 +80,9 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
       {data.recognition && data.recognition.length > 0 && (
         <div>
           <h2 className="text-lg font-bold uppercase border-b border-slate-200 pb-1 mb-2">Recognition</h2>
-          <ul className="list-disc pl-5">
+          <ul style={{listStyleType: 'disc'}} className="list-disc pl-5">
             {data.recognition.map((item, i) => (
-              <li key={i} className="mb-1">{item}</li>
+              <li key={i} className="mb-1 font-normal">{item}</li>
             ))}
           </ul>
         </div>
