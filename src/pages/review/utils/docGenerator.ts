@@ -1,4 +1,3 @@
-
 import {
   Document,
   Paragraph,
@@ -27,10 +26,10 @@ const FONT = {
 };
 
 const SPACING = {
-  sectionSpace: 300, // Space after sections
-  headingAfter: 200, // Space after heading title
-  betweenParagraphs: 80, // Reduced space between bullet points
-  betweenExperiences: 160, // Reduced space between experience entries
+  sectionSpace: 240, // Reduced space after sections
+  headingAfter: 160, // Reduced space after heading title
+  betweenParagraphs: 60, // Reduced space between bullet points
+  betweenExperiences: 120, // Reduced space between experience entries
 };
 
 export const generateDocument = async (data: ResumeData) => {
@@ -170,7 +169,7 @@ export const generateDocument = async (data: ResumeData) => {
                   font: FONT.main,
                 }),
               ],
-              spacing: { after: 80 },
+              spacing: { after: 60 }, // Reduced spacing
             }),
             
             // Company name - Bold
@@ -183,7 +182,7 @@ export const generateDocument = async (data: ResumeData) => {
                   font: FONT.main,
                 }),
               ],
-              spacing: { after: 80 },
+              spacing: { after: 60 }, // Reduced spacing
             }),
             
             // Dates - Not bold, gray color
@@ -197,7 +196,7 @@ export const generateDocument = async (data: ResumeData) => {
                   color: COLORS.gray,
                 }),
               ],
-              spacing: { after: 80 },
+              spacing: { after: 60 }, // Reduced spacing
             }),
             
             // Location (if available) - Not bold, gray color
@@ -212,7 +211,7 @@ export const generateDocument = async (data: ResumeData) => {
                     color: COLORS.gray,
                   }),
                 ],
-                spacing: { after: 100 }, // Reduced space before bullet points
+                spacing: { after: 80 }, // Reduced space before bullet points
               })
             ] : []),
             
@@ -234,7 +233,7 @@ export const generateDocument = async (data: ResumeData) => {
                   }),
                 ],
                 indent: { left: 360 },
-                spacing: { after: SPACING.betweenParagraphs, line: 320 }, // Reduced line spacing
+                spacing: { after: SPACING.betweenParagraphs, line: 300 }, // Reduced line spacing
               })
             ),
             
@@ -284,7 +283,7 @@ export const generateDocument = async (data: ResumeData) => {
                 }),
               ],
               indent: { left: 360 },
-              spacing: { after: SPACING.betweenParagraphs, line: 320 }, // Reduced line spacing
+              spacing: { after: SPACING.betweenParagraphs, line: 300 }, // Reduced line spacing
             })
           ),
           new Paragraph({ spacing: { after: SPACING.sectionSpace } }),
@@ -342,7 +341,7 @@ export const generateDocument = async (data: ResumeData) => {
                     font: FONT.main,
                   }),
                 ],
-                spacing: { after: 80 },
+                spacing: { after: 60 }, // Reduced spacing
               }),
               // Institution
               new Paragraph({
@@ -353,7 +352,7 @@ export const generateDocument = async (data: ResumeData) => {
                     font: FONT.main,
                   }),
                 ],
-                spacing: { after: 80 },
+                spacing: { after: 60 }, // Reduced spacing
               }),
               // Country on next line
               country && new Paragraph({
@@ -365,7 +364,7 @@ export const generateDocument = async (data: ResumeData) => {
                     italics: true,
                   }),
                 ],
-                spacing: { after: 80 },
+                spacing: { after: 60 }, // Reduced spacing
               }),
               // Year on next line after country
               year && new Paragraph({
@@ -422,7 +421,7 @@ export const generateDocument = async (data: ResumeData) => {
                       }),
                     ],
                     indent: { left: 360 },
-                    spacing: { after: SPACING.betweenParagraphs, line: 320 }, // Reduced line spacing
+                    spacing: { after: SPACING.betweenParagraphs, line: 300 }, // Reduced line spacing
                   })
                 ),
               ]
