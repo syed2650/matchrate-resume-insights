@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card } from "@/components/ui/card";
 import { ResumeData } from "../utils/parseResumeIntoData";
@@ -37,16 +36,18 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
         <div className="mb-3">
           <h2 className="text-lg font-bold uppercase border-b border-slate-200 pb-1 mb-2">Experience</h2>
           {data.experiences.map((exp, i) => (
-            <div key={i} className="mb-2">
-              <p className="font-bold">{exp.title}</p>
-              <p className="font-bold">{exp.company}</p>
-              <p className="text-sm text-slate-600">{exp.dates}</p>
-              {exp.location && <p className="text-sm text-slate-600 mb-0.5">{exp.location}</p>}
-              <ul className="list-none pl-4 mt-1 space-y-0.5">
+            <div key={i} className="mb-4">
+              {/* Only the job title and company should be bold */}
+              <p className="font-bold text-base mb-1">{exp.title}</p>
+              <p className="font-bold mb-1">{exp.company}</p>
+              <p className="text-sm text-slate-600 mb-1">{exp.dates}</p>
+              {exp.location && <p className="text-sm text-slate-600 mb-2">{exp.location}</p>}
+              
+              {/* Bullets with proper spacing */}
+              <ul className="list-disc pl-5 space-y-1">
                 {exp.bullets && exp.bullets.map((bullet, j) => (
-                  <li key={j} className="text-sm font-normal flex items-start">
-                    <span className="mr-1 mt-0">•</span>
-                    <span>{bullet}</span>
+                  <li key={j} className="text-sm font-normal">
+                    {bullet}
                   </li>
                 ))}
               </ul>
@@ -71,12 +72,9 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
       {data.skills && data.skills.length > 0 && (
         <div className="mb-3">
           <h2 className="text-lg font-bold uppercase border-b border-slate-200 pb-1 mb-2">Skills</h2>
-          <ul className="list-none pl-4 grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-0.5">
+          <ul className="list-disc pl-5 grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1">
             {data.skills.map((skill, i) => (
-              <li key={i} className="text-sm font-normal flex items-start">
-                <span className="mr-1 mt-0">•</span>
-                <span>{skill}</span>
-              </li>
+              <li key={i} className="text-sm font-normal">{skill}</li>
             ))}
           </ul>
         </div>
@@ -86,12 +84,9 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
       {data.recognition && data.recognition.length > 0 && (
         <div>
           <h2 className="text-lg font-bold uppercase border-b border-slate-200 pb-1 mb-2">Recognition</h2>
-          <ul className="list-none pl-4 space-y-0.5">
+          <ul className="list-disc pl-5 space-y-1">
             {data.recognition.map((item, i) => (
-              <li key={i} className="text-sm font-normal flex items-start">
-                <span className="mr-1 mt-0">•</span>
-                <span>{item}</span>
-              </li>
+              <li key={i} className="text-sm font-normal">{item}</li>
             ))}
           </ul>
         </div>
