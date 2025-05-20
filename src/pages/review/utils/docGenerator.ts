@@ -35,8 +35,8 @@ const FONT_SIZE = {
 
 const SPACING = {
   sectionSpace: 180,       // Space after sections
-  headingAfter: 120,       // Space after heading title
-  betweenParagraphs: 20,   // Minimal space between paragraphs (was 60)
+  headingAfter: 60,       // Space after heading title
+  betweenParagraphs: 5,   // Minimal space between paragraphs (was 60)
   betweenExperiences: 10,  // Reduced space between experience entries (was 160, then 120)
   lineSpacing: 220,        // Line spacing (1.0 = 240)
 };
