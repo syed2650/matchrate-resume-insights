@@ -1,3 +1,4 @@
+
 import {
   Document,
   Paragraph,
@@ -220,16 +221,16 @@ export const generateDocument = async (data: ResumeData) => {
                       color: COLORS.gray,
                     }),
                   ],
-                  spacing: { after: 0 }, // Minimal spacing before bullet paragraphs
+                  spacing: { after: 0 }, // Minimal spacing before paragraphs
                 })
               ] : []),
               
-              // Regular paragraphs with minimal spacing
+              // Convert bullets to normal paragraphs with minimal spacing
               ...exp.bullets.map((bullet, bulletIndex) =>
                 new Paragraph({
                   children: [
                     new TextRun({
-                      text: exp.bullet,
+                      text: bullet, // Fixed: using "bullet" instead of "exp.bullet"
                       size: FONT_SIZE.small,
                       font: FONT.main,
                       bold: false,
@@ -237,7 +238,7 @@ export const generateDocument = async (data: ResumeData) => {
                   ],
                   spacing: { 
                     before: 0,
-                    after: 0, // Minimal spacing between paragraphs
+                    after: 0, // No spacing between paragraphs
                     line: SPACING.lineSpacing 
                   },
                 })
