@@ -15,6 +15,7 @@ import NotFound from "@/pages/NotFound";
 import Dashboard from "@/pages/Dashboard";
 import PaymentSuccess from "@/pages/PaymentSuccess";
 import Contact from "@/pages/Contact";
+import FreeATSCheck from "@/pages/FreeATSCheck";
 import NavBar from "@/components/NavBar";
 import BetaAnnouncementBanner from "@/components/BetaAnnouncementBanner";
 import { AuthProvider } from "@/hooks/useAuthUser";
@@ -33,6 +34,7 @@ function App() {
           <Route path="/review" element={<Review />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/free-ats-check" element={<FreeATSCheck />} />
           <Route path="/blog/improve-resume" element={<ImproveResume />} />
           <Route path="/blog/ats-systems" element={<ATSSystems />} />
           <Route path="/blog/resume-mistakes" element={<ResumeMistakes />} />
