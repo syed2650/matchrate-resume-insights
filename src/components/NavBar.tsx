@@ -63,6 +63,14 @@ export default function NavBar() {
                   Features
                 </Link>
                 <Link
+                  to="/free-ats-check"
+                  className={`text-sm font-medium ${
+                    location.pathname === "/free-ats-check" ? "text-foreground" : "text-muted-foreground"
+                  } hover:text-foreground transition-colors`}
+                >
+                  Free ATS Check
+                </Link>
+                <Link
                   to="/blog"
                   className={`text-sm font-medium ${
                     location.pathname === "/blog" ? "text-foreground" : "text-muted-foreground"
@@ -152,6 +160,15 @@ export default function NavBar() {
                   onClick={() => setShowMobileMenu(false)}
                 >
                   Features
+                </Link>
+                <Link
+                  to="/free-ats-check"
+                  className={`text-base font-medium ${
+                    location.pathname === "/free-ats-check" ? "text-foreground" : "text-muted-foreground"
+                  }`}
+                  onClick={() => setShowMobileMenu(false)}
+                >
+                  Free ATS Check
                 </Link>
                 <Link
                   to="/blog"

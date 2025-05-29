@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import AnimatedTextCycle from "@/components/ui/animated-text-cycle";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Target } from "lucide-react";
 
 const Hero = () => {
   const navigate = useNavigate();
@@ -58,6 +58,16 @@ const Hero = () => {
           >
             Try Resume Feedback Free
             <ArrowRight className="ml-2 h-5 w-5" />
+          </Button>
+          
+          <Button 
+            size="lg"
+            variant="outline"
+            className="border-2 border-warm-accent text-warm-accent hover:bg-warm-accent hover:text-white px-9 py-7 text-lg rounded-xl font-semibold transition-all duration-200 hover:scale-[1.03]"
+            onClick={() => navigate("/free-ats-check")}
+          >
+            <Target className="mr-2 h-5 w-5" />
+            Check Your ATS Score (Free) 🎯
           </Button>
         </div>
         
