@@ -41,6 +41,15 @@ export default function Blog() {
         </Card>
 
         <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-2">Free vs Paid Resume Checkers: Complete Comparison Guide (2025)</h2>
+          <p className="text-slate-600 mb-4">Wondering whether free resume checkers are good enough, or if you need to invest in a paid service? Complete analysis of 15+ tools to help you choose.</p>
+          <p className="text-sm text-slate-400 mb-4">January 2025</p>
+          <Button asChild className="w-full">
+            <Link to="/blog/free-vs-paid-checkers">Read More</Link>
+          </Button>
+        </Card>
+
+        <Card className="p-6">
           <h2 className="text-xl font-semibold mb-2">How to Instantly Improve Your Resume for Any Job Application</h2>
           <p className="text-slate-600 mb-4">Learn proven strategies to upgrade your resume today — using tactics hiring managers actually care about.</p>
           <p className="text-sm text-slate-400 mb-4">April 27, 2025</p>
