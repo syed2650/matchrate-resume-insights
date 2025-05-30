@@ -14,6 +14,15 @@ export default function Blog() {
       
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-2">Resume Keywords That Actually Work: The Complete Guide to Resume Keyword Optimization in 2025</h2>
+          <p className="text-slate-600 mb-4">Discover the exact keywords that hiring managers and ATS systems are looking for, plus proven strategies to incorporate them naturally into your resume.</p>
+          <p className="text-sm text-slate-400 mb-4">January 2025</p>
+          <Button asChild className="w-full">
+            <Link to="/blog/resume-keywords">Read More</Link>
+          </Button>
+        </Card>
+
+        <Card className="p-6">
           <h2 className="text-xl font-semibold mb-2">Why 95% of Resumes Get Rejected (And How to Fix Yours) in 2025</h2>
           <p className="text-slate-600 mb-4">The harsh reality of resume rejection and a step-by-step action plan to dramatically increase your interview success rate.</p>
           <p className="text-sm text-slate-400 mb-4">January 2025</p>

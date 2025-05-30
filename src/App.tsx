@@ -8,6 +8,7 @@ import ATSSystems from "@/pages/blog/ATSSystems";
 import ResumeMistakes from "@/pages/blog/ResumeMistakes";
 import ResumeRejection from "@/pages/blog/ResumeRejection";
 import BeatATS from "@/pages/blog/BeatATS";
+import ResumeKeywords from "@/pages/blog/ResumeKeywords";
 import FAQ from "@/pages/FAQ";
 import Privacy from "@/pages/Privacy";
 import Terms from "@/pages/Terms";
@@ -42,6 +43,7 @@ function App() {
           <Route path="/blog/resume-mistakes" element={<ResumeMistakes />} />
           <Route path="/blog/resume-rejection" element={<ResumeRejection />} />
           <Route path="/blog/beat-ats" element={<BeatATS />} />
+          <Route path="/blog/resume-keywords" element={<ResumeKeywords />} />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
