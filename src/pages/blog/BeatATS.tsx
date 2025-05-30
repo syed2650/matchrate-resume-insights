@@ -178,6 +178,168 @@ export default function BeatATS() {
               </div>
             </div>
           </Card>
+
+          <Card className="p-6">
+            <h3 className="text-xl font-bold text-red-600 mb-3">4. Incorrect Section Headers</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-semibold text-slate-800 mb-2">Problem:</h4>
+                <p className="text-slate-600">Non-standard headings confuse ATS</p>
+              </div>
+              <div>
+                <h4 className="font-semibold text-green-800 mb-2">Solution:</h4>
+                <ul className="text-green-700 space-y-1">
+                  <li>• Use standard headers: "Work Experience," "Education," "Skills"</li>
+                  <li>• Avoid creative titles like "My Journey" or "What I Bring"</li>
+                  <li>• Keep headers consistent throughout</li>
+                </ul>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <h3 className="text-xl font-bold text-red-600 mb-3">5. Poor Contact Information Placement</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-semibold text-slate-800 mb-2">Problem:</h4>
+                <p className="text-slate-600">Contact details in headers/footers aren't readable</p>
+              </div>
+              <div>
+                <h4 className="font-semibold text-green-800 mb-2">Solution:</h4>
+                <ul className="text-green-700 space-y-1">
+                  <li>• Place contact info in the main document body</li>
+                  <li>• Include: Full name, phone, email, LinkedIn, city/state</li>
+                  <li>• Avoid fancy formatting or symbols</li>
+                </ul>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <h3 className="text-xl font-bold text-red-600 mb-3">6. Inconsistent Date Formatting</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-semibold text-slate-800 mb-2">Problem:</h4>
+                <p className="text-slate-600">Mixed date formats confuse parsers</p>
+              </div>
+              <div>
+                <h4 className="font-semibold text-green-800 mb-2">Solution:</h4>
+                <ul className="text-green-700 space-y-1">
+                  <li>• Use consistent format: "January 2020 – March 2023"</li>
+                  <li>• Include months and years</li>
+                  <li>• Use clear separators (– or "to")</li>
+                </ul>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <h3 className="text-xl font-bold text-red-600 mb-3">7. Missing Job Titles</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-semibold text-slate-800 mb-2">Problem:</h4>
+                <p className="text-slate-600">ATS can't identify your experience level</p>
+              </div>
+              <div>
+                <h4 className="font-semibold text-green-800 mb-2">Solution:</h4>
+                <ul className="text-green-700 space-y-1">
+                  <li>• Include exact job titles from the posting when applicable</li>
+                  <li>• Use industry-standard titles</li>
+                  <li>• Avoid internal company jargon</li>
+                </ul>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <h3 className="text-xl font-bold text-red-600 mb-3">8. Lack of Quantified Achievements</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-semibold text-slate-800 mb-2">Problem:</h4>
+                <p className="text-slate-600">Vague descriptions don't demonstrate impact</p>
+              </div>
+              <div>
+                <h4 className="font-semibold text-green-800 mb-2">Solution:</h4>
+                <ul className="text-green-700 space-y-1">
+                  <li>• Include numbers, percentages, dollar amounts</li>
+                  <li>• Use action verbs: managed, developed, increased, implemented</li>
+                  <li>• Format: "Increased sales by 25% ($500K revenue) over 18 months"</li>
+                </ul>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <h3 className="text-xl font-bold text-red-600 mb-3">9. Spelling and Grammar Errors</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-semibold text-slate-800 mb-2">Problem:</h4>
+                <p className="text-slate-600">Mistakes indicate lack of attention to detail</p>
+              </div>
+              <div>
+                <h4 className="font-semibold text-green-800 mb-2">Solution:</h4>
+                <ul className="text-green-700 space-y-1">
+                  <li>• Use spell-check tools</li>
+                  <li>• Have someone else proofread</li>
+                  <li>• Read aloud to catch errors</li>
+                </ul>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <h3 className="text-xl font-bold text-red-600 mb-3">10. Too Long or Too Short</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-semibold text-slate-800 mb-2">Problem:</h4>
+                <p className="text-slate-600">ATS may truncate overly long resumes</p>
+              </div>
+              <div>
+                <h4 className="font-semibold text-green-800 mb-2">Solution:</h4>
+                <ul className="text-green-700 space-y-1">
+                  <li>• 1 page for entry-level positions</li>
+                  <li>• 2 pages maximum for experienced professionals</li>
+                  <li>• Prioritize most relevant information</li>
+                </ul>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <h3 className="text-xl font-bold text-red-600 mb-3">11. Generic Resume Content</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-semibold text-slate-800 mb-2">Problem:</h4>
+                <p className="text-slate-600">One-size-fits-all resumes don't match specific jobs</p>
+              </div>
+              <div>
+                <h4 className="font-semibold text-green-800 mb-2">Solution:</h4>
+                <ul className="text-green-700 space-y-1">
+                  <li>• Customize for each application</li>
+                  <li>• Mirror job description language</li>
+                  <li>• Highlight relevant experience first</li>
+                </ul>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <h3 className="text-xl font-bold text-red-600 mb-3">12. Missing Required Qualifications</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-semibold text-slate-800 mb-2">Problem:</h4>
+                <p className="text-slate-600">Resume doesn't clearly show must-have skills</p>
+              </div>
+              <div>
+                <h4 className="font-semibold text-green-800 mb-2">Solution:</h4>
+                <ul className="text-green-700 space-y-1">
+                  <li>• Create a "Core Competencies" section</li>
+                  <li>• List technical skills prominently</li>
+                  <li>• Include relevant certifications</li>
+                </ul>
+              </div>
+            </div>
+          </Card>
         </div>
 
         <div className="bg-warm-accent/10 border border-warm-accent/20 rounded-lg p-6 my-8">

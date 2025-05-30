@@ -161,6 +161,249 @@ export default function ResumeRejection() {
               </div>
             </div>
           </Card>
+
+          <Card className="p-6">
+            <h3 className="text-xl font-bold text-red-600 mb-3">4. Generic, One-Size-Fits-All Resume (Responsible for 58% of Rejections)</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-semibold text-slate-800 mb-2">The Problem:</h4>
+                <p className="text-slate-600 mb-4">Using the same resume for every application</p>
+                <h4 className="font-semibold text-slate-800 mb-2">Why It Happens:</h4>
+                <ul className="text-slate-600 space-y-1">
+                  <li>• Assuming one resume works for all positions</li>
+                  <li>• Laziness or time constraints</li>
+                  <li>• Not understanding how different roles require different emphasis</li>
+                  <li>• Missing job-specific requirements and preferences</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-semibold text-green-800 mb-2">The Fix:</h4>
+                <ul className="text-green-700 space-y-1">
+                  <li>• Create 2-3 master resume versions for different role types</li>
+                  <li>• Customize the professional summary for each application</li>
+                  <li>• Adjust keyword emphasis based on job priorities</li>
+                  <li>• Reorder experience bullets to highlight most relevant achievements</li>
+                </ul>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <h3 className="text-xl font-bold text-red-600 mb-3">5. Poor Professional Summary (Responsible for 55% of Rejections)</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-semibold text-slate-800 mb-2">The Problem:</h4>
+                <p className="text-slate-600 mb-4">Weak or missing professional summary that fails to capture attention</p>
+                <h4 className="font-semibold text-slate-800 mb-2">Why It Happens:</h4>
+                <ul className="text-slate-600 space-y-1">
+                  <li>• Using objective statements instead of value propositions</li>
+                  <li>• Being too vague or generic</li>
+                  <li>• Focusing on what you want instead of what you offer</li>
+                  <li>• Missing key qualifications and achievements</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-semibold text-green-800 mb-2">The Fix:</h4>
+                <p className="text-green-700 mb-2">Write a compelling 3-4 line professional summary that includes:</p>
+                <ul className="text-green-700 space-y-1">
+                  <li>• Years of experience and specific role</li>
+                  <li>• Top 2-3 relevant skills or specializations</li>
+                  <li>• Your biggest career achievement with numbers</li>
+                  <li>• Value proposition for the employer</li>
+                </ul>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <h3 className="text-xl font-bold text-red-600 mb-3">6. Formatting and Design Disasters (Responsible for 52% of Rejections)</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-semibold text-slate-800 mb-2">The Problem:</h4>
+                <p className="text-slate-600 mb-4">Poor visual presentation that screams unprofessional</p>
+                <h4 className="font-semibold text-slate-800 mb-2">Why It Happens:</h4>
+                <ul className="text-slate-600 space-y-1">
+                  <li>• Inconsistent formatting throughout the document</li>
+                  <li>• Poor use of white space making content hard to scan</li>
+                  <li>• Mixing fonts, sizes, and styles randomly</li>
+                  <li>• Cramming too much information onto the page</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-semibold text-green-800 mb-2">The Fix:</h4>
+                <ul className="text-green-700 space-y-1">
+                  <li>• Consistent spacing: Same margins and line spacing throughout</li>
+                  <li>• Clear hierarchy: Use font sizes and bold text strategically</li>
+                  <li>• White space: Leave room for easy scanning</li>
+                  <li>• Bullet alignment: Keep all bullets consistently formatted</li>
+                  <li>• Professional fonts: Stick to 1-2 fonts maximum</li>
+                </ul>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <h3 className="text-xl font-bold text-red-600 mb-3">7. Experience Section Failures (Responsible for 48% of Rejections)</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-semibold text-slate-800 mb-2">The Problem:</h4>
+                <p className="text-slate-600 mb-4">Poorly written job descriptions that don't sell your value</p>
+                <h4 className="font-semibold text-slate-800 mb-2">Why It Happens:</h4>
+                <ul className="text-slate-600 space-y-1">
+                  <li>• Copying job descriptions instead of highlighting achievements</li>
+                  <li>• Using passive voice and weak language</li>
+                  <li>• Missing progression and career growth</li>
+                  <li>• Focusing on tasks rather than impact</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-semibold text-green-800 mb-2">The Fix:</h4>
+                <p className="text-green-700 mb-2">Structure each role using this proven format:</p>
+                <ul className="text-green-700 space-y-1">
+                  <li>• Job Title | Company Name | Location | Dates</li>
+                  <li>• Achievement-focused bullet using action verb + result + metric</li>
+                  <li>• Technical skill demonstration with specific tools/technologies</li>
+                  <li>• Leadership or collaboration example with team size/scope</li>
+                  <li>• Problem-solving example with quantified outcome</li>
+                </ul>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <h3 className="text-xl font-bold text-red-600 mb-3">8. Skills Section Disasters (Responsible for 45% of Rejections)</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-semibold text-slate-800 mb-2">The Problem:</h4>
+                <p className="text-slate-600 mb-4">Poorly organized or irrelevant skills that don't match job requirements</p>
+                <h4 className="font-semibold text-slate-800 mb-2">Why It Happens:</h4>
+                <ul className="text-slate-600 space-y-1">
+                  <li>• Listing outdated or irrelevant skills</li>
+                  <li>• Poor organization making it hard to find key qualifications</li>
+                  <li>• Missing critical technical skills</li>
+                  <li>• Including obvious skills that add no value</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-semibold text-green-800 mb-2">The Fix:</h4>
+                <p className="text-green-700 mb-2">Create a strategic skills section with three categories:</p>
+                <ul className="text-green-700 space-y-1">
+                  <li>• Technical Skills: Software, programming languages, certifications</li>
+                  <li>• Industry Skills: Methodologies, frameworks, specialized knowledge</li>
+                  <li>• Leadership Skills: Management, communication, strategic abilities</li>
+                </ul>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <h3 className="text-xl font-bold text-red-600 mb-3">9. Education Section Mistakes (Responsible for 42% of Rejections)</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-semibold text-slate-800 mb-2">The Problem:</h4>
+                <p className="text-slate-600 mb-4">Missing, poorly formatted, or irrelevant education information</p>
+                <h4 className="font-semibold text-slate-800 mb-2">Why It Happens:</h4>
+                <ul className="text-slate-600 space-y-1">
+                  <li>• Inconsistent date formatting</li>
+                  <li>• Missing relevant coursework or honors</li>
+                  <li>• Poor placement within the resume</li>
+                  <li>• Including irrelevant educational background</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-semibold text-green-800 mb-2">The Fix:</h4>
+                <p className="text-green-700 mb-2">Format education section based on your experience level:</p>
+                <ul className="text-green-700 space-y-1">
+                  <li>• Recent Graduates: Include GPA (if 3.5+), honors, relevant coursework</li>
+                  <li>• Experienced Professionals: Focus on degree and relevant certifications</li>
+                  <li>• Include professional development and continuing education</li>
+                </ul>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <h3 className="text-xl font-bold text-red-600 mb-3">10. Contact Information Blunders (Responsible for 38% of Rejections)</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-semibold text-slate-800 mb-2">The Problem:</h4>
+                <p className="text-slate-600 mb-4">Missing, incorrect, or unprofessional contact details</p>
+                <h4 className="font-semibold text-slate-800 mb-2">Why It Happens:</h4>
+                <ul className="text-slate-600 space-y-1">
+                  <li>• Outdated phone numbers or email addresses</li>
+                  <li>• Unprofessional email addresses</li>
+                  <li>• Missing LinkedIn profiles</li>
+                  <li>• Including irrelevant personal information</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-semibold text-green-800 mb-2">The Fix:</h4>
+                <p className="text-green-700 mb-2">Include only essential, professional contact information:</p>
+                <ul className="text-green-700 space-y-1">
+                  <li>• Full Name: Professional format, no nicknames</li>
+                  <li>• Phone Number: Current, professional voicemail message</li>
+                  <li>• Email Address: firstname.lastname@email.com format</li>
+                  <li>• LinkedIn Profile: Custom URL, complete profile</li>
+                  <li>• Location: City, State (no full address needed)</li>
+                </ul>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <h3 className="text-xl font-bold text-red-600 mb-3">11. Length and Content Balance Issues (Responsible for 35% of Rejections)</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-semibold text-slate-800 mb-2">The Problem:</h4>
+                <p className="text-slate-600 mb-4">Resume is too long, too short, or poorly balanced</p>
+                <h4 className="font-semibold text-slate-800 mb-2">Why It Happens:</h4>
+                <ul className="text-slate-600 space-y-1">
+                  <li>• Including irrelevant work history</li>
+                  <li>• Going back too far in career timeline</li>
+                  <li>• Insufficient detail for recent roles</li>
+                  <li>• Poor space allocation between sections</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-semibold text-green-800 mb-2">The Fix:</h4>
+                <p className="text-green-700 mb-2">Follow the 10-Year Rule:</p>
+                <ul className="text-green-700 space-y-1">
+                  <li>• Recent roles (last 2-3 years): 4-6 bullet points each</li>
+                  <li>• Mid-career roles (3-7 years ago): 2-4 bullet points each</li>
+                  <li>• Early career roles (7-10 years ago): 1-2 bullet points each</li>
+                  <li>• Ancient history (10+ years ago): Omit unless highly relevant</li>
+                </ul>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <h3 className="text-xl font-bold text-red-600 mb-3">12. Proofreading and Quality Control Failures (Responsible for 32% of Rejections)</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-semibold text-slate-800 mb-2">The Problem:</h4>
+                <p className="text-slate-600 mb-4">Typos, grammatical errors, and inconsistencies that signal carelessness</p>
+                <h4 className="font-semibold text-slate-800 mb-2">Why It Happens:</h4>
+                <ul className="text-slate-600 space-y-1">
+                  <li>• Rushing through the editing process</li>
+                  <li>• Over-reliance on spell-check software</li>
+                  <li>• Missing contextual errors</li>
+                  <li>• Inconsistent formatting and styling</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-semibold text-green-800 mb-2">The Fix:</h4>
+                <p className="text-green-700 mb-2">Implement a 5-Stage Proofreading Process:</p>
+                <ul className="text-green-700 space-y-1">
+                  <li>• Content Review: Check for accuracy and relevance</li>
+                  <li>• Grammar Check: Use tools like Grammarly or ProWritingAid</li>
+                  <li>• Formatting Review: Ensure consistency throughout</li>
+                  <li>• Print Review: Read physical copy to catch missed errors</li>
+                  <li>• Fresh Eyes Review: Have someone else proofread</li>
+                </ul>
+              </div>
+            </div>
+          </Card>
         </div>
 
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 my-8">
