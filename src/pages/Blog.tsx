@@ -14,6 +14,24 @@ export default function Blog() {
       
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-2">Why 95% of Resumes Get Rejected (And How to Fix Yours) in 2025</h2>
+          <p className="text-slate-600 mb-4">The harsh reality of resume rejection and a step-by-step action plan to dramatically increase your interview success rate.</p>
+          <p className="text-sm text-slate-400 mb-4">January 2025</p>
+          <Button asChild className="w-full">
+            <Link to="/blog/resume-rejection">Read More</Link>
+          </Button>
+        </Card>
+
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-2">How to Beat ATS Systems in 2025: The Complete Guide to Getting Past Resume Robots</h2>
+          <p className="text-slate-600 mb-4">Learn exactly how to optimize your resume to consistently pass ATS filters and land more interviews with the latest strategies that actually work.</p>
+          <p className="text-sm text-slate-400 mb-4">January 2025</p>
+          <Button asChild className="w-full">
+            <Link to="/blog/beat-ats">Read More</Link>
+          </Button>
+        </Card>
+
+        <Card className="p-6">
           <h2 className="text-xl font-semibold mb-2">How to Instantly Improve Your Resume for Any Job Application</h2>
           <p className="text-slate-600 mb-4">Learn proven strategies to upgrade your resume today — using tactics hiring managers actually care about.</p>
           <p className="text-sm text-slate-400 mb-4">April 27, 2025</p>
