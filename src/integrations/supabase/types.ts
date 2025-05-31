@@ -42,6 +42,104 @@ export type Database = {
         }
         Relationships: []
       }
+      email_automation_log: {
+        Row: {
+          click_count: number | null
+          created_at: string
+          email_step: number
+          email_type: string
+          id: string
+          open_count: number | null
+          resend_id: string | null
+          sent_at: string
+          status: string
+          subscriber_id: string
+        }
+        Insert: {
+          click_count?: number | null
+          created_at?: string
+          email_step: number
+          email_type: string
+          id?: string
+          open_count?: number | null
+          resend_id?: string | null
+          sent_at?: string
+          status?: string
+          subscriber_id: string
+        }
+        Update: {
+          click_count?: number | null
+          created_at?: string
+          email_step?: number
+          email_type?: string
+          id?: string
+          open_count?: number | null
+          resend_id?: string | null
+          sent_at?: string
+          status?: string
+          subscriber_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_automation_log_subscriber_id_fkey"
+            columns: ["subscriber_id"]
+            isOneToOne: false
+            referencedRelation: "email_subscribers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_subscribers: {
+        Row: {
+          ats_score: number
+          completed_items: Json
+          created_at: string
+          email: string
+          email_sequence_step: number
+          id: string
+          is_active: boolean
+          last_email_sent: string | null
+          max_score: number
+          missing_items: Json
+          name: string
+          score_interpretation: string
+          section_scores: Json
+          signup_date: string
+        }
+        Insert: {
+          ats_score: number
+          completed_items: Json
+          created_at?: string
+          email: string
+          email_sequence_step?: number
+          id?: string
+          is_active?: boolean
+          last_email_sent?: string | null
+          max_score?: number
+          missing_items: Json
+          name: string
+          score_interpretation: string
+          section_scores: Json
+          signup_date?: string
+        }
+        Update: {
+          ats_score?: number
+          completed_items?: Json
+          created_at?: string
+          email?: string
+          email_sequence_step?: number
+          id?: string
+          is_active?: boolean
+          last_email_sent?: string | null
+          max_score?: number
+          missing_items?: Json
+          name?: string
+          score_interpretation?: string
+          section_scores?: Json
+          signup_date?: string
+        }
+        Relationships: []
+      }
       feedback: {
         Row: {
           ats_scores: Json | null

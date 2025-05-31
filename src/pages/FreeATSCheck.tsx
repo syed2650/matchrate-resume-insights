@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -251,6 +250,25 @@ const FreeATSCheck = () => {
     return { label: '🚨 Critical - Complete Overhaul Needed', color: 'bg-red-500' };
   };
 
+  const prepareSectionScores = () => {
+    const sectionScores: { [key: string]: { score: number; maxScore: number; missing: string[] } } = {};
+    const completedItems: { [key: string]: string[] } = {};
+    const missingItems: { [key: string]: string[] } = {};
+
+    sections.forEach(section => {
+      const score = getSectionScore(section);
+      const maxScore = getSectionMaxScore(section);
+      const missing = section.items.filter(item => !item.completed).map(item => item.title);
+      const completed = section.items.filter(item => item.completed).map(item => item.title);
+
+      sectionScores[section.id] = { score, maxScore, missing };
+      completedItems[section.id] = completed;
+      missingItems[section.id] = missing;
+    });
+
+    return { sectionScores, completedItems, missingItems };
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !email) {
@@ -265,46 +283,11 @@ const FreeATSCheck = () => {
     setIsSubmitting(true);
 
     try {
-      // Prepare data for database
-      const completedItems: Record<string, string[]> = {};
-      const missingItems: Record<string, string[]> = {};
-      const sectionScores: Record<string, { score: number; maxScore: number }> = {};
+      const { sectionScores, completedItems, missingItems } = prepareSectionScores();
 
-      sections.forEach(section => {
-        completedItems[section.id] = section.items
-          .filter(item => item.completed)
-          .map(item => item.title);
-        
-        missingItems[section.id] = section.items
-          .filter(item => !item.completed)
-          .map(item => item.title);
-
-        sectionScores[section.id] = {
-          score: getSectionScore(section),
-          maxScore: getSectionMaxScore(section)
-        };
-      });
-
-      // Store in database
-      const { data, error } = await supabase
-        .from('ats_submissions')
-        .insert({
-          name,
-          email,
-          total_score: totalScore,
-          section_scores: sectionScores,
-          completed_items: completedItems,
-          missing_items: missingItems
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      // Send email via edge function
-      const { data: emailData, error: emailError } = await supabase.functions.invoke('ats-report-email', {
+      // Call the new ATS checker submission edge function
+      const { data, error } = await supabase.functions.invoke('ats-checker-submission', {
         body: {
-          submissionId: data.id,
           name,
           email,
           totalScore,
@@ -314,14 +297,11 @@ const FreeATSCheck = () => {
         }
       });
 
-      if (emailError) {
-        console.error('Email error:', emailError);
-        // Don't throw here - submission was successful even if email failed
-      }
+      if (error) throw error;
 
       toast({
         title: "Report Sent!",
-        description: `Thanks ${name}! We'll send your detailed ATS report to ${email} within 5 minutes.`,
+        description: `Thanks ${name}! Your detailed ATS report and email sequence will start within 5 minutes at ${email}.`,
       });
 
       // Reset form
@@ -524,9 +504,9 @@ const FreeATSCheck = () => {
             <CardContent>
               <Card className="bg-white shadow-sm">
                 <CardHeader>
-                  <CardTitle className="text-lg text-center">📧 Get Your Detailed Results</CardTitle>
+                  <CardTitle className="text-lg text-center">📧 Get Your Detailed Results + 5-Email Success Series</CardTitle>
                   <CardDescription className="text-center">
-                    Enter your email to receive a personalized report with specific recommendations for your resume.
+                    Enter your email to receive a personalized report plus our proven email sequence that helps job seekers optimize their resumes and land more interviews.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -550,9 +530,14 @@ const FreeATSCheck = () => {
                       className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
                       disabled={isSubmitting || emailLoading}
                     >
-                      {isSubmitting || emailLoading ? 'Sending Report...' : 'Get My Detailed Report 📊'}
+                      {isSubmitting || emailLoading ? 'Sending Report...' : 'Get My Detailed Report + Email Series 📊'}
                     </Button>
                   </form>
+                  <div className="mt-4 text-sm text-gray-600 text-center">
+                    <p>✅ Personalized improvement recommendations</p>
+                    <p>✅ 5-part email series with actionable tips</p>
+                    <p>✅ Success stories and optimization strategies</p>
+                  </div>
                 </CardContent>
               </Card>
             </CardContent>
