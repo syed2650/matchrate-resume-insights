@@ -140,6 +140,39 @@ export type Database = {
         }
         Relationships: []
       }
+      exit_intent_signups: {
+        Row: {
+          converted_to_user: boolean
+          created_at: string
+          email: string
+          email_sequence_step: number
+          id: string
+          is_active: boolean
+          last_email_sent: string | null
+          signup_date: string
+        }
+        Insert: {
+          converted_to_user?: boolean
+          created_at?: string
+          email: string
+          email_sequence_step?: number
+          id?: string
+          is_active?: boolean
+          last_email_sent?: string | null
+          signup_date?: string
+        }
+        Update: {
+          converted_to_user?: boolean
+          created_at?: string
+          email?: string
+          email_sequence_step?: number
+          id?: string
+          is_active?: boolean
+          last_email_sent?: string | null
+          signup_date?: string
+        }
+        Relationships: []
+      }
       feedback: {
         Row: {
           ats_scores: Json | null
@@ -213,25 +246,46 @@ export type Database = {
       }
       profiles: {
         Row: {
+          analysis_count: number | null
+          average_score: number | null
+          biggest_improvement: number | null
           created_at: string
           email: string
+          email_sequence_step: number | null
+          first_analysis_date: string | null
           full_name: string | null
           id: string
           is_lifetime_premium: boolean | null
+          last_email_sent: string | null
+          signup_source: string | null
         }
         Insert: {
+          analysis_count?: number | null
+          average_score?: number | null
+          biggest_improvement?: number | null
           created_at?: string
           email: string
+          email_sequence_step?: number | null
+          first_analysis_date?: string | null
           full_name?: string | null
           id: string
           is_lifetime_premium?: boolean | null
+          last_email_sent?: string | null
+          signup_source?: string | null
         }
         Update: {
+          analysis_count?: number | null
+          average_score?: number | null
+          biggest_improvement?: number | null
           created_at?: string
           email?: string
+          email_sequence_step?: number | null
+          first_analysis_date?: string | null
           full_name?: string | null
           id?: string
           is_lifetime_premium?: boolean | null
+          last_email_sent?: string | null
+          signup_source?: string | null
         }
         Relationships: []
       }

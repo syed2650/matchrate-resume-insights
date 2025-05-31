@@ -22,11 +22,15 @@ import Contact from "@/pages/Contact";
 import FreeATSCheck from "@/pages/FreeATSCheck";
 import NavBar from "@/components/NavBar";
 import BetaAnnouncementBanner from "@/components/BetaAnnouncementBanner";
+import { ExitIntentPopup } from "@/components/ExitIntentPopup";
+import { useExitIntent } from "@/hooks/useExitIntent";
 import { AuthProvider } from "@/hooks/useAuthUser";
 import { Toaster } from "@/components/ui/toaster";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 function App() {
+  const { showPopup, closePopup } = useExitIntent();
+
   return (
     <Router>
       <AuthProvider>
@@ -55,6 +59,7 @@ function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <ExitIntentPopup isVisible={showPopup} onClose={closePopup} />
         <Toaster />
       </AuthProvider>
     </Router>
