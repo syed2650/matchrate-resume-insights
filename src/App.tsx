@@ -28,39 +28,47 @@ import { AuthProvider } from "@/hooks/useAuthUser";
 import { Toaster } from "@/components/ui/toaster";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
-function App() {
+function AppContent() {
   const { showPopup, closePopup } = useExitIntent();
 
   return (
+    <>
+      <BetaAnnouncementBanner />
+      <NavBar />
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/review" element={<Review />} />
+        <Route path="/blog" element={<Blog />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/free-ats-check" element={<FreeATSCheck />} />
+        <Route path="/blog/improve-resume" element={<ImproveResume />} />
+        <Route path="/blog/ats-systems" element={<ATSSystems />} />
+        <Route path="/blog/resume-mistakes" element={<ResumeMistakes />} />
+        <Route path="/blog/resume-rejection" element={<ResumeRejection />} />
+        <Route path="/blog/beat-ats" element={<BeatATS />} />
+        <Route path="/blog/resume-keywords" element={<ResumeKeywords />} />
+        <Route path="/blog/free-vs-paid-checkers" element={<FreeVsPaidCheckers />} />
+        <Route path="/faq" element={<FAQ />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/cookie-policy" element={<CookiePolicy />} />
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/payment-success" element={<PaymentSuccess />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+      <ExitIntentPopup isVisible={showPopup} onClose={closePopup} />
+      <Toaster />
+    </>
+  );
+}
+
+function App() {
+  return (
     <Router>
       <AuthProvider>
-        <BetaAnnouncementBanner />
-        <NavBar />
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/review" element={<Review />} />
-          <Route path="/blog" element={<Blog />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/free-ats-check" element={<FreeATSCheck />} />
-          <Route path="/blog/improve-resume" element={<ImproveResume />} />
-          <Route path="/blog/ats-systems" element={<ATSSystems />} />
-          <Route path="/blog/resume-mistakes" element={<ResumeMistakes />} />
-          <Route path="/blog/resume-rejection" element={<ResumeRejection />} />
-          <Route path="/blog/beat-ats" element={<BeatATS />} />
-          <Route path="/blog/resume-keywords" element={<ResumeKeywords />} />
-          <Route path="/blog/free-vs-paid-checkers" element={<FreeVsPaidCheckers />} />
-          <Route path="/faq" element={<FAQ />} />
-          <Route path="/privacy" element={<Privacy />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/cookie-policy" element={<CookiePolicy />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/payment-success" element={<PaymentSuccess />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-        <ExitIntentPopup isVisible={showPopup} onClose={closePopup} />
-        <Toaster />
+        <AppContent />
       </AuthProvider>
     </Router>
   );
