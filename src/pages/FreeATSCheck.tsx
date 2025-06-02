@@ -1,7 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useEmailService } from "@/hooks/useEmailService";
+import { addUTMToFormData } from "@/components/UTMTracker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -285,19 +287,33 @@ const FreeATSCheck = () => {
     try {
       const { sectionScores, completedItems, missingItems } = prepareSectionScores();
 
-      // Call the new ATS checker submission edge function
+      // Add UTM data to the submission
+      const submissionData = addUTMToFormData({
+        name,
+        email,
+        totalScore,
+        sectionScores,
+        completedItems,
+        missingItems
+      });
+
+      // Call the ATS checker submission edge function with UTM data
       const { data, error } = await supabase.functions.invoke('ats-checker-submission', {
-        body: {
-          name,
-          email,
-          totalScore,
-          sectionScores,
-          completedItems,
-          missingItems
-        }
+        body: submissionData
       });
 
       if (error) throw error;
+
+      // Track conversion event with UTM data
+      if (typeof window !== 'undefined' && (window as any).gtag) {
+        const utmData = JSON.parse(sessionStorage.getItem('utmData') || '{}');
+        (window as any).gtag('event', 'ats_checker_completion', {
+          utm_source: utmData.utm_source,
+          utm_medium: utmData.utm_medium,
+          utm_campaign: utmData.utm_campaign,
+          value: totalScore
+        });
+      }
 
       toast({
         title: "Report Sent!",

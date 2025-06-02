@@ -20,9 +20,11 @@ import Dashboard from "@/pages/Dashboard";
 import PaymentSuccess from "@/pages/PaymentSuccess";
 import Contact from "@/pages/Contact";
 import FreeATSCheck from "@/pages/FreeATSCheck";
+import UTMDashboard from "@/pages/UTMDashboard";
 import NavBar from "@/components/NavBar";
 import BetaAnnouncementBanner from "@/components/BetaAnnouncementBanner";
 import { ExitIntentPopup } from "@/components/ExitIntentPopup";
+import { UTMTracker } from "@/components/UTMTracker";
 import { useExitIntent } from "@/hooks/useExitIntent";
 import { AuthProvider } from "@/hooks/useAuthUser";
 import { Toaster } from "@/components/ui/toaster";
@@ -33,6 +35,7 @@ function AppContent() {
 
   return (
     <>
+      <UTMTracker />
       <BetaAnnouncementBanner />
       <NavBar />
       <Routes>
@@ -42,6 +45,7 @@ function AppContent() {
         <Route path="/blog" element={<Blog />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/free-ats-check" element={<FreeATSCheck />} />
+        <Route path="/utm-dashboard" element={<UTMDashboard />} />
         <Route path="/blog/improve-resume" element={<ImproveResume />} />
         <Route path="/blog/ats-systems" element={<ATSSystems />} />
         <Route path="/blog/resume-mistakes" element={<ResumeMistakes />} />

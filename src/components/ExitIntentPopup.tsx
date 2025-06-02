@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { addUTMToFormData } from '@/components/UTMTracker';
 
 interface ExitIntentPopupProps {
   isVisible: boolean;
@@ -23,8 +24,14 @@ export const ExitIntentPopup = ({ isVisible, onClose }: ExitIntentPopupProps) =>
     setIsSubmitting(true);
 
     try {
+      // Add UTM data to the submission
+      const formDataWithUTM = addUTMToFormData({
+        email,
+        source: 'exit_intent_popup'
+      });
+
       const { data, error } = await supabase.functions.invoke('exit-intent-signup', {
-        body: { email, source: 'exit_intent_popup' }
+        body: formDataWithUTM
       });
 
       if (error) throw error;
@@ -38,6 +45,16 @@ export const ExitIntentPopup = ({ isVisible, onClose }: ExitIntentPopupProps) =>
       });
 
       onClose();
+      
+      // Track conversion event with UTM data
+      if (typeof window !== 'undefined' && (window as any).gtag) {
+        const utmData = JSON.parse(sessionStorage.getItem('utmData') || '{}');
+        (window as any).gtag('event', 'exit_intent_conversion', {
+          utm_source: utmData.utm_source,
+          utm_medium: utmData.utm_medium,
+          utm_campaign: utmData.utm_campaign
+        });
+      }
       
       // Redirect to thank you page
       window.location.href = '/free-ats-check';
