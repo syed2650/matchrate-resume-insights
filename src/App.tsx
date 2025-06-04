@@ -7,6 +7,7 @@ import ImproveResume from "@/pages/blog/ImproveResume";
 import ATSSystems from "@/pages/blog/ATSSystems";
 import ResumeMistakes from "@/pages/blog/ResumeMistakes";
 import ResumeRejection from "@/pages/blog/ResumeRejection";
+import ResumeRejectionMistakes from "@/pages/blog/ResumeRejectionMistakes";
 import BeatATS from "@/pages/blog/BeatATS";
 import ResumeKeywords from "@/pages/blog/ResumeKeywords";
 import FreeVsPaidCheckers from "@/pages/blog/FreeVsPaidCheckers";
@@ -50,6 +51,7 @@ function AppContent() {
         <Route path="/blog/ats-systems" element={<ATSSystems />} />
         <Route path="/blog/resume-mistakes" element={<ResumeMistakes />} />
         <Route path="/blog/resume-rejection" element={<ResumeRejection />} />
+        <Route path="/blog/resume-rejection-mistakes" element={<ResumeRejectionMistakes />} />
         <Route path="/blog/beat-ats" element={<BeatATS />} />
         <Route path="/blog/resume-keywords" element={<ResumeKeywords />} />
         <Route path="/blog/free-vs-paid-checkers" element={<FreeVsPaidCheckers />} />
