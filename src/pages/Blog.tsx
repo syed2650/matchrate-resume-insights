@@ -14,6 +14,15 @@ export default function Blog() {
       
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-2">Resume Format That Actually Gets Interviews: 2025 ATS-Friendly Templates</h2>
+          <p className="text-slate-600 mb-4">The difference between a resume that gets noticed and one that gets rejected often comes down to format. Here's exactly how to structure your resume for both ATS systems and human recruiters in 2025.</p>
+          <p className="text-sm text-slate-400 mb-4">January 2025</p>
+          <Button asChild className="w-full">
+            <Link to="/blog/resume-format-guide">Read More</Link>
+          </Button>
+        </Card>
+
+        <Card className="p-6">
           <h2 className="text-xl font-semibold mb-2">10 Resume Mistakes That Guarantee Rejection (And How to Fix Them in 2025)</h2>
           <p className="text-slate-600 mb-4">Complete guide to the most common resume mistakes that lead to instant rejection, with actionable fixes for each one.</p>
           <p className="text-sm text-slate-400 mb-4">January 2025</p>
