@@ -262,10 +262,20 @@ export default function ResumePsychology() {
               Hiring managers develop mental templates of "successful candidates" and unconsciously compare every resume against these patterns. Resumes that match familiar success patterns get fast-tracked.
             </p>
 
+            <h3 className="text-xl font-semibold text-slate-900 mb-3">The Psychology Behind It</h3>
+            <p className="text-slate-700 mb-4">
+              Pattern recognition is a fundamental survival mechanism. Our brains constantly compare new information against stored templates to make quick decisions. In hiring, this manifests as:
+            </p>
+            <ul className="text-slate-700 list-disc pl-6 mb-4">
+              <li>Prototype bias: Preference for candidates who resemble previous successful hires</li>
+              <li>Representativeness heuristic: Judging probability based on similarity to mental models</li>
+              <li>Template matching: Unconsciously categorizing resumes as "fits pattern" or "doesn't fit"</li>
+            </ul>
+
             <h3 className="text-xl font-semibold text-slate-900 mb-3">Successful Candidate Patterns by Industry</h3>
             <div className="grid md:grid-cols-3 gap-4 mb-6">
               <Card className="p-4">
-                <h4 className="font-semibold text-slate-900 mb-2">Tech/Engineering</h4>
+                <h4 className="font-semibold text-slate-900 mb-2">Technology Companies</h4>
                 <ul className="text-sm text-slate-700 space-y-1">
                   <li>• Computer Science degree from known university</li>
                   <li>• Progression: Engineer → Senior Engineer → Tech Lead → Manager</li>
@@ -325,15 +335,24 @@ export default function ResumePsychology() {
             </Card>
           </section>
 
-          {/* Continue with remaining psychological triggers... */}
-          {/* For brevity, I'll include the key sections and structure */}
-
           {/* Psychological Trigger #4: Social Proof */}
           <section className="mb-8">
             <h2 className="text-3xl font-bold text-slate-900 mb-4">Psychological Trigger #4: Social Proof and Authority Bias</h2>
+            
+            <h3 className="text-xl font-semibold text-slate-900 mb-3">What It Is</h3>
             <p className="text-slate-700 mb-4">
               Social proof drives hiring managers to value candidates who have been validated by other respected organizations or individuals. Authority bias makes them defer to perceived experts and prestigious institutions.
             </p>
+
+            <h3 className="text-xl font-semibold text-slate-900 mb-3">The Psychology Behind It</h3>
+            <p className="text-slate-700 mb-4">
+              Humans are social creatures who rely on others' judgments to navigate uncertainty. In hiring, this manifests as:
+            </p>
+            <ul className="text-slate-700 list-disc pl-6 mb-4">
+              <li>Bandwagon effect: "If other good companies hired them, they must be good"</li>
+              <li>Authority bias: Prestigious institutions and leaders carry disproportionate influence</li>
+              <li>Social validation: External recognition provides confidence in decisions</li>
+            </ul>
 
             <Card className="p-4 bg-blue-50 border-blue-200 mb-4">
               <p className="text-blue-800">
@@ -349,14 +368,38 @@ export default function ResumePsychology() {
               <li>Client testimonials or references: Brief quotes from satisfied clients</li>
               <li>Media mentions: Press coverage, interviews, or expert commentary</li>
             </ul>
+
+            <h3 className="text-xl font-semibold text-slate-900 mb-3">Building Social Proof on Your Resume</h3>
+            <Card className="p-4 bg-blue-50 border-blue-200">
+              <h4 className="font-semibold mb-2">Before (Weak Social Proof):</h4>
+              <p className="text-sm text-slate-700 italic mb-3">
+                "Marketing Manager with 5+ years of experience in digital marketing and campaign management."
+              </p>
+              <h4 className="font-semibold mb-2">After (Strong Social Proof):</h4>
+              <p className="text-sm text-slate-700 italic">
+                "Former Salesforce Marketing Manager with 5+ years driving growth for B2B SaaS companies. Led campaigns for Fortune 500 clients including Microsoft and Adobe, resulting in $15M pipeline generation."
+              </p>
+            </Card>
           </section>
 
           {/* Psychological Trigger #5: Loss Aversion */}
           <section className="mb-8">
             <h2 className="text-3xl font-bold text-slate-900 mb-4">Psychological Trigger #5: Loss Aversion (Fear of Missing Out)</h2>
+            
+            <h3 className="text-xl font-semibold text-slate-900 mb-3">What It Is</h3>
             <p className="text-slate-700 mb-4">
               Loss aversion makes hiring managers fear missing out on great candidates more than they fear hiring average ones. People feel losses twice as strongly as equivalent gains, making FOMO a powerful motivator.
             </p>
+
+            <h3 className="text-xl font-semibold text-slate-900 mb-3">The Psychology Behind It</h3>
+            <p className="text-slate-700 mb-4">
+              Nobel Prize-winning research by Daniel Kahneman shows that humans are wired to avoid losses more than acquire gains. In hiring contexts:
+            </p>
+            <ul className="text-slate-700 list-disc pl-6 mb-4">
+              <li>Scarcity mindset: "This candidate might not be available long"</li>
+              <li>Competitive pressure: "Other companies are probably interested too"</li>
+              <li>Opportunity cost fear: "What if this is the perfect candidate and I let them slip away?"</li>
+            </ul>
 
             <Card className="p-4 bg-amber-50 border-amber-200">
               <h3 className="text-lg font-semibold text-slate-900 mb-2">Creating Strategic FOMO</h3>
@@ -370,10 +413,13 @@ export default function ResumePsychology() {
           {/* Psychological Trigger #6: Confirmation Bias */}
           <section className="mb-8">
             <h2 className="text-3xl font-bold text-slate-900 mb-4">Psychological Trigger #6: Confirmation Bias (Seeking Supporting Evidence)</h2>
+            
+            <h3 className="text-xl font-semibold text-slate-900 mb-3">What It Is</h3>
             <p className="text-slate-700 mb-4">
               Confirmation bias drives hiring managers to look for evidence that supports their initial gut reaction about a candidate. Once they form a positive or negative impression, they unconsciously seek information that confirms that judgment.
             </p>
 
+            <h3 className="text-xl font-semibold text-slate-900 mb-3">How It Works</h3>
             <Card className="p-4 bg-green-50 border-green-200">
               <h3 className="text-lg font-semibold text-slate-900 mb-2">Positive Confirmation Bias Loop</h3>
               <ol className="list-decimal pl-6 space-y-1 text-slate-700">
@@ -384,11 +430,18 @@ export default function ResumePsychology() {
                 <li>Decision becomes "obvious" based on accumulated "evidence"</li>
               </ol>
             </Card>
+
+            <h3 className="text-xl font-semibold text-slate-900 mb-3 mt-6">Leveraging Confirmation Bias</h3>
+            <p className="text-slate-700 mb-4">
+              Front-load your strongest assets and create consistent evidence patterns throughout your resume that reinforce your core value proposition.
+            </p>
           </section>
 
           {/* Psychological Trigger #7: Anchoring Effect */}
           <section className="mb-8">
             <h2 className="text-3xl font-bold text-slate-900 mb-4">Psychological Trigger #7: The Anchoring Effect (First Number Bias)</h2>
+            
+            <h3 className="text-xl font-semibold text-slate-900 mb-3">What It Is</h3>
             <p className="text-slate-700 mb-4">
               The anchoring effect causes hiring managers to rely heavily on the first piece of quantitative information they encounter. This initial "anchor" influences how they evaluate all subsequent information about salary expectations, experience level, and achievement magnitude.
             </p>
@@ -544,6 +597,94 @@ export default function ResumePsychology() {
               <p className="text-amber-800 font-semibold mt-4">
                 If they can't answer these clearly, your resume isn't psychologically optimized.
               </p>
+            </Card>
+          </section>
+
+          {/* Industry-Specific Applications */}
+          <section className="mb-8">
+            <h2 className="text-3xl font-bold text-slate-900 mb-4">Industry-Specific Psychology Applications</h2>
+            <div className="grid md:grid-cols-2 gap-6">
+              <Card className="p-4">
+                <h3 className="text-lg font-semibold text-slate-900 mb-3">Technology Resumes</h3>
+                <ul className="text-sm text-slate-700 space-y-1">
+                  <li>• Halo Effect: Lead with FAANG companies or successful startups</li>
+                  <li>• Social Proof: GitHub contributions, technical blog, conference speaking</li>
+                  <li>• Anchoring: Scale metrics (millions of users, billions of data points)</li>
+                  <li>• Pattern Recognition: Clear technical progression and current tech stack</li>
+                </ul>
+              </Card>
+
+              <Card className="p-4">
+                <h3 className="text-lg font-semibold text-slate-900 mb-3">Sales Resumes</h3>
+                <ul className="text-sm text-slate-700 space-y-1">
+                  <li>• Halo Effect: Quota attainment percentages and revenue numbers</li>
+                  <li>• Social Proof: Awards, President's Club, client testimonials</li>
+                  <li>• Anchoring: Total revenue generated or deal sizes</li>
+                  <li>• Loss Aversion: Proven track record in competitive markets</li>
+                </ul>
+              </Card>
+
+              <Card className="p-4">
+                <h3 className="text-lg font-semibold text-slate-900 mb-3">Marketing Resumes</h3>
+                <ul className="text-sm text-slate-700 space-y-1">
+                  <li>• Halo Effect: Brand names and growth percentages</li>
+                  <li>• Social Proof: Campaign awards, speaking engagements, thought leadership</li>
+                  <li>• Anchoring: Pipeline generation and ROI metrics</li>
+                  <li>• Pattern Recognition: Mix of strategic and tactical experience</li>
+                </ul>
+              </Card>
+
+              <Card className="p-4">
+                <h3 className="text-lg font-semibold text-slate-900 mb-3">Finance Resumes</h3>
+                <ul className="text-sm text-slate-700 space-y-1">
+                  <li>• Halo Effect: Prestigious financial institutions or Fortune 500 companies</li>
+                  <li>• Social Proof: Professional certifications (CPA, CFA, FRM)</li>
+                  <li>• Anchoring: Assets under management or budget responsibility</li>
+                  <li>• Pattern Recognition: Progressive responsibility and regulatory knowledge</li>
+                </ul>
+              </Card>
+            </div>
+          </section>
+
+          {/* Implementation Timeline */}
+          <section className="mb-8">
+            <h2 className="text-3xl font-bold text-slate-900 mb-4">Taking Action: Your Psychological Resume Transformation</h2>
+            <Card className="p-6 bg-blue-50 border-blue-200">
+              <h3 className="text-lg font-semibold text-slate-900 mb-4">4-Week Implementation Timeline</h3>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <h4 className="font-medium text-slate-900 mb-2">Week 1: Psychological Foundation</h4>
+                  <ul className="text-sm text-slate-700 space-y-1">
+                    <li>• Audit current resume against 7 psychological triggers</li>
+                    <li>• Identify strongest halo effect elements</li>
+                    <li>• Reorganize information to optimize cognitive load</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-medium text-slate-900 mb-2">Week 2: Content Optimization</h4>
+                  <ul className="text-sm text-slate-700 space-y-1">
+                    <li>• Rewrite professional summary with psychological triggers</li>
+                    <li>• Optimize anchoring with highest-impact numbers first</li>
+                    <li>• Integrate social proof elements naturally</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-medium text-slate-900 mb-2">Week 3: Advanced Psychology</h4>
+                  <ul className="text-sm text-slate-700 space-y-1">
+                    <li>• Apply confirmation bias optimization</li>
+                    <li>• Create loss aversion without desperation</li>
+                    <li>• Test pattern recognition alignment</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-medium text-slate-900 mb-2">Week 4: Testing and Refinement</h4>
+                  <ul className="text-sm text-slate-700 space-y-1">
+                    <li>• Conduct 10-second psychology tests with colleagues</li>
+                    <li>• A/B test different psychological approaches</li>
+                    <li>• Measure response rate improvements</li>
+                  </ul>
+                </div>
+              </div>
             </Card>
           </section>
 
