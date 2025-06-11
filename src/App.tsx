@@ -9,6 +9,7 @@ import ResumeMistakes from "@/pages/blog/ResumeMistakes";
 import ResumeRejection from "@/pages/blog/ResumeRejection";
 import ResumeRejectionMistakes from "@/pages/blog/ResumeRejectionMistakes";
 import ResumeFormatGuide from "@/pages/blog/ResumeFormatGuide";
+import ResumePsychology from "@/pages/blog/ResumePsychology";
 import BeatATS from "@/pages/blog/BeatATS";
 import ResumeKeywords from "@/pages/blog/ResumeKeywords";
 import FreeVsPaidCheckers from "@/pages/blog/FreeVsPaidCheckers";
@@ -48,6 +49,7 @@ function AppContent() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/free-ats-check" element={<FreeATSCheck />} />
         <Route path="/utm-dashboard" element={<UTMDashboard />} />
+        <Route path="/blog/resume-psychology" element={<ResumePsychology />} />
         <Route path="/blog/improve-resume" element={<ImproveResume />} />
         <Route path="/blog/ats-systems" element={<ATSSystems />} />
         <Route path="/blog/resume-mistakes" element={<ResumeMistakes />} />
