@@ -43,8 +43,17 @@ export const useResumeUpload = () => {
       
       let extractedText = "";
       
-      // Process based on file type
-      if (file.type === "application/pdf") {
+      // Handle image files - text should already be extracted by OCR in the component
+      if (file.type.startsWith('image/') || file.type === 'text/plain') {
+        try {
+          extractedText = await file.text();
+        } catch (error) {
+          setHasParsingError(true);
+          throw new Error("Could not read the processed text. Please try uploading the image again.");
+        }
+      }
+      // Process based on file type for documents
+      else if (file.type === "application/pdf") {
         // Handle PDF files using pdfjs which works in browsers
         try {
           const arrayBuffer = await file.arrayBuffer();
@@ -84,14 +93,6 @@ export const useResumeUpload = () => {
           setHasParsingError(true);
           throw new Error("Could not parse this DOCX file. The file might be corrupted or password protected.");
         }
-      } else if (file.type === "text/plain") {
-        // Handle plain text files
-        try {
-          extractedText = await file.text();
-        } catch (txtError) {
-          setHasParsingError(true);
-          throw new Error("Could not read this text file. Please try copy-pasting the content instead.");
-        }
       } else {
         // Try basic text extraction as fallback
         try {
@@ -100,11 +101,11 @@ export const useResumeUpload = () => {
           // Check if we got meaningful content
           if (extractedText.trim().length < 50) {
             setHasParsingError(true);
-            throw new Error("Unsupported file format. Please upload a PDF, DOCX, or TXT file.");
+            throw new Error("Unsupported file format. Please upload a PDF, DOCX, TXT file, or an image.");
           }
         } catch (error) {
           setHasParsingError(true);
-          throw new Error("Unsupported file format. Please upload a PDF, DOCX, or TXT file.");
+          throw new Error("Unsupported file format. Please upload a PDF, DOCX, TXT file, or an image.");
         }
       }
       
@@ -117,23 +118,24 @@ export const useResumeUpload = () => {
       // Final check to make sure we have enough content
       if (cleanText.length < 100) {
         setHasParsingError(true);
-        throw new Error("We couldn't extract enough text from your resume. The file might be an image-based PDF or contain too little text. Please try uploading a different format or copy-paste your resume text directly.");
+        throw new Error("We couldn't extract enough text from your file. The file might be an image-based PDF or contain too little text. Please try uploading a different format or copy-paste your resume text directly.");
       }
       
       setResume(cleanText);
       
+      const fileTypeLabel = file.type.startsWith('image/') ? 'image' : 'document';
       toast({
-        title: "Resume parsed successfully",
+        title: `Resume ${fileTypeLabel} processed successfully`,
         description: `Extracted content from ${file.name}`,
       });
     } catch (error) {
       setHasParsingError(true);
       console.error("Error parsing file:", error);
       toast({
-        title: "Error parsing resume",
+        title: "Error processing resume",
         description: error instanceof Error 
           ? error.message 
-          : "We couldn't extract text from your resume. Please upload a text-based file (.docx or PDF) or copy-paste your resume text manually.",
+          : "We couldn't extract text from your resume. Please upload a text-based file (.docx or PDF), an image, or copy-paste your resume text manually.",
         variant: "destructive"
       });
     } finally {

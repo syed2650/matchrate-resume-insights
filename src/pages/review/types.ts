@@ -1,4 +1,3 @@
-
 // If this file doesn't exist, we need to create it with the ResumeRewriteProps interface
 export interface ResumeRewriteProps {
   rewrittenResume: any;
@@ -52,9 +51,8 @@ export type ExtractionStatus =
 
 export interface ResumeFile {
   name: string;
-  url?: string;
-  type?: string;
-  size?: number;
+  size: number;
+  type: string; // Now supports both document and image MIME types
 }
 
 export interface AnalysisStep {
