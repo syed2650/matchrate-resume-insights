@@ -1,4 +1,3 @@
-
 import React, { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { Card } from "@/components/ui/card";
@@ -43,13 +42,6 @@ const ResumeUploadSection: React.FC<ResumeUploadSectionProps> = ({
         throw new Error("Image file too large. Maximum size is 5MB.");
       }
 
-      // Set file info
-      const imageFile: ResumeFile = {
-        name: file.name,
-        size: file.size,
-        type: file.type
-      };
-
       // Process image with Tesseract OCR
       const result = await Tesseract.recognize(file, 'eng', {
         logger: (m) => {
@@ -74,7 +66,8 @@ const ResumeUploadSection: React.FC<ResumeUploadSectionProps> = ({
       setResumeText(cleanText);
       
       // Create a virtual file object for display purposes
-      const virtualFile = new File([cleanText], file.name.replace(/\.(jpg|jpeg|png|webp)$/i, '.txt'), {
+      const textFileName = file.name.replace(/\.(jpg|jpeg|png|webp)$/i, '.txt');
+      const virtualFile = new File([cleanText], textFileName, {
         type: 'text/plain'
       });
       
