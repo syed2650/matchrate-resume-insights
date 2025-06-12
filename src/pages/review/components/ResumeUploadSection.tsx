@@ -65,9 +65,10 @@ const ResumeUploadSection: React.FC<ResumeUploadSectionProps> = ({
 
       setResumeText(cleanText);
       
-      // Create a virtual file object for display purposes
+      // Create a virtual file object using Blob and then File constructor
       const textFileName = file.name.replace(/\.(jpg|jpeg|png|webp)$/i, '.txt');
-      const virtualFile = new File([cleanText], textFileName, {
+      const blob = new Blob([cleanText], { type: 'text/plain' });
+      const virtualFile = new (window as any).File([blob], textFileName, {
         type: 'text/plain'
       });
       
