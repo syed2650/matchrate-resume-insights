@@ -63,12 +63,20 @@ export default function NavBar() {
                   Features
                 </Link>
                 <Link
+                  to="/resume-feedback"
+                  className={`text-sm font-medium ${
+                    location.pathname === "/resume-feedback" ? "text-foreground" : "text-muted-foreground"
+                  } hover:text-foreground transition-colors`}
+                >
+                  Resume Feedback
+                </Link>
+                <Link
                   to="/free-ats-check"
                   className={`text-sm font-medium ${
                     location.pathname === "/free-ats-check" ? "text-foreground" : "text-muted-foreground"
                   } hover:text-foreground transition-colors`}
                 >
-                  Free ATS Check
+                  ATS Check
                 </Link>
                 <Link
                   to="/blog"
@@ -162,13 +170,22 @@ export default function NavBar() {
                   Features
                 </Link>
                 <Link
+                  to="/resume-feedback"
+                  className={`text-base font-medium ${
+                    location.pathname === "/resume-feedback" ? "text-foreground" : "text-muted-foreground"
+                  }`}
+                  onClick={() => setShowMobileMenu(false)}
+                >
+                  Resume Feedback
+                </Link>
+                <Link
                   to="/free-ats-check"
                   className={`text-base font-medium ${
                     location.pathname === "/free-ats-check" ? "text-foreground" : "text-muted-foreground"
                   }`}
                   onClick={() => setShowMobileMenu(false)}
                 >
-                  Free ATS Check
+                  ATS Check
                 </Link>
                 <Link
                   to="/blog"

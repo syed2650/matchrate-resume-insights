@@ -54,9 +54,9 @@ const Hero = () => {
           <Button 
             size="lg"
             className="cta-gradient hover:scale-[1.03] transition-all duration-200 text-white px-9 py-7 text-lg rounded-xl shadow-cta font-semibold"
-            onClick={() => navigate("/review")}
+            onClick={() => navigate("/resume-feedback")}
           >
-            Try Resume Feedback Free
+            Get Resume Feedback Free
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
           

@@ -23,6 +23,7 @@ import Dashboard from "@/pages/Dashboard";
 import PaymentSuccess from "@/pages/PaymentSuccess";
 import Contact from "@/pages/Contact";
 import FreeATSCheck from "@/pages/FreeATSCheck";
+import ResumeFeedback from "@/pages/ResumeFeedback";
 import UTMDashboard from "@/pages/UTMDashboard";
 import NavBar from "@/components/NavBar";
 import BetaAnnouncementBanner from "@/components/BetaAnnouncementBanner";
@@ -48,6 +49,7 @@ function AppContent() {
         <Route path="/blog" element={<Blog />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/free-ats-check" element={<FreeATSCheck />} />
+        <Route path="/resume-feedback" element={<ResumeFeedback />} />
         <Route path="/utm-dashboard" element={<UTMDashboard />} />
         <Route path="/blog/resume-psychology" element={<ResumePsychology />} />
         <Route path="/blog/improve-resume" element={<ImproveResume />} />
