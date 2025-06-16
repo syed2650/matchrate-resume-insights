@@ -1,8 +1,7 @@
-
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import AnimatedTextCycle from "@/components/ui/animated-text-cycle";
-import { ArrowRight, Target } from "lucide-react";
+import { ArrowRight, Target, FileText } from "lucide-react";
 
 const Hero = () => {
   const navigate = useNavigate();
@@ -32,12 +31,12 @@ const Hero = () => {
           <span className="inline-block align-baseline">
             <AnimatedTextCycle
               words={[
-                "clear",
+                "tailored",
                 "actionable",
                 "honest",
                 "expert",
                 "insightful",
-                "tailored"
+                "specific"
               ]}
               interval={2600}
               className="text-warm-accent"
@@ -46,17 +45,13 @@ const Hero = () => {
           feedback instantly.
         </p>
         
-        <p className="text-md text-slate-500 max-w-2xl mb-12">
-          Understand exactly why your resume isn't landing interviews — and how to fix it.
-        </p>
-        
-        <div className="flex flex-col sm:flex-row gap-4 mb-16 w-full md:w-auto">
+        <div className="flex flex-col sm:flex-row gap-4 mb-12 w-full md:w-auto">
           <Button 
             size="lg"
             className="cta-gradient hover:scale-[1.03] transition-all duration-200 text-white px-9 py-7 text-lg rounded-xl shadow-cta font-semibold"
-            onClick={() => navigate("/resume-feedback")}
+            onClick={() => navigate("/review")}
           >
-            Get Resume Feedback Free
+            Try MatchRate Free
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
           
@@ -64,16 +59,70 @@ const Hero = () => {
             size="lg"
             variant="outline"
             className="border-2 border-warm-accent text-warm-accent hover:bg-warm-accent hover:text-white px-9 py-7 text-lg rounded-xl font-semibold transition-all duration-200 hover:scale-[1.03]"
-            onClick={() => navigate("/free-ats-check")}
+            onClick={() => navigate("/resume-feedback")}
           >
-            <Target className="mr-2 h-5 w-5" />
-            Check Your ATS Score (Free) 🎯
+            <FileText className="mr-2 h-5 w-5" />
+            Get Resume Health Check
           </Button>
         </div>
         
+        <p className="text-sm text-slate-500 mb-16">
+          No job description needed • General resume review
+        </p>
+
+        {/* Tool Comparison Section */}
+        <div className="w-full max-w-4xl mx-auto mt-8 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden">
+          <div className="p-6 bg-slate-50 border-b border-slate-200">
+            <h2 className="text-xl font-bold text-center text-slate-800">Choose Your Analysis Type</h2>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-200">
+            {/* Job-Specific Matching */}
+            <div className="p-6">
+              <div className="flex items-center mb-3">
+                <Target className="w-6 h-6 text-warm-accent mr-2" />
+                <h3 className="text-lg font-bold text-slate-800">Job-Specific Matching</h3>
+              </div>
+              <p className="text-sm text-slate-600 mb-2">
+                <strong>Perfect for:</strong> Active job applications
+              </p>
+              <p className="text-sm text-slate-600 mb-4">
+                <strong>Requires:</strong> Resume + Job Description
+              </p>
+              <Button 
+                className="cta-gradient text-white w-full"
+                onClick={() => navigate("/review")}
+              >
+                Try MatchRate Free
+              </Button>
+            </div>
+            
+            {/* General Resume Health Check */}
+            <div className="p-6">
+              <div className="flex items-center mb-3">
+                <FileText className="w-6 h-6 text-blue-500 mr-2" />
+                <h3 className="text-lg font-bold text-slate-800">General Resume Health Check</h3>
+              </div>
+              <p className="text-sm text-slate-600 mb-2">
+                <strong>Perfect for:</strong> Resume improvement
+              </p>
+              <p className="text-sm text-slate-600 mb-4">
+                <strong>Requires:</strong> Just your resume
+              </p>
+              <Button 
+                variant="outline"
+                className="border-2 border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white w-full"
+                onClick={() => navigate("/resume-feedback")}
+              >
+                Get Health Check Free
+              </Button>
+            </div>
+          </div>
+        </div>
+        
         {/* Step-by-step guide instead of video placeholder */}
-        <div className="w-full max-w-5xl mx-auto mt-8">
-          <h2 className="text-2xl font-bold text-center mb-8">How Matchrate Works in 3 Simple Steps</h2>
+        <div className="w-full max-w-5xl mx-auto mt-16">
+          <h2 className="text-2xl font-bold text-center mb-8">How MatchRate Works in 3 Simple Steps</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Step 1 */}

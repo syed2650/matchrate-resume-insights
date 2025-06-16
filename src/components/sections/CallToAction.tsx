@@ -11,8 +11,7 @@ const CallToAction = () => {
   const [showLimitModal, setShowLimitModal] = useState(false);
 
   const handleTryClick = () => {
-    // For the comprehensive resume feedback, we'll allow unlimited use
-    navigate("/resume-feedback");
+    navigate("/review");
   };
 
   const handleCloseLimitModal = () => {
@@ -34,20 +33,20 @@ const CallToAction = () => {
             className="bg-warm-accent hover:bg-warm-accent/90 transition-all duration-200 hover:scale-105 text-white px-9 py-4 text-lg rounded-xl shadow-md font-semibold flex items-center gap-2"
             onClick={handleTryClick}
           >
-            Get Resume Feedback Free
+            Try MatchRate Free
             <ArrowRight className="w-5 h-5" />
           </Button>
           <Button 
             size="lg"
             variant="outline"
             className="border-2 border-warm-accent text-warm-accent hover:bg-warm-accent hover:text-white px-9 py-4 text-lg rounded-xl font-semibold transition-all duration-200 hover:scale-105"
-            onClick={() => navigate('/review')}
+            onClick={() => navigate('/resume-feedback')}
           >
-            Try Job-Specific Matching
+            Check Resume Health
           </Button>
         </div>
         <p className="text-sm text-slate-500">
-          Or get advanced job-specific matching with our premium tool
+          Or get a general resume health check with our free tool
         </p>
       </div>
 

@@ -68,15 +68,7 @@ export default function NavBar() {
                     location.pathname === "/resume-feedback" ? "text-foreground" : "text-muted-foreground"
                   } hover:text-foreground transition-colors`}
                 >
-                  Resume Feedback
-                </Link>
-                <Link
-                  to="/free-ats-check"
-                  className={`text-sm font-medium ${
-                    location.pathname === "/free-ats-check" ? "text-foreground" : "text-muted-foreground"
-                  } hover:text-foreground transition-colors`}
-                >
-                  ATS Check
+                  Resume Health Check
                 </Link>
                 <Link
                   to="/blog"
@@ -115,7 +107,7 @@ export default function NavBar() {
               className="cta-gradient text-white px-6"
               onClick={() => navigate("/review")}
             >
-              Try it free
+              Start Job Matching
             </Button>
 
             {isMobile && (
@@ -176,16 +168,7 @@ export default function NavBar() {
                   }`}
                   onClick={() => setShowMobileMenu(false)}
                 >
-                  Resume Feedback
-                </Link>
-                <Link
-                  to="/free-ats-check"
-                  className={`text-base font-medium ${
-                    location.pathname === "/free-ats-check" ? "text-foreground" : "text-muted-foreground"
-                  }`}
-                  onClick={() => setShowMobileMenu(false)}
-                >
-                  ATS Check
+                  Resume Health Check
                 </Link>
                 <Link
                   to="/blog"
