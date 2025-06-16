@@ -1,4 +1,3 @@
-
 import { ScrollText } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,15 +12,6 @@ export default function Blog() {
       </h1>
       
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Card className="p-6">
-          <h2 className="text-xl font-semibold mb-2">The ATS Algorithm Exposed: How Resume Scanners Actually Work in 2025 (And How to Beat Them)</h2>
-          <p className="text-slate-600 mb-4">Your resume isn't being read by humans first—it's being dissected by algorithms that decide your fate in milliseconds. Discover the technical reality behind ATS screening and learn the advanced strategies for systematically optimizing your resume.</p>
-          <p className="text-sm text-slate-400 mb-4">June 2025</p>
-          <Button asChild className="w-full">
-            <Link to="/blog/ats-algorithm-exposed">Read More</Link>
-          </Button>
-        </Card>
-
         <Card className="p-6">
           <h2 className="text-xl font-semibold mb-2">Resume Psychology: What Hiring Managers Actually Think When They Read Your Resume (Industry Insider Secrets)</h2>
           <p className="text-slate-600 mb-4">Ever wondered what's really going through a hiring manager's mind when they scan your resume? Uncover the 7 psychological triggers that control hiring decisions and learn exactly how to leverage human psychology to make your resume irresistible.</p>
