@@ -13,6 +13,7 @@ interface AnalysisResults {
   overallScore: number;
   atsScore: number;
   contentScore: number;
+  userQuestionResponse?: string;
   sections: {
     formatting: {
       score: number;
@@ -91,13 +92,59 @@ serve(async (req) => {
   }
 
   try {
-    const { resumeText } = await req.json();
+    const { resumeText, userQuestions } = await req.json();
 
     if (!resumeText || typeof resumeText !== 'string') {
       throw new Error('Resume text is required');
     }
 
     console.log('Analyzing resume content...');
+    console.log('User questions provided:', !!userQuestions);
+
+    let userQuestionResponse = null;
+
+    // If user has specific questions, get personalized response first
+    if (userQuestions && userQuestions.trim()) {
+      console.log('Processing user questions...');
+      const questionResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openAIApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            {
+              role: 'system',
+              content: `You are an expert resume consultant. The user has specific questions about their resume. Address their concerns with personalized, actionable advice.
+
+Be conversational but professional, as if you're a career coach giving one-on-one advice. Provide specific recommendations based on their questions and resume content.
+
+Format your response in clear paragraphs with actionable advice. Address each question thoroughly.`
+            },
+            {
+              role: 'user',
+              content: `Here's my resume:
+
+${resumeText.slice(0, 2500)}
+
+My specific questions/concerns: ${userQuestions}
+
+Please give me personalized advice addressing my questions.`
+            }
+          ],
+          temperature: 0.3,
+          max_tokens: 800
+        }),
+      });
+
+      if (questionResponse.ok) {
+        const questionResult = await questionResponse.json();
+        userQuestionResponse = questionResult.choices[0].message.content;
+        console.log('User questions answered successfully');
+      }
+    }
 
     // Call OpenAI for detailed content analysis
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -173,6 +220,7 @@ Return a JSON object with these exact fields:
       overallScore,
       atsScore,
       contentScore,
+      userQuestionResponse,
       sections: {
         formatting: {
           score: Math.max(60, atsScore - 10),

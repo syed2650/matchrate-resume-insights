@@ -3,8 +3,9 @@ import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, FileText, CheckCircle, AlertCircle, TrendingUp, Download, Star, Loader2, X } from 'lucide-react';
+import { Upload, FileText, CheckCircle, AlertCircle, TrendingUp, Download, Star, Loader2, X, MessageSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Footer from "@/components/sections/Footer";
 import Tesseract from 'tesseract.js';
@@ -18,6 +19,7 @@ interface AnalysisResults {
   overallScore: number;
   atsScore: number;
   contentScore: number;
+  userQuestionResponse?: string;
   sections: {
     formatting: {
       score: number;
@@ -46,12 +48,29 @@ interface AnalysisResults {
 const ResumeFeedback = () => {
   const [file, setFile] = useState<File | null>(null);
   const [resumeText, setResumeText] = useState('');
+  const [userQuestions, setUserQuestions] = useState('');
   const [analyzing, setAnalyzing] = useState(false);
   const [results, setResults] = useState<AnalysisResults | null>(null);
   const [extractingText, setExtractingText] = useState(false);
   const [ocrProgress, setOcrProgress] = useState(0);
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  const commonQuestions = [
+    { text: "Should I put my education at the top or bottom?", value: "education section placement" },
+    { text: "How can I make my bullet points more impactful?", value: "bullet point impact" },
+    { text: "I'm changing careers - how should I position myself?", value: "career change concerns" },
+    { text: "Is my resume ATS-friendly enough?", value: "ATS optimization" },
+    { text: "What's the best order for my resume sections?", value: "section ordering" }
+  ];
+
+  const handleQuickFill = (questionValue: string) => {
+    if (userQuestions) {
+      setUserQuestions(userQuestions + "\n\n" + questionValue);
+    } else {
+      setUserQuestions(questionValue);
+    }
+  };
 
   // Extract text from different file types
   const extractTextFromFile = async (file: File): Promise<string> => {
@@ -97,15 +116,18 @@ const ResumeFeedback = () => {
     }
   };
 
-  // Analyze resume content using OpenAI
-  const analyzeResumeContent = async (text: string): Promise<AnalysisResults> => {
+  // Analyze resume content using OpenAI with personalized questions
+  const analyzeResumeContent = async (text: string, questions: string): Promise<AnalysisResults> => {
     const response = await fetch(`https://rodkrpeqxgqizngdypbl.supabase.co/functions/v1/analyze-resume-content`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJvZGtycGVxeGdxaXpuZ2R5cGJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNDY5ODEsImV4cCI6MjA2MDcyMjk4MX0.ECPKii1lST8GcNt0M8SGXKLeeyJSL6vtIpoXVH5SZYA`
       },
-      body: JSON.stringify({ resumeText: text })
+      body: JSON.stringify({ 
+        resumeText: text,
+        userQuestions: questions 
+      })
     });
 
     if (!response.ok) {
@@ -184,7 +206,7 @@ const ResumeFeedback = () => {
 
     setAnalyzing(true);
     try {
-      const analysisResults = await analyzeResumeContent(resumeText);
+      const analysisResults = await analyzeResumeContent(resumeText, userQuestions);
       setResults(analysisResults);
       
       toast({
@@ -299,7 +321,7 @@ const ResumeFeedback = () => {
 
           <h1 className="mb-6 text-4xl md:text-6xl font-bold text-warm-text leading-tight tracking-tight">
             Get Professional Resume <br className="hidden md:block" />
-            <span className="text-gradient">Feedback in 30 Seconds</span>
+            <span className="text-gradient">Health Check in 30 Seconds</span>
           </h1>
           
           <p className="text-lg md:text-xl text-slate-600 max-w-3xl mb-8 font-medium mx-auto">
@@ -337,6 +359,41 @@ const ResumeFeedback = () => {
                 <p className="text-xs text-slate-500 mt-2">
                   Supports PDF, DOCX, TXT, JPG, PNG • Max 5MB
                 </p>
+              </div>
+
+              {/* Questions Section */}
+              <div className="mt-8">
+                <div className="flex items-center gap-2 mb-4">
+                  <MessageSquare className="w-5 h-5 text-warm-accent" />
+                  <h3 className="text-lg font-semibold">Any Specific Questions or Concerns?</h3>
+                  <span className="text-sm text-slate-500">(Optional)</span>
+                </div>
+                
+                <Textarea
+                  placeholder="e.g., 'Should I put my education section before or after experience? I'm worried about career gaps in 2022...' 
+
+Ask anything you'd normally ask on Reddit about your resume - our AI will give you personalized advice!"
+                  value={userQuestions}
+                  onChange={(e) => setUserQuestions(e.target.value)}
+                  className="min-h-[120px] mb-4"
+                />
+                
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-slate-700">Quick-fill common questions:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {commonQuestions.map((question, index) => (
+                      <Button
+                        key={index}
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleQuickFill(question.value)}
+                        className="text-xs h-8"
+                      >
+                        {question.text}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
               </div>
 
               {file && (
@@ -414,9 +471,9 @@ const ResumeFeedback = () => {
                   <p className="text-sm text-slate-600">Professional formatting and structure recommendations</p>
                 </div>
                 <div className="text-center p-4">
-                  <Star className="w-8 h-8 mx-auto mb-2 text-purple-500" />
-                  <h4 className="font-semibold mb-1">Actionable Tips</h4>
-                  <p className="text-sm text-slate-600">Specific suggestions to improve your resume</p>
+                  <MessageSquare className="w-8 h-8 mx-auto mb-2 text-purple-500" />
+                  <h4 className="font-semibold mb-1">Personalized Advice</h4>
+                  <p className="text-sm text-slate-600">Get answers to your specific resume questions</p>
                 </div>
               </div>
             </Card>
@@ -441,6 +498,21 @@ const ResumeFeedback = () => {
                   </ul>
                 </div>
               </Card>
+
+              {/* Personalized Response to User Questions */}
+              {results.userQuestionResponse && (
+                <Card className="p-6 border-2 border-warm-accent/20 bg-warm-accent/5">
+                  <div className="flex items-center mb-4">
+                    <MessageSquare className="w-6 h-6 mr-2 text-warm-accent" />
+                    <h3 className="text-xl font-semibold text-warm-text">Your Questions Answered</h3>
+                  </div>
+                  <div className="prose prose-slate max-w-none">
+                    <div className="whitespace-pre-line text-slate-700 leading-relaxed">
+                      {results.userQuestionResponse}
+                    </div>
+                  </div>
+                </Card>
+              )}
 
               {/* Detailed Analysis */}
               <div className="grid gap-6">
@@ -497,6 +569,7 @@ const ResumeFeedback = () => {
                     setFile(null);
                     setResumeText('');
                     setResults(null);
+                    setUserQuestions('');
                   }}
                   className="text-warm-accent hover:text-warm-accent/80"
                 >
