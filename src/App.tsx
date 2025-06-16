@@ -2,6 +2,7 @@
 import Index from "@/pages/Index";
 import About from "@/pages/About";
 import Review from "@/pages/Review";
+import ResumeFeedback from "@/pages/ResumeFeedback";
 import Blog from "@/pages/Blog";
 import ImproveResume from "@/pages/blog/ImproveResume";
 import ATSSystems from "@/pages/blog/ATSSystems";
@@ -45,6 +46,8 @@ function AppContent() {
         <Route path="/" element={<Index />} />
         <Route path="/about" element={<About />} />
         <Route path="/review" element={<Review />} />
+        <Route path="/resume-feedback" element={<ResumeFeedback />} />
+        <Route path="/free-resume-review" element={<ResumeFeedback />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/free-ats-check" element={<FreeATSCheck />} />
