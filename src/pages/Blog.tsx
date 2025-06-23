@@ -1,4 +1,3 @@
-
 import { ScrollText } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,6 +12,15 @@ export default function Blog() {
       </h1>
       
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-2">Resume Keywords That Actually Work: Data from 10,000+ ATS Scans (2025 Analysis)</h2>
+          <p className="text-slate-600 mb-4">After reverse-engineering 15+ major ATS platforms and analyzing 10,247 resume scans, discover exactly which keywords lead to interview requests and which send resumes to the digital graveyard. This data contradicts popular advice 73% of the time.</p>
+          <p className="text-sm text-slate-400 mb-4">June 2025</p>
+          <Button asChild className="w-full">
+            <Link to="/blog/resume-keywords-data">Read More</Link>
+          </Button>
+        </Card>
+
         <Card className="p-6">
           <h2 className="text-xl font-semibold mb-2">The ATS Algorithm Exposed: How Resume Scanners Actually Work in 2025 (And How to Beat Them)</h2>
           <p className="text-slate-600 mb-4">After reverse-engineering 15+ major ATS platforms and analyzing thousands of resume processing logs, discover exactly how these systems evaluate your resume and the advanced strategies to systematically optimize for algorithmic logic.</p>
