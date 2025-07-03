@@ -13,6 +13,15 @@ export default function Blog() {
       
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-2">Resume Templates That Pass Every ATS: Visual Analysis of 5,000+ Successful Formats (2025 Study)</h2>
+          <p className="text-slate-600 mb-4">Beautiful resume templates are everywhere. ATS-compatible templates that actually work? Almost impossible to find. We analyzed 5,247 successful resume formats that not only passed ATS screening but generated interview requests across 12 major platforms.</p>
+          <p className="text-sm text-slate-400 mb-4">June 2025</p>
+          <Button asChild className="w-full">
+            <Link to="/blog/resume-templates-ats">Read More</Link>
+          </Button>
+        </Card>
+
+        <Card className="p-6">
           <h2 className="text-xl font-semibold mb-2">Resume Keywords That Actually Work: Data from 10,000+ ATS Scans (2025 Analysis)</h2>
           <p className="text-slate-600 mb-4">After reverse-engineering 15+ major ATS platforms and analyzing 10,247 resume scans, discover exactly which keywords lead to interview requests and which send resumes to the digital graveyard. This data contradicts popular advice 73% of the time.</p>
           <p className="text-sm text-slate-400 mb-4">June 2025</p>

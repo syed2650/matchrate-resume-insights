@@ -1,4 +1,3 @@
-
 import Index from "@/pages/Index";
 import About from "@/pages/About";
 import Review from "@/pages/Review";
@@ -12,6 +11,8 @@ import ResumeFormatGuide from "@/pages/blog/ResumeFormatGuide";
 import ResumePsychology from "@/pages/blog/ResumePsychology";
 import BeatATS from "@/pages/blog/BeatATS";
 import ResumeKeywords from "@/pages/blog/ResumeKeywords";
+import ResumeKeywordsData from "@/pages/blog/ResumeKeywordsData";
+import ResumeTemplatesATS from "@/pages/blog/ResumeTemplatesATS";
 import FreeVsPaidCheckers from "@/pages/blog/FreeVsPaidCheckers";
 import ATSAlgorithmExposed from "@/pages/blog/ATSAlgorithmExposed";
 import FAQ from "@/pages/FAQ";
@@ -61,6 +62,8 @@ function AppContent() {
         <Route path="/blog/resume-format-guide" element={<ResumeFormatGuide />} />
         <Route path="/blog/beat-ats" element={<BeatATS />} />
         <Route path="/blog/resume-keywords" element={<ResumeKeywords />} />
+        <Route path="/blog/resume-keywords-data" element={<ResumeKeywordsData />} />
+        <Route path="/blog/resume-templates-ats" element={<ResumeTemplatesATS />} />
         <Route path="/blog/free-vs-paid-checkers" element={<FreeVsPaidCheckers />} />
         <Route path="/blog/ats-algorithm-exposed" element={<ATSAlgorithmExposed />} />
         <Route path="/faq" element={<FAQ />} />
