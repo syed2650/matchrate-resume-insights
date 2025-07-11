@@ -36,6 +36,8 @@ import { AuthProvider } from "@/hooks/useAuthUser";
 import { Toaster } from "@/components/ui/toaster";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
+import LinkedInProfileOptimization from "@/pages/blog/LinkedInProfileOptimization";
+
 function AppContent() {
   const { showPopup, closePopup } = useExitIntent();
 
@@ -66,6 +68,7 @@ function AppContent() {
         <Route path="/blog/resume-templates-ats" element={<ResumeTemplatesATS />} />
         <Route path="/blog/free-vs-paid-checkers" element={<FreeVsPaidCheckers />} />
         <Route path="/blog/ats-algorithm-exposed" element={<ATSAlgorithmExposed />} />
+        <Route path="/blog/linkedin-profile-optimization" element={<LinkedInProfileOptimization />} />
         <Route path="/faq" element={<FAQ />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />

@@ -13,6 +13,15 @@ export default function Blog() {
       
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-2">LinkedIn Profile Optimization: How to Get Recruiters to Find YOU (Data from 8,000+ Profiles)</h2>
+          <p className="text-slate-600 mb-4">Your resume gets you past ATS systems, but your LinkedIn profile gets recruiters to chase YOU. We analyzed 8,247 LinkedIn profiles across 15 industries to reveal the shocking truth: 93% of professionals have profiles that recruiters will never find.</p>
+          <p className="text-sm text-slate-400 mb-4">July 2025</p>
+          <Button asChild className="w-full">
+            <Link to="/blog/linkedin-profile-optimization">Read More</Link>
+          </Button>
+        </Card>
+
+        <Card className="p-6">
           <h2 className="text-xl font-semibold mb-2">Resume Templates That Pass Every ATS: Visual Analysis of 5,000+ Successful Formats (2025 Study)</h2>
           <p className="text-slate-600 mb-4">Beautiful resume templates are everywhere. ATS-compatible templates that actually work? Almost impossible to find. We analyzed 5,247 successful resume formats that not only passed ATS screening but generated interview requests across 12 major platforms.</p>
           <p className="text-sm text-slate-400 mb-4">June 2025</p>
