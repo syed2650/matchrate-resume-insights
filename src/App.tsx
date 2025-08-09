@@ -38,6 +38,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 import LinkedInProfileOptimization from "@/pages/blog/LinkedInProfileOptimization";
 import CoverLettersThatWork from "@/pages/blog/CoverLettersThatWork";
+import SalaryNegotiationPsychology from "@/pages/blog/SalaryNegotiationPsychology";
 
 function AppContent() {
   const { showPopup, closePopup } = useExitIntent();
@@ -69,8 +70,9 @@ function AppContent() {
         <Route path="/blog/resume-templates-ats" element={<ResumeTemplatesATS />} />
         <Route path="/blog/free-vs-paid-checkers" element={<FreeVsPaidCheckers />} />
         <Route path="/blog/ats-algorithm-exposed" element={<ATSAlgorithmExposed />} />
-            <Route path="/blog/linkedin-profile-optimization" element={<LinkedInProfileOptimization />} />
-            <Route path="/blog/cover-letters-that-work" element={<CoverLettersThatWork />} />
+        <Route path="/blog/linkedin-profile-optimization" element={<LinkedInProfileOptimization />} />
+        <Route path="/blog/cover-letters-that-work" element={<CoverLettersThatWork />} />
+        <Route path="/blog/salary-negotiation-psychology" element={<SalaryNegotiationPsychology />} />
         <Route path="/faq" element={<FAQ />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
