@@ -2,10 +2,37 @@ import { ScrollText } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { SEOHead } from "@/components/SEOHead";
+import { InternalLinkNav } from "@/components/InternalLinkNav";
 
 export default function Blog() {
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    "name": "MatchRate Resume Success Blog",
+    "description": "Expert career advice, resume optimization tips, and job search strategies to help you land more interviews and advance your career.",
+    "url": "https://www.matchrate.co/blog",
+    "publisher": {
+      "@type": "Organization",
+      "name": "MatchRate",
+      "logo": "https://www.matchrate.co/lovable-uploads/1995df7f-73f3-4583-9980-04dc5569cd1d.png"
+    },
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": "https://www.matchrate.co/blog"
+    }
+  };
+
   return (
-    <div className="container max-w-screen-xl mx-auto px-4 py-16">
+    <>
+      <SEOHead
+        title="Resume Success Blog - Expert Career Advice & Job Search Tips"
+        description="Expert career advice, resume optimization tips, and job search strategies. Learn from data-driven insights to improve your resume and land more interviews."
+        keywords="resume tips, career advice, job search strategies, ATS optimization, resume writing, interview tips, career development"
+        canonicalUrl="https://www.matchrate.co/blog"
+        structuredData={structuredData}
+      />
+      <div className="container max-w-screen-xl mx-auto px-4 py-16">
       <h1 className="text-3xl font-bold mb-8 flex items-center gap-2">
         <ScrollText className="h-8 w-8" />
         Resume Success Blog
@@ -138,6 +165,19 @@ export default function Blog() {
           </Button>
         </Card>
       </div>
-    </div>
+      
+      <div className="mt-12 text-center">
+        <h2 className="text-2xl font-bold mb-4">Ready to put these tips into action?</h2>
+        <p className="text-lg text-muted-foreground mb-6">
+          Get personalized feedback on your resume with our AI-powered analysis
+        </p>
+        <Button asChild size="lg">
+          <Link to="/review">Analyze Your Resume Now</Link>
+        </Button>
+      </div>
+      </div>
+      
+      <InternalLinkNav currentPage="blog" />
+    </>
   );
 }

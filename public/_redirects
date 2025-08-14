@@ -1,0 +1,17 @@
+# Force HTTPS redirects
+http://matchrate.co/* https://www.matchrate.co/:splat 301!
+http://www.matchrate.co/* https://www.matchrate.co/:splat 301!
+
+# Redirect non-www to www for canonical URLs
+https://matchrate.co/* https://www.matchrate.co/:splat 301!
+
+# Legacy URL redirects (if any)
+/resume-analysis/* /review/:splat 301
+/ats-check/* /free-ats-check/:splat 301
+
+# Blog redirects for SEO
+/articles/* /blog/:splat 301
+/guides/* /blog/:splat 301
+
+# Catch-all for 404s
+/* /404.html 404
