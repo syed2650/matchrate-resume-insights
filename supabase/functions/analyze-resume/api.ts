@@ -29,7 +29,7 @@ export async function callOpenAIForAnalysis(messages: any[], openAIApiKey: strin
       console.error("OpenAI API Error:", error);
       throw new Error(error.error?.message || `OpenAI API returned status ${response.status}`);
     }
-    
+
     return response.json();
   } catch (error) {
     console.error("Error calling OpenAI:", error);
@@ -38,27 +38,27 @@ export async function callOpenAIForAnalysis(messages: any[], openAIApiKey: strin
 }
 
 export async function generateFullResumeRewrite(
-  resume: string, 
-  jobDescription: string, 
-  companyType: string, 
+  resume: string,
+  jobDescription: string,
+  companyType: string,
   selectedRole: string,
   openAIApiKey: string,
   analysis: any = null
 ): Promise<{ text: string; atsScore: number }> {
   console.log("Generating full resume rewrite...");
-  
+
   // Prepare enhanced prompt based on analysis if available
   let enhancedPrompt = buildRewritePrompt(resume, jobDescription, companyType, selectedRole);
-  
+
   // If we have analysis data, enhance the prompt with specific improvement areas
   if (analysis) {
     const missingKeywords = Array.isArray(analysis.missingKeywords) ? analysis.missingKeywords : [];
     const weakBullets = Array.isArray(analysis.weakBullets) ? analysis.weakBullets : [];
     const feedbackAreas = analysis.sectionFeedback || {};
-    
+
     // Add specific guidance based on analysis
     enhancedPrompt[0].content += `\n\n✅ Additional Optimization Instructions:
-    
+
 1. Incorporate these missing keywords naturally: ${missingKeywords.join(', ')}
 
 2. Address the following section improvement needs:
@@ -90,15 +90,15 @@ ${Object.entries(feedbackAreas).map(([section, feedback]) => `- ${section}: ${fe
 
     const data = await response.json();
     const content = data.choices[0].message.content;
-    
-    // Calculate improved ATS score based on the rewritten resume
-    const atsScore = calculateATSScore(content, jobDescription);
-    
+
+    // Calculate improved ATS score based on the rewritten resume (now async)
+    const atsScore = await calculateATSScore(content, jobDescription, 'txt');
+
     // Clean up the rewritten resume - remove asterisks
     const cleanedContent = content
       .replace(/^\* /gm, '') // Remove asterisks at the beginning of lines
       .replace(/^\- /gm, ''); // Remove dashes at the beginning of lines
-    
+
     return {
       text: cleanedContent,
       atsScore

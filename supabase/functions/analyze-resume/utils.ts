@@ -1,35 +1,86 @@
+import { performRealATSChecks } from './ats-checker.ts';
 
-function hashCode(str: string): number {
-  let hash = 0;
-  if (str.length === 0) return hash;
-  
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32bit integer
+/**
+ * Calculate real ATS score using comprehensive checks
+ */
+export async function calculateATSScore(
+  input: string,
+  jobDescription: string,
+  fileType: string = 'txt'
+): Promise<number> {
+  try {
+    const result = await performRealATSChecks(input, fileType, jobDescription);
+    console.log(`Real ATS score calculated: ${result.score}/100`);
+    console.log(`Critical issues: ${result.criticalIssues}, Warnings: ${result.warnings}`);
+    return result.score;
+  } catch (error) {
+    console.error('Error calculating ATS score:', error);
+    // Fallback to basic keyword matching if detailed check fails
+    return calculateBasicATSScore(input, jobDescription);
   }
-  
-  return hash;
 }
 
-export function calculateATSScore(input: string, jobDescription: string): number {
-  // Use a stable scoring algorithm based on a consistent hash
-  // This ensures the same input always produces the same score
-  const combinedInput = input + jobDescription;
-  
-  // Extract a stable seed from the combined input
-  const hash = Math.abs(hashCode(combinedInput));
-  
-  // Use a fixed formula to derive a consistent score between 60-99
-  // The formula is designed to generate scores that appear meaningful but are consistent
-  const baseScore = (hash % 40) + 60;
-  
-  // Add a small stable variation to make scores look less artificial
-  const variationFactor = (hash % 100) / 100; // Between 0-0.99
-  const finalScore = Math.min(99, Math.max(60, Math.round(baseScore + (variationFactor < 0.5 ? -1 : 1))));
-  
-  console.log(`Calculated ATS score: ${finalScore} from hash: ${hash}`);
-  return finalScore;
+/**
+ * Fallback basic ATS score calculation based on keyword matching
+ */
+function calculateBasicATSScore(resumeText: string, jobDescription: string): number {
+  if (!resumeText || !jobDescription) {
+    return 0;
+  }
+
+  // Extract keywords from job description and resume
+  const jobKeywords = extractKeywords(jobDescription);
+  const resumeKeywords = new Set(extractKeywords(resumeText));
+
+  // Count matches
+  let matches = 0;
+  jobKeywords.forEach(keyword => {
+    if (resumeKeywords.has(keyword)) {
+      matches++;
+    }
+  });
+
+  // Calculate score as percentage of matches
+  const totalKeywords = jobKeywords.length;
+  const score = totalKeywords > 0 ? Math.round((matches / totalKeywords) * 100) : 0;
+
+  // Ensure score is within 0-100 range
+  return Math.min(100, Math.max(0, score));
+}
+
+/**
+ * Extract keywords from text for basic matching
+ */
+function extractKeywords(text: string): string[] {
+  const cleanedText = text.toLowerCase().replace(/[^\w\s]/g, ' ');
+  const words = cleanedText.split(/\s+/);
+
+  const stopWords = new Set([
+    'a', 'an', 'the', 'and', 'or', 'but', 'is', 'are', 'was', 'were',
+    'be', 'been', 'being', 'in', 'on', 'at', 'to', 'for', 'with',
+    'by', 'about', 'against', 'between', 'into', 'through', 'during',
+    'before', 'after', 'above', 'below', 'from', 'up', 'down', 'of',
+    'off', 'over', 'under', 'again', 'further', 'then', 'once', 'here',
+    'there', 'when', 'where', 'why', 'how', 'all', 'any', 'both', 'each',
+    'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not',
+    'only', 'own', 'same', 'so', 'than', 'too', 'very', 'can', 'will',
+    'just', 'should', 'now', 'you', 'your', 'we', 'our', 'i', 'my'
+  ]);
+
+  const filteredWords = words.filter(word =>
+    word.length > 2 && !stopWords.has(word)
+  );
+
+  const wordFrequency: {[key: string]: number} = {};
+  filteredWords.forEach(word => {
+    wordFrequency[word] = (wordFrequency[word] || 0) + 1;
+  });
+
+  const sortedKeywords = Object.entries(wordFrequency)
+    .sort((a, b) => b[1] - a[1])
+    .map(entry => entry[0]);
+
+  return sortedKeywords.slice(0, 50);
 }
 
 export function getATSScoreExplanation(score: number): string {
@@ -80,7 +131,7 @@ export function parseAndValidateAnalysis(data: any): any {
     if (!Array.isArray(analysis.weakBullets)) analysis.weakBullets = [];
     if (typeof analysis.toneSuggestions !== 'string') analysis.toneSuggestions = "No tone suggestions available";
     if (typeof analysis.wouldInterview !== 'string') analysis.wouldInterview = "No interview recommendation available";
-    
+
     return analysis;
   } catch (error) {
     console.error("Error in parseAndValidateAnalysis:", error);
