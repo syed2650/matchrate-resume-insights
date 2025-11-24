@@ -72,3 +72,9 @@ verify_jwt = false
 
 [functions.create-profile-url]
 verify_jwt = false
+
+[functions.roast-review]
+verify_jwt = false
+
+[functions.love-review]
+verify_jwt = false

@@ -42,6 +42,7 @@ import SalaryNegotiationPsychology from "@/pages/blog/SalaryNegotiationPsycholog
 import LovableJobsIndex from "@/pages/lovable-jobs/Index";
 import LovableJobsResult from "@/pages/lovable-jobs/Result";
 import PublicProfile from "@/pages/PublicProfile";
+import Lovable from "@/pages/Lovable";
 
 function AppContent() {
   const { showPopup, closePopup } = useExitIntent();
@@ -83,9 +84,10 @@ function AppContent() {
         <Route path="/auth" element={<Auth />} />
         <Route path="/payment-success" element={<PaymentSuccess />} />
         <Route path="/contact" element={<Contact />} />
-        <Route path="/lovable-jobs" element={<LovableJobsIndex />} />
-        <Route path="/lovable-jobs/result" element={<LovableJobsResult />} />
-        <Route path="/u/:slug" element={<PublicProfile />} />
+          <Route path="/lovable-jobs" element={<LovableJobsIndex />} />
+          <Route path="/lovable-jobs/result" element={<LovableJobsResult />} />
+          <Route path="/lovable" element={<Lovable />} />
+          <Route path="/u/:slug" element={<PublicProfile />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <ExitIntentPopup isVisible={showPopup} onClose={closePopup} />
