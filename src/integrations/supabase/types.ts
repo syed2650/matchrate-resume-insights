@@ -294,6 +294,36 @@ export type Database = {
         }
         Relationships: []
       }
+      public_profiles: {
+        Row: {
+          created_at: string | null
+          feedback: string | null
+          id: string
+          mode: string | null
+          resume_text: string | null
+          slug: string
+          summary: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          feedback?: string | null
+          id?: string
+          mode?: string | null
+          resume_text?: string | null
+          slug: string
+          summary?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          feedback?: string | null
+          id?: string
+          mode?: string | null
+          resume_text?: string | null
+          slug?: string
+          summary?: string | null
+        }
+        Relationships: []
+      }
       role_templates: {
         Row: {
           bullet_structure: Json

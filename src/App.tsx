@@ -39,6 +39,9 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import LinkedInProfileOptimization from "@/pages/blog/LinkedInProfileOptimization";
 import CoverLettersThatWork from "@/pages/blog/CoverLettersThatWork";
 import SalaryNegotiationPsychology from "@/pages/blog/SalaryNegotiationPsychology";
+import LovableJobsIndex from "@/pages/lovable-jobs/Index";
+import LovableJobsResult from "@/pages/lovable-jobs/Result";
+import PublicProfile from "@/pages/PublicProfile";
 
 function AppContent() {
   const { showPopup, closePopup } = useExitIntent();
@@ -80,6 +83,9 @@ function AppContent() {
         <Route path="/auth" element={<Auth />} />
         <Route path="/payment-success" element={<PaymentSuccess />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/lovable-jobs" element={<LovableJobsIndex />} />
+        <Route path="/lovable-jobs/result" element={<LovableJobsResult />} />
+        <Route path="/u/:slug" element={<PublicProfile />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <ExitIntentPopup isVisible={showPopup} onClose={closePopup} />
