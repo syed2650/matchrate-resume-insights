@@ -3,8 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Copy, Share2 } from "lucide-react";
+import { Loader2, Copy, Share2, Download, Award } from "lucide-react";
 
 type Mode = "roast" | "love";
 
@@ -24,16 +25,23 @@ const loveSuggestions = [
   "Best friend pep talk",
 ];
 
+interface ResultData {
+  roast?: string;
+  encouragement?: string;
+  formatting: string;
+  content: string;
+  targeting: string;
+  bulletImprovements: string;
+  strengths?: string;
+  scoreBreakdown: string;
+}
+
 export default function Lovable() {
   const [resume, setResume] = useState("");
   const [mode, setMode] = useState<Mode>("roast");
   const [tonePreference, setTonePreference] = useState("");
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<{
-    roast?: string;
-    encouragement?: string;
-    review: string;
-  } | null>(null);
+  const [result, setResult] = useState<ResultData | null>(null);
   const { toast } = useToast();
 
   const suggestions = mode === "roast" ? roastSuggestions : loveSuggestions;
@@ -65,7 +73,6 @@ export default function Lovable() {
 
       setResult(data);
       
-      // Auto-scroll to results
       setTimeout(() => {
         document.getElementById("results")?.scrollIntoView({ 
           behavior: "smooth",
@@ -84,25 +91,75 @@ export default function Lovable() {
     }
   };
 
-  const handleCopy = () => {
-    const text = mode === "roast" 
-      ? `🔥 Roast:\n${result?.roast}\n\n📘 Review:\n${result?.review}`
-      : `💖 Encouragement:\n${result?.encouragement}\n\n📘 Review:\n${result?.review}`;
-    
+  const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast({
       title: "Copied!",
-      description: "Feedback copied to clipboard.",
+      description: `${label} copied to clipboard.`,
     });
   };
 
-  const handleShare = () => {
+  const handleShareCard = () => {
+    if (!result) return;
+    
+    const scores = result.scoreBreakdown.match(/Overall:\s*(\d+)/);
+    const overallScore = scores ? scores[1] : "??";
+    
+    const shareText = mode === "roast" 
+      ? `My Resume Roast Score: ${overallScore}/100 🔥\n\nJust got AI roasted on MatchRate!\n\nTry it: ${window.location.href}`
+      : `My Resume Love Score: ${overallScore}/100 💖\n\nJust got some AI love on MatchRate!\n\nTry it: ${window.location.href}`;
+    
+    if (navigator.share) {
+      navigator.share({
+        title: "My Resume Feedback",
+        text: shareText,
+      }).catch(() => {
+        navigator.clipboard.writeText(shareText);
+        toast({
+          title: "Copied!",
+          description: "Share text copied to clipboard.",
+        });
+      });
+    } else {
+      navigator.clipboard.writeText(shareText);
+      toast({
+        title: "Copied!",
+        description: "Share text copied to clipboard.",
+      });
+    }
+  };
+
+  const handleTwitterShare = () => {
+    if (!result) return;
+    
+    const scores = result.scoreBreakdown.match(/Overall:\s*(\d+)/);
+    const overallScore = scores ? scores[1] : "??";
+    
     const text = mode === "roast" 
-      ? "Just got AI roasted on Lovable for Jobs! 🔥"
-      : "Just got some AI love on Lovable for Jobs! 💖";
+      ? `My Resume Roast Score: ${overallScore}/100 🔥\n\nJust got AI roasted on @MatchRate!`
+      : `My Resume Love Score: ${overallScore}/100 💖\n\nJust got some AI love on @MatchRate!`;
+    
     const url = window.location.href;
     const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
     window.open(twitterUrl, "_blank");
+  };
+
+  const parseScoreBreakdown = (scoreText: string) => {
+    const lines = scoreText.split('\n').filter(line => line.trim());
+    const scores: { label: string; score: number; max: number }[] = [];
+    
+    lines.forEach(line => {
+      const match = line.match(/(.+?):\s*(\d+)\/(\d+)/);
+      if (match) {
+        scores.push({
+          label: match[1].trim(),
+          score: parseInt(match[2]),
+          max: parseInt(match[3]),
+        });
+      }
+    });
+    
+    return scores;
   };
 
   return (
@@ -192,30 +249,24 @@ export default function Lovable() {
 
         {result && (
           <div id="results" className="space-y-6">
+            {/* Main Roast/Love Card */}
             <Card className="border-2 shadow-lg">
               <CardHeader>
                 <CardTitle className="text-2xl flex items-center justify-between">
                   <span>
                     {mode === "roast" ? "🔥 Roast" : "💖 Encouragement"}
                   </span>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleCopy}
-                    >
-                      <Copy className="h-4 w-4 mr-2" />
-                      Copy
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleShare}
-                    >
-                      <Share2 className="h-4 w-4 mr-2" />
-                      Share
-                    </Button>
-                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => copyToClipboard(
+                      mode === "roast" ? result.roast || "" : result.encouragement || "",
+                      mode === "roast" ? "Roast" : "Encouragement"
+                    )}
+                  >
+                    <Copy className="h-4 w-4 mr-2" />
+                    Copy
+                  </Button>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -225,13 +276,185 @@ export default function Lovable() {
               </CardContent>
             </Card>
 
+            {/* Score Breakdown Card */}
+            <Card className="border-2 shadow-lg bg-gradient-to-br from-primary/5 to-primary/10">
+              <CardHeader>
+                <CardTitle className="text-2xl flex items-center gap-2">
+                  <Award className="h-6 w-6" />
+                  Score Breakdown
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {parseScoreBreakdown(result.scoreBreakdown).map((score, idx) => (
+                  <div key={idx} className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium">{score.label}</span>
+                      <span className="text-lg font-bold">
+                        {score.score}/{score.max}
+                      </span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2.5">
+                      <div
+                        className={`h-2.5 rounded-full ${
+                          score.label === "Overall" 
+                            ? "bg-gradient-to-r from-primary to-primary/70"
+                            : "bg-primary"
+                        }`}
+                        style={{ width: `${(score.score / score.max) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* Professional Review Accordion */}
             <Card className="border-2 shadow-lg">
               <CardHeader>
-                <CardTitle className="text-2xl">📘 Resume Review</CardTitle>
+                <CardTitle className="text-2xl">📘 Professional Review</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="prose prose-sm max-w-none whitespace-pre-line">
-                  {result.review}
+                <Accordion type="multiple" className="w-full">
+                  <AccordionItem value="formatting">
+                    <AccordionTrigger className="text-lg font-semibold">
+                      📄 Formatting Issues
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="flex justify-between items-start gap-2 mb-2">
+                        <div className="flex-1 whitespace-pre-line">{result.formatting}</div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => copyToClipboard(result.formatting, "Formatting Issues")}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+
+                  <AccordionItem value="content">
+                    <AccordionTrigger className="text-lg font-semibold">
+                      📝 Content Issues
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="flex justify-between items-start gap-2 mb-2">
+                        <div className="flex-1 whitespace-pre-line">{result.content}</div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => copyToClipboard(result.content, "Content Issues")}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+
+                  <AccordionItem value="targeting">
+                    <AccordionTrigger className="text-lg font-semibold">
+                      🎯 Targeting & Role Fit
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="flex justify-between items-start gap-2 mb-2">
+                        <div className="flex-1 whitespace-pre-line">{result.targeting}</div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => copyToClipboard(result.targeting, "Targeting Feedback")}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+
+                  <AccordionItem value="bullets">
+                    <AccordionTrigger className="text-lg font-semibold">
+                      ✍️ Bullet Improvements
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="flex justify-between items-start gap-2 mb-2">
+                        <div className="flex-1 whitespace-pre-line">{result.bulletImprovements}</div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => copyToClipboard(result.bulletImprovements, "Bullet Improvements")}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+
+                  {result.strengths && (
+                    <AccordionItem value="strengths">
+                      <AccordionTrigger className="text-lg font-semibold">
+                        🏆 Your Top Strengths
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        <div className="flex justify-between items-start gap-2 mb-2">
+                          <div className="flex-1 whitespace-pre-line">{result.strengths}</div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => copyToClipboard(result.strengths || "", "Strengths")}
+                          >
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  )}
+                </Accordion>
+              </CardContent>
+            </Card>
+
+            {/* Share Card */}
+            <Card className="border-2 shadow-lg bg-gradient-to-br from-blue-500/10 to-purple-500/10">
+              <CardContent className="pt-6">
+                <div className="text-center space-y-4">
+                  <h3 className="text-xl font-bold">Share Your Results</h3>
+                  <p className="text-muted-foreground">
+                    Let the world know you got {mode === "roast" ? "roasted" : "loved"}!
+                  </p>
+                  <div className="flex justify-center gap-3">
+                    <Button
+                      variant="outline"
+                      onClick={handleShareCard}
+                    >
+                      <Share2 className="h-4 w-4 mr-2" />
+                      Copy Share Text
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={handleTwitterShare}
+                      className="text-blue-500 border-blue-500"
+                    >
+                      <Share2 className="h-4 w-4 mr-2" />
+                      Tweet This
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* CTA Card */}
+            <Card className="border-2 shadow-lg">
+              <CardContent className="pt-6">
+                <div className="text-center space-y-3">
+                  <h3 className="text-xl font-bold">Want More?</h3>
+                  <p className="text-muted-foreground">
+                    Get a full ATS-optimized resume with our Resume Builder
+                  </p>
+                  <Button 
+                    size="lg"
+                    onClick={() => window.location.href = "/review"}
+                    className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+                  >
+                    <Download className="h-5 w-5 mr-2" />
+                    Try MatchRate Resume Builder
+                  </Button>
                 </div>
               </CardContent>
             </Card>

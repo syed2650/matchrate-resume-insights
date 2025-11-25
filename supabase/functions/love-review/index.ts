@@ -21,35 +21,58 @@ serve(async (req) => {
 TASK:
 Given a resume, provide emotional encouragement PLUS real, targeted improvements.
 
-${tonePreference ? `TONE PREFERENCE: ${tonePreference}` : ''}
+${tonePreference ? `TONE PREFERENCE: ${tonePreference}. Adjust the encouragement style accordingly.` : ''}
 
-OUTPUT FORMAT:
+OUTPUT FORMAT - MUST BE EXACT:
 1) 💖 Encouragement (3–5 lines)
 - Highlight strengths
 - Make the user feel confident and capable
 - Slightly dramatic "best friend hype" tone
 
-2) 📘 Real Resume Review  
-Sections:
-- Formatting Issues
-- Content Issues
-- Role Fit & Targeting
-- Improve These Bullets (rewrite 2–3)
-- Top 3 Strengths in the Resume
-- Overall Score (0–100)
+2) 📘 Professional Review
+Provide detailed feedback in these sections:
+
+FORMATTING: [2-3 specific formatting issues]
+
+CONTENT: [2-3 specific content issues]
+
+TARGETING: [feedback on role fit and targeting]
+
+BULLET_IMPROVEMENTS: [rewrite 2-3 actual bullets from their resume with [BEFORE] and [AFTER] labels]
+
+STRENGTHS: [Top 3 strengths in the resume]
+
+SCORE_BREAKDOWN:
+Formatting: X/20
+Clarity: X/20
+Bullet Impact: X/20
+ATS-fit: X/20
+Targeting: X/20
+Overall: X/100
 
 Rules:
 - Be warm and uplifting.
 - Still provide honest, specific critique.
 - Do not invent new experiences.
+- Be specific and actionable.
 
 Resume:
 ${resume}
 
-Format your response as:
+Format your response EXACTLY as:
 ENCOURAGEMENT: [your encouragement here]
 
-REVIEW: [your detailed review here]
+FORMATTING: [formatting issues]
+
+CONTENT: [content issues]
+
+TARGETING: [targeting feedback]
+
+BULLET_IMPROVEMENTS: [bullet rewrites]
+
+STRENGTHS: [top 3 strengths]
+
+SCORE_BREAKDOWN: [score breakdown]
 `;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -71,15 +94,23 @@ REVIEW: [your detailed review here]
     const data = await response.json();
     const content = data.choices[0].message.content;
 
-    const encouragementMatch = content.match(/ENCOURAGEMENT:\s*(.+?)(?=REVIEW:|$)/s);
-    const reviewMatch = content.match(/REVIEW:\s*(.+?)$/s);
-
-    const encouragement = encouragementMatch ? encouragementMatch[1].trim() : content.split('\n\n')[0];
-    const review = reviewMatch ? reviewMatch[1].trim() : content;
+    // Parse structured sections
+    const encouragementMatch = content.match(/ENCOURAGEMENT:\s*(.+?)(?=FORMATTING:|$)/s);
+    const formattingMatch = content.match(/FORMATTING:\s*(.+?)(?=CONTENT:|$)/s);
+    const contentMatch = content.match(/CONTENT:\s*(.+?)(?=TARGETING:|$)/s);
+    const targetingMatch = content.match(/TARGETING:\s*(.+?)(?=BULLET_IMPROVEMENTS:|$)/s);
+    const bulletMatch = content.match(/BULLET_IMPROVEMENTS:\s*(.+?)(?=STRENGTHS:|$)/s);
+    const strengthsMatch = content.match(/STRENGTHS:\s*(.+?)(?=SCORE_BREAKDOWN:|$)/s);
+    const scoreMatch = content.match(/SCORE_BREAKDOWN:\s*(.+?)$/s);
 
     return new Response(JSON.stringify({
-      encouragement,
-      review,
+      encouragement: encouragementMatch ? encouragementMatch[1].trim() : content.split('\n\n')[0],
+      formatting: formattingMatch ? formattingMatch[1].trim() : '',
+      content: contentMatch ? contentMatch[1].trim() : '',
+      targeting: targetingMatch ? targetingMatch[1].trim() : '',
+      bulletImprovements: bulletMatch ? bulletMatch[1].trim() : '',
+      strengths: strengthsMatch ? strengthsMatch[1].trim() : '',
+      scoreBreakdown: scoreMatch ? scoreMatch[1].trim() : '',
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
