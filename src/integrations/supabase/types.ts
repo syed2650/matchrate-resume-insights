@@ -324,6 +324,48 @@ export type Database = {
         }
         Relationships: []
       }
+      resume_reviews: {
+        Row: {
+          ats_feedback: Json | null
+          ats_score: number | null
+          created_at: string
+          id: string
+          match_feedback: Json | null
+          match_score: number | null
+          original_text: string
+          rewritten_text: string | null
+          roast_card: Json | null
+          share_url: string | null
+          user_id: string | null
+        }
+        Insert: {
+          ats_feedback?: Json | null
+          ats_score?: number | null
+          created_at?: string
+          id?: string
+          match_feedback?: Json | null
+          match_score?: number | null
+          original_text: string
+          rewritten_text?: string | null
+          roast_card?: Json | null
+          share_url?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          ats_feedback?: Json | null
+          ats_score?: number | null
+          created_at?: string
+          id?: string
+          match_feedback?: Json | null
+          match_score?: number | null
+          original_text?: string
+          rewritten_text?: string | null
+          roast_card?: Json | null
+          share_url?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       role_templates: {
         Row: {
           bullet_structure: Json
