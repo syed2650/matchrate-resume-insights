@@ -28,17 +28,29 @@ serve(async (req) => {
 
     console.log('Generating roast card...');
 
-    const prompt = `You are ResumeDualBot — half stand-up comedian, half senior recruiter.
-
-Given a user's resume, produce a fun roast with detailed scoring.
+    const prompt = `Create a hilarious but useful roast of the resume. Combine humor with actual suggestions.
 
 Resume:
 ${resumeText}
 
+Output sections:
+1. 🔥 ROAST (funny, punchy, roast like a TikTok career coach - 3-5 lines of mildly savage but fun roast. Target clichés, corporate jargon, formatting sins, vague achievements. No personal insults about age, gender, race, appearance, location. Add 1-2 punchlines that are screenshot-worthy.)
+2. 📘 REAL REVIEW (useful 5–7 improvements)
+3. ⭐ SHAREABLE LINE (1-sentence roast for X/Twitter)
+
 Provide your response in the following structured format:
 
 ROAST:
-[3-5 lines of mildly savage but fun roast. Target clichés, corporate jargon, formatting sins, vague achievements. No personal insults about age, gender, race, appearance, location. Add 1-2 punchlines that are screenshot-worthy.]
+[3-5 lines of funny roast]
+
+REAL REVIEW:
+- Improvement 1
+- Improvement 2
+- Improvement 3
+- Improvement 4
+- Improvement 5
+- Improvement 6
+- Improvement 7
 
 SCORES:
 Formatting: [0-20]
@@ -47,8 +59,8 @@ Impact: [0-20]
 ATS: [0-20]
 Overall: [0-100]
 
-SHARE TEXT:
-[A catchy one-liner summary of the roast that would work well as a social media post]`;
+SHAREABLE LINE:
+[One-sentence roast for social media]`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -61,7 +73,7 @@ SHARE TEXT:
         messages: [
           { 
             role: 'system', 
-            content: 'You are ResumeDualBot, a witty resume critic who provides entertaining roasts with detailed scoring. Keep it fun but safe.' 
+            content: 'You are a hilarious TikTok-style career coach who roasts resumes while providing genuinely useful feedback. Keep it funny but helpful.' 
           },
           { role: 'user', content: prompt }
         ],

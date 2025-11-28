@@ -25,12 +25,24 @@ serve(async (req) => {
 
     console.log('Matching resume to job description...');
 
-    const prompt = `You are a career coach specializing in resume optimization for specific job descriptions.
+    const prompt = `You are a Job Description Match Expert. Compare the resume and job description.
 
-Analyze how well this resume matches the job description and provide:
-1. A match score from 0-100
-2. Missing skills or keywords from the job description
-3. Optimized bullet points that better highlight relevant experience for this role
+Output:
+
+1. MATCH SCORE (0–100)
+2. MISSING SKILLS (group by categories)
+   - Hard skills
+   - Tools / software
+   - Methodologies
+   - Domain knowledge
+3. RECOMMENDED ADDITIONS
+   - Keywords to add to the resume
+4. OPTIMIZED BULLETS
+   - Rewrite 5 bullets to include missing job description keywords, without lying
+5. FINAL SUMMARY
+   - What changes will increase match score
+
+Focus entirely on job relevance and ATS keywords.
 
 Resume:
 ${resumeText}
@@ -43,14 +55,33 @@ Provide your response in the following structured format:
 MATCH SCORE: [0-100]
 
 MISSING SKILLS:
+Hard Skills:
 - Skill 1
 - Skill 2
+Tools/Software:
+- Tool 1
+- Tool 2
+Methodologies:
+- Method 1
+- Method 2
+Domain Knowledge:
+- Knowledge 1
+- Knowledge 2
+
+RECOMMENDED ADDITIONS:
+- Keyword 1
+- Keyword 2
 - etc.
 
 OPTIMIZED BULLETS:
-- [Original bullet] → [Optimized version tailored to JD]
-- [Original bullet] → [Optimized version tailored to JD]
-- etc.`;
+- Original: [text] → Optimized: [text]
+- Original: [text] → Optimized: [text]
+- Original: [text] → Optimized: [text]
+- Original: [text] → Optimized: [text]
+- Original: [text] → Optimized: [text]
+
+FINAL SUMMARY:
+[Paragraph explaining what changes will increase match score]`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
