@@ -25,21 +25,39 @@ serve(async (req) => {
 
     console.log('Rewriting resume...');
 
-    const prompt = `You are an expert resume writer and career coach. Your task is to completely rewrite this resume to make it more professional, impactful, and ATS-friendly.
+    const prompt = `You are a world-class resume builder trained on the structure of TealHQ, Resume.io, Novorésumé, and FlowCV.
 
-Guidelines:
-- Remove fluff and vague statements
-- Use strong action verbs (Led, Managed, Developed, Achieved, etc.)
-- Quantify achievements with numbers and metrics where possible
-- Restructure bullet points using the STAR method (Situation, Task, Action, Result)
-- Ensure consistent formatting and professional tone
-- Optimize for ATS by using industry-standard keywords
-- Keep it concise and impactful
+Rewrite the user's resume in a clean, modern, ATS-optimized format. DO NOT use STAR format inside bullets.
+
+Follow this structure exactly:
+
+1. NAME + CONTACT INFO LINE (one line)
+2. PROFESSIONAL SUMMARY (3–4 lines, achievement-focused, tailored to the user's target role)
+3. CORE SKILLS (15–20 ATS-friendly skills, grouped logically)
+4. PROFESSIONAL EXPERIENCE
+   For each role, use:
+   - Job Title | Company | Dates
+   - 4–6 bullets following this formula:
+       • Action verb + specific task + measurable result + business impact
+       • No fluff, no generic phrases, no STAR storytelling
+5. EDUCATION
+6. CERTIFICATIONS (if user has them)
+7. AWARDS
+8. PROJECTS (optional)
+
+General rules:
+- Use consistent formatting.
+- Use strong action verbs.
+- Increase quantifiable impact wherever possible.
+- Keep the resume concise and scannable.
+- Always optimize for ATS scanning.
+- Never invent experience; only refine what exists.
+- Always return in clean Markdown so users can copy easily.
 
 Original Resume:
 ${resumeText}
 
-Return your response as a fully rewritten professional resume. Also provide brief notes on the major changes you made.`;
+Return ONLY the rewritten resume. Do not include commentary unless asked.`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -52,7 +70,7 @@ Return your response as a fully rewritten professional resume. Also provide brie
         messages: [
           { 
             role: 'system', 
-            content: 'You are an expert resume writer who creates professional, ATS-optimized resumes. Always return structured output with the rewritten resume and notes on changes.' 
+            content: 'You are a world-class resume builder. Return clean, professional, ATS-optimized resumes in Markdown format.' 
           },
           { role: 'user', content: prompt }
         ],
