@@ -39,7 +39,7 @@ const Review = () => {
   }, [feedback]);
 
   const handleAnalysisComplete = async (data: Feedback) => {
-    setIsLoading(false);
+    // Don't set loading false yet - wait until DB save completes
     setFeedback(data);
     setHelpfulFeedback(null);
 
@@ -121,6 +121,9 @@ const Review = () => {
         description: "Failed to store analysis results",
         variant: "destructive"
       });
+    } finally {
+      // Always clear loading state after everything completes
+      setIsLoading(false);
     }
   };
 
