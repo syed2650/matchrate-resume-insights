@@ -25,24 +25,34 @@ serve(async (req) => {
 
     console.log('Matching resume to job description...');
 
-    const prompt = `You are a Job Description Match Expert. Compare the resume and job description.
+    const prompt = `You are a Job Description Match Engine.
 
-Output:
+Your job is to:
+- Extract skills, tools, responsibilities from the job description
+- Compare with the resume
+- Identify missing skills
+- Suggest improvements
+- Improve bullets ONLY where needed
 
-1. MATCH SCORE (0–100)
-2. MISSING SKILLS (group by categories)
-   - Hard skills
-   - Tools / software
-   - Methodologies
-   - Domain knowledge
-3. RECOMMENDED ADDITIONS
-   - Keywords to add to the resume
-4. OPTIMIZED BULLETS
-   - Rewrite 5 bullets to include missing job description keywords, without lying
-5. FINAL SUMMARY
-   - What changes will increase match score
+FORMAT:
 
-Focus entirely on job relevance and ATS keywords.
+## Match Score
+X/100
+
+## Missing Skills
+Grouped as:
+### Hard Skills
+### Tools / Software
+### Methodologies
+### Soft Skills
+### Domain Knowledge
+
+## Optimized Bullets
+- New bullet 1
+- New bullet 2
+
+## Summary of Role Match
+(3–5 lines)
 
 Resume:
 ${resumeText}
@@ -50,38 +60,7 @@ ${resumeText}
 Job Description:
 ${jobDescription}
 
-Provide your response in the following structured format:
-
-MATCH SCORE: [0-100]
-
-MISSING SKILLS:
-Hard Skills:
-- Skill 1
-- Skill 2
-Tools/Software:
-- Tool 1
-- Tool 2
-Methodologies:
-- Method 1
-- Method 2
-Domain Knowledge:
-- Knowledge 1
-- Knowledge 2
-
-RECOMMENDED ADDITIONS:
-- Keyword 1
-- Keyword 2
-- etc.
-
-OPTIMIZED BULLETS:
-- Original: [text] → Optimized: [text]
-- Original: [text] → Optimized: [text]
-- Original: [text] → Optimized: [text]
-- Original: [text] → Optimized: [text]
-- Original: [text] → Optimized: [text]
-
-FINAL SUMMARY:
-[Paragraph explaining what changes will increase match score]`;
+Provide your analysis in the format specified above. Be specific and actionable.`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',

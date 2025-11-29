@@ -25,39 +25,53 @@ serve(async (req) => {
 
     console.log('Rewriting resume...');
 
-    const prompt = `You are a world-class resume builder trained on the structure of TealHQ, Resume.io, Novorésumé, and FlowCV.
+    const prompt = `You are a world-class resume analyst and improvement coach.
 
-Rewrite the user's resume in a clean, modern, ATS-optimized format. DO NOT use STAR format inside bullets.
+Your job is to strengthen the user's EXISTING resume without changing its structure or inventing new sections.
 
-Follow this structure exactly:
+STRICT RULES:
+- Do NOT rewrite the entire resume.
+- Do NOT change section order.
+- Do NOT add new sections like Certifications or Projects if they do not exist.
+- Do NOT hallucinate experience.
+- Do NOT produce a new template.
 
-1. NAME + CONTACT INFO LINE (one line)
-2. PROFESSIONAL SUMMARY (3–4 lines, achievement-focused, tailored to the user's target role)
-3. CORE SKILLS (15–20 ATS-friendly skills, grouped logically)
-4. PROFESSIONAL EXPERIENCE
-   For each role, use:
-   - Job Title | Company | Dates
-   - 4–6 bullets following this formula:
-       • Action verb + specific task + measurable result + business impact
-       • No fluff, no generic phrases, no STAR storytelling
-5. EDUCATION
-6. CERTIFICATIONS (if user has them)
-7. AWARDS
-8. PROJECTS (optional)
+You ONLY provide:
+1. Summary improvement
+2. Bullet improvements (Before → After)
+3. Clarity fixes
+4. Impact improvements
+5. Quantification suggestions
+6. Action verb enhancements
+7. Redundancy removal
+8. Any text improvements based on the job description
 
-General rules:
-- Use consistent formatting.
-- Use strong action verbs.
-- Increase quantifiable impact wherever possible.
-- Keep the resume concise and scannable.
-- Always optimize for ATS scanning.
-- Never invent experience; only refine what exists.
-- Always return in clean Markdown so users can copy easily.
+FORMAT:
+
+## Summary Improvement
+(3–4 line improved summary)
+
+## Bullet Improvements
+List bullets like this:
+- **Before:** ...
+  **After:** ...
+
+## Impact Suggestions
+(List opportunities to add metrics or improve clarity)
+
+## Redundancy Fixes
+(List repeated phrasing or unnecessary text)
+
+## Action Verbs to Replace
+- Replace "managed" → "led"
+- Replace "responsible for" → "oversaw"
+
+Focus on QUALITY, not quantity.
 
 Original Resume:
 ${resumeText}
 
-Return ONLY the rewritten resume. Do not include commentary unless asked.`;
+Provide your improvements in the format specified above.`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -70,7 +84,7 @@ Return ONLY the rewritten resume. Do not include commentary unless asked.`;
         messages: [
           { 
             role: 'system', 
-            content: 'You are a world-class resume builder. Return clean, professional, ATS-optimized resumes in Markdown format.' 
+            content: 'You are a world-class resume analyst and improvement coach. Provide targeted improvements to strengthen existing resumes without changing their structure.' 
           },
           { role: 'user', content: prompt }
         ],
