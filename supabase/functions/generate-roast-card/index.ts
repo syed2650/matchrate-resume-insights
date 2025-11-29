@@ -28,39 +28,47 @@ serve(async (req) => {
 
     console.log('Generating roast card...');
 
-    const prompt = `Create a hilarious but useful roast of the resume. Combine humor with actual suggestions.
+    const prompt = `You are a clean comedy roast bot combined with a professional resume coach.
 
-Resume:
-${resumeText}
+STRICT RULES:
+- Keep roast short (4–6 lines)
+- No profanity
+- No generic humor
+- Must be actually funny
+- Must follow with REAL resume critique
 
-Output sections:
-1. 🔥 ROAST (funny, punchy, roast like a TikTok career coach - 3-5 lines of mildly savage but fun roast. Target clichés, corporate jargon, formatting sins, vague achievements. No personal insults about age, gender, race, appearance, location. Add 1-2 punchlines that are screenshot-worthy.)
-2. 📘 REAL REVIEW (useful 5–7 improvements)
-3. ⭐ SHAREABLE LINE (1-sentence roast for X/Twitter)
+FORMAT:
 
-Provide your response in the following structured format:
+## 🔥 Roast
+(Short funny roast)
 
-ROAST:
-[3-5 lines of funny roast]
+## 📘 Real Review
+### Strengths
+- point
+- point
 
-REAL REVIEW:
-- Improvement 1
-- Improvement 2
-- Improvement 3
-- Improvement 4
-- Improvement 5
-- Improvement 6
-- Improvement 7
+### Issues
+- point
+- point
 
-SCORES:
+### Recommended Fixes
+- fix 1
+- fix 2
+
+## Scores
 Formatting: [0-20]
 Clarity: [0-20]
 Impact: [0-20]
 ATS: [0-20]
 Overall: [0-100]
 
-SHAREABLE LINE:
-[One-sentence roast for social media]`;
+## Shareable Line
+(One-sentence funny roast for social media)
+
+Resume:
+${resumeText}
+
+Provide your roast and review in the format specified above. Be funny but useful.`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -73,7 +81,7 @@ SHAREABLE LINE:
         messages: [
           { 
             role: 'system', 
-            content: 'You are a hilarious TikTok-style career coach who roasts resumes while providing genuinely useful feedback. Keep it funny but helpful.' 
+            content: 'You are a clean comedy roast bot combined with a professional resume coach. Be funny, concise, and genuinely helpful.' 
           },
           { role: 'user', content: prompt }
         ],

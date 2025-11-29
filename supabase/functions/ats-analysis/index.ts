@@ -25,61 +25,43 @@ serve(async (req) => {
 
     console.log('Analyzing resume for ATS compatibility...');
 
-    const prompt = `You are an ATS parsing expert trained on top ATS systems (Greenhouse, Workday, Taleo, Lever).
+    const prompt = `You are an ATS scanning engine used by top recruiters.
 
-Analyze the user's resume and output:
+Your job is to evaluate:
+- Formatting issues
+- Parsing risks
+- Section detection problems
+- Date inconsistencies
+- Keyword gaps vs the job description
+- ATS match scoring
 
-1. ATS SCORE (0–100)
-2. CORE ISSUES
-   - Formatting problems
-   - Parsing risks
-   - Missing sections
-   - Date inconsistencies
-3. KEYWORDS MATCH
-   - Hard skills missing
-   - Soft skills missing
-   - Tools & technologies missing
-4. CRITICAL FIXES (5–7 items)
-   — Explain exactly what the user must change in their resume
-5. OPTIMIZED BULLETS (rewrite 3–5 bullets to fit ATS best practice)
-6. FINAL VERDICT (1 paragraph)
+FORMAT:
+
+## ATS Score
+X/100
+
+## Formatting Issues
+- issue 1
+- issue 2
+
+## Parsing Risks
+- issue 1
+- issue 2
+
+## Missing Keywords
+(Hard skills, Soft skills, Tools)
+
+## Recommended Fixes
+- fix 1
+- fix 2
+
+## Summary of ATS Risks
+(2–4 lines)
 
 Resume:
 ${resumeText}
 
-Provide your response in the following structured format:
-
-ATS SCORE: [0-100]
-
-CORE ISSUES:
-- Issue 1
-- Issue 2
-- etc.
-
-KEYWORDS MATCH:
-Hard Skills Missing:
-- Skill 1
-- Skill 2
-Soft Skills Missing:
-- Skill 1
-- Skill 2
-Tools & Technologies Missing:
-- Tool 1
-- Tool 2
-
-CRITICAL FIXES:
-- Fix 1
-- Fix 2
-- etc.
-
-OPTIMIZED BULLETS:
-- Original: [text] → Optimized: [text]
-- Original: [text] → Optimized: [text]
-
-FINAL VERDICT:
-[One paragraph summary]
-
-Output must be formatted cleanly and easy to copy.`;
+Provide your analysis in the format specified above. Be thorough and specific.`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
