@@ -7,10 +7,9 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Sparkles, CheckCircle, Target, Share2, Copy } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
 interface AgentActionsProps {
   resumeText: string;
+  onReset: () => void;
 }
 
 interface RewriteResult {
@@ -44,7 +43,7 @@ interface RoastResult {
   shareUrl: string;
 }
 
-export const AgentActions = ({ resumeText }: AgentActionsProps) => {
+export const AgentActions = ({ resumeText, onReset }: AgentActionsProps) => {
   const { toast } = useToast();
   const [loadingAgents, setLoadingAgents] = useState<Record<string, boolean>>({});
   const [jobDescription, setJobDescription] = useState("");
@@ -201,261 +200,290 @@ export const AgentActions = ({ resumeText }: AgentActionsProps) => {
       </Card>
 
       {/* Analyze All Button */}
-      <Card className="p-6">
-        <Button
-          onClick={handleAnalyzeAll}
-          disabled={!resumeText || !jobDescription.trim() || isAnalyzing}
-          className="w-full h-auto py-6 flex flex-col items-center gap-2"
-          size="lg"
-        >
-          {isAnalyzing ? (
-            <>
-              <Loader2 className="h-6 w-6 animate-spin" />
-              <span className="font-semibold text-lg">Analyzing...</span>
-              <span className="text-xs opacity-80">Running all 4 AI agents in parallel</span>
-            </>
-          ) : (
-            <>
-              <Sparkles className="h-6 w-6" />
-              <span className="font-semibold text-lg">Analyze Resume</span>
-              <span className="text-xs opacity-80">Run all 4 AI agents at once</span>
-            </>
-          )}
-        </Button>
-      </Card>
+      <Button
+        onClick={handleAnalyzeAll}
+        disabled={!resumeText || !jobDescription.trim() || isAnalyzing}
+        className="w-full h-auto py-6 flex flex-col items-center gap-2"
+        size="lg"
+      >
+        {isAnalyzing ? (
+          <>
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <span className="font-semibold text-lg">Analyzing...</span>
+            <span className="text-xs opacity-80">Running all 4 AI agents in parallel</span>
+          </>
+        ) : (
+          <>
+            <Sparkles className="h-6 w-6" />
+            <span className="font-semibold text-lg">Analyze Results</span>
+            <span className="text-xs opacity-80">Run all 4 AI agents at once</span>
+          </>
+        )}
+      </Button>
 
-      {/* Results Tabs */}
+      {/* Results - 4 Collapsible Sections */}
       {hasAnalyzed && (
-        <Card className="p-6">
-          <h2 className="text-2xl font-bold mb-6">Analysis Results</h2>
-          <Tabs defaultValue="rewrite" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="rewrite" className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4" />
-                Rewrite
-              </TabsTrigger>
-              <TabsTrigger value="ats" className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4" />
-                ATS
-              </TabsTrigger>
-              <TabsTrigger value="jd-match" className="flex items-center gap-2">
-                <Target className="h-4 w-4" />
-                JD Match
-              </TabsTrigger>
-              <TabsTrigger value="roast" className="flex items-center gap-2">
-                <Share2 className="h-4 w-4" />
-                Roast
-              </TabsTrigger>
-            </TabsList>
+        <div className="space-y-4">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-bold">Analysis Results</h2>
+            <Button variant="outline" onClick={onReset}>
+              Start Over
+            </Button>
+          </div>
 
-            {/* Rewrite Tab */}
-            <TabsContent value="rewrite" className="mt-6">
-              {loadingAgents.rewrite ? (
-                <div className="flex flex-col items-center justify-center py-12">
-                  <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-                  <p className="text-muted-foreground">Rewriting your resume...</p>
+          <Accordion type="multiple" className="w-full space-y-4">
+            {/* Resume Improvements Section */}
+            <AccordionItem value="improvements" className="border rounded-lg px-6">
+              <AccordionTrigger className="hover:no-underline">
+                <div className="flex items-center gap-3">
+                  <Sparkles className="h-5 w-5 text-blue-600" />
+                  <span className="text-lg font-semibold">Resume Improvements</span>
+                  {loadingAgents.rewrite && <Loader2 className="h-4 w-4 animate-spin ml-2" />}
                 </div>
-              ) : rewriteResult ? (
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xl font-bold">Rewritten Resume</h3>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => copyToClipboard(rewriteResult.rewritten)}
-                    >
-                      <Copy className="h-4 w-4 mr-2" />
-                      Copy
-                    </Button>
+              </AccordionTrigger>
+              <AccordionContent className="pt-4">
+                {loadingAgents.rewrite ? (
+                  <div className="flex flex-col items-center justify-center py-8">
+                    <Loader2 className="h-10 w-10 animate-spin text-primary mb-3" />
+                    <p className="text-muted-foreground">Analyzing your resume...</p>
                   </div>
-                  <div className="bg-muted p-4 rounded-lg mb-4 whitespace-pre-wrap max-h-[600px] overflow-y-auto">
-                    {rewriteResult.rewritten}
-                  </div>
-                  {rewriteResult.notes && (
-                    <div className="text-sm text-muted-foreground mt-4">
-                      <strong>Changes Made:</strong> {rewriteResult.notes}
+                ) : rewriteResult ? (
+                  <div>
+                    <div className="flex gap-2 mb-4">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => copyToClipboard(rewriteResult.rewritten)}
+                      >
+                        <Copy className="h-4 w-4 mr-2" />
+                        Copy Section
+                      </Button>
                     </div>
-                  )}
-                </div>
-              ) : (
-                <div className="text-center py-12 text-muted-foreground">
-                  No results yet
-                </div>
-              )}
-            </TabsContent>
-
-            {/* ATS Tab */}
-            <TabsContent value="ats" className="mt-6">
-              {loadingAgents.ats ? (
-                <div className="flex flex-col items-center justify-center py-12">
-                  <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-                  <p className="text-muted-foreground">Analyzing ATS compatibility...</p>
-                </div>
-              ) : atsResult ? (
-
-                <div>
-                  <h3 className="text-xl font-bold mb-4">ATS Analysis</h3>
-                  
-                  <div className="mb-6">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-lg font-semibold">ATS Score</span>
-                      <span className="text-3xl font-bold">{atsResult.score}/100</span>
+                    <div className="bg-muted/50 p-4 rounded-lg whitespace-pre-wrap max-h-[500px] overflow-y-auto">
+                      {rewriteResult.rewritten}
                     </div>
-                    <Progress value={atsResult.score} className="h-2" />
+                    {rewriteResult.notes && (
+                      <div className="text-sm text-muted-foreground mt-4 p-3 bg-blue-50 rounded">
+                        <strong>Key Changes:</strong> {rewriteResult.notes}
+                      </div>
+                    )}
                   </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    Click "Analyze Results" to see improvements
+                  </div>
+                )}
+              </AccordionContent>
+            </AccordionItem>
 
-                  <Accordion type="single" collapsible className="w-full">
-                    <AccordionItem value="issues">
-                      <AccordionTrigger>Formatting Issues ({atsResult.issues.length})</AccordionTrigger>
-                      <AccordionContent>
-                        <ul className="list-disc pl-5 space-y-2">
+            {/* ATS Analysis Section */}
+            <AccordionItem value="ats" className="border rounded-lg px-6">
+              <AccordionTrigger className="hover:no-underline">
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                  <span className="text-lg font-semibold">ATS Analysis</span>
+                  {atsResult && <span className="ml-auto text-2xl font-bold">{atsResult.score}/100</span>}
+                  {loadingAgents.ats && <Loader2 className="h-4 w-4 animate-spin ml-2" />}
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="pt-4">
+                {loadingAgents.ats ? (
+                  <div className="flex flex-col items-center justify-center py-8">
+                    <Loader2 className="h-10 w-10 animate-spin text-primary mb-3" />
+                    <p className="text-muted-foreground">Analyzing ATS compatibility...</p>
+                  </div>
+                ) : atsResult ? (
+                  <div>
+                    <div className="flex gap-2 mb-4">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => copyToClipboard(JSON.stringify(atsResult, null, 2))}
+                      >
+                        <Copy className="h-4 w-4 mr-2" />
+                        Copy Section
+                      </Button>
+                    </div>
+                    
+                    <div className="mb-6">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-lg font-semibold">ATS Score</span>
+                        <span className="text-3xl font-bold text-green-600">{atsResult.score}/100</span>
+                      </div>
+                      <Progress value={atsResult.score} className="h-2" />
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="bg-red-50 p-4 rounded-lg">
+                        <h4 className="font-semibold mb-2">⚠️ Formatting Issues ({atsResult.issues.length})</h4>
+                        <ul className="list-disc pl-5 space-y-1 text-sm">
                           {atsResult.issues.map((issue, i) => (
                             <li key={i}>{issue}</li>
                           ))}
                         </ul>
-                      </AccordionContent>
-                    </AccordionItem>
+                      </div>
 
-                    <AccordionItem value="keywords">
-                      <AccordionTrigger>Missing Keywords ({atsResult.keywordGaps.length})</AccordionTrigger>
-                      <AccordionContent>
-                        <ul className="list-disc pl-5 space-y-2">
+                      <div className="bg-yellow-50 p-4 rounded-lg">
+                        <h4 className="font-semibold mb-2">🔑 Missing Keywords ({atsResult.keywordGaps.length})</h4>
+                        <ul className="list-disc pl-5 space-y-1 text-sm">
                           {atsResult.keywordGaps.map((keyword, i) => (
                             <li key={i}>{keyword}</li>
                           ))}
                         </ul>
-                      </AccordionContent>
-                    </AccordionItem>
+                      </div>
 
-                    <AccordionItem value="fixes">
-                      <AccordionTrigger>Recommended Fixes ({atsResult.fixes.length})</AccordionTrigger>
-                      <AccordionContent>
-                        <ul className="list-disc pl-5 space-y-2">
+                      <div className="bg-green-50 p-4 rounded-lg">
+                        <h4 className="font-semibold mb-2">✅ Recommended Fixes ({atsResult.fixes.length})</h4>
+                        <ul className="list-disc pl-5 space-y-1 text-sm">
                           {atsResult.fixes.map((fix, i) => (
                             <li key={i}>{fix}</li>
                           ))}
                         </ul>
-                      </AccordionContent>
-                    </AccordionItem>
-                  </Accordion>
-                </div>
-              ) : (
-                <div className="text-center py-12 text-muted-foreground">
-                  No results yet
-                </div>
-              )}
-            </TabsContent>
-
-            {/* JD Match Tab */}
-            <TabsContent value="jd-match" className="mt-6">
-              {loadingAgents.jdMatch ? (
-                <div className="flex flex-col items-center justify-center py-12">
-                  <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-                  <p className="text-muted-foreground">Matching to job description...</p>
-                </div>
-              ) : jdMatchResult ? (
-
-                <div>
-                  <h3 className="text-xl font-bold mb-4">Job Description Match</h3>
-                  
-                  <div className="mb-6">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-lg font-semibold">Match Score</span>
-                      <span className="text-3xl font-bold">{jdMatchResult.matchScore}/100</span>
+                      </div>
                     </div>
-                    <Progress value={jdMatchResult.matchScore} className="h-2" />
                   </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    Click "Analyze Results" to see ATS analysis
+                  </div>
+                )}
+              </AccordionContent>
+            </AccordionItem>
 
-                  <Accordion type="single" collapsible className="w-full">
-                    <AccordionItem value="skills">
-                      <AccordionTrigger>Missing Skills ({jdMatchResult.missingSkills.length})</AccordionTrigger>
-                      <AccordionContent>
-                        <ul className="list-disc pl-5 space-y-2">
+            {/* Job Match Section */}
+            <AccordionItem value="job-match" className="border rounded-lg px-6">
+              <AccordionTrigger className="hover:no-underline">
+                <div className="flex items-center gap-3">
+                  <Target className="h-5 w-5 text-purple-600" />
+                  <span className="text-lg font-semibold">Job Match</span>
+                  {jdMatchResult && <span className="ml-auto text-2xl font-bold">{jdMatchResult.matchScore}/100</span>}
+                  {loadingAgents.jdMatch && <Loader2 className="h-4 w-4 animate-spin ml-2" />}
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="pt-4">
+                {loadingAgents.jdMatch ? (
+                  <div className="flex flex-col items-center justify-center py-8">
+                    <Loader2 className="h-10 w-10 animate-spin text-primary mb-3" />
+                    <p className="text-muted-foreground">Matching to job description...</p>
+                  </div>
+                ) : jdMatchResult ? (
+                  <div>
+                    <div className="flex gap-2 mb-4">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => copyToClipboard(JSON.stringify(jdMatchResult, null, 2))}
+                      >
+                        <Copy className="h-4 w-4 mr-2" />
+                        Copy Section
+                      </Button>
+                    </div>
+                    
+                    <div className="mb-6">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-lg font-semibold">Match Score</span>
+                        <span className="text-3xl font-bold text-purple-600">{jdMatchResult.matchScore}/100</span>
+                      </div>
+                      <Progress value={jdMatchResult.matchScore} className="h-2" />
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="bg-orange-50 p-4 rounded-lg">
+                        <h4 className="font-semibold mb-2">🎯 Missing Skills ({jdMatchResult.missingSkills.length})</h4>
+                        <ul className="list-disc pl-5 space-y-1 text-sm">
                           {jdMatchResult.missingSkills.map((skill, i) => (
                             <li key={i}>{skill}</li>
                           ))}
                         </ul>
-                      </AccordionContent>
-                    </AccordionItem>
+                      </div>
 
-                    <AccordionItem value="bullets">
-                      <AccordionTrigger>Optimized Bullets ({jdMatchResult.optimizedBullets.length})</AccordionTrigger>
-                      <AccordionContent>
-                        <ul className="space-y-3">
+                      <div className="bg-blue-50 p-4 rounded-lg">
+                        <h4 className="font-semibold mb-2">✨ Optimized Bullets ({jdMatchResult.optimizedBullets.length})</h4>
+                        <div className="space-y-2">
                           {jdMatchResult.optimizedBullets.map((bullet, i) => (
-                            <li key={i} className="bg-muted p-3 rounded">
+                            <div key={i} className="bg-white p-3 rounded border-l-4 border-blue-600 text-sm">
                               {bullet}
-                            </li>
+                            </div>
                           ))}
-                        </ul>
-                      </AccordionContent>
-                    </AccordionItem>
-                  </Accordion>
-                </div>
-              ) : (
-                <div className="text-center py-12 text-muted-foreground">
-                  No results yet
-                </div>
-              )}
-            </TabsContent>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    Click "Analyze Results" to see job match analysis
+                  </div>
+                )}
+              </AccordionContent>
+            </AccordionItem>
 
-            {/* Roast Tab */}
-            <TabsContent value="roast" className="mt-6">
-              {loadingAgents.roast ? (
-                <div className="flex flex-col items-center justify-center py-12">
-                  <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-                  <p className="text-muted-foreground">Generating roast card...</p>
+            {/* Roast Section */}
+            <AccordionItem value="roast" className="border rounded-lg px-6">
+              <AccordionTrigger className="hover:no-underline">
+                <div className="flex items-center gap-3">
+                  <Share2 className="h-5 w-5 text-orange-600" />
+                  <span className="text-lg font-semibold">🔥 Roast Card</span>
+                  {loadingAgents.roast && <Loader2 className="h-4 w-4 animate-spin ml-2" />}
                 </div>
-              ) : roastResult ? (
-
-                <div className="border-2 border-primary rounded-lg p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xl font-bold">🔥 Resume Roast</h3>
-                    <div className="flex gap-2">
+              </AccordionTrigger>
+              <AccordionContent className="pt-4">
+                {loadingAgents.roast ? (
+                  <div className="flex flex-col items-center justify-center py-8">
+                    <Loader2 className="h-10 w-10 animate-spin text-primary mb-3" />
+                    <p className="text-muted-foreground">Generating roast card...</p>
+                  </div>
+                ) : roastResult ? (
+                  <div className="border-2 border-orange-500 rounded-lg p-6 bg-gradient-to-br from-orange-50 to-red-50">
+                    <div className="flex gap-2 mb-4">
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
                         onClick={() => copyToClipboard(roastResult.shareText)}
                       >
                         <Copy className="h-4 w-4 mr-2" />
-                        Copy
+                        Copy Section
                       </Button>
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
                         onClick={() => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(roastResult.shareText + '\n' + roastResult.shareUrl)}`, '_blank')}
                       >
                         <Share2 className="h-4 w-4 mr-2" />
-                        Tweet
+                        Share on Twitter
                       </Button>
                     </div>
-                  </div>
 
-                  <div className="bg-gradient-to-r from-orange-50 to-red-50 p-6 rounded-lg mb-6">
-                    <p className="text-lg italic">{roastResult.roast}</p>
-                  </div>
+                    <div className="bg-white/80 p-6 rounded-lg mb-6 border-l-4 border-orange-600">
+                      <p className="text-lg font-medium italic text-slate-800">{roastResult.roast}</p>
+                    </div>
 
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
-                    {Object.entries(roastResult.scores).map(([key, value]) => (
-                      <div key={key} className="text-center">
-                        <div className="text-2xl font-bold">{value}</div>
-                        <div className="text-sm text-muted-foreground capitalize">{key}</div>
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
+                      {Object.entries(roastResult.scores).map(([key, value]) => (
+                        <div key={key} className="text-center bg-white/60 p-3 rounded">
+                          <div className="text-2xl font-bold text-orange-600">{value}</div>
+                          <div className="text-xs text-slate-600 capitalize">{key}</div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {roastResult.shareUrl && (
+                      <div className="text-center text-sm text-slate-600 mt-4">
+                        <span>Share: </span>
+                        <a href={roastResult.shareUrl} className="text-orange-600 underline font-medium" target="_blank" rel="noopener noreferrer">
+                          {roastResult.shareUrl}
+                        </a>
                       </div>
-                    ))}
+                    )}
                   </div>
-
-                  <div className="text-center text-sm text-muted-foreground">
-                    Share URL: <a href={roastResult.shareUrl} className="text-primary underline" target="_blank" rel="noopener noreferrer">{roastResult.shareUrl}</a>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    Click "Analyze Results" to see roast card
                   </div>
-                </div>
-              ) : (
-                <div className="text-center py-12 text-muted-foreground">
-                  No results yet
-                </div>
-              )}
-            </TabsContent>
-          </Tabs>
-        </Card>
+                )}
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </div>
       )}
     </div>
   );
