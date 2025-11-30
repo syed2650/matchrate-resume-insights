@@ -9,7 +9,6 @@ import { canUseFeedback, trackFeedbackUsage, getUsageStats } from "./review/util
 import UsageLimitModal from "./review/components/UsageLimitModal";
 import { Database } from "@/integrations/supabase/types";
 import { AgentActions } from "./review/components/AgentActions";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type JobRole = Database["public"]["Enums"]["job_role"];
 const validRoles: JobRole[] = ["Product Manager", "UX Designer", "Data Analyst", "Software Engineer", "Consultant"];
@@ -159,53 +158,25 @@ const Review = () => {
         Resume Analysis & Optimization
       </h1>
 
-      <Tabs defaultValue="standard" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-8">
-          <TabsTrigger value="standard">Standard Analysis</TabsTrigger>
-          <TabsTrigger value="agents">AI Agent Tools</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="standard">
-          {!feedback ? (
-            canUseFeedback() ? (
-              <ResumeAnalyzer 
-                onAnalysisComplete={handleAnalysisComplete}
-                isLoading={isLoading}
-                setIsLoading={setIsLoading}
-                isDisabled={!canUseFeedback()}
-              />
-            ) : null
-          ) : (
-            <AnalysisResults 
-              feedback={feedback}
-              onReset={() => {
-                setFeedback(null);
-                setSubmissionId(null);
-                setHelpfulFeedback(null);
-              }}
-              helpfulFeedback={helpfulFeedback}
-              onFeedbackSubmit={handleFeedbackSubmit}
-            />
-          )}
-        </TabsContent>
-
-        <TabsContent value="agents">
-          <ResumeAnalyzer 
-            onAnalysisComplete={(data) => {
-              // Just store the resume text for agent tools
-              setFeedback(data);
-            }}
-            isLoading={isLoading}
-            setIsLoading={setIsLoading}
-            isDisabled={false}
-          />
-          {feedback?.resume && (
-            <div className="mt-8">
-              <AgentActions resumeText={feedback.resume} />
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
+      {!feedback ? (
+        <ResumeAnalyzer 
+          onAnalysisComplete={(data) => {
+            setFeedback(data);
+          }}
+          isLoading={isLoading}
+          setIsLoading={setIsLoading}
+          isDisabled={false}
+        />
+      ) : (
+        <AgentActions 
+          resumeText={feedback.resume || ""} 
+          onReset={() => {
+            setFeedback(null);
+            setSubmissionId(null);
+            setHelpfulFeedback(null);
+          }}
+        />
+      )}
 
       <UsageLimitModal 
         isOpen={showLimitModal} 
