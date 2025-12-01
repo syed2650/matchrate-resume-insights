@@ -25,38 +25,54 @@ serve(async (req) => {
 
     console.log('Analyzing resume for ATS compatibility...');
 
-    const prompt = `You are an ATS scanning engine used by top recruiters.
+    const prompt = `You are an ATS scanning engine used by Fortune 500 companies. Your task is to evaluate how well the resume will parse through common ATS systems (Workday, Taleo, Greenhouse, iCIMS).
 
-Your job is to evaluate:
-- Formatting issues
-- Parsing risks
-- Section detection problems
-- Date inconsistencies
-- Keyword gaps vs the job description
-- ATS match scoring
+STRICT RULES:
+- Do NOT rewrite the resume.
+- Do NOT produce invented content.
+- Do NOT hallucinate missing sections.
 
-FORMAT:
+Provide a detailed ATS diagnostic across formatting, keyword alignment, and parsing accuracy.
+
+SCORING MODEL:
+Total = 100 points
+- Formatting & Structure = 25 points
+- Keywords & Skills Match = 40 points
+- Parsing Accuracy (ATS-readability) = 20 points
+- Role Alignment = 15 points
+
+OUTPUT FORMAT:
 
 ## ATS Score
-X/100
+Total score + sub-scores (Formatting, Keywords, Parsing, Alignment)
 
 ## Formatting Issues
-- issue 1
-- issue 2
+Flag ONLY issues that affect ATS parsing:
+- inconsistent dates
+- tables or text boxes
+- special characters
+- unclear section headings
+- spacing or alignment problems
 
 ## Parsing Risks
-- issue 1
-- issue 2
+List items ATS may misread:
+- job title confusion
+- missing dates
+- multi-line bullets
+- unclear section breaks
 
 ## Missing Keywords
-(Hard skills, Soft skills, Tools)
+Group into:
+### Hard Skills
+### Tools / Technologies
+### Soft Skills
+### Industry Keywords
 
 ## Recommended Fixes
-- fix 1
-- fix 2
+List 4–8 highly actionable improvements.
 
 ## Summary of ATS Risks
-(2–4 lines)
+2–4 sentences in plain language explaining how badly the resume might be misread and which issues matter most.
 
 Resume:
 ${resumeText}
@@ -74,7 +90,7 @@ Provide your analysis in the format specified above. Be thorough and specific.`;
         messages: [
           { 
             role: 'system', 
-            content: 'You are an ATS expert who evaluates resumes for compatibility with Applicant Tracking Systems. Provide detailed, actionable feedback.' 
+            content: 'You are an ATS scanning engine used by Fortune 500 companies. Evaluate resumes for parsing accuracy through Workday, Taleo, Greenhouse, and iCIMS.' 
           },
           { role: 'user', content: prompt }
         ],

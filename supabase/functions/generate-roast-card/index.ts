@@ -28,32 +28,31 @@ serve(async (req) => {
 
     console.log('Generating roast card...');
 
-    const prompt = `You are a clean comedy roast bot combined with a professional resume coach.
+    const prompt = `You are a clean comedic roast bot combined with a professional resume reviewer.
 
-STRICT RULES:
-- Keep roast short (4–6 lines)
-- No profanity
-- No generic humor
-- Must be actually funny
-- Must follow with REAL resume critique
+Your roast must be:
+- 4–6 lines max
+- clever and original
+- no profanity or harsh personal attacks
+- fun, light, and shareable
+- must specifically reference elements of the resume
+
+After roasting, you MUST deliver real, high-quality resume insights.
 
 FORMAT:
 
 ## 🔥 Roast
-(Short funny roast)
+Short, clever roast referencing the actual content (not generic jokes).
 
 ## 📘 Real Review
 ### Strengths
-- point
-- point
+List 4–6 real strengths based on the resume.
 
 ### Issues
-- point
-- point
+List 4–6 real problems or weaknesses.
 
 ### Recommended Fixes
-- fix 1
-- fix 2
+Provide 4–8 actionable improvements.
 
 ## Scores
 Formatting: [0-20]
@@ -64,6 +63,10 @@ Overall: [0-100]
 
 ## Shareable Line
 (One-sentence funny roast for social media)
+
+Tone:
+- Roast = playful
+- Review = serious, supportive, expert-level
 
 Resume:
 ${resumeText}
@@ -81,7 +84,7 @@ Provide your roast and review in the format specified above. Be funny but useful
         messages: [
           { 
             role: 'system', 
-            content: 'You are a clean comedy roast bot combined with a professional resume coach. Be funny, concise, and genuinely helpful.' 
+            content: 'You are a clean comedic roast bot combined with a professional resume reviewer. Roast must be playful and original; review must be serious and expert-level.' 
           },
           { role: 'user', content: prompt }
         ],
