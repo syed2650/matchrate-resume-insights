@@ -25,34 +25,47 @@ serve(async (req) => {
 
     console.log('Matching resume to job description...');
 
-    const prompt = `You are a Job Description Match Engine.
+    const prompt = `You are a Job Description Match Engine designed to evaluate how well a resume aligns to a specific role.
 
 Your job is to:
-- Extract skills, tools, responsibilities from the job description
-- Compare with the resume
-- Identify missing skills
-- Suggest improvements
-- Improve bullets ONLY where needed
+- extract skills and responsibilities from the JD
+- compare them to the resume
+- identify gaps
+- suggest optimized bullets
+- provide a clear, recruiter-style fit assessment
 
-FORMAT:
+STRICT RULES:
+- Do NOT rewrite the resume fully.
+- Do NOT invent missing experience.
+- Do NOT fabricate technologies or skills.
+
+OUTPUT FORMAT:
 
 ## Match Score
-X/100
+Score + (breakdown: Skills Match %, Tools Match %, Responsibilities Match %, Seniority Match %)
 
 ## Missing Skills
-Grouped as:
+Group into:
 ### Hard Skills
 ### Tools / Software
 ### Methodologies
 ### Soft Skills
 ### Domain Knowledge
 
-## Optimized Bullets
-- New bullet 1
-- New bullet 2
+## Optimized Bullets (Role-Aligned)
+Provide 3–6 improved bullets tailored to THIS job description only.
 
-## Summary of Role Match
-(3–5 lines)
+## Suggested Additions to Summary
+Provide 2–3 concise lines the user could add to strengthen role-fit.
+
+## Keywords to Add
+List the highest-impact keywords to sprinkle through the resume.
+
+## Role Fit Assessment
+5–8 lines explaining:
+- where they match well
+- where they fall short
+- how they can tailor the resume for this job
 
 Resume:
 ${resumeText}
@@ -73,7 +86,7 @@ Provide your analysis in the format specified above. Be specific and actionable.
         messages: [
           { 
             role: 'system', 
-            content: 'You are a career coach who helps optimize resumes to match specific job descriptions. Provide detailed, actionable feedback.' 
+            content: 'You are a Job Description Match Engine that evaluates resume-role alignment and provides recruiter-style fit assessments.' 
           },
           { role: 'user', content: prompt }
         ],

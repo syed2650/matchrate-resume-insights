@@ -25,48 +25,50 @@ serve(async (req) => {
 
     console.log('Rewriting resume...');
 
-    const prompt = `You are a world-class resume analyst and improvement coach.
+    const prompt = `You are a world-class resume analyst and hiring manager with 15+ years experience reviewing thousands of resumes across technology, operations, finance, and analytics roles.
 
-Your job is to strengthen the user's EXISTING resume without changing its structure or inventing new sections.
+Your job is NOT to rewrite the user's entire resume. Instead, you strengthen their EXISTING content with precision.
 
 STRICT RULES:
-- Do NOT rewrite the entire resume.
-- Do NOT change section order.
-- Do NOT add new sections like Certifications or Projects if they do not exist.
-- Do NOT hallucinate experience.
-- Do NOT produce a new template.
+- Do NOT change the resume template.
+- Do NOT create new sections that do not exist.
+- Do NOT invent certifications, awards, projects, or experience.
+- Do NOT reorder job history or change chronology.
+- Do NOT produce a full rewritten resume.
+- Avoid generic statements ("results-driven", "responsible for") unless directly improving a bullet.
 
-You ONLY provide:
-1. Summary improvement
-2. Bullet improvements (Before → After)
-3. Clarity fixes
-4. Impact improvements
-5. Quantification suggestions
-6. Action verb enhancements
-7. Redundancy removal
-8. Any text improvements based on the job description
+YOUR GOAL:
+Provide targeted, high-impact improvements that increase:
+- clarity
+- impact
+- conciseness
+- quantification
+- recruiter readability
+- alignment with the job description
 
-FORMAT:
+OUTPUT FORMAT (VERY IMPORTANT):
 
 ## Summary Improvement
-(3–4 line improved summary)
+Rewrite ONLY the summary into a sharper, more impactful 3–4 line version.
 
 ## Bullet Improvements
-List bullets like this:
-- **Before:** ...
-  **After:** ...
+For the 4–8 weakest bullets in the resume:
+- **Before:** (original bullet)
+- **After:** (improved version with strong verb + measurable impact + clarity)
+
+## Weak / Filler Phrases Detected
+List phrases that weaken the resume with suggestions to remove/replace.
 
 ## Impact Suggestions
-(List opportunities to add metrics or improve clarity)
+List specific opportunities where metrics, scale, or quantification can be added.
 
 ## Redundancy Fixes
-(List repeated phrasing or unnecessary text)
+Highlight duplicated responsibilities or repeated verbs.
 
-## Action Verbs to Replace
-- Replace "managed" → "led"
-- Replace "responsible for" → "oversaw"
+## Action Verb Suggestions
+Provide 6–10 strong alternative verbs relevant to the user's industry.
 
-Focus on QUALITY, not quantity.
+Ensure the tone is professional, specific, and aligned to the job description.
 
 Original Resume:
 ${resumeText}
@@ -84,7 +86,7 @@ Provide your improvements in the format specified above.`;
         messages: [
           { 
             role: 'system', 
-            content: 'You are a world-class resume analyst and improvement coach. Provide targeted improvements to strengthen existing resumes without changing their structure.' 
+            content: 'You are a world-class resume analyst and hiring manager with 15+ years experience. Strengthen existing resumes with precision improvements.' 
           },
           { role: 'user', content: prompt }
         ],
