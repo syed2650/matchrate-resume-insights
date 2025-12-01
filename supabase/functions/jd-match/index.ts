@@ -93,25 +93,35 @@ Provide your analysis in the format specified above. Be specific and actionable.
     const data = await response.json();
     const content = data.choices[0].message.content;
 
-    // Parse the structured response
-    const scoreMatch = content.match(/MATCH SCORE:\s*(\d+)/i);
+    // Parse the markdown-formatted response
+    const scoreMatch = content.match(/##\s*Match Score\s*(\d+)\/100/i);
     const matchScore = scoreMatch ? parseInt(scoreMatch[1]) : 0;
 
-    const skillsMatch = content.match(/MISSING SKILLS?:(.*?)(?=OPTIMIZED|$)/is);
-    const missingSkills = skillsMatch
-      ? skillsMatch[1].trim().split('\n').filter(line => line.trim().startsWith('-')).map(line => line.replace(/^-\s*/, '').trim())
-      : [];
+    // Extract all missing skills sections
+    const missingSkillsSection = content.match(/##\s*Missing Skills\s*([\s\S]*?)(?=##\s*Optimized|##\s*Summary|$)/i);
+    const missingSkills: string[] = [];
+    
+    if (missingSkillsSection) {
+      const skillsText = missingSkillsSection[1];
+      // Extract all bullet points from all subsections
+      const bullets = skillsText.split('\n')
+        .filter(line => line.trim().startsWith('-'))
+        .map(line => line.replace(/^-\s*/, '').trim())
+        .filter(line => line.length > 0);
+      missingSkills.push(...bullets);
+    }
 
-    const bulletsMatch = content.match(/OPTIMIZED BULLETS?:(.*?)$/is);
-    const optimizedBullets = bulletsMatch
-      ? bulletsMatch[1].trim().split('\n').filter(line => line.trim().startsWith('-')).map(line => line.replace(/^-\s*/, '').trim())
+    const bulletsSection = content.match(/##\s*Optimized Bullets\s*([\s\S]*?)(?=##|$)/i);
+    const optimizedBullets = bulletsSection
+      ? bulletsSection[1].trim().split('\n').filter(line => line.trim().startsWith('-')).map(line => line.replace(/^-\s*/, '').trim())
       : [];
 
     return new Response(
       JSON.stringify({
         matchScore,
         missingSkills,
-        optimizedBullets
+        optimizedBullets,
+        rawContent: content
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

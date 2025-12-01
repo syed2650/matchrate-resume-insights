@@ -101,12 +101,12 @@ Provide your roast and review in the format specified above. Be funny but useful
     const data = await response.json();
     const content = data.choices[0].message.content;
 
-    // Parse the structured response
-    const roastMatch = content.match(/ROAST:(.*?)(?=SCORES:|$)/is);
-    const roast = roastMatch ? roastMatch[1].trim() : '';
+    // Parse the markdown-formatted response
+    const roastSection = content.match(/##\s*🔥\s*Roast\s*([\s\S]*?)(?=##|$)/i);
+    const roast = roastSection ? roastSection[1].trim() : content.substring(0, 300);
 
-    const scoresMatch = content.match(/SCORES?:(.*?)(?=SHARE TEXT:|$)/is);
-    const scoresText = scoresMatch ? scoresMatch[1] : '';
+    const scoresSection = content.match(/##\s*Scores\s*([\s\S]*?)(?=##|$)/i);
+    const scoresText = scoresSection ? scoresSection[1] : '';
     
     const formattingMatch = scoresText.match(/Formatting:\s*(\d+)/i);
     const clarityMatch = scoresText.match(/Clarity:\s*(\d+)/i);
@@ -115,15 +115,17 @@ Provide your roast and review in the format specified above. Be funny but useful
     const overallMatch = scoresText.match(/Overall:\s*(\d+)/i);
 
     const scores = {
-      formatting: formattingMatch ? parseInt(formattingMatch[1]) : 0,
-      clarity: clarityMatch ? parseInt(clarityMatch[1]) : 0,
-      impact: impactMatch ? parseInt(impactMatch[1]) : 0,
-      ats: atsMatch ? parseInt(atsMatch[1]) : 0,
-      overall: overallMatch ? parseInt(overallMatch[1]) : 0
+      formatting: formattingMatch ? parseInt(formattingMatch[1]) : 15,
+      clarity: clarityMatch ? parseInt(clarityMatch[1]) : 15,
+      impact: impactMatch ? parseInt(impactMatch[1]) : 15,
+      ats: atsMatch ? parseInt(atsMatch[1]) : 15,
+      overall: overallMatch ? parseInt(overallMatch[1]) : 60
     };
 
-    const shareTextMatch = content.match(/SHARE TEXT:(.*?)$/is);
-    const shareText = shareTextMatch ? shareTextMatch[1].trim() : `My Resume Roast Score: ${scores.overall}/100 🔥`;
+    const shareableSection = content.match(/##\s*Shareable Line\s*([\s\S]*?)$/i);
+    const shareText = shareableSection 
+      ? shareableSection[1].trim() 
+      : `My Resume Roast Score: ${scores.overall}/100 🔥`;
 
     // Generate a unique share URL
     const shareId = crypto.randomUUID().split('-')[0];
@@ -151,7 +153,8 @@ Provide your roast and review in the format specified above. Be funny but useful
         roast,
         scores,
         shareText,
-        shareUrl
+        shareUrl,
+        rawContent: content
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

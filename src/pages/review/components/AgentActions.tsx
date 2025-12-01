@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,7 +9,9 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Progress } from "@/components/ui/progress";
 interface AgentActionsProps {
   resumeText: string;
+  jobDescription: string;
   onReset: () => void;
+  autoStart?: boolean;
 }
 
 interface RewriteResult {
@@ -43,11 +45,11 @@ interface RoastResult {
   shareUrl: string;
 }
 
-export const AgentActions = ({ resumeText, onReset }: AgentActionsProps) => {
+export const AgentActions = ({ resumeText, jobDescription, onReset, autoStart = true }: AgentActionsProps) => {
   const { toast } = useToast();
   const [loadingAgents, setLoadingAgents] = useState<Record<string, boolean>>({});
-  const [jobDescription, setJobDescription] = useState("");
   const [hasAnalyzed, setHasAnalyzed] = useState(false);
+  const [hasAutoStarted, setHasAutoStarted] = useState(false);
   
   const [rewriteResult, setRewriteResult] = useState<RewriteResult | null>(null);
   const [atsResult, setATSResult] = useState<ATSResult | null>(null);
@@ -152,15 +154,6 @@ export const AgentActions = ({ resumeText, onReset }: AgentActionsProps) => {
   };
 
   const handleAnalyzeAll = async () => {
-    if (!jobDescription.trim()) {
-      toast({
-        title: "Job Description Required",
-        description: "Please enter a job description before analyzing",
-        variant: "destructive"
-      });
-      return;
-    }
-
     setHasAnalyzed(true);
     
     // Run all 4 agents in parallel
@@ -173,9 +166,17 @@ export const AgentActions = ({ resumeText, onReset }: AgentActionsProps) => {
 
     toast({ 
       title: "Analysis Complete!",
-      description: "All agents have finished processing. Check each tab for results."
+      description: "All agents have finished processing. Check each section for results."
     });
   };
+
+  // Auto-start analysis when component mounts if autoStart is true
+  useEffect(() => {
+    if (autoStart && !hasAutoStarted && resumeText && jobDescription) {
+      setHasAutoStarted(true);
+      handleAnalyzeAll();
+    }
+  }, [autoStart, hasAutoStarted, resumeText, jobDescription]);
 
   const isAnalyzing = Object.values(loadingAgents).some(Boolean);
 
@@ -186,42 +187,16 @@ export const AgentActions = ({ resumeText, onReset }: AgentActionsProps) => {
 
   return (
     <div className="space-y-6">
-      {/* Job Description Input */}
-      <Card className="p-6">
-        <label className="block text-sm font-medium mb-2">
-          Job Description *
-        </label>
-        <Textarea
-          value={jobDescription}
-          onChange={(e) => setJobDescription(e.target.value)}
-          placeholder="Paste the job description you want to match your resume against..."
-          className="min-h-[150px]"
-        />
-      </Card>
+      {!hasAnalyzed && isAnalyzing && (
+        <Card className="p-8">
+          <div className="flex flex-col items-center justify-center">
+            <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+            <p className="text-lg font-semibold">Analyzing your resume...</p>
+            <p className="text-sm text-muted-foreground">Running all 4 AI agents in parallel</p>
+          </div>
+        </Card>
+      )}
 
-      {/* Analyze All Button */}
-      <Button
-        onClick={handleAnalyzeAll}
-        disabled={!resumeText || !jobDescription.trim() || isAnalyzing}
-        className="w-full h-auto py-6 flex flex-col items-center gap-2"
-        size="lg"
-      >
-        {isAnalyzing ? (
-          <>
-            <Loader2 className="h-6 w-6 animate-spin" />
-            <span className="font-semibold text-lg">Analyzing...</span>
-            <span className="text-xs opacity-80">Running all 4 AI agents in parallel</span>
-          </>
-        ) : (
-          <>
-            <Sparkles className="h-6 w-6" />
-            <span className="font-semibold text-lg">Analyze Results</span>
-            <span className="text-xs opacity-80">Run all 4 AI agents at once</span>
-          </>
-        )}
-      </Button>
-
-      {/* Results - 4 Collapsible Sections */}
       {hasAnalyzed && (
         <div className="space-y-4">
           <div className="flex justify-between items-center mb-4">

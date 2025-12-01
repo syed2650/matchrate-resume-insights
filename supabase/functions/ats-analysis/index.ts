@@ -94,31 +94,39 @@ Provide your analysis in the format specified above. Be thorough and specific.`;
     const data = await response.json();
     const content = data.choices[0].message.content;
 
-    // Parse the structured response
-    const scoreMatch = content.match(/SCORE:\s*(\d+)/i);
+    // Parse the markdown-formatted response
+    const scoreMatch = content.match(/##\s*ATS Score\s*(\d+)\/100/i);
     const score = scoreMatch ? parseInt(scoreMatch[1]) : 0;
 
-    const issuesMatch = content.match(/FORMATTING ISSUES?:(.*?)(?=MISSING|$)/is);
-    const issues = issuesMatch 
-      ? issuesMatch[1].trim().split('\n').filter(line => line.trim().startsWith('-')).map(line => line.replace(/^-\s*/, '').trim())
+    const issuesSection = content.match(/##\s*Formatting Issues\s*([\s\S]*?)(?=##|$)/i);
+    const issues = issuesSection 
+      ? issuesSection[1].trim().split('\n').filter(line => line.trim().startsWith('-')).map(line => line.replace(/^-\s*/, '').trim())
       : [];
 
-    const keywordsMatch = content.match(/MISSING KEYWORDS?:(.*?)(?=RECOMMENDED|$)/is);
-    const keywordGaps = keywordsMatch
-      ? keywordsMatch[1].trim().split('\n').filter(line => line.trim().startsWith('-')).map(line => line.replace(/^-\s*/, '').trim())
+    const parsingSection = content.match(/##\s*Parsing Risks\s*([\s\S]*?)(?=##|$)/i);
+    const parsingRisks = parsingSection
+      ? parsingSection[1].trim().split('\n').filter(line => line.trim().startsWith('-')).map(line => line.replace(/^-\s*/, '').trim())
       : [];
 
-    const fixesMatch = content.match(/RECOMMENDED FIXES?:(.*?)$/is);
-    const fixes = fixesMatch
-      ? fixesMatch[1].trim().split('\n').filter(line => line.trim().startsWith('-')).map(line => line.replace(/^-\s*/, '').trim())
+    const keywordsSection = content.match(/##\s*Missing Keywords\s*([\s\S]*?)(?=##|$)/i);
+    const keywordGaps = keywordsSection
+      ? keywordsSection[1].trim().split('\n').filter(line => line.trim().startsWith('-')).map(line => line.replace(/^-\s*/, '').trim())
       : [];
+
+    const fixesSection = content.match(/##\s*Recommended Fixes\s*([\s\S]*?)(?=##|$)/i);
+    const fixes = fixesSection
+      ? fixesSection[1].trim().split('\n').filter(line => line.trim().startsWith('-')).map(line => line.replace(/^-\s*/, '').trim())
+      : [];
+
+    const allIssues = [...issues, ...parsingRisks];
 
     return new Response(
       JSON.stringify({
         score,
-        issues,
+        issues: allIssues,
         keywordGaps,
-        fixes
+        fixes,
+        rawContent: content
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

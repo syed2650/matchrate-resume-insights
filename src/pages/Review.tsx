@@ -1,155 +1,34 @@
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { Feedback } from "./review/types";
-import { useAuthUser } from "@/hooks/useAuthUser";
 import ResumeAnalyzer from "./review/components/ResumeAnalyzer";
-import AnalysisResults from "./review/components/AnalysisResults";
-import { canUseFeedback, trackFeedbackUsage, getUsageStats } from "./review/utils";
-import UsageLimitModal from "./review/components/UsageLimitModal";
-import { Database } from "@/integrations/supabase/types";
 import { AgentActions } from "./review/components/AgentActions";
 
-type JobRole = Database["public"]["Enums"]["job_role"];
-const validRoles: JobRole[] = ["Product Manager", "UX Designer", "Data Analyst", "Software Engineer", "Consultant"];
-
 const Review = () => {
-  const [feedback, setFeedback] = useState<Feedback | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [helpfulFeedback, setHelpfulFeedback] = useState<null | boolean>(null);
-  const [submissionId, setSubmissionId] = useState<string | null>(null);
-  const [showLimitModal, setShowLimitModal] = useState(false);
+  const [resumeText, setResumeText] = useState("");
+  const [jobDescription, setJobDescription] = useState("");
+  const [showResults, setShowResults] = useState(false);
   const { toast } = useToast();
-  const { user } = useAuthUser();
 
-  // Debug usage stats when component loads in development
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Usage stats:', getUsageStats());
-    }
-  }, []);
-
-  // Check usage limits when component loads
-  useEffect(() => {
-    // If user can't use feedback and doesn't already have feedback results, show limit modal
-    if (!canUseFeedback() && !feedback) {
-      setShowLimitModal(true);
-    }
-  }, [feedback]);
-
-  const handleAnalysisComplete = async (data: Feedback) => {
-    // Don't set loading false yet - wait until DB save completes
-    setFeedback(data);
-    setHelpfulFeedback(null);
-
-    // Track feedback usage
-    trackFeedbackUsage();
-
-    try {
-      // Convert feedback results to a JSON-compatible format
-      const feedbackResultsForDb = {
-        score: data.score,
-        missingKeywords: data.missingKeywords || [],
-        sectionFeedback: data.sectionFeedback || {},
-        weakBullets: data.weakBullets || [],
-        toneSuggestions: data.toneSuggestions || "",
-        wouldInterview: data.wouldInterview || "",
-        rewrittenResume: data.rewrittenResume || "",
-        atsScores: data.atsScores || {},
-        jobContext: data.jobContext ? {
-          keywords: data.jobContext.keywords || [],
-          responsibilities: data.jobContext.responsibilities || [],
-          industry: data.jobContext.industry || "",
-          tone: data.jobContext.tone || ""
-        } : null
-      };
-
-      // Convert jobTitle to a valid role enum or null
-      let selectedRole: JobRole | null = null;
-      if (data.jobTitle) {
-        // Check if the jobTitle matches any of the valid roles
-        const matchedRole = validRoles.find(
-          role => role.toLowerCase() === data.jobTitle?.toLowerCase()
-        );
-        if (matchedRole) {
-          selectedRole = matchedRole;
-        }
-      }
-
-      // Insert into submissions table
-      const { data: submissionData, error: submissionError } = await supabase
-        .from('submissions')
-        .insert({
-          resume_text: data.resume || "",
-          job_description: data.jobDescription || "",
-          job_url: data.jobUrl || null,
-          selected_role: selectedRole,
-          feedback_results: feedbackResultsForDb,
-          user_id: user?.id || null
-        })
-        .select('id')
-        .single();
-
-      if (submissionError) {
-        console.error("Error storing submission:", submissionError);
-        
-        // More detailed error logging
-        if (submissionError.details) {
-          console.error("Error details:", submissionError.details);
-        }
-        if (submissionError.hint) {
-          console.error("Error hint:", submissionError.hint);
-        }
-        
-        toast({
-          title: "Error storing feedback",
-          description: "Your feedback was generated but couldn't be saved",
-          variant: "destructive"
-        });
-      } else if (submissionData) {
-        setSubmissionId(submissionData.id);
-        toast({
-          title: "Analysis complete",
-          description: "Your resume has been analyzed successfully",
-        });
-      }
-    } catch (error) {
-      console.error("Error storing submission:", error);
+  const handleStartAnalysis = async () => {
+    if (!resumeText.trim()) {
       toast({
-        title: "Error",
-        description: "Failed to store analysis results",
+        title: "Resume Required",
+        description: "Please upload or paste your resume",
         variant: "destructive"
       });
-    } finally {
-      // Always clear loading state after everything completes
-      setIsLoading(false);
+      return;
     }
-  };
-
-  const handleFeedbackSubmit = async (isHelpful: boolean) => {
-    setHelpfulFeedback(isHelpful);
     
-    if (submissionId) {
-      try {
-        await supabase
-          .from('submissions')
-          .update({
-            helpful: isHelpful
-          })
-          .eq('id', submissionId);
-      } catch (error) {
-        console.error("Error storing feedback:", error);
-        toast({
-          title: "Feedback Error",
-          description: "Could not store feedback",
-          variant: "destructive"
-        });
-      }
+    if (!jobDescription.trim()) {
+      toast({
+        title: "Job Description Required",
+        description: "Please enter a job description",
+        variant: "destructive"
+      });
+      return;
     }
-  };
-
-  const handleCloseLimitModal = () => {
-    setShowLimitModal(false);
+    
+    setShowResults(true);
   };
 
   return (
@@ -158,30 +37,25 @@ const Review = () => {
         Resume Analysis & Optimization
       </h1>
 
-      {!feedback ? (
+      {!showResults ? (
         <ResumeAnalyzer 
-          onAnalysisComplete={(data) => {
-            setFeedback(data);
-          }}
-          isLoading={isLoading}
-          setIsLoading={setIsLoading}
-          isDisabled={false}
+          onResumeChange={setResumeText}
+          onJobDescriptionChange={setJobDescription}
+          onAnalyze={handleStartAnalysis}
+          resumeText={resumeText}
+          jobDescription={jobDescription}
         />
       ) : (
         <AgentActions 
-          resumeText={feedback.resume || ""} 
+          resumeText={resumeText}
+          jobDescription={jobDescription}
           onReset={() => {
-            setFeedback(null);
-            setSubmissionId(null);
-            setHelpfulFeedback(null);
+            setShowResults(false);
+            setResumeText("");
+            setJobDescription("");
           }}
         />
       )}
-
-      <UsageLimitModal 
-        isOpen={showLimitModal} 
-        onClose={handleCloseLimitModal} 
-      />
     </div>
   );
 };
