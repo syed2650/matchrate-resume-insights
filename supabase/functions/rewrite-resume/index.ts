@@ -104,21 +104,19 @@ Provide your improvements in the format specified above.`;
     const data = await response.json();
     const content = data.choices[0].message.content;
 
-    // Parse the response to extract rewritten resume and notes
-    // Simple parsing - split on "Notes:" or similar markers
-    let rewritten = content;
-    let notes = '';
-
-    const notesMatch = content.match(/(?:Notes?|Changes?|Improvements?|Key Changes):\s*(.+)$/is);
-    if (notesMatch) {
-      notes = notesMatch[1].trim();
-      rewritten = content.substring(0, notesMatch.index).trim();
+    // Return the full markdown content as the "rewritten" text
+    // Extract any notes if present
+    let notes = 'Resume improvements with targeted suggestions for clarity, impact, and action verbs.';
+    
+    const keyChangesSection = content.match(/##\s*(?:Key Changes|Summary|Notes)\s*([\s\S]*?)(?:$)/i);
+    if (keyChangesSection) {
+      notes = keyChangesSection[1].trim().substring(0, 200); // Limit to 200 chars
     }
 
     return new Response(
       JSON.stringify({
-        rewritten,
-        notes: notes || 'Resume rewritten with improved clarity, action verbs, and quantified achievements.'
+        rewritten: content,
+        notes
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
