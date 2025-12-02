@@ -104,18 +104,33 @@ Provide your roast and review in the format specified above. Be funny but useful
     const data = await response.json();
     const content = data.choices[0].message.content;
 
-    // Parse the markdown-formatted response
-    const roastSection = content.match(/##\s*🔥\s*Roast\s*([\s\S]*?)(?=##|$)/i);
-    const roast = roastSection ? roastSection[1].trim() : content.substring(0, 300);
-
-    const scoresSection = content.match(/##\s*Scores\s*([\s\S]*?)(?=##|$)/i);
-    const scoresText = scoresSection ? scoresSection[1] : '';
+    // Parse the markdown-formatted response - more robust parsing
+    console.log('Raw Roast content:', content);
     
-    const formattingMatch = scoresText.match(/Formatting:\s*(\d+)/i);
-    const clarityMatch = scoresText.match(/Clarity:\s*(\d+)/i);
-    const impactMatch = scoresText.match(/Impact:\s*(\d+)/i);
-    const atsMatch = scoresText.match(/ATS:\s*(\d+)/i);
-    const overallMatch = scoresText.match(/Overall:\s*(\d+)/i);
+    // Try multiple patterns for roast section
+    let roast = '';
+    const roastPatterns = [
+      /##\s*🔥\s*Roast\s*([\s\S]*?)(?=##|$)/i,
+      /##\s*Roast\s*([\s\S]*?)(?=##|$)/i,
+      /🔥\s*Roast[:\s]*([\s\S]*?)(?=##|📘|Real Review|$)/i
+    ];
+    for (const pattern of roastPatterns) {
+      const match = content.match(pattern);
+      if (match && match[1].trim()) {
+        roast = match[1].trim();
+        break;
+      }
+    }
+    if (!roast) {
+      roast = content.substring(0, 400);
+    }
+
+    // Try to find scores anywhere in content
+    const formattingMatch = content.match(/Formatting[:\s]*(\d+)/i);
+    const clarityMatch = content.match(/Clarity[:\s]*(\d+)/i);
+    const impactMatch = content.match(/Impact[:\s]*(\d+)/i);
+    const atsMatch = content.match(/ATS[:\s]*(\d+)/i);
+    const overallMatch = content.match(/Overall[:\s]*(\d+)/i);
 
     const scores = {
       formatting: formattingMatch ? parseInt(formattingMatch[1]) : 15,
@@ -125,10 +140,22 @@ Provide your roast and review in the format specified above. Be funny but useful
       overall: overallMatch ? parseInt(overallMatch[1]) : 60
     };
 
-    const shareableSection = content.match(/##\s*Shareable Line\s*([\s\S]*?)$/i);
-    const shareText = shareableSection 
-      ? shareableSection[1].trim() 
-      : `My Resume Roast Score: ${scores.overall}/100 🔥`;
+    // Try multiple patterns for shareable line
+    let shareText = '';
+    const sharePatterns = [
+      /##\s*Shareable Line\s*([\s\S]*?)$/i,
+      /Shareable[:\s]*([\s\S]*?)(?=##|$)/i
+    ];
+    for (const pattern of sharePatterns) {
+      const match = content.match(pattern);
+      if (match && match[1].trim()) {
+        shareText = match[1].trim().split('\n')[0];
+        break;
+      }
+    }
+    if (!shareText) {
+      shareText = `My Resume Roast Score: ${scores.overall}/100 🔥`;
+    }
 
     // Generate a unique share URL
     const shareId = crypto.randomUUID().split('-')[0];

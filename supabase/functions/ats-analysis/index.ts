@@ -110,29 +110,46 @@ Provide your analysis in the format specified above. Be thorough and specific.`;
     const data = await response.json();
     const content = data.choices[0].message.content;
 
-    // Parse the markdown-formatted response
-    const scoreMatch = content.match(/##\s*ATS Score\s*(\d+)\/100/i);
-    const score = scoreMatch ? parseInt(scoreMatch[1]) : 0;
+    // Parse the markdown-formatted response - more robust parsing
+    console.log('Raw ATS content:', content);
+    
+    // Try multiple patterns for score extraction
+    let score = 0;
+    const scorePatterns = [
+      /##\s*ATS Score[:\s]*(\d+)\s*\/\s*100/i,
+      /##\s*ATS Score[:\s]*(\d+)/i,
+      /ATS Score[:\s]*(\d+)\s*\/\s*100/i,
+      /Total[:\s]*(\d+)\s*\/\s*100/i,
+      /(\d+)\s*\/\s*100/
+    ];
+    for (const pattern of scorePatterns) {
+      const match = content.match(pattern);
+      if (match) {
+        score = parseInt(match[1]);
+        break;
+      }
+    }
+
+    // Extract bullet points from any section - look for lines starting with - or * or numbered
+    const extractBullets = (text: string): string[] => {
+      return text.split('\n')
+        .map(line => line.trim())
+        .filter(line => line.startsWith('-') || line.startsWith('*') || /^\d+\./.test(line))
+        .map(line => line.replace(/^[-*]\s*/, '').replace(/^\d+\.\s*/, '').trim())
+        .filter(line => line.length > 0);
+    };
 
     const issuesSection = content.match(/##\s*Formatting Issues\s*([\s\S]*?)(?=##|$)/i);
-    const issues = issuesSection 
-      ? issuesSection[1].trim().split('\n').filter(line => line.trim().startsWith('-')).map(line => line.replace(/^-\s*/, '').trim())
-      : [];
+    const issues = issuesSection ? extractBullets(issuesSection[1]) : [];
 
     const parsingSection = content.match(/##\s*Parsing Risks\s*([\s\S]*?)(?=##|$)/i);
-    const parsingRisks = parsingSection
-      ? parsingSection[1].trim().split('\n').filter(line => line.trim().startsWith('-')).map(line => line.replace(/^-\s*/, '').trim())
-      : [];
+    const parsingRisks = parsingSection ? extractBullets(parsingSection[1]) : [];
 
     const keywordsSection = content.match(/##\s*Missing Keywords\s*([\s\S]*?)(?=##|$)/i);
-    const keywordGaps = keywordsSection
-      ? keywordsSection[1].trim().split('\n').filter(line => line.trim().startsWith('-')).map(line => line.replace(/^-\s*/, '').trim())
-      : [];
+    const keywordGaps = keywordsSection ? extractBullets(keywordsSection[1]) : [];
 
     const fixesSection = content.match(/##\s*Recommended Fixes\s*([\s\S]*?)(?=##|$)/i);
-    const fixes = fixesSection
-      ? fixesSection[1].trim().split('\n').filter(line => line.trim().startsWith('-')).map(line => line.replace(/^-\s*/, '').trim())
-      : [];
+    const fixes = fixesSection ? extractBullets(fixesSection[1]) : [];
 
     const allIssues = [...issues, ...parsingRisks];
 

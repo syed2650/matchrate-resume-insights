@@ -106,28 +106,41 @@ Provide your analysis in the format specified above. Be specific and actionable.
     const data = await response.json();
     const content = data.choices[0].message.content;
 
-    // Parse the markdown-formatted response
-    const scoreMatch = content.match(/##\s*Match Score\s*(\d+)\/100/i);
-    const matchScore = scoreMatch ? parseInt(scoreMatch[1]) : 0;
-
-    // Extract all missing skills sections
-    const missingSkillsSection = content.match(/##\s*Missing Skills\s*([\s\S]*?)(?=##\s*Optimized|##\s*Summary|$)/i);
-    const missingSkills: string[] = [];
+    // Parse the markdown-formatted response - more robust parsing
+    console.log('Raw JD Match content:', content);
     
-    if (missingSkillsSection) {
-      const skillsText = missingSkillsSection[1];
-      // Extract all bullet points from all subsections
-      const bullets = skillsText.split('\n')
-        .filter(line => line.trim().startsWith('-'))
-        .map(line => line.replace(/^-\s*/, '').trim())
-        .filter(line => line.length > 0);
-      missingSkills.push(...bullets);
+    // Try multiple patterns for score extraction
+    let matchScore = 0;
+    const scorePatterns = [
+      /##\s*Match Score[:\s]*(\d+)\s*\/\s*100/i,
+      /##\s*Match Score[:\s]*(\d+)/i,
+      /Match Score[:\s]*(\d+)\s*\/\s*100/i,
+      /Score[:\s]*(\d+)\s*\/\s*100/i,
+      /(\d+)\s*\/\s*100/
+    ];
+    for (const pattern of scorePatterns) {
+      const match = content.match(pattern);
+      if (match) {
+        matchScore = parseInt(match[1]);
+        break;
+      }
     }
 
+    // Extract bullet points from any section
+    const extractBullets = (text: string): string[] => {
+      return text.split('\n')
+        .map(line => line.trim())
+        .filter(line => line.startsWith('-') || line.startsWith('*') || /^\d+\./.test(line))
+        .map(line => line.replace(/^[-*]\s*/, '').replace(/^\d+\.\s*/, '').trim())
+        .filter(line => line.length > 0);
+    };
+
+    // Extract all missing skills sections
+    const missingSkillsSection = content.match(/##\s*Missing Skills\s*([\s\S]*?)(?=##\s*Optimized|##\s*Suggested|##\s*Keywords|$)/i);
+    const missingSkills = missingSkillsSection ? extractBullets(missingSkillsSection[1]) : [];
+
     const bulletsSection = content.match(/##\s*Optimized Bullets\s*([\s\S]*?)(?=##|$)/i);
-    const optimizedBullets = bulletsSection
-      ? bulletsSection[1].trim().split('\n').filter(line => line.trim().startsWith('-')).map(line => line.replace(/^-\s*/, '').trim())
-      : [];
+    const optimizedBullets = bulletsSection ? extractBullets(bulletsSection[1]) : [];
 
     return new Response(
       JSON.stringify({
