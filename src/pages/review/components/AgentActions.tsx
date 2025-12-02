@@ -24,12 +24,14 @@ interface ATSResult {
   issues: string[];
   keywordGaps: string[];
   fixes: string[];
+  rawContent?: string;
 }
 
 interface JDMatchResult {
   matchScore: number;
   missingSkills: string[];
   optimizedBullets: string[];
+  rawContent?: string;
 }
 
 interface RoastResult {
@@ -43,6 +45,7 @@ interface RoastResult {
   };
   shareText: string;
   shareUrl: string;
+  rawContent?: string;
 }
 
 export const AgentActions = ({ resumeText, jobDescription, onReset, autoStart = true }: AgentActionsProps) => {
@@ -273,7 +276,7 @@ export const AgentActions = ({ resumeText, jobDescription, onReset, autoStart = 
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => copyToClipboard(JSON.stringify(atsResult, null, 2))}
+                        onClick={() => copyToClipboard(atsResult.rawContent || JSON.stringify(atsResult, null, 2))}
                       >
                         <Copy className="h-4 w-4 mr-2" />
                         Copy Section
@@ -288,34 +291,59 @@ export const AgentActions = ({ resumeText, jobDescription, onReset, autoStart = 
                       <Progress value={atsResult.score} className="h-2" />
                     </div>
 
-                    <div className="space-y-4">
-                      <div className="bg-red-50 p-4 rounded-lg">
-                        <h4 className="font-semibold mb-2">⚠️ Formatting Issues ({atsResult.issues.length})</h4>
-                        <ul className="list-disc pl-5 space-y-1 text-sm">
-                          {atsResult.issues.map((issue, i) => (
-                            <li key={i}>{issue}</li>
-                          ))}
-                        </ul>
+                    {/* Show raw content if parsed data is incomplete */}
+                    {atsResult.rawContent && (atsResult.issues.length === 0 && atsResult.keywordGaps.length === 0 && atsResult.fixes.length === 0) ? (
+                      <div className="bg-muted/50 p-4 rounded-lg whitespace-pre-wrap max-h-[500px] overflow-y-auto">
+                        {atsResult.rawContent}
                       </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {atsResult.issues.length > 0 && (
+                          <div className="bg-red-50 p-4 rounded-lg">
+                            <h4 className="font-semibold mb-2">⚠️ Formatting Issues ({atsResult.issues.length})</h4>
+                            <ul className="list-disc pl-5 space-y-1 text-sm">
+                              {atsResult.issues.map((issue, i) => (
+                                <li key={i}>{issue}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
 
-                      <div className="bg-yellow-50 p-4 rounded-lg">
-                        <h4 className="font-semibold mb-2">🔑 Missing Keywords ({atsResult.keywordGaps.length})</h4>
-                        <ul className="list-disc pl-5 space-y-1 text-sm">
-                          {atsResult.keywordGaps.map((keyword, i) => (
-                            <li key={i}>{keyword}</li>
-                          ))}
-                        </ul>
-                      </div>
+                        {atsResult.keywordGaps.length > 0 && (
+                          <div className="bg-yellow-50 p-4 rounded-lg">
+                            <h4 className="font-semibold mb-2">🔑 Missing Keywords ({atsResult.keywordGaps.length})</h4>
+                            <ul className="list-disc pl-5 space-y-1 text-sm">
+                              {atsResult.keywordGaps.map((keyword, i) => (
+                                <li key={i}>{keyword}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
 
-                      <div className="bg-green-50 p-4 rounded-lg">
-                        <h4 className="font-semibold mb-2">✅ Recommended Fixes ({atsResult.fixes.length})</h4>
-                        <ul className="list-disc pl-5 space-y-1 text-sm">
-                          {atsResult.fixes.map((fix, i) => (
-                            <li key={i}>{fix}</li>
-                          ))}
-                        </ul>
+                        {atsResult.fixes.length > 0 && (
+                          <div className="bg-green-50 p-4 rounded-lg">
+                            <h4 className="font-semibold mb-2">✅ Recommended Fixes ({atsResult.fixes.length})</h4>
+                            <ul className="list-disc pl-5 space-y-1 text-sm">
+                              {atsResult.fixes.map((fix, i) => (
+                                <li key={i}>{fix}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {/* Fallback to raw content if available but some data parsed */}
+                        {atsResult.rawContent && (
+                          <details className="mt-4">
+                            <summary className="cursor-pointer text-sm text-muted-foreground hover:text-foreground">
+                              View Full Analysis
+                            </summary>
+                            <div className="bg-muted/50 p-4 rounded-lg whitespace-pre-wrap max-h-[400px] overflow-y-auto mt-2 text-sm">
+                              {atsResult.rawContent}
+                            </div>
+                          </details>
+                        )}
                       </div>
-                    </div>
+                    )}
                   </div>
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">
@@ -324,6 +352,7 @@ export const AgentActions = ({ resumeText, jobDescription, onReset, autoStart = 
                 )}
               </AccordionContent>
             </AccordionItem>
+
 
             {/* Job Match Section */}
             <AccordionItem value="job-match" className="border rounded-lg px-6">
@@ -347,7 +376,7 @@ export const AgentActions = ({ resumeText, jobDescription, onReset, autoStart = 
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => copyToClipboard(JSON.stringify(jdMatchResult, null, 2))}
+                        onClick={() => copyToClipboard(jdMatchResult.rawContent || JSON.stringify(jdMatchResult, null, 2))}
                       >
                         <Copy className="h-4 w-4 mr-2" />
                         Copy Section
@@ -362,27 +391,50 @@ export const AgentActions = ({ resumeText, jobDescription, onReset, autoStart = 
                       <Progress value={jdMatchResult.matchScore} className="h-2" />
                     </div>
 
-                    <div className="space-y-4">
-                      <div className="bg-orange-50 p-4 rounded-lg">
-                        <h4 className="font-semibold mb-2">🎯 Missing Skills ({jdMatchResult.missingSkills.length})</h4>
-                        <ul className="list-disc pl-5 space-y-1 text-sm">
-                          {jdMatchResult.missingSkills.map((skill, i) => (
-                            <li key={i}>{skill}</li>
-                          ))}
-                        </ul>
+                    {/* Show raw content if parsed data is incomplete */}
+                    {jdMatchResult.rawContent && (jdMatchResult.missingSkills.length === 0 && jdMatchResult.optimizedBullets.length === 0) ? (
+                      <div className="bg-muted/50 p-4 rounded-lg whitespace-pre-wrap max-h-[500px] overflow-y-auto">
+                        {jdMatchResult.rawContent}
                       </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {jdMatchResult.missingSkills.length > 0 && (
+                          <div className="bg-orange-50 p-4 rounded-lg">
+                            <h4 className="font-semibold mb-2">🎯 Missing Skills ({jdMatchResult.missingSkills.length})</h4>
+                            <ul className="list-disc pl-5 space-y-1 text-sm">
+                              {jdMatchResult.missingSkills.map((skill, i) => (
+                                <li key={i}>{skill}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
 
-                      <div className="bg-blue-50 p-4 rounded-lg">
-                        <h4 className="font-semibold mb-2">✨ Optimized Bullets ({jdMatchResult.optimizedBullets.length})</h4>
-                        <div className="space-y-2">
-                          {jdMatchResult.optimizedBullets.map((bullet, i) => (
-                            <div key={i} className="bg-white p-3 rounded border-l-4 border-blue-600 text-sm">
-                              {bullet}
+                        {jdMatchResult.optimizedBullets.length > 0 && (
+                          <div className="bg-blue-50 p-4 rounded-lg">
+                            <h4 className="font-semibold mb-2">✨ Optimized Bullets ({jdMatchResult.optimizedBullets.length})</h4>
+                            <div className="space-y-2">
+                              {jdMatchResult.optimizedBullets.map((bullet, i) => (
+                                <div key={i} className="bg-white p-3 rounded border-l-4 border-blue-600 text-sm">
+                                  {bullet}
+                                </div>
+                              ))}
                             </div>
-                          ))}
-                        </div>
+                          </div>
+                        )}
+
+                        {/* Fallback to raw content if available */}
+                        {jdMatchResult.rawContent && (
+                          <details className="mt-4">
+                            <summary className="cursor-pointer text-sm text-muted-foreground hover:text-foreground">
+                              View Full Analysis
+                            </summary>
+                            <div className="bg-muted/50 p-4 rounded-lg whitespace-pre-wrap max-h-[400px] overflow-y-auto mt-2 text-sm">
+                              {jdMatchResult.rawContent}
+                            </div>
+                          </details>
+                        )}
                       </div>
-                    </div>
+                    )}
                   </div>
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">
@@ -413,7 +465,7 @@ export const AgentActions = ({ resumeText, jobDescription, onReset, autoStart = 
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => copyToClipboard(roastResult.shareText)}
+                        onClick={() => copyToClipboard(roastResult.rawContent || roastResult.shareText)}
                       >
                         <Copy className="h-4 w-4 mr-2" />
                         Copy Section
@@ -448,6 +500,18 @@ export const AgentActions = ({ resumeText, jobDescription, onReset, autoStart = 
                           {roastResult.shareUrl}
                         </a>
                       </div>
+                    )}
+
+                    {/* Full analysis view */}
+                    {roastResult.rawContent && (
+                      <details className="mt-4">
+                        <summary className="cursor-pointer text-sm text-muted-foreground hover:text-foreground">
+                          View Full Analysis
+                        </summary>
+                        <div className="bg-white/80 p-4 rounded-lg whitespace-pre-wrap max-h-[400px] overflow-y-auto mt-2 text-sm">
+                          {roastResult.rawContent}
+                        </div>
+                      </details>
                     )}
                   </div>
                 ) : (
