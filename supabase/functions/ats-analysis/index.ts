@@ -113,13 +113,14 @@ Provide your analysis in the format specified above. Be thorough and specific.`;
     // Parse the markdown-formatted response - more robust parsing
     console.log('Raw ATS content:', content);
     
-    // Try multiple patterns for score extraction
+    // Try multiple patterns for score extraction - handle "Total score: 77" format
     let score = 0;
     const scorePatterns = [
+      /Total\s*score[:\s]*(\d+)/i,
       /##\s*ATS Score[:\s]*(\d+)\s*\/\s*100/i,
       /##\s*ATS Score[:\s]*(\d+)/i,
       /ATS Score[:\s]*(\d+)\s*\/\s*100/i,
-      /Total[:\s]*(\d+)\s*\/\s*100/i,
+      /ATS Score[\s\S]*?(\d+)\s*\/\s*100/i,
       /(\d+)\s*\/\s*100/
     ];
     for (const pattern of scorePatterns) {
