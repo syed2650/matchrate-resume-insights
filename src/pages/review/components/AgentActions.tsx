@@ -188,6 +188,86 @@ export const AgentActions = ({ resumeText, jobDescription, onReset, autoStart = 
     toast({ title: "Copied to clipboard!" });
   };
 
+  // Parse markdown content into rendered sections
+  const renderMarkdownContent = (content: string) => {
+    const sections = content.split(/(?=^## )/gm).filter(s => s.trim());
+    
+    return sections.map((section, idx) => {
+      const lines = section.trim().split('\n');
+      const title = lines[0]?.replace(/^##\s*/, '').trim();
+      const body = lines.slice(1).join('\n').trim();
+      
+      // Determine section type for styling
+      let bgColor = 'bg-muted/50';
+      let icon = '';
+      if (title.toLowerCase().includes('summary')) {
+        bgColor = 'bg-blue-50';
+        icon = '📝';
+      } else if (title.toLowerCase().includes('bullet')) {
+        bgColor = 'bg-green-50';
+        icon = '✨';
+      } else if (title.toLowerCase().includes('weak') || title.toLowerCase().includes('filler')) {
+        bgColor = 'bg-yellow-50';
+        icon = '⚠️';
+      } else if (title.toLowerCase().includes('impact')) {
+        bgColor = 'bg-purple-50';
+        icon = '📈';
+      } else if (title.toLowerCase().includes('redundancy')) {
+        bgColor = 'bg-orange-50';
+        icon = '🔄';
+      } else if (title.toLowerCase().includes('action') || title.toLowerCase().includes('verb')) {
+        bgColor = 'bg-indigo-50';
+        icon = '💪';
+      }
+      
+      return (
+        <div key={idx} className={`${bgColor} p-4 rounded-lg`}>
+          <h4 className="font-semibold mb-3 text-base">{icon} {title}</h4>
+          <div className="text-sm space-y-2">
+            {body.split('\n').map((line, lineIdx) => {
+              const trimmedLine = line.trim();
+              if (!trimmedLine) return null;
+              
+              // Handle **Before:** and **After:** formatting
+              if (trimmedLine.includes('**Before:**') || trimmedLine.includes('**After:**')) {
+                const parts = trimmedLine.split(/(\*\*[^*]+\*\*)/g);
+                return (
+                  <p key={lineIdx} className="ml-2">
+                    {parts.map((part, i) => {
+                      if (part.startsWith('**') && part.endsWith('**')) {
+                        return <strong key={i}>{part.slice(2, -2)}</strong>;
+                      }
+                      return part;
+                    })}
+                  </p>
+                );
+              }
+              
+              // Handle bullet points
+              if (trimmedLine.startsWith('-') || trimmedLine.startsWith('•')) {
+                return (
+                  <p key={lineIdx} className="ml-4 flex gap-2">
+                    <span>•</span>
+                    <span>{trimmedLine.replace(/^[-•]\s*/, '')}</span>
+                  </p>
+                );
+              }
+              
+              // Handle numbered items
+              if (/^\d+\./.test(trimmedLine)) {
+                return (
+                  <p key={lineIdx} className="ml-4">{trimmedLine}</p>
+                );
+              }
+              
+              return <p key={lineIdx}>{trimmedLine}</p>;
+            })}
+          </div>
+        </div>
+      );
+    });
+  };
+
   return (
     <div className="space-y-6">
       {!hasAnalyzed && isAnalyzing && (
@@ -237,14 +317,9 @@ export const AgentActions = ({ resumeText, jobDescription, onReset, autoStart = 
                         Copy Section
                       </Button>
                     </div>
-                    <div className="bg-muted/50 p-4 rounded-lg whitespace-pre-wrap max-h-[500px] overflow-y-auto">
-                      {rewriteResult.rewritten}
+                    <div className="space-y-4">
+                      {renderMarkdownContent(rewriteResult.rewritten)}
                     </div>
-                    {rewriteResult.notes && (
-                      <div className="text-sm text-muted-foreground mt-4 p-3 bg-blue-50 rounded">
-                        <strong>Key Changes:</strong> {rewriteResult.notes}
-                      </div>
-                    )}
                   </div>
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">

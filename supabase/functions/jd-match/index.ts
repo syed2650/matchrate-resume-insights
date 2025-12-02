@@ -109,14 +109,16 @@ Provide your analysis in the format specified above. Be specific and actionable.
     // Parse the markdown-formatted response - more robust parsing
     console.log('Raw JD Match content:', content);
     
-    // Try multiple patterns for score extraction
+    // Try multiple patterns for score extraction - handle various formats
     let matchScore = 0;
     const scorePatterns = [
+      /Score[:\s]*(\d+)\s*\/\s*100/i,
       /##\s*Match Score[:\s]*(\d+)\s*\/\s*100/i,
       /##\s*Match Score[:\s]*(\d+)/i,
       /Match Score[:\s]*(\d+)\s*\/\s*100/i,
-      /Score[:\s]*(\d+)\s*\/\s*100/i,
-      /(\d+)\s*\/\s*100/
+      /Match Score[\s\S]*?(\d+)\s*%/i,
+      /(\d+)\s*\/\s*100/,
+      /(\d+)%/
     ];
     for (const pattern of scorePatterns) {
       const match = content.match(pattern);
