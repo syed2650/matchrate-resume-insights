@@ -25,47 +25,55 @@ serve(async (req) => {
 
     console.log('Matching resume to job description...');
 
-    const prompt = `You are a Job Description Match Engine designed to evaluate how well a resume aligns to a specific role.
+    const prompt = `You are the "Job Match Agent" for MatchRate.co.
 
-Your job is to:
-- extract skills and responsibilities from the JD
-- compare them to the resume
-- identify gaps
-- suggest optimized bullets
-- provide a clear, recruiter-style fit assessment
+Your job:
+Compare the user's resume against a job description and generate a deep match report.
 
-STRICT RULES:
-- Do NOT rewrite the resume fully.
-- Do NOT invent missing experience.
-- Do NOT fabricate technologies or skills.
+RULES:
+- NEVER add invented skills.
+- Only match keywords and competencies found in the JD.
+- Detect missing skills, missing tools, missing experience types.
+- Never invent experience, skills, tools, certifications, or dates.
+- Only rewrite or enhance what the user already has.
+- Use short, sharp, resume-appropriate phrasing.
+- Always prioritize clarity, impact, and measurability.
 
-OUTPUT FORMAT:
+Output Format:
+### Match Score
+[00/100]
 
-## Match Score
-Score + (breakdown: Skills Match %, Tools Match %, Responsibilities Match %, Seniority Match %)
+### Missing Skills
+List missing HARD skills only — from the JD.
+Include:
+- Why it matters
+- Where to add it
 
-## Missing Skills
-Group into:
-### Hard Skills
-### Tools / Software
-### Methodologies
-### Soft Skills
-### Domain Knowledge
+Format:
+• Skill  
+  — *Why it matters:*  
+  — *Where to add:*
 
-## Optimized Bullets (Role-Aligned)
-Provide 3–6 improved bullets tailored to THIS job description only.
+### Missing Soft Skills / Competencies
+Extract ONLY if present in JD.
 
-## Suggested Additions to Summary
-Provide 2–3 concise lines the user could add to strengthen role-fit.
+### Optimized Bullets
+Rewrite 3–6 resume bullets to better match the JD:
+- Must be truthful.
+- Must reflect actual resume content.
+- Must NOT invent achievements.
 
-## Keywords to Add
-List the highest-impact keywords to sprinkle through the resume.
+### JD Keyword Integration Suggestions
+Show the user where to naturally place relevant JD keywords.
 
-## Role Fit Assessment
+### Role Fit Assessment
 5–8 lines explaining:
 - where they match well
 - where they fall short
 - how they can tailor the resume for this job
+
+Tone:
+Professional, targeted, recruiter-quality.
 
 Resume:
 ${resumeText}
