@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import AnimatedTextCycle from "@/components/ui/animated-text-cycle";
-import { ArrowRight, Target, FileText } from "lucide-react";
+import { ArrowRight, Sparkles, FileSearch, Target, Flame } from "lucide-react";
 
 const Hero = () => {
   const navigate = useNavigate();
@@ -22,105 +21,96 @@ const Hero = () => {
         </div>
 
         <h1 className="mb-6 text-4xl md:text-6xl font-bold text-warm-text leading-tight tracking-tight max-w-4xl">
-          Is Your Resume Good Enough to <br className="hidden md:block" />
-          <span className="text-gradient">Get You Interviews?</span>
+          Is Your Resume Strong Enough to <br className="hidden md:block" />
+          <span className="text-gradient">Get Interviews?</span>
         </h1>
         
         <p className="text-lg md:text-xl text-slate-600 max-w-3xl mb-8 font-medium">
-          Upload your resume & job description — get{" "}
-          <span className="inline-block align-baseline">
-            <AnimatedTextCycle
-              words={[
-                "tailored",
-                "actionable",
-                "honest",
-                "expert",
-                "insightful",
-                "specific"
-              ]}
-              interval={2600}
-              className="text-warm-accent"
-            />
-          </span>{" "}
-          feedback instantly.
+          Upload your resume — get instant AI-powered improvements, ATS fixes, JD match scoring & a viral roast.
+          <br />No signup needed.
         </p>
         
-        <div className="flex flex-col sm:flex-row gap-4 mb-12 w-full md:w-auto">
+        <div className="flex flex-col sm:flex-row gap-4 mb-6 w-full md:w-auto">
           <Button 
             size="lg"
             className="cta-gradient hover:scale-[1.03] transition-all duration-200 text-white px-9 py-7 text-lg rounded-xl shadow-cta font-semibold"
             onClick={() => navigate("/review")}
           >
-            Try MatchRate Free
+            Analyze My Resume Free
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
           
           <Button 
             size="lg"
             variant="outline"
-            className="border-2 border-warm-accent text-warm-accent hover:bg-warm-accent hover:text-white px-9 py-7 text-lg rounded-xl font-semibold transition-all duration-200 hover:scale-[1.03]"
-            onClick={() => navigate("/resume-feedback")}
+            className="border-2 border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white px-9 py-7 text-lg rounded-xl font-semibold transition-all duration-200 hover:scale-[1.03]"
+            onClick={() => navigate("/lovable")}
           >
-            <FileText className="mr-2 h-5 w-5" />
-            Get Resume Health Check
+            <Flame className="mr-2 h-5 w-5" />
+            Try Resume Roast
           </Button>
         </div>
         
         <p className="text-sm text-slate-500 mb-16">
-          No job description needed • General resume review
+          PDF, DOCX, or Text — instant parsing included.
         </p>
 
-        {/* Tool Comparison Section */}
-        <div className="w-full max-w-4xl mx-auto mt-8 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden">
-          <div className="p-6 bg-slate-50 border-b border-slate-200">
-            <h2 className="text-xl font-bold text-center text-slate-800">Choose Your Analysis Type</h2>
-          </div>
+        {/* Choose Your AI Tools Section */}
+        <div className="w-full max-w-5xl mx-auto mt-8">
+          <h2 className="text-2xl font-bold text-center mb-8">Choose Your AI Tools</h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-200">
-            {/* Job-Specific Matching */}
-            <div className="p-6">
-              <div className="flex items-center mb-3">
-                <Target className="w-6 h-6 text-warm-accent mr-2" />
-                <h3 className="text-lg font-bold text-slate-800">Job-Specific Matching</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Resume Improvements */}
+            <div className="bg-white rounded-xl shadow-lg p-6 hover-scale transition-all duration-300 border border-slate-100">
+              <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mb-4">
+                <Sparkles className="w-6 h-6 text-blue-600" />
               </div>
-              <p className="text-sm text-slate-600 mb-2">
-                <strong>Perfect for:</strong> Active job applications
-              </p>
+              <h3 className="text-lg font-bold text-slate-800 mb-2">Resume Improvements</h3>
               <p className="text-sm text-slate-600 mb-4">
-                <strong>Requires:</strong> Resume + Job Description
+                Get a polished summary, bullet rewrites, impact boosts, redundancy fixes & action verbs.
               </p>
-              <Button 
-                className="cta-gradient text-white w-full"
-                onClick={() => navigate("/review")}
-              >
-                Try MatchRate Free
-              </Button>
+              <p className="text-xs text-slate-500 italic">→ Perfect for improving clarity & impact.</p>
             </div>
             
-            {/* General Resume Health Check */}
-            <div className="p-6">
-              <div className="flex items-center mb-3">
-                <FileText className="w-6 h-6 text-blue-500 mr-2" />
-                <h3 className="text-lg font-bold text-slate-800">General Resume Health Check</h3>
+            {/* ATS Analysis */}
+            <div className="bg-white rounded-xl shadow-lg p-6 hover-scale transition-all duration-300 border border-slate-100">
+              <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mb-4">
+                <FileSearch className="w-6 h-6 text-green-600" />
               </div>
-              <p className="text-sm text-slate-600 mb-2">
-                <strong>Perfect for:</strong> Resume improvement
-              </p>
+              <h3 className="text-lg font-bold text-slate-800 mb-2">ATS Analysis</h3>
               <p className="text-sm text-slate-600 mb-4">
-                <strong>Requires:</strong> Just your resume
+                Spot formatting issues, missing keywords, parsing errors & get an ATS-safe summary.
               </p>
-              <Button 
-                variant="outline"
-                className="border-2 border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white w-full"
-                onClick={() => navigate("/resume-feedback")}
-              >
-                Get Health Check Free
-              </Button>
+              <p className="text-xs text-slate-500 italic">→ Improve your chances of passing real ATS scanners.</p>
+            </div>
+            
+            {/* JD Match */}
+            <div className="bg-white rounded-xl shadow-lg p-6 hover-scale transition-all duration-300 border border-slate-100">
+              <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center mb-4">
+                <Target className="w-6 h-6 text-purple-600" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-800 mb-2">JD Match</h3>
+              <p className="text-sm text-slate-600 mb-4">
+                Upload a job description and get a match score, missing skills, optimized bullets & role fit.
+              </p>
+              <p className="text-xs text-slate-500 italic">→ Perfect for targeted applications.</p>
+            </div>
+            
+            {/* Roast Card */}
+            <div className="bg-white rounded-xl shadow-lg p-6 hover-scale transition-all duration-300 border border-slate-100">
+              <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center mb-4">
+                <Flame className="w-6 h-6 text-orange-600" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-800 mb-2">Roast Card</h3>
+              <p className="text-sm text-slate-600 mb-4">
+                Get a fun, viral-friendly AI roast of your resume.
+              </p>
+              <p className="text-xs text-slate-500 italic">→ Great for sharing on LinkedIn, X & Instagram.</p>
             </div>
           </div>
         </div>
         
-        {/* Step-by-step guide instead of video placeholder */}
+        {/* How It Works Section */}
         <div className="w-full max-w-5xl mx-auto mt-16">
           <h2 className="text-2xl font-bold text-center mb-8">How MatchRate Works in 3 Simple Steps</h2>
           
@@ -150,7 +140,7 @@ const Hero = () => {
               </div>
               <div className="p-5">
                 <h3 className="text-lg font-bold mb-2">Upload Your Resume</h3>
-                <p className="text-slate-600 text-sm">Upload your resume and paste the job description you want to apply for. Our AI analyzer will match them together.</p>
+                <p className="text-slate-600 text-sm">Upload your PDF, DOCX, or text resume. No signup required — our AI parses it instantly.</p>
               </div>
             </div>
             
@@ -178,8 +168,8 @@ const Hero = () => {
                 </div>
               </div>
               <div className="p-5">
-                <h3 className="text-lg font-bold mb-2">Get Instant Analysis</h3>
-                <p className="text-slate-600 text-sm">Our AI provides comprehensive feedback including match score, missing keywords, and section-by-section analysis.</p>
+                <h3 className="text-lg font-bold mb-2">Get Instant AI Analysis</h3>
+                <p className="text-slate-600 text-sm">Choose your tool: Resume Improvements, ATS Fixes, JD Match, or Roast Card. Outputs are fast, actionable & colour-coded.</p>
               </div>
             </div>
             
@@ -207,32 +197,8 @@ const Hero = () => {
                 </div>
               </div>
               <div className="p-5">
-                <h3 className="text-lg font-bold mb-2">Improve & Get Hired</h3>
-                <p className="text-slate-600 text-sm">Apply the suggestions to transform your resume. Premium users get AI-powered bullet point rewrites and downloadable reports.</p>
-              </div>
-            </div>
-          </div>
-          
-          {/* Advanced features preview */}
-          <div className="bg-white rounded-xl shadow-lg mt-8 overflow-hidden border border-slate-100">
-            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-              <div>
-                <span className="bg-blue-100 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full mb-4 inline-block">PREMIUM FEATURE</span>
-                <h3 className="text-xl font-bold mb-3">Full Resume Rewrites & Expert Feedback</h3>
-                <p className="text-slate-600 mb-4">Premium users get complete AI-powered bullet point rewrites that follow the STAR format, plus expert-level feedback on structure and content.</p>
-                <Button 
-                  className="cta-gradient text-white"
-                  onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}
-                >
-                  Explore Premium Features
-                </Button>
-              </div>
-              <div>
-                <img 
-                  src="/lovable-uploads/3b5ac8ab-9069-4498-a35d-38c4d70f0869.png" 
-                  alt="Premium features screenshot" 
-                  className="w-full h-auto rounded-lg shadow-md border border-slate-200"
-                />
+                <h3 className="text-lg font-bold mb-2">Improve & Get More Interviews</h3>
+                <p className="text-slate-600 text-sm">Use optimized bullets, ATS fixes, summary rewrites & insights to upgrade your resume immediately. Download results as PDF anytime.</p>
               </div>
             </div>
           </div>
@@ -257,6 +223,12 @@ const Hero = () => {
                       <span className="font-medium">GPT-4o</span>
                     </div>
                     <div className="tech-stack-item">
+                      <div className="w-5 h-5 rounded-full bg-violet-500/20 flex items-center justify-center">
+                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="text-violet-500"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                      </div>
+                      <span className="font-medium">Claude</span>
+                    </div>
+                    <div className="tech-stack-item">
                       <div className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center">
                         <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500"><path d="M12 2l9 4.9V17L12 22l-9-4.9V7z"/></svg>
                       </div>
@@ -267,24 +239,6 @@ const Hero = () => {
                         <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="text-purple-500"><polyline points="4 7 4 4 20 4 20 7"></polyline><line x1="9" y1="20" x2="15" y2="20"></line><line x1="12" y1="4" x2="12" y2="20"></line><line x1="12" y1="4" x2="12" y2="20"></line></svg>
                       </div>
                       <span className="font-medium">Supabase</span>
-                    </div>
-                    <div className="tech-stack-item">
-                      <div className="w-5 h-5 rounded-full bg-pink-500/20 flex items-center justify-center">
-                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="text-pink-500"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 0-2 2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                      </div>
-                      <span className="font-medium">UploadThing</span>
-                    </div>
-                    <div className="tech-stack-item">
-                      <div className="w-5 h-5 rounded-full bg-amber-500/20 flex items-center justify-center">
-                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
-                      </div>
-                      <span className="font-medium">React</span>
-                    </div>
-                    <div className="tech-stack-item">
-                      <div className="w-5 h-5 rounded-full bg-cyan-500/20 flex items-center justify-center">
-                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="text-cyan-500"><path d="M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7m0-18H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7m0-18v18"></path></svg>
-                      </div>
-                      <span className="font-medium">Tailwind CSS</span>
                     </div>
                   </div>
                 ))}

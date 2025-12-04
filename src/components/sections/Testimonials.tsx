@@ -1,4 +1,3 @@
-
 import { Card } from "@/components/ui/card";
 import { Star, Quote } from "lucide-react";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
@@ -8,44 +7,39 @@ import { useRef, useEffect } from "react";
 
 const testimonials = [
   {
-    text: "The section-by-section analysis helped me understand exactly what was missing from my PM resume. After implementing the suggestions, I got more interview calls within weeks.",
+    text: "The section-by-section analysis helped me understand exactly what was missing from my resume. After implementing the suggestions, I got more interview calls within weeks.",
     author: "Sarah Chen",
-    handle: "@sarahchen_pm",
     role: "Senior Product Manager",
     initial: "SC",
-    company: "Spotify"
+    company: "Tech Industry"
   },
   {
     text: "As a software engineer, I was skeptical, but the tool actually caught missing technical keywords and helped me quantify my achievements. The difference was immediate in callback rates.",
     author: "Alex Rodriguez",
-    handle: "@alexdev",
     role: "Full-Stack Engineer",
     initial: "AR",
-    company: "Stripe"
+    company: "Startup"
   },
   {
     text: "As someone transitioning into UX design, this tool was invaluable. It helped me highlight transferable skills and frame my experience in a design context that recruiters understand.",
     author: "Priya Sharma",
-    handle: "@priyaux",
-    role: "UX Designer at Shopify",
+    role: "UX Designer",
     initial: "PS",
-    company: "Shopify"
+    company: "E-commerce"
   },
   {
-    text: "Being a recent grad, I had no idea how to make my resume stand out. The detailed feedback showed me exactly how to position my projects and internships to land my first tech job.",
+    text: "Being a recent grad, I had no idea how to make my resume stand out. The detailed feedback showed me exactly how to position my projects and internships to land my first job.",
     author: "Jason Lee",
-    handle: "@jasontech",
     role: "Junior Developer",
     initial: "JL",
-    company: "Adobe"
+    company: "Agency"
   },
   {
     text: "Switching from finance to tech was daunting, but the tool helped me translate my skills into tech-friendly language. The STAR format suggestions were game-changing.",
     author: "Maya Johnson",
-    handle: "@mayafintech",
     role: "Business Analyst",
     initial: "MJ",
-    company: "Square"
+    company: "Finance"
   }
 ];
 
@@ -88,10 +82,10 @@ const Testimonials = () => {
             Success Stories
           </Badge>
           <h2 className="text-3xl md:text-5xl font-bold text-warm-text mb-6 leading-tight">
-            Trusted by job seekers<br />across<span className="text-gradient ml-2">tech roles</span>
+            Trusted by Job Seekers<br />Across<span className="text-gradient ml-2">All Roles</span>
           </h2>
           <p className="text-slate-600 max-w-2xl">
-            See how our users transformed their resumes and landed interviews at top tech companies.
+            From analysts to engineers to managers — MatchRate helps candidates stand out.
           </p>
         </div>
         
