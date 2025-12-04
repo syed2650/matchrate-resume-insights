@@ -1,29 +1,28 @@
-
-import { FileText, Target, MessageSquare, CheckCircle, UserX, BarChart, Star, Lightbulb } from "lucide-react";
+import { AlertCircle, Target, MessageSquare, Lightbulb, Palette, UserCheck, FileSearch, ListChecks } from "lucide-react";
 import { useEffect, useRef } from "react";
 
 const features = [
   {
-    title: "Understand Why You're Being Rejected",
-    description: "Discover the exact reasons your resume isn't making it past ATS systems and hiring managers, with precise feedback tailored for tech roles.",
-    icon: <UserX className="w-7 h-7 text-white" />,
+    title: "Understand What's Holding Your Resume Back",
+    description: "Identify weak sections, flagged issues & low-impact bullets instantly.",
+    icon: <AlertCircle className="w-7 h-7 text-white" />,
     bgColor: "bg-rose-500/90"
   },
   {
-    title: "Get Laser-Focused Keyword Matching",
-    description: "Identify critical role-specific keywords missing from your resume and ensure your achievements align perfectly with what hiring managers are looking for.",
+    title: "Laser-Focused Keyword Matching",
+    description: "Get ATS & JD keyword matching with missing skills highlighted automatically.",
     icon: <Target className="w-7 h-7 text-white" />,
     bgColor: "bg-indigo-500/90"
   },
   {
     title: "Transform Your Bullet Points",
-    description: "Convert weak, vague statements into powerful STAR format achievements that showcase your skills and quantifiable impacts.",
+    description: "Rewrite bullets using STAR format, measurable impact & strong action verbs.",
     icon: <MessageSquare className="w-7 h-7 text-white" />,
     bgColor: "bg-violet-500/90"
   },
   {
-    title: "Receive Expert-Level Insights",
-    description: "Get feedback based on actual tech hiring practices from FAANG and top startups, helping you showcase abilities that truly stand out.",
+    title: "Expert-Level Insights",
+    description: "Learn exactly what recruiters see — including formatting errors, parsing issues, weak phrases & redundancies.",
     icon: <Lightbulb className="w-7 h-7 text-white" />,
     bgColor: "bg-warm-accent/90"
   }
@@ -31,24 +30,24 @@ const features = [
 
 const additionalFeatures = [
   {
-    title: "Relevance Score",
-    description: "See exactly how well your resume matches the job requirements with our proprietary scoring algorithm.",
-    icon: <BarChart className="w-6 h-6 text-warm-accent" />,
-  },
-  {
-    title: "Section-by-Section Analysis",
-    description: "Get detailed feedback on every component of your resume, from summary to skills to work experience.",
-    icon: <FileText className="w-6 h-6 text-warm-accent" />,
-  },
-  {
-    title: "Interview Readiness Rating",
-    description: "Know immediately if your resume is ready to submit or needs critical improvements first.",
-    icon: <CheckCircle className="w-6 h-6 text-warm-accent" />,
+    title: "Colour-Coded Resume Feedback",
+    description: "Easily see strengths, weaknesses & improvement areas.",
+    icon: <Palette className="w-6 h-6 text-warm-accent" />,
   },
   {
     title: "Role-Specific Optimization",
-    description: "Tailor your resume for different company types from startups to enterprise with our sector selection.",
-    icon: <Star className="w-6 h-6 text-warm-accent" />,
+    description: "Tailor your resume to any job description — instantly.",
+    icon: <UserCheck className="w-6 h-6 text-warm-accent" />,
+  },
+  {
+    title: "ATS Compatibility Check",
+    description: "Detect formatting issues, missing keywords & parsing problems.",
+    icon: <FileSearch className="w-6 h-6 text-warm-accent" />,
+  },
+  {
+    title: "Missing Skills Insights",
+    description: "Automatically extract missing tools, skills & competencies from the JD.",
+    icon: <ListChecks className="w-6 h-6 text-warm-accent" />,
   }
 ];
 
@@ -88,8 +87,7 @@ const Features = () => {
             Stop Guessing <span className="text-gradient">Why You're Not</span><br className="hidden md:block" /> Getting Interviews
           </h2>
           <p className="mt-4 text-lg text-slate-600 max-w-3xl">
-            Our AI-powered tool provides detailed, actionable feedback specifically designed 
-            for tech job seekers — from PMs to Engineers and beyond.
+            MatchRate gives you clear, actionable, AI-powered feedback built for modern job applications.
           </p>
         </div>
         

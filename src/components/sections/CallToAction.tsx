@@ -1,8 +1,6 @@
-
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Flame } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { canUseFeedback } from "@/pages/review/utils";
 import { useState } from "react";
 import UsageLimitModal from "@/pages/review/components/UsageLimitModal";
 
@@ -22,10 +20,10 @@ const CallToAction = () => {
     <section className="py-20 md:py-28 hero-gradient border-y border-slate-100">
       <div className="container max-w-2xl mx-auto px-4 text-center flex flex-col items-center">
         <h2 className="text-3xl md:text-4xl font-bold text-warm-text mb-4 tracking-tight">
-          Ready to improve your resume?
+          Ready to Improve Your Resume?
         </h2>
         <p className="text-lg text-slate-600 mb-8 max-w-2xl mx-auto">
-          Get comprehensive AI-powered feedback that helps you understand exactly what's holding your resume back — and how to fix it.
+          Get instant AI-powered resume feedback and discover exactly what's holding you back.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 mb-8">
           <Button 
@@ -33,21 +31,19 @@ const CallToAction = () => {
             className="bg-warm-accent hover:bg-warm-accent/90 transition-all duration-200 hover:scale-105 text-white px-9 py-4 text-lg rounded-xl shadow-md font-semibold flex items-center gap-2"
             onClick={handleTryClick}
           >
-            Try MatchRate Free
+            Analyze My Resume Free
             <ArrowRight className="w-5 h-5" />
           </Button>
           <Button 
             size="lg"
             variant="outline"
-            className="border-2 border-warm-accent text-warm-accent hover:bg-warm-accent hover:text-white px-9 py-4 text-lg rounded-xl font-semibold transition-all duration-200 hover:scale-105"
-            onClick={() => navigate('/resume-feedback')}
+            className="border-2 border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white px-9 py-4 text-lg rounded-xl font-semibold transition-all duration-200 hover:scale-105"
+            onClick={() => navigate('/lovable')}
           >
-            Check Resume Health
+            <Flame className="mr-2 w-5 h-5" />
+            Try Resume Roast
           </Button>
         </div>
-        <p className="text-sm text-slate-500">
-          Or get a general resume health check with our free tool
-        </p>
       </div>
 
       <UsageLimitModal 

@@ -17,12 +17,10 @@ interface PlanFeature {
 interface PricingPlan {
   name: string;
   price: string;
-  discountedPrice?: string;
   period: string | null;
   description: string;
   features: PlanFeature[];
   popular?: boolean;
-  badge?: string;
 }
 
 const pricingPlans: PricingPlan[] = [
@@ -30,34 +28,34 @@ const pricingPlans: PricingPlan[] = [
     name: "Free",
     price: "0",
     period: null,
-    description: "For job seekers exploring our resume feedback tool.",
+    description: "Perfect for trying MatchRate.",
     features: [
-      { name: "1 resume review", available: true },
-      { name: "Keyword matching", available: true },
-      { name: "Section-by-section feedback", available: true },
-      { name: "Relevance & ATS Score", available: true },
-      { name: "STAR bullet suggestions", available: true, note: "(View-only)" },
-      { name: "Full Resume Rewrite", available: false },
-      { name: "Export reports", available: false },
+      { name: "1 resume upload", available: true },
+      { name: "Basic resume improvements", available: true },
+      { name: "Basic ATS score", available: true },
+      { name: "Basic JD match", available: true },
+      { name: "Roast card", available: true },
+      { name: "No history", available: false },
+      { name: "No PDF downloads", available: false },
+      { name: "Daily limit applies", available: false },
     ]
   },
   {
-    name: "Premium",
-    price: "7",
-    discountedPrice: "3.50",
+    name: "Pro",
+    price: "3.99",
     period: "monthly",
-    description: "For focused job seekers actively applying.",
+    description: "For serious job seekers wanting full optimization.",
     features: [
-      { name: "30 resume reviews per month", available: true },
-      { name: "Keyword matching", available: true },
-      { name: "Section-by-section feedback", available: true },
-      { name: "Relevance & ATS Score", available: true },
-      { name: "STAR bullet suggestions", available: true },
-      { name: "15 Resume rewrites per month", available: true },
-      { name: "Export reports (.docx)", available: true },
+      { name: "Unlimited resume analyses", available: true },
+      { name: "Unlimited JD match scans", available: true },
+      { name: "Full ATS breakdown", available: true },
+      { name: "Full Resume Improvements suite", available: true },
+      { name: "Colour-coded results", available: true },
+      { name: "All PDF downloads", available: true },
+      { name: "Shareable roast cards", available: true },
+      { name: "Priority processing", available: true },
     ],
-    popular: true,
-    badge: "50% Off First Month"
+    popular: true
   }
 ];
 
@@ -95,8 +93,6 @@ const Pricing = () => {
 
   const handleUpgrade = async (planName: string) => {
     if (planName === "Free") {
-      // Free plan doesn't need authentication
-      // Simply activate the free plan
       toast({
         title: "Free plan activated",
         description: "You're now on the Free plan with 1 resume review per day."
@@ -107,7 +103,6 @@ const Pricing = () => {
         setIsLoading(planName);
         
         if (!user) {
-          // If not logged in, redirect to auth page with the selected plan
           navigate("/auth", { 
             state: { 
               fromPricing: true, 
@@ -117,7 +112,6 @@ const Pricing = () => {
           return;
         }
         
-        // User is already logged in, proceed to checkout
         toast({
           title: "Preparing checkout...",
           description: "You'll be redirected to the payment page shortly."
@@ -133,7 +127,6 @@ const Pricing = () => {
         }
         
         if (data?.url) {
-          // Add delay to ensure toast is seen
           setTimeout(() => {
             window.location.href = data.url;
           }, 300);
@@ -163,7 +156,7 @@ const Pricing = () => {
         <div className="text-left mb-16 fade-in pricing-animated">
           <p className="text-warm-accent font-medium text-sm mb-3 uppercase tracking-wider">Simple Pricing</p>
           <h2 className="text-3xl md:text-5xl font-bold text-warm-text mb-6">
-            Choose the Plan That <span className="text-gradient">Fits Your Needs</span>
+            Simple Pricing That <span className="text-gradient">Fits Your Job Search</span>
           </h2>
           <p className="mt-4 text-lg text-slate-600 max-w-3xl">
             Get the feedback you need to land interviews, with plans designed for every job seeker's budget and goals.
@@ -175,10 +168,7 @@ const Pricing = () => {
                 <Check className="h-5 w-5 text-emerald-600" />
               </div>
               <span className="font-medium text-emerald-800">
-                You're currently on the Premium Plan!
-              </span>
-              <span className="text-sm text-emerald-700">
-                {30 - stats.monthly.feedbacks} reviews and {15 - stats.monthly.rewrites} rewrites remaining this month.
+                You're currently on the Pro Plan!
               </span>
             </div>
           )}
@@ -208,12 +198,6 @@ const Pricing = () => {
                       </div>
                     )}
                     
-                    {plan.badge && (
-                      <div className="absolute top-0 right-4 transform -translate-y-1/2 inline-block px-4 py-1 text-xs font-medium text-white bg-amber-500 rounded-full shadow-md">
-                        {plan.badge}
-                      </div>
-                    )}
-                    
                     {stats.plan === plan.name.toLowerCase() && (
                       <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 inline-block px-4 py-1 text-xs font-medium text-white bg-emerald-600 rounded-full shadow-md">
                         Your Current Plan
@@ -222,28 +206,12 @@ const Pricing = () => {
                     
                     <h3 className="text-xl font-bold text-warm-text mb-2">{plan.name}</h3>
                     <div className="flex items-baseline mb-4">
-                      {plan.discountedPrice ? (
-                        <>
-                          <del className="text-2xl text-slate-400 mr-2">${plan.price}</del>
-                          <span className="text-4xl font-bold text-warm-text">${plan.discountedPrice}</span>
-                        </>
-                      ) : (
-                        <span className="text-4xl font-bold text-warm-text">${plan.price}</span>
-                      )}
+                      <span className="text-4xl font-bold text-warm-text">£{plan.price}</span>
                       {plan.period && (
-                        <span className="text-slate-500 ml-1">
-                          {plan.discountedPrice ? '/first month' : `/${plan.period}`}
-                        </span>
+                        <span className="text-slate-500 ml-1">/{plan.period}</span>
                       )}
                     </div>
-                    <p className="text-slate-600 mb-6 text-sm">
-                      {plan.description}
-                      {plan.discountedPrice && (
-                        <span className="block text-xs mt-1 text-amber-600">
-                          Regular price: ${plan.price}/month after first month
-                        </span>
-                      )}
-                    </p>
+                    <p className="text-slate-600 mb-6 text-sm">{plan.description}</p>
                     
                     <Button 
                       className={`w-full mb-7 font-semibold px-6 py-3 rounded-xl transition-all duration-200 hover:scale-[1.02] ${
@@ -257,11 +225,11 @@ const Pricing = () => {
                       isLoading={isLoading === plan.name}
                     >
                       {stats.plan === plan.name.toLowerCase() ? 'Current Plan' : 
-                        plan.name === "Free" ? "Try Now" : "Get Started"}
+                        plan.name === "Free" ? "Try Now" : "Get MatchRate Pro"}
                     </Button>
                     
                     <div className="space-y-3">
-                      {plan.features.slice(0, 5).map((feature, featureIndex) => (
+                      {plan.features.map((feature, featureIndex) => (
                         <div key={featureIndex} className="flex items-start gap-3 text-slate-600">
                           {feature.available ? (
                             <Check className="w-5 h-5 text-emerald-500 mt-0.5 shrink-0" />
@@ -274,24 +242,6 @@ const Pricing = () => {
                           </span>
                         </div>
                       ))}
-                      
-                      {plan.features.length > 5 && (
-                        <div className="pt-2 border-t border-slate-100 mt-4">
-                          {plan.features.slice(5).map((feature, featureIndex) => (
-                            <div key={featureIndex + 5} className="flex items-start gap-3 text-slate-600 mt-3">
-                              {feature.available ? (
-                                <Check className="w-5 h-5 text-emerald-500 mt-0.5 shrink-0" />
-                              ) : (
-                                <X className="w-5 h-5 text-slate-300 mt-0.5 shrink-0" />
-                              )}
-                              <span>
-                                {feature.name} 
-                                {feature.note && <span className="text-sm text-slate-400"> {feature.note}</span>}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
                     </div>
                   </div>
                 ))}
@@ -311,13 +261,14 @@ const Pricing = () => {
                   </thead>
                   <tbody>
                     {[
-                      "Resume reviews",
-                      "Keyword matching",
-                      "Section-by-section feedback",
-                      "Relevance & ATS Score",
-                      "STAR bullet suggestions",
-                      "Resume rewrite credits",
-                      "Export reports",
+                      "Resume analyses",
+                      "JD match scans",
+                      "ATS breakdown",
+                      "Resume Improvements",
+                      "Colour-coded results",
+                      "PDF downloads",
+                      "Shareable roast cards",
+                      "Priority processing",
                     ].map((feature, i) => (
                       <tr key={i} className="border-b border-slate-100 last:border-0">
                         <td className="p-4 text-sm text-slate-700">{feature}</td>
@@ -344,7 +295,7 @@ const Pricing = () => {
                       <td className="p-4 text-sm font-medium text-slate-800">Pricing</td>
                       {pricingPlans.map((plan, i) => (
                         <td key={i} className="p-4 text-center">
-                          <div className="font-bold text-warm-text">${plan.price}</div>
+                          <div className="font-bold text-warm-text">£{plan.price}</div>
                           {plan.period && <div className="text-xs text-slate-500">{plan.period}</div>}
                         </td>
                       ))}
