@@ -3,6 +3,7 @@ import { ResultSectionCard } from "../ui/ResultSectionCard";
 import { ScoreProgressBar } from "../ui/ScoreProgressBar";
 import { DownloadPDFButton } from "../ui/DownloadPDFButton";
 import { CopyButton } from "../ui/CopyButton";
+import { stripMarkdown, stripMarkdownLine, parseCleanBullets } from "../../utils/stripMarkdown";
 
 interface JDMatchResultData {
   matchScore: number;
@@ -22,8 +23,7 @@ export const JDMatchResult = ({ result }: JDMatchResultProps) => {
   const parseSoftSkills = (content: string) => {
     const match = content.match(/Missing Soft Skills[^#]*(?=###|$)/i);
     if (match) {
-      const lines = match[0].split('\n').slice(1).filter(l => l.trim().startsWith('-') || l.trim().startsWith('•'));
-      return lines.map(l => l.replace(/^[-•]\s*/, '').trim());
+      return parseCleanBullets(match[0]);
     }
     return [];
   };
@@ -31,7 +31,7 @@ export const JDMatchResult = ({ result }: JDMatchResultProps) => {
   const parseKeywordIntegration = (content: string) => {
     const match = content.match(/JD Keyword Integration Suggestions?[\s\S]*?(?=###|$)/i);
     if (match) {
-      return match[0].replace(/^.*JD Keyword Integration Suggestions?[:\s]*/i, '').trim();
+      return stripMarkdown(match[0].replace(/^.*JD Keyword Integration Suggestions?[:\s]*/i, '').trim());
     }
     return null;
   };
@@ -39,7 +39,7 @@ export const JDMatchResult = ({ result }: JDMatchResultProps) => {
   const parseRoleFit = (content: string) => {
     const match = content.match(/Role Fit Assessment[\s\S]*?(?=###|$)/i);
     if (match) {
-      return match[0].replace(/^.*Role Fit Assessment[:\s]*/i, '').trim();
+      return stripMarkdown(match[0].replace(/^.*Role Fit Assessment[:\s]*/i, '').trim());
     }
     return null;
   };
@@ -48,14 +48,22 @@ export const JDMatchResult = ({ result }: JDMatchResultProps) => {
   const keywordIntegration = rawContent ? parseKeywordIntegration(rawContent) : null;
   const roleFit = rawContent ? parseRoleFit(rawContent) : null;
   
-  const hasData = missingSkills.length > 0 || optimizedBullets.length > 0;
+  // Clean arrays
+  const cleanMissingSkills = missingSkills.map(s => stripMarkdownLine(s));
+  const cleanOptimizedBullets = optimizedBullets.map(b => stripMarkdownLine(b));
+  
+  const hasData = cleanMissingSkills.length > 0 || cleanOptimizedBullets.length > 0;
+  
+  // Clean raw content
+  const cleanRawContent = rawContent ? stripMarkdown(rawContent) : '';
+  const exportContent = cleanRawContent || `Match Score: ${matchScore}/100\n\nMissing Skills:\n${cleanMissingSkills.join('\n')}\n\nOptimized Bullets:\n${cleanOptimizedBullets.join('\n')}`;
   
   return (
     <div className="space-y-4">
       <div className="flex gap-2 mb-4">
-        <CopyButton text={rawContent || JSON.stringify(result, null, 2)} label="Copy All" />
+        <CopyButton text={exportContent} label="Copy All" />
         <DownloadPDFButton 
-          content={rawContent || `Match Score: ${matchScore}/100\n\nMissing Skills:\n${missingSkills.join('\n')}\n\nOptimized Bullets:\n${optimizedBullets.join('\n')}`} 
+          content={exportContent} 
           filename="jd-match-analysis" 
           title="Job Match Analysis" 
         />
@@ -66,24 +74,24 @@ export const JDMatchResult = ({ result }: JDMatchResultProps) => {
         <ScoreProgressBar score={matchScore} label="Match Score" colorClass="text-purple-600" />
       </div>
       
-      {!hasData && rawContent ? (
+      {!hasData && cleanRawContent ? (
         <div className="bg-muted/50 rounded-xl p-5 shadow-sm">
-          <div className="text-sm leading-relaxed whitespace-pre-wrap">{rawContent}</div>
+          <div className="text-sm leading-relaxed">{cleanRawContent}</div>
         </div>
       ) : (
         <>
           {/* Missing Hard Skills - Yellow */}
-          {missingSkills.length > 0 && (
+          {cleanMissingSkills.length > 0 && (
             <ResultSectionCard
-              title={`Missing Skills (${missingSkills.length})`}
+              title={`Missing Skills (${cleanMissingSkills.length})`}
               icon={<AlertTriangle className="h-5 w-5 text-yellow-600" />}
               bgColor="bg-yellow-50"
-              copyText={missingSkills.join('\n')}
+              copyText={cleanMissingSkills.join('\n')}
             >
               <ul className="space-y-2">
-                {missingSkills.map((skill, i) => (
+                {cleanMissingSkills.map((skill, i) => (
                   <li key={i} className="flex gap-2 items-start">
-                    <span className="text-yellow-500 mt-0.5">🎯</span>
+                    <span className="text-yellow-500 mt-0.5">•</span>
                     <span>{skill}</span>
                   </li>
                 ))}
@@ -113,15 +121,15 @@ export const JDMatchResult = ({ result }: JDMatchResultProps) => {
           )}
           
           {/* Optimized Bullets - Blue */}
-          {optimizedBullets.length > 0 && (
+          {cleanOptimizedBullets.length > 0 && (
             <ResultSectionCard
-              title={`Optimized Bullets (${optimizedBullets.length})`}
+              title={`Optimized Bullets (${cleanOptimizedBullets.length})`}
               icon={<Sparkles className="h-5 w-5 text-blue-600" />}
               bgColor="bg-blue-50"
-              copyText={optimizedBullets.join('\n\n')}
+              copyText={cleanOptimizedBullets.join('\n\n')}
             >
               <div className="space-y-3">
-                {optimizedBullets.map((bullet, i) => (
+                {cleanOptimizedBullets.map((bullet, i) => (
                   <div 
                     key={i} 
                     className="bg-white p-3 rounded-lg border-l-4 border-blue-500 shadow-sm"
@@ -141,7 +149,11 @@ export const JDMatchResult = ({ result }: JDMatchResultProps) => {
               bgColor="bg-purple-50"
               copyText={keywordIntegration}
             >
-              <div className="text-sm whitespace-pre-wrap leading-relaxed">{keywordIntegration}</div>
+              <div className="text-sm leading-relaxed">
+                {keywordIntegration.split('\n').map((line, i) => (
+                  <p key={i} className="py-0.5">{line}</p>
+                ))}
+              </div>
             </ResultSectionCard>
           )}
           
@@ -153,22 +165,14 @@ export const JDMatchResult = ({ result }: JDMatchResultProps) => {
               bgColor="bg-slate-100"
               copyText={roleFit}
             >
-              <div className="text-sm whitespace-pre-wrap leading-relaxed">{roleFit}</div>
+              <div className="text-sm leading-relaxed">
+                {roleFit.split('\n').map((line, i) => (
+                  <p key={i} className="py-0.5">{line}</p>
+                ))}
+              </div>
             </ResultSectionCard>
           )}
         </>
-      )}
-      
-      {/* Full Analysis Expandable */}
-      {rawContent && hasData && (
-        <details className="mt-2">
-          <summary className="cursor-pointer text-sm text-muted-foreground hover:text-foreground font-medium">
-            View Full Analysis
-          </summary>
-          <div className="bg-muted/30 p-4 rounded-xl mt-2 text-sm whitespace-pre-wrap max-h-[400px] overflow-y-auto">
-            {rawContent}
-          </div>
-        </details>
       )}
     </div>
   );
