@@ -1,7 +1,8 @@
-import { Flame, Share2, Twitter, Linkedin, MessageCircle } from "lucide-react";
+import { Flame, Twitter, Linkedin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CopyButton } from "../ui/CopyButton";
 import { DownloadPDFButton } from "../ui/DownloadPDFButton";
+import { stripMarkdown, stripMarkdownLine } from "../../utils/stripMarkdown";
 
 interface RoastScores {
   formatting: number;
@@ -26,11 +27,14 @@ interface RoastCardResultProps {
 export const RoastCardResult = ({ result }: RoastCardResultProps) => {
   const { roast, scores, shareText, shareUrl, rawContent } = result;
   
-  // Parse additional sections from rawContent
+  // Clean roast text - remove markdown
+  const cleanRoast = stripMarkdownLine(roast);
+  
+  // Parse additional sections from rawContent (clean version)
   const parseWhySection = (content: string) => {
     const match = content.match(/Why Your Resume Looks Like This[\s\S]*?(?=###|📘|🧩|$)/i);
     if (match) {
-      return match[0].replace(/^.*Why Your Resume Looks Like This[:\s]*/i, '').replace(/^\*\*.*?\*\*\s*/i, '').trim();
+      return stripMarkdown(match[0].replace(/^.*Why Your Resume Looks Like This[:\s]*/i, '').trim());
     }
     return null;
   };
@@ -38,7 +42,7 @@ export const RoastCardResult = ({ result }: RoastCardResultProps) => {
   const parseWhatSection = (content: string) => {
     const match = content.match(/What This Says About You[\s\S]*?(?=###|📘|$)/i);
     if (match) {
-      return match[0].replace(/^.*What This Says About You[:\s]*/i, '').replace(/^\*\*.*?\*\*\s*/i, '').trim();
+      return stripMarkdown(match[0].replace(/^.*What This Says About You[:\s]*/i, '').trim());
     }
     return null;
   };
@@ -46,7 +50,7 @@ export const RoastCardResult = ({ result }: RoastCardResultProps) => {
   const parseRealReview = (content: string) => {
     const match = content.match(/Real Review[\s\S]*?(?=###\s*Scores|$)/i);
     if (match) {
-      return match[0].replace(/^.*Real Review[:\s]*/i, '').replace(/^\*\*.*?\*\*\s*/i, '').trim();
+      return stripMarkdown(match[0].replace(/^.*Real Review[:\s]*/i, '').trim());
     }
     return null;
   };
@@ -56,13 +60,13 @@ export const RoastCardResult = ({ result }: RoastCardResultProps) => {
   const realReview = rawContent ? parseRealReview(rawContent) : null;
   
   const getScoreColor = (score: number) => {
-    if (score >= 80) return "text-green-600 bg-green-50";
-    if (score >= 60) return "text-yellow-600 bg-yellow-50";
-    return "text-red-600 bg-red-50";
+    if (score >= 80) return "text-green-600 bg-green-50 border-green-200";
+    if (score >= 60) return "text-yellow-600 bg-yellow-50 border-yellow-200";
+    return "text-red-600 bg-red-50 border-red-200";
   };
   
   const handleTwitterShare = () => {
-    const text = encodeURIComponent(shareText + (shareUrl ? '\n' + shareUrl : ''));
+    const text = encodeURIComponent(stripMarkdownLine(shareText) + (shareUrl ? '\n' + shareUrl : ''));
     window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
   };
   
@@ -70,6 +74,10 @@ export const RoastCardResult = ({ result }: RoastCardResultProps) => {
     const url = encodeURIComponent(shareUrl || window.location.href);
     window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`, '_blank');
   };
+  
+  // Clean content for export
+  const cleanRawContent = rawContent ? stripMarkdown(rawContent) : '';
+  const exportContent = cleanRawContent || `${cleanRoast}\n\nScores:\nFormatting: ${scores.formatting}\nClarity: ${scores.clarity}\nImpact: ${scores.impact}\nATS: ${scores.ats}\nOverall: ${scores.overall}`;
   
   return (
     <div className="bg-gradient-to-br from-orange-50 via-amber-50 to-red-50 rounded-xl border-2 border-orange-300 overflow-hidden shadow-lg">
@@ -84,10 +92,10 @@ export const RoastCardResult = ({ result }: RoastCardResultProps) => {
       <div className="p-5 space-y-5">
         {/* Action Buttons */}
         <div className="flex flex-wrap gap-2">
-          <CopyButton text={roast} label="Copy Roast" />
-          <CopyButton text={rawContent || shareText} label="Copy All" />
+          <CopyButton text={cleanRoast} label="Copy Roast" />
+          <CopyButton text={exportContent} label="Copy All" />
           <DownloadPDFButton 
-            content={rawContent || `${roast}\n\nScores:\nFormatting: ${scores.formatting}\nClarity: ${scores.clarity}\nImpact: ${scores.impact}\nATS: ${scores.ats}\nOverall: ${scores.overall}`} 
+            content={exportContent} 
             filename="resume-roast" 
             title="Resume Roast Card" 
           />
@@ -100,7 +108,7 @@ export const RoastCardResult = ({ result }: RoastCardResultProps) => {
               <span className="text-3xl">🔥</span>
             </div>
             <p className="text-lg font-medium text-slate-800 italic leading-relaxed pt-2">
-              "{roast}"
+              "{cleanRoast}"
             </p>
           </div>
           {/* Speech bubble tail */}
@@ -111,7 +119,7 @@ export const RoastCardResult = ({ result }: RoastCardResultProps) => {
         {whySection && (
           <div className="bg-amber-50 rounded-xl p-4 border border-amber-200">
             <h4 className="font-semibold text-amber-800 mb-2 flex items-center gap-2">
-              <span>📌</span> Why Your Resume Looks Like This
+              Why Your Resume Looks Like This
             </h4>
             <p className="text-sm text-amber-900 leading-relaxed">{whySection}</p>
           </div>
@@ -121,7 +129,7 @@ export const RoastCardResult = ({ result }: RoastCardResultProps) => {
         {whatSection && (
           <div className="bg-orange-50 rounded-xl p-4 border border-orange-200">
             <h4 className="font-semibold text-orange-800 mb-2 flex items-center gap-2">
-              <span>🧩</span> What This Says About You
+              What This Says About You
             </h4>
             <p className="text-sm text-orange-900 leading-relaxed">{whatSection}</p>
           </div>
@@ -131,9 +139,23 @@ export const RoastCardResult = ({ result }: RoastCardResultProps) => {
         {realReview && (
           <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
             <h4 className="font-semibold text-slate-800 mb-2 flex items-center gap-2">
-              <span>📘</span> Real Review
+              Real Review
             </h4>
-            <div className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{realReview}</div>
+            <div className="text-sm text-slate-700 leading-relaxed">
+              {realReview.split('\n').map((line, i) => {
+                const trimmed = line.trim();
+                if (!trimmed) return null;
+                if (trimmed.startsWith('-') || trimmed.startsWith('•')) {
+                  return (
+                    <div key={i} className="flex gap-2 py-0.5">
+                      <span className="text-slate-400">•</span>
+                      <span>{trimmed.replace(/^[-•]\s*/, '')}</span>
+                    </div>
+                  );
+                }
+                return <p key={i} className="py-0.5">{trimmed}</p>;
+              })}
+            </div>
           </div>
         )}
         
@@ -176,7 +198,6 @@ export const RoastCardResult = ({ result }: RoastCardResultProps) => {
         {/* Share URL */}
         {shareUrl && (
           <div className="text-center text-sm text-slate-500 bg-white/50 p-2 rounded-lg">
-            <span>🔗 </span>
             <a 
               href={shareUrl} 
               className="text-orange-600 underline font-medium hover:text-orange-700" 
@@ -186,18 +207,6 @@ export const RoastCardResult = ({ result }: RoastCardResultProps) => {
               {shareUrl}
             </a>
           </div>
-        )}
-        
-        {/* Full Analysis Expandable */}
-        {rawContent && (
-          <details className="mt-2">
-            <summary className="cursor-pointer text-sm text-muted-foreground hover:text-foreground font-medium">
-              View Full Analysis
-            </summary>
-            <div className="bg-white/80 p-4 rounded-xl mt-2 text-sm whitespace-pre-wrap max-h-[400px] overflow-y-auto border border-orange-100">
-              {rawContent}
-            </div>
-          </details>
         )}
       </div>
     </div>

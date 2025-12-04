@@ -10,6 +10,7 @@ import {
 import { ResultSectionCard } from "../ui/ResultSectionCard";
 import { DownloadPDFButton } from "../ui/DownloadPDFButton";
 import { CopyButton } from "../ui/CopyButton";
+import { stripMarkdown, stripMarkdownLine } from "../../utils/stripMarkdown";
 
 interface ResumeImprovementsResultProps {
   content: string;
@@ -30,7 +31,7 @@ export const ResumeImprovementsResult = ({ content }: ResumeImprovementsResultPr
     
     parts.forEach(part => {
       const lines = part.trim().split('\n');
-      const titleLine = lines[0]?.replace(/^#+\s*/, '').trim();
+      const titleLine = stripMarkdownLine(lines[0]?.replace(/^#+\s*/, '').trim());
       const body = lines.slice(1).join('\n').trim();
       
       if (!titleLine || !body) return;
@@ -76,52 +77,55 @@ export const ResumeImprovementsResult = ({ content }: ResumeImprovementsResultPr
       const trimmed = line.trim();
       if (!trimmed) return null;
       
-      // Handle **Before:** and **After:** formatting
-      if (trimmed.includes('**Before:**') || trimmed.includes('**After:**')) {
-        const parts = trimmed.split(/(\*\*[^*]+\*\*)/g);
+      // Strip markdown from line
+      const cleanLine = stripMarkdownLine(trimmed);
+      
+      // Handle Before/After formatting (clean version)
+      if (trimmed.toLowerCase().includes('before:') || trimmed.toLowerCase().includes('after:')) {
+        const isAfter = trimmed.toLowerCase().includes('after:');
+        const label = isAfter ? 'After:' : 'Before:';
+        const value = cleanLine.replace(/^(before|after):\s*/i, '');
         return (
           <p key={idx} className="ml-2 py-0.5">
-            {parts.map((part, i) => {
-              if (part.startsWith('**') && part.endsWith('**')) {
-                return <strong key={i} className="font-semibold">{part.slice(2, -2)}</strong>;
-              }
-              return part;
-            })}
+            <strong className={`font-semibold ${isAfter ? 'text-green-700' : 'text-slate-600'}`}>{label}</strong>{' '}
+            <span>{value}</span>
           </p>
         );
       }
       
       // Handle bullet points
-      if (trimmed.startsWith('-') || trimmed.startsWith('•')) {
+      if (trimmed.startsWith('-') || trimmed.startsWith('•') || trimmed.startsWith('*')) {
+        const bulletText = stripMarkdownLine(trimmed.replace(/^[-•*]\s*/, ''));
         return (
           <div key={idx} className="flex gap-2 ml-2 py-0.5">
             <span className="text-muted-foreground">•</span>
-            <span>{trimmed.replace(/^[-•]\s*/, '')}</span>
+            <span>{bulletText}</span>
           </div>
         );
       }
       
       // Handle numbered items
       if (/^\d+\./.test(trimmed)) {
-        return <p key={idx} className="ml-2 py-0.5">{trimmed}</p>;
+        const numberedText = stripMarkdownLine(trimmed);
+        return <p key={idx} className="ml-2 py-0.5">{numberedText}</p>;
       }
       
-      return <p key={idx} className="py-0.5">{trimmed}</p>;
+      return <p key={idx} className="py-0.5">{cleanLine}</p>;
     });
   };
   
   const sections = parseContent(content);
+  const cleanContent = stripMarkdown(content);
   
   if (sections.length === 0) {
-    // Fallback: render as single section
     return (
       <div className="space-y-4">
         <div className="flex gap-2 mb-4">
-          <CopyButton text={content} label="Copy All" />
-          <DownloadPDFButton content={content} filename="resume-improvements" title="Resume Improvements" />
+          <CopyButton text={cleanContent} label="Copy All" />
+          <DownloadPDFButton content={cleanContent} filename="resume-improvements" title="Resume Improvements" />
         </div>
         <div className="bg-blue-50 rounded-xl p-5 shadow-sm">
-          <div className="text-sm leading-relaxed whitespace-pre-wrap">{content}</div>
+          <div className="text-sm leading-relaxed">{renderContent(content)}</div>
         </div>
       </div>
     );
@@ -130,8 +134,8 @@ export const ResumeImprovementsResult = ({ content }: ResumeImprovementsResultPr
   return (
     <div className="space-y-4">
       <div className="flex gap-2 mb-4">
-        <CopyButton text={content} label="Copy All" />
-        <DownloadPDFButton content={content} filename="resume-improvements" title="Resume Improvements" />
+        <CopyButton text={cleanContent} label="Copy All" />
+        <DownloadPDFButton content={cleanContent} filename="resume-improvements" title="Resume Improvements" />
       </div>
       
       {sections.map((section, idx) => (
@@ -140,7 +144,7 @@ export const ResumeImprovementsResult = ({ content }: ResumeImprovementsResultPr
           title={section.title}
           icon={section.icon}
           bgColor={section.bgColor}
-          copyText={section.content}
+          copyText={stripMarkdown(section.content)}
         >
           <div className="leading-relaxed">{renderContent(section.content)}</div>
         </ResultSectionCard>
