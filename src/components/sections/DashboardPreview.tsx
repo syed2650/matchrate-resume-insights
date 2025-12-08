@@ -25,8 +25,8 @@ const DashboardPreview = () => {
               </div>
               <div className="p-4">
                 <img 
-                  src="/lovable-uploads/41e02388-22a6-400b-9409-977ae2d23cc8.png" 
-                  alt="Resume Improvements screenshot" 
+                  src="/lovable-uploads/resume-improvements-screenshot.png" 
+                  alt="Resume Improvements screenshot showing summary improvement, bullet rewrites, and action verb suggestions" 
                   className="w-full h-auto rounded-lg border border-slate-100"
                 />
               </div>
@@ -40,8 +40,8 @@ const DashboardPreview = () => {
               </div>
               <div className="p-4">
                 <img 
-                  src="/lovable-uploads/daaf6c67-e6aa-4d91-bb27-57e463c4f421.png" 
-                  alt="ATS Analysis screenshot" 
+                  src="/lovable-uploads/ats-jdmatch-screenshot.png" 
+                  alt="ATS Analysis screenshot showing score, formatting issues, and missing keywords" 
                   className="w-full h-auto rounded-lg border border-slate-100"
                 />
               </div>
@@ -55,8 +55,8 @@ const DashboardPreview = () => {
               </div>
               <div className="p-4">
                 <img 
-                  src="/lovable-uploads/076ae941-c3a2-462d-a9a1-c74272f1cbdf.png" 
-                  alt="JD Match screenshot" 
+                  src="/lovable-uploads/ats-jdmatch-screenshot.png" 
+                  alt="JD Match screenshot showing match score, missing skills, and optimized bullets" 
                   className="w-full h-auto rounded-lg border border-slate-100"
                 />
               </div>
@@ -70,8 +70,8 @@ const DashboardPreview = () => {
               </div>
               <div className="p-4">
                 <img 
-                  src="/lovable-uploads/3b5ac8ab-9069-4498-a35d-38c4d70f0869.png" 
-                  alt="Roast Card screenshot" 
+                  src="/lovable-uploads/roast-card-screenshot.png" 
+                  alt="Roast Card screenshot showing funny roast and real review with scores" 
                   className="w-full h-auto rounded-lg border border-slate-100"
                 />
               </div>
