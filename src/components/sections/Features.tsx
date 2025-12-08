@@ -1,15 +1,15 @@
-import { AlertCircle, Target, MessageSquare, Lightbulb, Palette, UserCheck, FileSearch, ListChecks } from "lucide-react";
+import { AlertCircle, Target, MessageSquare, Lightbulb, Palette, UserCheck, FileSearch, ListChecks, Zap, Eye } from "lucide-react";
 import { useEffect, useRef } from "react";
 
 const features = [
   {
-    title: "Understand What's Holding Your Resume Back",
+    title: "Understand Why You're Being Rejected",
     description: "Identify weak sections, flagged issues & low-impact bullets instantly.",
     icon: <AlertCircle className="w-7 h-7 text-white" />,
     bgColor: "bg-rose-500/90"
   },
   {
-    title: "Laser-Focused Keyword Matching",
+    title: "Get Laser-Focused Keyword Matching",
     description: "Get ATS & JD keyword matching with missing skills highlighted automatically.",
     icon: <Target className="w-7 h-7 text-white" />,
     bgColor: "bg-indigo-500/90"
@@ -21,10 +21,22 @@ const features = [
     bgColor: "bg-violet-500/90"
   },
   {
-    title: "Expert-Level Insights",
+    title: "Receive Expert-Level Insights",
     description: "Learn exactly what recruiters see — including formatting errors, parsing issues, weak phrases & redundancies.",
     icon: <Lightbulb className="w-7 h-7 text-white" />,
     bgColor: "bg-warm-accent/90"
+  },
+  {
+    title: "See Missing Skills",
+    description: "Automatically extract missing tools, skills & competencies from any job description.",
+    icon: <Eye className="w-7 h-7 text-white" />,
+    bgColor: "bg-emerald-500/90"
+  },
+  {
+    title: "Fix ATS Issues Instantly",
+    description: "Detect formatting issues, missing keywords & parsing problems that block your resume.",
+    icon: <Zap className="w-7 h-7 text-white" />,
+    bgColor: "bg-amber-500/90"
   }
 ];
 
@@ -82,17 +94,17 @@ const Features = () => {
     <section id="features" className="py-20 md:py-28 bg-transparent" ref={featuresRef}>
       <div className="container max-w-6xl mx-auto px-4">
         <div className="text-left mb-16 fade-in feature-animated">
-          <p className="text-warm-accent font-medium text-sm mb-3 uppercase tracking-wider">Why Choose Matchrate</p>
+          <p className="text-warm-accent font-medium text-sm mb-3 uppercase tracking-wider">Why Choose Matchrate?</p>
           <h2 className="text-3xl md:text-5xl font-bold text-warm-text leading-tight mb-6">
-            Stop Guessing <span className="text-gradient">Why You're Not</span><br className="hidden md:block" /> Getting Interviews
+            Stop Guessing Why <span className="text-gradient">Your Resume Isn't</span><br className="hidden md:block" /> Getting Interviews
           </h2>
           <p className="mt-4 text-lg text-slate-600 max-w-3xl">
-            MatchRate gives you clear, actionable, AI-powered feedback built for modern job applications.
+            Built for real job seekers — not generic ChatGPT output.
           </p>
         </div>
         
         {/* Main features - larger cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-20">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
           {features.map((feature, index) => (
             <div 
               key={index} 

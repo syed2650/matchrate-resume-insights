@@ -25,7 +25,7 @@ serve(async (req) => {
 
     console.log('Rewriting resume...');
 
-    const prompt = `You are the "Resume Improvement Agent" for MatchRate.co.
+    const prompt = `You are the Resume Improvement Agent for MatchRate.co.
 
 Your job:
 Rewrite ONLY the following sections of the user's resume:
@@ -47,29 +47,38 @@ STRICT RULES:
 - Avoid fluff, clichés, exaggeration, and resume padding.
 - Always prioritize clarity, impact, and measurability.
 - Follow modern resume standards (2024–2025).
+- NO markdown formatting. Use plain text only.
 
-Output Format:
-### Summary Improvement
-[3–4 line rewritten summary]
+SUMMARY REWRITE RULES:
+- Do NOT use clichés like "results-driven," "proven track record," "expert in," "skilled in."
+- Focus ONLY on what is unique to the user based on their resume.
+- Include 1–2 quantifiable achievements (accuracy %, cost savings, team collaboration, project size).
+- Keep it under 4 lines.
+- Tone: confident, clear, and ATS-safe.
 
-### Bullet Improvements
+Output Format (plain text, no markdown):
+
+SUMMARY IMPROVEMENT:
+[3–4 line personalized, specific, impactful summary]
+
+BULLET IMPROVEMENTS:
 For each bullet:
-- **Before:** [original]
-- **After:** [rewritten version with clarity + action verbs + quantification]
+Before: [original]
+After: [rewritten version with clarity + action verbs + quantification]
 
-### Weak / Filler Phrases Detected
+WEAK PHRASES DETECTED:
 [List generic, vague, passive, filler phrases in user's resume]
 
-### Impact Suggestions
+IMPACT SUGGESTIONS:
 [List 4–6 ways the user can add measurable impact to their resume]
 
-### Redundancy Fixes
+REDUNDANCY FIXES:
 [Detect repeated responsibilities across roles]
 
-### Action Verb Suggestions
+ACTION VERB SUGGESTIONS:
 [List 8–12 strong action verbs tailored to their domain]
 
-### Gap Analysis
+GAP ANALYSIS:
 Identify missing elements compared to top candidates in this field:
 - Missing metrics
 - Missing scope indicators (team size, dataset size, budget)
@@ -77,13 +86,10 @@ Identify missing elements compared to top candidates in this field:
 - Missing leadership signals
 - Missing achievements
 
-Tone:
-Professional, specific, measurable, expert-level wording — no fluff.
-
 Original Resume:
 ${resumeText}
 
-Provide your improvements in the format specified above.`;
+Provide your improvements in the format specified above. Use plain text only, no markdown.`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -96,7 +102,7 @@ Provide your improvements in the format specified above.`;
         messages: [
           { 
             role: 'system', 
-            content: 'You are a world-class resume analyst and hiring manager with 15+ years experience. Strengthen existing resumes with precision improvements.' 
+            content: 'You are a world-class resume analyst and hiring manager with 15+ years experience. Strengthen existing resumes with precision improvements. Output plain text only, no markdown formatting.' 
           },
           { role: 'user', content: prompt }
         ],
@@ -116,13 +122,12 @@ Provide your improvements in the format specified above.`;
     const data = await response.json();
     const content = data.choices[0].message.content;
 
-    // Return the full markdown content as the "rewritten" text
-    // Extract any notes if present
+    // Return the full content as the "rewritten" text
     let notes = 'Resume improvements with targeted suggestions for clarity, impact, and action verbs.';
     
-    const keyChangesSection = content.match(/##\s*(?:Key Changes|Summary|Notes)\s*([\s\S]*?)(?:$)/i);
+    const keyChangesSection = content.match(/(?:Key Changes|Summary|Notes)\s*([\s\S]*?)(?:$)/i);
     if (keyChangesSection) {
-      notes = keyChangesSection[1].trim().substring(0, 200); // Limit to 200 chars
+      notes = keyChangesSection[1].trim().substring(0, 200);
     }
 
     return new Response(

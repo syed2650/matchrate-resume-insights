@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Check, X } from "lucide-react";
+import { Check, X, Sparkles } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEffect, useRef, useState } from "react";
 import { getUsageStats } from "@/pages/review/utils";
@@ -21,6 +21,8 @@ interface PricingPlan {
   description: string;
   features: PlanFeature[];
   popular?: boolean;
+  lifetime?: boolean;
+  badge?: string;
 }
 
 const pricingPlans: PricingPlan[] = [
@@ -30,32 +32,45 @@ const pricingPlans: PricingPlan[] = [
     period: null,
     description: "Perfect for trying MatchRate.",
     features: [
-      { name: "1 resume upload", available: true },
-      { name: "Basic resume improvements", available: true },
-      { name: "Basic ATS score", available: true },
-      { name: "Basic JD match", available: true },
-      { name: "Roast card", available: true },
-      { name: "No history", available: false },
-      { name: "No PDF downloads", available: false },
-      { name: "Daily limit applies", available: false },
+      { name: "1 resume analysis", available: true },
+      { name: "1 job match check", available: true },
+      { name: "Basic ATS Score", available: true },
+      { name: "Basic bullet rewrite", available: true },
+      { name: "Roast card", available: false },
+      { name: "PDF export", available: false },
+      { name: "Save history", available: false },
     ]
   },
   {
-    name: "Pro",
+    name: "Premium",
     price: "3.99",
-    period: "monthly",
+    period: "month",
     description: "For serious job seekers wanting full optimization.",
     features: [
       { name: "Unlimited resume analyses", available: true },
-      { name: "Unlimited JD match scans", available: true },
-      { name: "Full ATS breakdown", available: true },
-      { name: "Full Resume Improvements suite", available: true },
-      { name: "Colour-coded results", available: true },
-      { name: "All PDF downloads", available: true },
-      { name: "Shareable roast cards", available: true },
-      { name: "Priority processing", available: true },
+      { name: "Unlimited ATS & JD matching", available: true },
+      { name: "Full bullet rewrites", available: true },
+      { name: "Personalized summary rewrite", available: true },
+      { name: "Roast + Real Review", available: true },
+      { name: "PDF export", available: true },
+      { name: "Save history", available: true },
+      { name: "Priority updates", available: true },
     ],
     popular: true
+  },
+  {
+    name: "Lifetime",
+    price: "29",
+    period: null,
+    description: "Limited to first 200 buyers only.",
+    features: [
+      { name: "Everything in Premium", available: true },
+      { name: "No monthly fees", available: true },
+      { name: "Lifetime updates", available: true },
+      { name: "Priority roadmap access", available: true },
+    ],
+    lifetime: true,
+    badge: "Best Value"
   }
 ];
 
@@ -168,13 +183,13 @@ const Pricing = () => {
                 <Check className="h-5 w-5 text-emerald-600" />
               </div>
               <span className="font-medium text-emerald-800">
-                You're currently on the Pro Plan!
+                You're currently on a Premium Plan!
               </span>
             </div>
           )}
         </div>
         
-        <div className="max-w-4xl mx-auto fade-in pricing-animated">
+        <div className="max-w-5xl mx-auto fade-in pricing-animated">
           <Tabs defaultValue="plans" className="mb-8">
             <div className="flex justify-center">
               <TabsList className="grid w-64 grid-cols-2 mb-12 glass">
@@ -184,17 +199,25 @@ const Pricing = () => {
             </div>
             
             <TabsContent value="plans" className="mt-0">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {pricingPlans.map((plan, index) => (
                   <div 
                     key={index} 
-                    className={`flex flex-col rounded-2xl glassmorphism transition-all duration-300 hover:shadow-premium-hover px-7 py-9 relative ${
-                      plan.popular ? 'border-warm-accent ring-2 ring-warm-accent/20 translate-y-[-8px]' : 'border-slate-100'
-                    } ${stats.plan === plan.name.toLowerCase() ? 'border-emerald-300 ring-2 ring-emerald-100' : ''}`}
+                    className={`flex flex-col rounded-2xl glassmorphism transition-all duration-300 hover:shadow-premium-hover px-6 py-8 relative ${
+                      plan.popular ? 'border-warm-accent ring-2 ring-warm-accent/20 translate-y-[-8px]' : ''
+                    } ${plan.lifetime ? 'border-amber-400 ring-2 ring-amber-200/40 bg-gradient-to-br from-amber-50/50 to-orange-50/30' : 'border-slate-100'}
+                    ${stats.plan === plan.name.toLowerCase() ? 'border-emerald-300 ring-2 ring-emerald-100' : ''}`}
                   >
                     {plan.popular && (
                       <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 inline-block px-4 py-1 text-xs font-medium text-white bg-warm-accent rounded-full shadow-md">
                         Most Popular
+                      </div>
+                    )}
+                    
+                    {plan.badge && !plan.popular && (
+                      <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 inline-flex items-center gap-1 px-4 py-1 text-xs font-medium text-amber-800 bg-gradient-to-r from-amber-200 to-orange-200 rounded-full shadow-md">
+                        <Sparkles className="w-3 h-3" />
+                        {plan.badge}
                       </div>
                     )}
                     
@@ -210,22 +233,28 @@ const Pricing = () => {
                       {plan.period && (
                         <span className="text-slate-500 ml-1">/{plan.period}</span>
                       )}
+                      {plan.lifetime && (
+                        <span className="text-amber-600 ml-2 text-sm font-medium">one-time</span>
+                      )}
                     </div>
                     <p className="text-slate-600 mb-6 text-sm">{plan.description}</p>
                     
                     <Button 
-                      className={`w-full mb-7 font-semibold px-6 py-3 rounded-xl transition-all duration-200 hover:scale-[1.02] ${
-                        plan.popular 
-                          ? "cta-gradient text-white shadow-md" 
-                          : "bg-white text-warm-text border border-slate-200 hover:bg-slate-50"
+                      className={`w-full mb-6 font-semibold px-6 py-3 rounded-xl transition-all duration-200 hover:scale-[1.02] ${
+                        plan.lifetime 
+                          ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md hover:from-amber-600 hover:to-orange-600"
+                          : plan.popular 
+                            ? "cta-gradient text-white shadow-md" 
+                            : "bg-white text-warm-text border border-slate-200 hover:bg-slate-50"
                       }`}
-                      variant={plan.popular ? "default" : "outline"}
+                      variant={plan.popular || plan.lifetime ? "default" : "outline"}
                       onClick={() => handleUpgrade(plan.name)}
                       disabled={stats.plan === plan.name.toLowerCase() || isLoading === plan.name}
                       isLoading={isLoading === plan.name}
                     >
                       {stats.plan === plan.name.toLowerCase() ? 'Current Plan' : 
-                        plan.name === "Free" ? "Try Now" : "Get MatchRate Pro"}
+                        plan.name === "Free" ? "Try Now" : 
+                        plan.lifetime ? "Get Lifetime Access" : "Get Premium"}
                     </Button>
                     
                     <div className="space-y-3">
@@ -236,7 +265,7 @@ const Pricing = () => {
                           ) : (
                             <X className="w-5 h-5 text-slate-300 mt-0.5 shrink-0" />
                           )}
-                          <span>
+                          <span className="text-sm">
                             {feature.name} 
                             {feature.note && <span className="text-sm text-slate-400"> {feature.note}</span>}
                           </span>
@@ -249,7 +278,7 @@ const Pricing = () => {
             </TabsContent>
             
             <TabsContent value="compare">
-              <div className="glassmorphism rounded-xl overflow-hidden">
+              <div className="glassmorphism rounded-xl overflow-hidden overflow-x-auto">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-slate-100">
@@ -262,24 +291,25 @@ const Pricing = () => {
                   <tbody>
                     {[
                       "Resume analyses",
-                      "JD match scans",
-                      "ATS breakdown",
-                      "Resume Improvements",
-                      "Colour-coded results",
-                      "PDF downloads",
-                      "Shareable roast cards",
-                      "Priority processing",
+                      "ATS & JD matching",
+                      "Bullet rewrites",
+                      "Summary rewrite",
+                      "Roast + Real Review",
+                      "PDF export",
+                      "Save history",
+                      "Priority updates",
                     ].map((feature, i) => (
                       <tr key={i} className="border-b border-slate-100 last:border-0">
                         <td className="p-4 text-sm text-slate-700">{feature}</td>
                         {pricingPlans.map((plan, planIndex) => {
-                          const planFeature = plan.features.find(f => f.name.toLowerCase().includes(feature.toLowerCase()));
+                          const planFeature = plan.features.find(f => f.name.toLowerCase().includes(feature.toLowerCase().split(' ')[0]));
+                          const isLifetimeAll = plan.lifetime && i > 0;
                           return (
                             <td key={planIndex} className="p-4 text-center">
-                              {planFeature?.available ? (
+                              {planFeature?.available || isLifetimeAll ? (
                                 <>
                                   <Check className="w-5 h-5 text-emerald-500 mx-auto" />
-                                  {planFeature.note && (
+                                  {planFeature?.note && (
                                     <div className="text-xs text-slate-500 mt-1">{planFeature.note}</div>
                                   )}
                                 </>
@@ -296,7 +326,8 @@ const Pricing = () => {
                       {pricingPlans.map((plan, i) => (
                         <td key={i} className="p-4 text-center">
                           <div className="font-bold text-warm-text">£{plan.price}</div>
-                          {plan.period && <div className="text-xs text-slate-500">{plan.period}</div>}
+                          {plan.period && <div className="text-xs text-slate-500">/{plan.period}</div>}
+                          {plan.lifetime && <div className="text-xs text-amber-600 font-medium">one-time</div>}
                         </td>
                       ))}
                     </tr>
