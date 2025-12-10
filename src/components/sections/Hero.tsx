@@ -44,10 +44,10 @@ const Hero = () => {
             size="lg"
             variant="outline"
             className="border-2 border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white px-9 py-7 text-lg rounded-xl font-semibold transition-all duration-200 hover:scale-[1.03]"
-            onClick={() => navigate("/lovable")}
+            onClick={() => navigate("/#free-resources")}
           >
-            <Flame className="mr-2 h-5 w-5" />
-            Try Resume Roast
+            <Sparkles className="mr-2 h-5 w-5" />
+            Check Free Resources
           </Button>
         </div>
         

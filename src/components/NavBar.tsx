@@ -3,10 +3,16 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuthUser } from "@/hooks/useAuthUser";
 import { Button } from "@/components/ui/button";
-import { X, Menu } from "lucide-react";
+import { X, Menu, ChevronDown } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function NavBar() {
   const { user } = useAuthUser();
@@ -62,14 +68,33 @@ export default function NavBar() {
                 >
                   Features
                 </Link>
-                <Link
-                  to="/resume-feedback"
-                  className={`text-sm font-medium ${
-                    location.pathname === "/resume-feedback" ? "text-foreground" : "text-muted-foreground"
-                  } hover:text-foreground transition-colors`}
-                >
-                  Resume Health Check
-                </Link>
+                
+                {/* Free Resources Dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
+                    Free Resources
+                    <ChevronDown className="h-4 w-4" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="center" className="bg-background border shadow-lg">
+                    <DropdownMenuItem asChild>
+                      <Link 
+                        to="/resume-feedback" 
+                        className="cursor-pointer"
+                      >
+                        Resume Health Check
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link 
+                        to="/lovable" 
+                        className="cursor-pointer"
+                      >
+                        Resume Roast
+                      </Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                
                 <Link
                   to="/blog"
                   className={`text-sm font-medium ${
@@ -161,15 +186,28 @@ export default function NavBar() {
                 >
                   Features
                 </Link>
+                
+                {/* Free Resources Section for Mobile */}
+                <div className="text-base font-medium text-foreground">Free Resources</div>
                 <Link
                   to="/resume-feedback"
-                  className={`text-base font-medium ${
+                  className={`text-base font-medium pl-4 ${
                     location.pathname === "/resume-feedback" ? "text-foreground" : "text-muted-foreground"
                   }`}
                   onClick={() => setShowMobileMenu(false)}
                 >
                   Resume Health Check
                 </Link>
+                <Link
+                  to="/lovable"
+                  className={`text-base font-medium pl-4 ${
+                    location.pathname === "/lovable" ? "text-foreground" : "text-muted-foreground"
+                  }`}
+                  onClick={() => setShowMobileMenu(false)}
+                >
+                  Resume Roast
+                </Link>
+                
                 <Link
                   to="/blog"
                   className={`text-base font-medium ${

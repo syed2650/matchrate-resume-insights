@@ -64,6 +64,7 @@ const pricingPlans: PricingPlan[] = [
     period: null,
     description: "Limited to first 200 buyers only.",
     features: [
+      { name: "Unlimited resume analyses", available: true },
       { name: "Everything in Premium", available: true },
       { name: "No monthly fees", available: true },
       { name: "Lifetime updates", available: true },
