@@ -40,7 +40,7 @@ const DashboardPreview = () => {
               </div>
               <div className="p-4">
                 <img 
-                  src="/lovable-uploads/ats-jdmatch-screenshot.png" 
+                  src="/lovable-uploads/ats-analysis-screenshot.png" 
                   alt="ATS Analysis screenshot showing score, formatting issues, and missing keywords" 
                   className="w-full h-auto rounded-lg border border-slate-100"
                 />
@@ -55,7 +55,7 @@ const DashboardPreview = () => {
               </div>
               <div className="p-4">
                 <img 
-                  src="/lovable-uploads/ats-jdmatch-screenshot.png" 
+                  src="/lovable-uploads/jd-match-screenshot.png" 
                   alt="JD Match screenshot showing match score, missing skills, and optimized bullets" 
                   className="w-full h-auto rounded-lg border border-slate-100"
                 />
