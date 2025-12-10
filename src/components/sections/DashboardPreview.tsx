@@ -18,61 +18,61 @@ const DashboardPreview = () => {
         <div className="max-w-5xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Resume Improvements Screenshot */}
-            <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-slate-200/80">
-              <div className="bg-blue-50 border-b border-slate-100 p-3 flex items-center gap-2">
+            <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-slate-200/80 h-[400px] flex flex-col">
+              <div className="bg-blue-50 border-b border-slate-100 p-3 flex items-center gap-2 flex-shrink-0">
                 <div className="w-3 h-3 rounded-full bg-blue-400"></div>
                 <span className="text-sm font-medium text-slate-700">Resume Improvements</span>
               </div>
-              <div className="p-4">
+              <div className="p-4 flex-1 overflow-hidden">
                 <img 
                   src="/lovable-uploads/resume-improvements-screenshot.png" 
                   alt="Resume Improvements screenshot showing summary improvement, bullet rewrites, and action verb suggestions" 
-                  className="w-full h-auto rounded-lg border border-slate-100"
+                  className="w-full h-full object-cover object-top rounded-lg border border-slate-100"
                 />
               </div>
             </div>
             
             {/* ATS Analysis Screenshot */}
-            <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-slate-200/80">
-              <div className="bg-green-50 border-b border-slate-100 p-3 flex items-center gap-2">
+            <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-slate-200/80 h-[400px] flex flex-col">
+              <div className="bg-green-50 border-b border-slate-100 p-3 flex items-center gap-2 flex-shrink-0">
                 <div className="w-3 h-3 rounded-full bg-green-400"></div>
                 <span className="text-sm font-medium text-slate-700">ATS Analysis</span>
               </div>
-              <div className="p-4">
+              <div className="p-4 flex-1 overflow-hidden">
                 <img 
                   src="/lovable-uploads/ats-analysis-screenshot.png" 
                   alt="ATS Analysis screenshot showing score, formatting issues, and missing keywords" 
-                  className="w-full h-auto rounded-lg border border-slate-100"
+                  className="w-full h-full object-cover object-top rounded-lg border border-slate-100"
                 />
               </div>
             </div>
             
             {/* JD Match Screenshot */}
-            <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-slate-200/80">
-              <div className="bg-purple-50 border-b border-slate-100 p-3 flex items-center gap-2">
+            <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-slate-200/80 h-[400px] flex flex-col">
+              <div className="bg-purple-50 border-b border-slate-100 p-3 flex items-center gap-2 flex-shrink-0">
                 <div className="w-3 h-3 rounded-full bg-purple-400"></div>
                 <span className="text-sm font-medium text-slate-700">JD Match</span>
               </div>
-              <div className="p-4">
+              <div className="p-4 flex-1 overflow-hidden">
                 <img 
                   src="/lovable-uploads/jd-match-screenshot.png" 
                   alt="JD Match screenshot showing match score, missing skills, and optimized bullets" 
-                  className="w-full h-auto rounded-lg border border-slate-100"
+                  className="w-full h-full object-cover object-top rounded-lg border border-slate-100"
                 />
               </div>
             </div>
             
             {/* Roast Card Screenshot */}
-            <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-slate-200/80">
-              <div className="bg-orange-50 border-b border-slate-100 p-3 flex items-center gap-2">
+            <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-slate-200/80 h-[400px] flex flex-col">
+              <div className="bg-orange-50 border-b border-slate-100 p-3 flex items-center gap-2 flex-shrink-0">
                 <div className="w-3 h-3 rounded-full bg-orange-400"></div>
                 <span className="text-sm font-medium text-slate-700">Roast Card</span>
               </div>
-              <div className="p-4">
+              <div className="p-4 flex-1 overflow-hidden">
                 <img 
                   src="/lovable-uploads/roast-card-screenshot.png" 
                   alt="Roast Card screenshot showing funny roast and real review with scores" 
-                  className="w-full h-auto rounded-lg border border-slate-100"
+                  className="w-full h-full object-cover object-top rounded-lg border border-slate-100"
                 />
               </div>
             </div>
