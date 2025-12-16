@@ -57,20 +57,18 @@ const Index = () => {
     <div className="min-h-screen bg-warm-bg font-sans">
       <main>
         <Hero />
-        <div className="section-alt py-12 md:py-16 bg-lilac-gradient">
+        <div className="section-alt bg-lilac-gradient">
           <div className="container-content">
             <Features />
           </div>
         </div>
-        <div className="py-12 md:py-16">
-          <DashboardPreview />
-        </div>
-        <div className="py-12 md:py-16 bg-white">
+        <DashboardPreview />
+        <div className="bg-white">
           <div className="container-content">
             <Testimonials />
           </div>
         </div>
-        <div className="py-12 md:py-16 bg-lilac-gradient" id="pricing">
+        <div className="bg-lilac-gradient" id="pricing">
           <div className="container-content">
             <Pricing />
           </div>
