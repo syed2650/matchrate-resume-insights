@@ -91,7 +91,7 @@ const Features = () => {
   }, []);
 
   return (
-    <section id="features" className="py-20 md:py-28 bg-transparent" ref={featuresRef}>
+    <section id="features" className="py-12 md:py-16 bg-transparent" ref={featuresRef}>
       <div className="container max-w-6xl mx-auto px-4">
         <div className="text-left mb-16 fade-in feature-animated">
           <p className="text-warm-accent font-medium text-sm mb-3 uppercase tracking-wider">Why Choose Matchrate?</p>

@@ -1,6 +1,6 @@
 const DashboardPreview = () => {
   return (
-    <section className="py-24 bg-white relative overflow-hidden">
+    <section className="py-12 md:py-16 bg-white relative overflow-hidden">
       <div className="absolute top-0 left-0 right-0 h-40 bg-gradient-to-b from-warm-section to-white"></div>
       
       <div className="container max-w-6xl mx-auto px-4 relative z-10">

@@ -165,7 +165,7 @@ const Pricing = () => {
   };
 
   return (
-    <section id="pricing" className="py-20 md:py-28 relative" ref={pricingRef}>
+    <section id="pricing" className="py-12 md:py-16 relative" ref={pricingRef}>
       <div className="absolute top-0 left-0 w-full h-40 bg-gradient-to-b from-white to-transparent"></div>
       
       <div className="container max-w-6xl mx-auto px-4 relative z-10">

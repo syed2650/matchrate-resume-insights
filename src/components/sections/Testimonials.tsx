@@ -71,7 +71,7 @@ const Testimonials = () => {
   }, []);
 
   return (
-    <section id="testimonials" className="py-20 md:py-28 relative overflow-hidden" ref={testimonialRef}>
+    <section id="testimonials" className="py-12 md:py-16 relative overflow-hidden" ref={testimonialRef}>
       {/* Background effects */}
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-warm-accent/5 rounded-full blur-3xl"></div>
       <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-blue-500/5 rounded-full blur-3xl"></div>
