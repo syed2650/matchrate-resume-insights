@@ -1,4 +1,4 @@
-import { Flame, Twitter, Linkedin } from "lucide-react";
+import { Flame, Twitter, Linkedin, Quote, Trophy, TrendingDown, AlertCircle, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CopyButton } from "../ui/CopyButton";
 import { DownloadPDFButton } from "../ui/DownloadPDFButton";
@@ -59,10 +59,25 @@ export const RoastCardResult = ({ result }: RoastCardResultProps) => {
   const whatSection = rawContent ? parseWhatSection(rawContent) : null;
   const realReview = rawContent ? parseRealReview(rawContent) : null;
   
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return "text-green-600 bg-green-50 border-green-200";
-    if (score >= 60) return "text-yellow-600 bg-yellow-50 border-yellow-200";
-    return "text-red-600 bg-red-50 border-red-200";
+  const getScoreConfig = (score: number) => {
+    if (score >= 80) return { 
+      bg: "bg-gradient-to-br from-emerald-50 to-green-50", 
+      border: "border-emerald-300",
+      text: "text-emerald-600",
+      icon: <Trophy className="h-3 w-3" />
+    };
+    if (score >= 60) return { 
+      bg: "bg-gradient-to-br from-amber-50 to-yellow-50", 
+      border: "border-amber-300",
+      text: "text-amber-600",
+      icon: <TrendingDown className="h-3 w-3" />
+    };
+    return { 
+      bg: "bg-gradient-to-br from-rose-50 to-red-50", 
+      border: "border-rose-300",
+      text: "text-rose-600",
+      icon: <AlertCircle className="h-3 w-3" />
+    };
   };
   
   const handleTwitterShare = () => {
@@ -80,16 +95,25 @@ export const RoastCardResult = ({ result }: RoastCardResultProps) => {
   const exportContent = cleanRawContent || `${cleanRoast}\n\nScores:\nFormatting: ${scores.formatting}\nClarity: ${scores.clarity}\nImpact: ${scores.impact}\nATS: ${scores.ats}\nOverall: ${scores.overall}`;
   
   return (
-    <div className="bg-gradient-to-br from-orange-50 via-amber-50 to-red-50 rounded-xl border-2 border-orange-300 overflow-hidden shadow-lg">
+    <div className="relative overflow-hidden bg-gradient-to-br from-orange-50 via-amber-50 to-red-50 rounded-2xl border-2 border-orange-300 shadow-lg">
+      {/* Decorative elements */}
+      <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-orange-200/30 to-transparent rounded-bl-full" />
+      <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-red-200/30 to-transparent rounded-tr-full" />
+      
       {/* Header */}
-      <div className="bg-gradient-to-r from-orange-500 to-red-500 px-5 py-3">
-        <div className="flex items-center gap-2 text-white">
-          <Flame className="h-6 w-6" />
-          <span className="font-bold text-lg">Resume Roast</span>
+      <div className="relative bg-gradient-to-r from-orange-500 via-amber-500 to-red-500 px-6 py-4">
+        <div className="flex items-center gap-3 text-white">
+          <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
+            <Flame className="h-6 w-6" />
+          </div>
+          <div>
+            <span className="font-bold text-xl">Resume Roast</span>
+            <p className="text-sm text-white/80">Brutally honest feedback</p>
+          </div>
         </div>
       </div>
       
-      <div className="p-5 space-y-5">
+      <div className="relative p-6 space-y-6">
         {/* Action Buttons */}
         <div className="flex flex-wrap gap-2">
           <CopyButton text={cleanRoast} label="Copy Roast" />
@@ -101,54 +125,65 @@ export const RoastCardResult = ({ result }: RoastCardResultProps) => {
           />
         </div>
         
-        {/* Main Roast - Speech Bubble */}
+        {/* Main Roast - Premium Speech Bubble */}
         <div className="relative">
-          <div className="bg-white rounded-2xl p-6 shadow-md border border-orange-200">
-            <div className="absolute -top-3 left-6">
-              <span className="text-3xl">🔥</span>
+          <div className="bg-white rounded-2xl p-6 shadow-lg border border-orange-200/60 relative">
+            <div className="absolute -top-4 left-6">
+              <div className="bg-gradient-to-br from-orange-400 to-red-400 p-2 rounded-xl shadow-md">
+                <Quote className="h-5 w-5 text-white" />
+              </div>
             </div>
-            <p className="text-lg font-medium text-slate-800 italic leading-relaxed pt-2">
+            <p className="text-lg font-medium text-foreground italic leading-relaxed pt-2">
               "{cleanRoast}"
             </p>
           </div>
           {/* Speech bubble tail */}
-          <div className="absolute -bottom-2 left-10 w-4 h-4 bg-white border-r border-b border-orange-200 transform rotate-45"></div>
+          <div className="absolute -bottom-2 left-12 w-4 h-4 bg-white border-r border-b border-orange-200/60 transform rotate-45 shadow-sm"></div>
         </div>
         
         {/* Why Section */}
         {whySection && (
-          <div className="bg-amber-50 rounded-xl p-4 border border-amber-200">
-            <h4 className="font-semibold text-amber-800 mb-2 flex items-center gap-2">
-              Why Your Resume Looks Like This
-            </h4>
-            <p className="text-sm text-amber-900 leading-relaxed">{whySection}</p>
+          <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl p-5 border border-amber-200/60 shadow-sm">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2 bg-white rounded-xl shadow-sm">
+                <AlertCircle className="h-5 w-5 text-amber-600" />
+              </div>
+              <h4 className="font-semibold text-amber-900">Why Your Resume Looks Like This</h4>
+            </div>
+            <p className="text-sm text-amber-800 leading-relaxed pl-12">{whySection}</p>
           </div>
         )}
         
         {/* What Section */}
         {whatSection && (
-          <div className="bg-orange-50 rounded-xl p-4 border border-orange-200">
-            <h4 className="font-semibold text-orange-800 mb-2 flex items-center gap-2">
-              What This Says About You
-            </h4>
-            <p className="text-sm text-orange-900 leading-relaxed">{whatSection}</p>
+          <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-2xl p-5 border border-orange-200/60 shadow-sm">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2 bg-white rounded-xl shadow-sm">
+                <MessageCircle className="h-5 w-5 text-orange-600" />
+              </div>
+              <h4 className="font-semibold text-orange-900">What This Says About You</h4>
+            </div>
+            <p className="text-sm text-orange-800 leading-relaxed pl-12">{whatSection}</p>
           </div>
         )}
         
         {/* Real Review */}
         {realReview && (
-          <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
-            <h4 className="font-semibold text-slate-800 mb-2 flex items-center gap-2">
-              Real Review
-            </h4>
-            <div className="text-sm text-slate-700 leading-relaxed">
+          <div className="bg-white rounded-2xl p-5 border border-slate-200/60 shadow-sm">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2 bg-slate-100 rounded-xl">
+                <Quote className="h-5 w-5 text-slate-600" />
+              </div>
+              <h4 className="font-semibold text-foreground">Real Review</h4>
+            </div>
+            <div className="text-sm text-muted-foreground leading-relaxed pl-12">
               {realReview.split('\n').map((line, i) => {
                 const trimmed = line.trim();
                 if (!trimmed) return null;
                 if (trimmed.startsWith('-') || trimmed.startsWith('•')) {
                   return (
-                    <div key={i} className="flex gap-2 py-0.5">
-                      <span className="text-slate-400">•</span>
+                    <div key={i} className="flex gap-3 py-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-slate-400 mt-2 shrink-0"></span>
                       <span>{trimmed.replace(/^[-•]\s*/, '')}</span>
                     </div>
                   );
@@ -159,27 +194,30 @@ export const RoastCardResult = ({ result }: RoastCardResultProps) => {
           </div>
         )}
         
-        {/* Score Boxes */}
+        {/* Premium Score Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-          {Object.entries(scores).map(([key, value]) => (
-            <div 
-              key={key} 
-              className={`text-center p-3 rounded-xl shadow-sm border ${getScoreColor(value)}`}
-            >
-              <div className="text-2xl font-bold">{value}</div>
-              <div className="text-xs font-medium capitalize opacity-80">{key}</div>
-            </div>
-          ))}
+          {Object.entries(scores).map(([key, value]) => {
+            const config = getScoreConfig(value);
+            return (
+              <div 
+                key={key} 
+                className={`text-center p-4 rounded-2xl shadow-sm border ${config.bg} ${config.border} transition-transform hover:scale-105`}
+              >
+                <div className={`text-3xl font-bold ${config.text}`}>{value}</div>
+                <div className="text-xs font-medium text-muted-foreground capitalize mt-1">{key}</div>
+              </div>
+            );
+          })}
         </div>
         
         {/* Social Share Row */}
-        <div className="flex flex-wrap gap-2 pt-2 border-t border-orange-200">
-          <span className="text-sm text-slate-600 font-medium self-center mr-2">Share:</span>
+        <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-orange-200/60">
+          <span className="text-sm text-muted-foreground font-medium">Share your roast:</span>
           <Button 
             variant="outline" 
             size="sm" 
             onClick={handleTwitterShare}
-            className="gap-1.5 border-blue-300 text-blue-600 hover:bg-blue-50"
+            className="gap-2 border-sky-300 text-sky-600 hover:bg-sky-50 hover:border-sky-400"
           >
             <Twitter className="h-4 w-4" />
             Twitter
@@ -188,7 +226,7 @@ export const RoastCardResult = ({ result }: RoastCardResultProps) => {
             variant="outline" 
             size="sm" 
             onClick={handleLinkedInShare}
-            className="gap-1.5 border-blue-600 text-blue-700 hover:bg-blue-50"
+            className="gap-2 border-blue-400 text-blue-700 hover:bg-blue-50 hover:border-blue-500"
           >
             <Linkedin className="h-4 w-4" />
             LinkedIn
@@ -197,10 +235,10 @@ export const RoastCardResult = ({ result }: RoastCardResultProps) => {
         
         {/* Share URL */}
         {shareUrl && (
-          <div className="text-center text-sm text-slate-500 bg-white/50 p-2 rounded-lg">
+          <div className="text-center text-sm bg-white/60 backdrop-blur-sm p-3 rounded-xl border border-orange-100">
             <a 
               href={shareUrl} 
-              className="text-orange-600 underline font-medium hover:text-orange-700" 
+              className="text-orange-600 hover:text-orange-700 underline font-medium" 
               target="_blank" 
               rel="noopener noreferrer"
             >

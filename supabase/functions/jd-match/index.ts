@@ -25,6 +25,37 @@ serve(async (req) => {
 
     console.log('Matching resume to job description...');
 
+    // Retry logic for rate limits
+    const makeRequest = async (retryCount = 0): Promise<Response> => {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openAIApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { 
+              role: 'system', 
+              content: 'You are a Job Description Match Engine that evaluates resume-role alignment and provides recruiter-style fit assessments.' 
+            },
+            { role: 'user', content: prompt }
+          ],
+          temperature: 0.6,
+        }),
+      });
+
+      if (response.status === 429 && retryCount < 3) {
+        const retryAfter = parseInt(response.headers.get('retry-after') || '5');
+        console.log(`Rate limited. Retrying in ${retryAfter} seconds... (attempt ${retryCount + 1})`);
+        await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
+        return makeRequest(retryCount + 1);
+      }
+
+      return response;
+    };
+
     const prompt = `You are the "Job Match Agent" for MatchRate.co.
 
 Your job:
@@ -83,24 +114,7 @@ ${jobDescription}
 
 Provide your analysis in the format specified above. Be specific and actionable.`;
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { 
-            role: 'system', 
-            content: 'You are a Job Description Match Engine that evaluates resume-role alignment and provides recruiter-style fit assessments.' 
-          },
-          { role: 'user', content: prompt }
-        ],
-        temperature: 0.6,
-      }),
-    });
+    const response = await makeRequest();
 
     if (!response.ok) {
       const error = await response.text();
