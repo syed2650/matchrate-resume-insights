@@ -1,4 +1,4 @@
-import { AlertCircle, Key, CheckCircle, LayoutGrid } from "lucide-react";
+import { AlertCircle, Key, CheckCircle, LayoutGrid, ShieldCheck, AlertOctagon } from "lucide-react";
 import { ResultSectionCard } from "../ui/ResultSectionCard";
 import { ScoreProgressBar } from "../ui/ScoreProgressBar";
 import { DownloadPDFButton } from "../ui/DownloadPDFButton";
@@ -42,9 +42,15 @@ export const ATSAnalysisResult = ({ result }: ATSAnalysisResultProps) => {
   const cleanRawContent = rawContent ? stripMarkdown(rawContent) : '';
   const exportContent = cleanRawContent || `ATS Score: ${score}/100\n\nFormatting Issues:\n${cleanIssues.join('\n')}\n\nMissing Keywords:\n${cleanKeywords.join('\n')}\n\nRecommended Fixes:\n${cleanFixes.join('\n')}`;
   
+  const getScoreIcon = () => {
+    if (score >= 80) return <ShieldCheck className="h-6 w-6 text-emerald-600" />;
+    if (score >= 60) return <ShieldCheck className="h-6 w-6 text-amber-600" />;
+    return <AlertOctagon className="h-6 w-6 text-red-600" />;
+  };
+
   return (
-    <div className="space-y-4">
-      <div className="flex gap-2 mb-4">
+    <div className="space-y-5">
+      <div className="flex flex-wrap gap-2">
         <CopyButton text={exportContent} label="Copy All" />
         <DownloadPDFButton 
           content={exportContent} 
@@ -53,29 +59,47 @@ export const ATSAnalysisResult = ({ result }: ATSAnalysisResultProps) => {
         />
       </div>
       
-      {/* Score Bar */}
-      <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-5 shadow-sm border border-green-200">
-        <ScoreProgressBar score={score} label="ATS Score" colorClass="text-green-600" />
+      {/* Premium Score Card */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 rounded-2xl p-6 shadow-sm border border-emerald-200/60">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-emerald-100/40 to-transparent rounded-bl-full" />
+        <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-teal-100/40 to-transparent rounded-tr-full" />
+        
+        <div className="relative flex items-center gap-4 mb-4">
+          <div className="p-3 bg-white rounded-xl shadow-sm">
+            {getScoreIcon()}
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-foreground">ATS Compatibility Score</h3>
+            <p className="text-sm text-muted-foreground">How well your resume parses through ATS systems</p>
+          </div>
+        </div>
+        
+        <div className="relative">
+          <ScoreProgressBar score={score} label="ATS Score" colorClass="text-emerald-600" size="lg" />
+        </div>
       </div>
       
       {!hasData && cleanRawContent ? (
-        <div className="bg-muted/50 rounded-xl p-5 shadow-sm">
-          <div className="text-sm leading-relaxed">{cleanRawContent}</div>
+        <div className="bg-gradient-to-br from-slate-50 to-gray-50/50 rounded-2xl p-6 shadow-sm border border-slate-200/60">
+          <div className="text-sm leading-relaxed whitespace-pre-wrap">{cleanRawContent}</div>
         </div>
       ) : (
         <>
-          {/* Formatting Issues - Red */}
+          {/* Formatting Issues */}
           {cleanIssues.length > 0 && (
             <ResultSectionCard
-              title={`Formatting Issues (${cleanIssues.length})`}
-              icon={<AlertCircle className="h-5 w-5 text-red-600" />}
-              bgColor="bg-red-50"
+              title="Formatting Issues"
+              icon={<AlertCircle className="h-5 w-5 text-rose-600" />}
+              gradientFrom="from-rose-50"
+              gradientTo="to-red-50/50"
+              borderColor="border-rose-200/60"
               copyText={cleanIssues.join('\n')}
+              badge={cleanIssues.length}
             >
-              <ul className="space-y-2">
+              <ul className="space-y-2.5">
                 {cleanIssues.map((issue, i) => (
-                  <li key={i} className="flex gap-2">
-                    <span className="text-red-500 mt-0.5">•</span>
+                  <li key={i} className="flex gap-3 items-start py-1">
+                    <span className="w-2 h-2 rounded-full bg-rose-500 mt-1.5 shrink-0"></span>
                     <span>{issue}</span>
                   </li>
                 ))}
@@ -83,19 +107,22 @@ export const ATSAnalysisResult = ({ result }: ATSAnalysisResultProps) => {
             </ResultSectionCard>
           )}
           
-          {/* Missing Keywords - Yellow */}
+          {/* Missing Keywords */}
           {cleanKeywords.length > 0 && (
             <ResultSectionCard
-              title={`Missing Keywords (${cleanKeywords.length})`}
-              icon={<Key className="h-5 w-5 text-yellow-600" />}
-              bgColor="bg-yellow-50"
+              title="Missing Keywords"
+              icon={<Key className="h-5 w-5 text-amber-600" />}
+              gradientFrom="from-amber-50"
+              gradientTo="to-yellow-50/50"
+              borderColor="border-amber-200/60"
               copyText={cleanKeywords.join('\n')}
+              badge={cleanKeywords.length}
             >
               <div className="flex flex-wrap gap-2">
                 {cleanKeywords.map((keyword, i) => (
                   <span 
                     key={i} 
-                    className="px-3 py-1.5 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium"
+                    className="px-3 py-1.5 bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-800 rounded-full text-sm font-medium border border-amber-200/50 shadow-sm"
                   >
                     {keyword}
                   </span>
@@ -104,18 +131,23 @@ export const ATSAnalysisResult = ({ result }: ATSAnalysisResultProps) => {
             </ResultSectionCard>
           )}
           
-          {/* Recommended Fixes - Green */}
+          {/* Recommended Fixes */}
           {cleanFixes.length > 0 && (
             <ResultSectionCard
-              title={`Recommended Fixes (${cleanFixes.length})`}
-              icon={<CheckCircle className="h-5 w-5 text-green-600" />}
-              bgColor="bg-green-50"
+              title="Recommended Fixes"
+              icon={<CheckCircle className="h-5 w-5 text-emerald-600" />}
+              gradientFrom="from-emerald-50"
+              gradientTo="to-teal-50/50"
+              borderColor="border-emerald-200/60"
               copyText={cleanFixes.join('\n')}
+              badge={cleanFixes.length}
             >
-              <ul className="space-y-2">
+              <ul className="space-y-2.5">
                 {cleanFixes.map((fix, i) => (
-                  <li key={i} className="flex gap-2">
-                    <span className="text-green-500 mt-0.5">•</span>
+                  <li key={i} className="flex gap-3 items-start py-1.5 px-3 bg-emerald-50/50 rounded-lg border-l-3 border-emerald-400">
+                    <span className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
+                      {i + 1}
+                    </span>
                     <span>{fix}</span>
                   </li>
                 ))}
@@ -123,15 +155,18 @@ export const ATSAnalysisResult = ({ result }: ATSAnalysisResultProps) => {
             </ResultSectionCard>
           )}
           
-          {/* Section Detection Map - Gray */}
+          {/* Section Detection Map */}
           {sectionMap && (
             <ResultSectionCard
               title="Section Detection Map"
               icon={<LayoutGrid className="h-5 w-5 text-slate-600" />}
-              bgColor="bg-slate-100"
+              gradientFrom="from-slate-100"
+              gradientTo="to-gray-50/50"
+              borderColor="border-slate-200/60"
               copyText={sectionMap}
+              defaultOpen={false}
             >
-              <div className="text-sm bg-white/50 p-3 rounded-lg leading-relaxed">
+              <div className="text-sm leading-relaxed font-mono bg-slate-50/50 p-4 rounded-lg">
                 {sectionMap.split('\n').map((line, i) => (
                   <p key={i} className="py-0.5">{line}</p>
                 ))}
