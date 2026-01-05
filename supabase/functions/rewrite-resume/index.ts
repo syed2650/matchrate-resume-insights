@@ -8,6 +8,44 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Helper function to wait
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Helper function to call OpenAI with retry logic
+async function callOpenAIWithRetry(body: object, maxRetries = 3): Promise<Response> {
+  let lastError: Error | null = null;
+  
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openAIApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+
+      // If rate limited, wait and retry
+      if (response.status === 429) {
+        const retryAfter = response.headers.get('retry-after');
+        const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : (attempt + 1) * 3000;
+        console.log(`Rate limited, waiting ${waitTime}ms before retry ${attempt + 1}/${maxRetries}`);
+        await sleep(waitTime);
+        continue;
+      }
+
+      return response;
+    } catch (error) {
+      lastError = error;
+      console.error(`Attempt ${attempt + 1} failed:`, error);
+      await sleep((attempt + 1) * 2000);
+    }
+  }
+
+  throw lastError || new Error('Max retries exceeded');
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -23,6 +61,8 @@ serve(async (req) => {
       );
     }
 
+    // Log first 200 chars to debug text quality
+    console.log('Resume text preview:', resumeText.substring(0, 200));
     console.log('Rewriting resume...');
 
     const prompt = `You are the Resume Improvement Agent for MatchRate.co.
@@ -91,30 +131,23 @@ ${resumeText}
 
 Provide your improvements in the format specified above. Use plain text only, no markdown.`;
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { 
-            role: 'system', 
-            content: 'You are a world-class resume analyst and hiring manager with 15+ years experience. Strengthen existing resumes with precision improvements. Output plain text only, no markdown formatting.' 
-          },
-          { role: 'user', content: prompt }
-        ],
-        temperature: 0.7,
-      }),
+    const response = await callOpenAIWithRetry({
+      model: 'gpt-4o-mini',
+      messages: [
+        { 
+          role: 'system', 
+          content: 'You are a world-class resume analyst and hiring manager with 15+ years experience. Strengthen existing resumes with precision improvements. Output plain text only, no markdown formatting.' 
+        },
+        { role: 'user', content: prompt }
+      ],
+      temperature: 0.7,
     });
 
     if (!response.ok) {
       const error = await response.text();
       console.error('OpenAI API error:', error);
       return new Response(
-        JSON.stringify({ error: 'Failed to rewrite resume' }),
+        JSON.stringify({ error: 'Failed to rewrite resume. Please try again.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
