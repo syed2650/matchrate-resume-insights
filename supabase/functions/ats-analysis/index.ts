@@ -8,6 +8,44 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Helper function to wait
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Helper function to call OpenAI with retry logic
+async function callOpenAIWithRetry(body: object, maxRetries = 3): Promise<Response> {
+  let lastError: Error | null = null;
+  
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openAIApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+
+      // If rate limited, wait and retry
+      if (response.status === 429) {
+        const retryAfter = response.headers.get('retry-after');
+        const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : (attempt + 1) * 3000;
+        console.log(`Rate limited, waiting ${waitTime}ms before retry ${attempt + 1}/${maxRetries}`);
+        await sleep(waitTime);
+        continue;
+      }
+
+      return response;
+    } catch (error) {
+      lastError = error;
+      console.error(`Attempt ${attempt + 1} failed:`, error);
+      await sleep((attempt + 1) * 2000);
+    }
+  }
+
+  throw lastError || new Error('Max retries exceeded');
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -23,12 +61,17 @@ serve(async (req) => {
       );
     }
 
+    // Log resume text preview for debugging
+    console.log('Resume text preview (first 300 chars):', resumeText.substring(0, 300));
+    console.log('Resume text length:', resumeText.length);
     console.log('Analyzing resume for ATS compatibility...');
 
     const prompt = `You are the "ATS Analysis Agent" for MatchRate.co.
 
 Your job:
 Perform a deep ATS audit of the user's resume.
+
+IMPORTANT: Analyze the resume content provided below. Even if the formatting seems unusual or text appears fragmented, do your best to extract and analyze the information. Focus on the actual text content, skills, experience, and structure you can identify.
 
 RULES:
 - Do NOT rewrite their resume.
@@ -38,10 +81,11 @@ RULES:
 - Never invent experience, skills, tools, certifications, or dates.
 - Use short, sharp, resume-appropriate phrasing.
 - Always prioritize clarity, impact, and measurability.
+- Score fairly based on content quality, structure, and ATS readability.
 
 Output Format:
 ### ATS Score
-[00/100]
+[XX/100]
 
 ### Parsing Confidence Score
 High / Medium / Low  
@@ -88,30 +132,23 @@ ${resumeText}
 
 Provide your analysis in the format specified above. Be thorough and specific.`;
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { 
-            role: 'system', 
-            content: 'You are an ATS scanning engine used by Fortune 500 companies. Evaluate resumes for parsing accuracy through Workday, Taleo, Greenhouse, and iCIMS.' 
-          },
-          { role: 'user', content: prompt }
-        ],
-        temperature: 0.5,
-      }),
+    const response = await callOpenAIWithRetry({
+      model: 'gpt-4o-mini',
+      messages: [
+        { 
+          role: 'system', 
+          content: 'You are an ATS scanning engine used by Fortune 500 companies. Evaluate resumes for parsing accuracy through Workday, Taleo, Greenhouse, and iCIMS. Analyze the provided text content fairly and provide constructive feedback.' 
+        },
+        { role: 'user', content: prompt }
+      ],
+      temperature: 0.5,
     });
 
     if (!response.ok) {
       const error = await response.text();
       console.error('OpenAI API error:', error);
       return new Response(
-        JSON.stringify({ error: 'Failed to analyze resume' }),
+        JSON.stringify({ error: 'Failed to analyze resume. Please try again.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
