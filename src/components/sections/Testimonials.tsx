@@ -3,7 +3,8 @@ import { Star, Quote } from "lucide-react";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { useRef, useEffect } from "react";
+import { motion } from "framer-motion";
+import FloatingOrbs from "@/components/ui/FloatingOrbs";
 
 const testimonials = [
   {
@@ -44,52 +45,56 @@ const testimonials = [
 ];
 
 const Testimonials = () => {
-  const testimonialRef = useRef<HTMLDivElement>(null);
-  
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('active');
-          }
-        });
-      },
-      { threshold: 0.1 }
-    );
-    
-    const testimonialElements = document.querySelectorAll('.testimonial-animated');
-    testimonialElements.forEach((el) => {
-      observer.observe(el);
-    });
-    
-    return () => {
-      testimonialElements.forEach((el) => {
-        observer.unobserve(el);
-      });
-    };
-  }, []);
-
   return (
-    <section id="testimonials" className="py-12 md:py-16 relative overflow-hidden" ref={testimonialRef}>
-      {/* Background effects */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-warm-accent/5 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-blue-500/5 rounded-full blur-3xl"></div>
+    <section id="testimonials" className="py-12 md:py-16 relative overflow-hidden">
+      {/* Floating orbs */}
+      <FloatingOrbs variant="section" />
       
       <div className="container max-w-6xl mx-auto px-4 relative z-10">
-        <div className="text-left mb-16 fade-in testimonial-animated">
-          <Badge variant="outline" className="mb-4 px-4 py-1.5 bg-white text-warm-accent border-warm-accent/20">
-            Success Stories
-          </Badge>
-          <h2 className="text-3xl md:text-5xl font-bold text-warm-text mb-6 leading-tight">
-            Trusted by Job Seekers<br />Across<span className="text-gradient ml-2">All Roles</span>
-          </h2>
-          <p className="text-slate-600 max-w-2xl">
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="text-left mb-16"
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+          >
+            <Badge variant="outline" className="mb-4 px-4 py-1.5 bg-white text-warm-accent border-warm-accent/20">
+              Success Stories
+            </Badge>
+          </motion.div>
+          <motion.h2 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="text-3xl md:text-5xl font-bold text-warm-text mb-6 leading-tight"
+          >
+            Trusted by Job Seekers<br />Across<span className="gradient-text-animated ml-2">All Roles</span>
+          </motion.h2>
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="text-slate-600 max-w-2xl"
+          >
             From analysts to engineers to managers — MatchRate helps candidates stand out.
-          </p>
-        </div>
+          </motion.p>
+        </motion.div>
         
-        <div className="max-w-5xl mx-auto fade-in testimonial-animated">
+        <motion.div 
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.7 }}
+          className="max-w-5xl mx-auto"
+        >
           <Carousel
             opts={{
               align: "start",
@@ -100,39 +105,72 @@ const Testimonials = () => {
             <CarouselContent className="-ml-2 md:-ml-4">
               {testimonials.map((testimonial, index) => (
                 <CarouselItem key={index} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/2">
-                  <div className="testimonial-card glassmorphism h-full flex flex-col py-8 px-6">
-                    <Quote className="w-10 h-10 text-warm-accent/20 mb-4" />
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: index * 0.1 }}
+                    whileHover={{ scale: 1.02, y: -5 }}
+                    className="testimonial-card glassmorphism h-full flex flex-col py-8 px-6 cursor-pointer"
+                  >
+                    <motion.div
+                      animate={{ rotate: [0, 5, -5, 0] }}
+                      transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                    >
+                      <Quote className="w-10 h-10 text-warm-accent/20 mb-4" />
+                    </motion.div>
                     <div className="flex items-center gap-1 mb-4">
                       {Array.from({ length: 5 }).map((_, i) => (
-                        <Star key={i} className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                        <motion.div
+                          key={i}
+                          initial={{ opacity: 0, scale: 0 }}
+                          whileInView={{ opacity: 1, scale: 1 }}
+                          viewport={{ once: true }}
+                          transition={{ delay: 0.3 + i * 0.1 }}
+                        >
+                          <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                        </motion.div>
                       ))}
                     </div>
                     <p className="text-slate-700 text-lg mb-8 flex-grow italic">{testimonial.text}</p>
                     <div className="flex items-center gap-4 mt-auto">
-                      <Avatar className="h-14 w-14 border-2 border-white shadow-sm">
-                        <AvatarFallback className="bg-warm-accent/10 text-warm-accent font-semibold">
-                          {testimonial.initial}
-                        </AvatarFallback>
-                      </Avatar>
+                      <motion.div
+                        whileHover={{ scale: 1.1 }}
+                        transition={{ type: "spring", stiffness: 300 }}
+                      >
+                        <Avatar className="h-14 w-14 border-2 border-white shadow-sm">
+                          <AvatarFallback className="bg-warm-accent/10 text-warm-accent font-semibold">
+                            {testimonial.initial}
+                          </AvatarFallback>
+                        </Avatar>
+                      </motion.div>
                       <div className="text-left">
                         <div className="font-bold text-warm-text text-lg">{testimonial.author}</div>
                         <div className="text-slate-700 text-sm font-medium">{testimonial.role}</div>
                         <div className="flex items-center gap-2 mt-1">
-                          <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
+                          <motion.div 
+                            className="w-3 h-3 rounded-full bg-emerald-500"
+                            animate={{ scale: [1, 1.2, 1] }}
+                            transition={{ duration: 2, repeat: Infinity }}
+                          />
                           <span className="text-slate-500 text-xs">{testimonial.company}</span>
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
                 </CarouselItem>
               ))}
             </CarouselContent>
             <div className="flex justify-center mt-10 gap-4">
-              <CarouselPrevious className="static transform-none mx-2 bg-white border border-gray-200" />
-              <CarouselNext className="static transform-none mx-2 bg-white border border-gray-200" />
+              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
+                <CarouselPrevious className="static transform-none mx-2 bg-white border border-gray-200 hover:bg-warm-accent hover:text-white hover:border-warm-accent transition-colors" />
+              </motion.div>
+              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
+                <CarouselNext className="static transform-none mx-2 bg-white border border-gray-200 hover:bg-warm-accent hover:text-white hover:border-warm-accent transition-colors" />
+              </motion.div>
             </div>
           </Carousel>
-        </div>
+        </motion.div>
       </div>
     </section>
   );
