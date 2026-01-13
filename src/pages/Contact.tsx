@@ -32,7 +32,7 @@ const Contact = () => {
 
   return (
     <div className="min-h-screen bg-warm-bg font-sans relative overflow-hidden">
-      <FloatingOrbs count={6} />
+      <FloatingOrbs variant="hero" />
       
       <main className="relative z-10">
         <div className="container-content max-w-screen-xl mx-auto px-4 py-16">
