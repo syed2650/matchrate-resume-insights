@@ -20,7 +20,7 @@ const CallToAction = () => {
 
   return (
     <section className="py-20 md:py-28 hero-gradient border-y border-slate-100 relative overflow-hidden">
-      <FloatingOrbs count={5} />
+      <FloatingOrbs variant="section" />
       
       {/* Animated background elements */}
       <motion.div 

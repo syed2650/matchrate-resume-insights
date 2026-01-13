@@ -167,7 +167,7 @@ const Pricing = () => {
 
   return (
     <section id="pricing" className="py-12 md:py-16 relative overflow-hidden" ref={pricingRef}>
-      <FloatingOrbs count={4} />
+      <FloatingOrbs variant="section" />
       <div className="absolute top-0 left-0 w-full h-40 bg-gradient-to-b from-white to-transparent"></div>
       
       <div className="container max-w-6xl mx-auto px-4 relative z-10">
@@ -216,7 +216,6 @@ const Pricing = () => {
               </span>
             </div>
           )}
-        </div>
         </motion.div>
         
         <motion.div 

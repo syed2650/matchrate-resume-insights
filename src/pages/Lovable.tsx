@@ -166,7 +166,7 @@ export default function Lovable() {
 
   return (
     <div className="min-h-screen bg-warm-bg py-12 px-4 relative overflow-hidden">
-      <FloatingOrbs count={6} />
+      <FloatingOrbs variant="hero" />
       
       <div className="max-w-3xl mx-auto space-y-8 relative z-10">
         <motion.div 

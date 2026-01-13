@@ -57,7 +57,7 @@ export default function About() {
         structuredData={structuredData}
       />
       <div className="min-h-screen bg-warm-bg relative overflow-hidden">
-        <FloatingOrbs count={6} />
+        <FloatingOrbs variant="hero" />
         
         <div className="container max-w-screen-xl mx-auto px-4 py-16 relative z-10">
           <motion.div
