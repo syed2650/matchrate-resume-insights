@@ -7,7 +7,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthUser } from "@/hooks/useAuthUser";
-
+import { motion } from "framer-motion";
+import FloatingOrbs from "@/components/ui/FloatingOrbs";
 interface PlanFeature {
   name: string;
   available: boolean;
@@ -165,18 +166,45 @@ const Pricing = () => {
   };
 
   return (
-    <section id="pricing" className="py-12 md:py-16 relative" ref={pricingRef}>
+    <section id="pricing" className="py-12 md:py-16 relative overflow-hidden" ref={pricingRef}>
+      <FloatingOrbs count={4} />
       <div className="absolute top-0 left-0 w-full h-40 bg-gradient-to-b from-white to-transparent"></div>
       
       <div className="container max-w-6xl mx-auto px-4 relative z-10">
-        <div className="text-left mb-16 fade-in pricing-animated">
-          <p className="text-warm-accent font-medium text-sm mb-3 uppercase tracking-wider">Simple Pricing</p>
-          <h2 className="text-3xl md:text-5xl font-bold text-warm-text mb-6">
-            Simple Pricing That <span className="text-gradient">Fits Your Job Search</span>
-          </h2>
-          <p className="mt-4 text-lg text-slate-600 max-w-3xl">
+        <motion.div 
+          className="text-left mb-16"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true }}
+        >
+          <motion.p 
+            className="text-warm-accent font-medium text-sm mb-3 uppercase tracking-wider"
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            viewport={{ once: true }}
+          >
+            Simple Pricing
+          </motion.p>
+          <motion.h2 
+            className="text-3xl md:text-5xl font-bold text-warm-text mb-6"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            viewport={{ once: true }}
+          >
+            Simple Pricing That <span className="text-gradient animated-gradient-text">Fits Your Job Search</span>
+          </motion.h2>
+          <motion.p 
+            className="mt-4 text-lg text-slate-600 max-w-3xl"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            viewport={{ once: true }}
+          >
             Get the feedback you need to land interviews, with plans designed for every job seeker's budget and goals.
-          </p>
+          </motion.p>
           
           {stats.plan === 'paid' && (
             <div className="mt-6 p-4 bg-emerald-50 border border-emerald-200 rounded-lg inline-flex items-center gap-2">
@@ -189,11 +217,18 @@ const Pricing = () => {
             </div>
           )}
         </div>
+        </motion.div>
         
-        <div className="max-w-5xl mx-auto fade-in pricing-animated">
+        <motion.div 
+          className="max-w-5xl mx-auto"
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          viewport={{ once: true }}
+        >
           <Tabs defaultValue="plans" className="mb-8">
             <div className="flex justify-center">
-              <TabsList className="grid w-64 grid-cols-2 mb-12 glass">
+              <TabsList className="grid w-64 grid-cols-2 mb-12 glassmorphism">
                 <TabsTrigger value="plans">Plans</TabsTrigger>
                 <TabsTrigger value="compare">Compare</TabsTrigger>
               </TabsList>
@@ -202,8 +237,17 @@ const Pricing = () => {
             <TabsContent value="plans" className="mt-0">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {pricingPlans.map((plan, index) => (
-                  <div 
-                    key={index} 
+                  <motion.div 
+                    key={index}
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: index * 0.1 }}
+                    viewport={{ once: true }}
+                    whileHover={{ 
+                      y: plan.popular ? -12 : -8, 
+                      scale: 1.02,
+                      transition: { duration: 0.2 }
+                    }}
                     className={`flex flex-col rounded-2xl glassmorphism transition-all duration-300 hover:shadow-premium-hover px-6 py-8 relative ${
                       plan.popular ? 'border-warm-accent ring-2 ring-warm-accent/20 translate-y-[-8px]' : ''
                     } ${plan.lifetime ? 'border-amber-400 ring-2 ring-amber-200/40 bg-gradient-to-br from-amber-50/50 to-orange-50/30' : 'border-slate-100'}
@@ -273,7 +317,7 @@ const Pricing = () => {
                         </div>
                       ))}
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             </TabsContent>
@@ -338,13 +382,19 @@ const Pricing = () => {
             </TabsContent>
           </Tabs>
           
-          <div className="mt-12 text-center fade-in pricing-animated" style={{ animationDelay: '300ms' }}>
+          <motion.div 
+            className="mt-12 text-center"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.5 }}
+            viewport={{ once: true }}
+          >
             <p className="text-slate-500 mb-4">Need a custom solution for your team?</p>
-            <Button variant="outline" className="glassmorphism hover:bg-white/80" asChild>
+            <Button variant="outline" className="glassmorphism hover:bg-white/80 hover-scale" asChild>
               <Link to="/contact">Contact Us for Enterprise Plans</Link>
             </Button>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
     </section>
   );
