@@ -5,7 +5,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Copy, Share2, Download, Award } from "lucide-react";
+import { Loader2, Copy, Share2, Download, Award, Flame, Heart, Sparkles } from "lucide-react";
+import { motion } from "framer-motion";
+import FloatingOrbs from "@/components/ui/FloatingOrbs";
 
 type Mode = "roast" | "love";
 
@@ -163,51 +165,81 @@ export default function Lovable() {
   };
 
   return (
-    <div className="min-h-screen bg-background py-12 px-4">
-      <div className="max-w-3xl mx-auto space-y-8">
-        <div className="text-center space-y-3">
-          <h1 className="text-5xl font-bold text-foreground">Lovable for Jobs</h1>
+    <div className="min-h-screen bg-warm-bg py-12 px-4 relative overflow-hidden">
+      <FloatingOrbs count={6} />
+      
+      <div className="max-w-3xl mx-auto space-y-8 relative z-10">
+        <motion.div 
+          className="text-center space-y-4"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary"
+          >
+            <Sparkles className="h-5 w-5" />
+            <span className="font-medium">Powered by ChatGPT 5.2</span>
+          </motion.div>
+          
+          <h1 className="text-5xl font-bold">
+            <span className="animated-gradient-text">Lovable</span> for Jobs
+          </h1>
           <p className="text-xl text-muted-foreground">
             Get a roast or a love-note — plus real, actionable feedback — for your resume.
           </p>
-        </div>
+        </motion.div>
 
-        <Card className="border-2">
-          <CardContent className="pt-6 space-y-6">
-            <Textarea
-              placeholder="Paste your resume here..."
-              className="min-h-[300px] text-base"
-              value={resume}
-              onChange={(e) => setResume(e.target.value)}
-            />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          <Card className="glassmorphism border-2">
+            <CardContent className="pt-6 space-y-6">
+              <Textarea
+                placeholder="Paste your resume here..."
+                className="min-h-[300px] text-base bg-white/50"
+                value={resume}
+                onChange={(e) => setResume(e.target.value)}
+              />
 
-            <div className="space-y-4">
-              <div className="flex justify-center gap-4">
-                <Button
-                  size="lg"
-                  variant={mode === "roast" ? "default" : "outline"}
-                  onClick={() => setMode("roast")}
-                  className={`text-lg px-8 transition-all ${
-                    mode === "roast" 
-                      ? "bg-red-500 hover:bg-red-600 text-white" 
-                      : "hover:border-red-500"
-                  }`}
-                >
-                  Roast Me 🔥
-                </Button>
-                <Button
-                  size="lg"
-                  variant={mode === "love" ? "default" : "outline"}
-                  onClick={() => setMode("love")}
-                  className={`text-lg px-8 transition-all ${
-                    mode === "love" 
-                      ? "bg-green-500 hover:bg-green-600 text-white" 
-                      : "hover:border-green-500"
-                  }`}
-                >
-                  Love Me 💖
-                </Button>
-              </div>
+              <div className="space-y-4">
+                <div className="flex justify-center gap-4">
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
+                    <Button
+                      size="lg"
+                      variant={mode === "roast" ? "default" : "outline"}
+                      onClick={() => setMode("roast")}
+                      className={`text-lg px-8 transition-all ${
+                        mode === "roast" 
+                          ? "bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white shadow-lg" 
+                          : "hover:border-red-500"
+                      }`}
+                    >
+                      <Flame className="mr-2 h-5 w-5" />
+                      Roast Me
+                    </Button>
+                  </motion.div>
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
+                    <Button
+                      size="lg"
+                      variant={mode === "love" ? "default" : "outline"}
+                      onClick={() => setMode("love")}
+                      className={`text-lg px-8 transition-all ${
+                        mode === "love" 
+                          ? "bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-lg" 
+                          : "hover:border-green-500"
+                      }`}
+                    >
+                      <Heart className="mr-2 h-5 w-5" />
+                      Love Me
+                    </Button>
+                  </motion.div>
+                </div>
 
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground text-center">
@@ -229,11 +261,12 @@ export default function Lovable() {
               </div>
             </div>
 
-            <Button
-              onClick={handleGenerate}
-              disabled={loading}
-              size="lg"
-              className="w-full text-lg py-6"
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <Button
+                onClick={handleGenerate}
+                disabled={loading}
+                size="lg"
+                className="w-full text-lg py-6 cta-gradient"
             >
               {loading ? (
                 <>
@@ -243,9 +276,11 @@ export default function Lovable() {
               ) : (
                 "Generate"
               )}
-            </Button>
+              </Button>
+            </motion.div>
           </CardContent>
         </Card>
+        </motion.div>
 
         {result && (
           <div id="results" className="space-y-6">
