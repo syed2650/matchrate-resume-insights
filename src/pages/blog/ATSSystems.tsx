@@ -1,13 +1,32 @@
-
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Footer from "@/components/sections/Footer";
 import Header from "@/components/sections/Header";
+import { SEOHead } from "@/components/SEOHead";
 
 export default function ATSSystems() {
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "ATS Systems Explained: How to Beat the Resume Robots in 2025",
+    "description": "Comprehensive guide on how ATS systems work in 2025 and specific techniques to ensure your resume gets past digital filters and reaches recruiters.",
+    "author": { "@type": "Organization", "name": "MatchRate" },
+    "publisher": { "@type": "Organization", "name": "MatchRate", "url": "https://www.matchrate.co" },
+    "datePublished": "2025-01-15",
+    "dateModified": "2025-01-15"
+  };
+
   return (
-    <div className="min-h-screen bg-warm-bg font-sans">
+    <>
+      <SEOHead
+        title="ATS Systems Explained: How to Beat Resume Robots in 2025"
+        description="Comprehensive guide on how ATS systems work in 2025 and specific techniques to ensure your resume gets past digital filters and reaches recruiters."
+        keywords="ATS systems, applicant tracking system, resume robots, ATS explained, how ATS works"
+        canonicalUrl="https://www.matchrate.co/blog/ats-systems"
+        structuredData={structuredData}
+      />
+      <div className="min-h-screen bg-warm-bg font-sans">
       <div className="bg-white/80 backdrop-blur-sm border-b border-slate-100 sticky top-0 z-50">
         <Header />
       </div>
@@ -175,6 +194,7 @@ export default function ATSSystems() {
       </div>
       
       <Footer />
-    </div>
+      </div>
+    </>
   );
 }

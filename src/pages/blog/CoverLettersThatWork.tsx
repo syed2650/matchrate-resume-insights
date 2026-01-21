@@ -1,7 +1,26 @@
+import { SEOHead } from "@/components/SEOHead";
+
 const CoverLettersThatWork = () => {
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Cover Letters That Actually Work: Analysis of 7,500+ Applications",
+    "description": "Learn what makes cover letters effective based on analysis of 7,500+ successful applications. Get templates and strategies that hiring managers actually read.",
+    "author": { "@type": "Organization", "name": "MatchRate" },
+    "publisher": { "@type": "Organization", "name": "MatchRate", "url": "https://www.matchrate.co" },
+    "datePublished": "2025-01-15",
+    "dateModified": "2025-01-15"
+  };
+
   return (
     <>
-
+      <SEOHead
+        title="Cover Letters That Actually Work: Analysis of 7,500+ Applications"
+        description="Learn what makes cover letters effective based on analysis of 7,500+ successful applications. Get templates and strategies that hiring managers actually read."
+        keywords="cover letter tips, effective cover letters, cover letter examples, cover letter template, how to write cover letter"
+        canonicalUrl="https://www.matchrate.co/blog/cover-letters-that-work"
+        structuredData={structuredData}
+      />
       <article className="max-w-4xl mx-auto px-4 py-8">
         <header className="mb-8">
           <h1 className="text-4xl font-bold text-foreground mb-4">

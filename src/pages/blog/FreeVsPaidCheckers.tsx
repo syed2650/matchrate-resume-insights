@@ -1,12 +1,31 @@
-
 import { ArrowLeft, DollarSign, CheckCircle, XCircle, Star, TrendingUp, AlertTriangle, Target, Users, Clock, Award, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Link } from "react-router-dom";
+import { SEOHead } from "@/components/SEOHead";
 
 export default function FreeVsPaidCheckers() {
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Free vs Paid Resume Checkers: Complete Comparison 2025",
+    "description": "Detailed comparison of free and paid resume checkers. Find out which tools offer the best value, accuracy, and features for your job search needs.",
+    "author": { "@type": "Organization", "name": "MatchRate" },
+    "publisher": { "@type": "Organization", "name": "MatchRate", "url": "https://www.matchrate.co" },
+    "datePublished": "2025-01-15",
+    "dateModified": "2025-01-15"
+  };
+
   return (
-    <div className="container max-w-4xl mx-auto px-4 py-16">
+    <>
+      <SEOHead
+        title="Free vs Paid Resume Checkers: Complete Comparison 2025"
+        description="Detailed comparison of free and paid resume checkers. Find out which tools offer the best value, accuracy, and features for your job search needs."
+        keywords="free resume checker, paid resume checker, resume checker comparison, best resume checker, ATS checker free"
+        canonicalUrl="https://www.matchrate.co/blog/free-vs-paid-checkers"
+        structuredData={structuredData}
+      />
+      <div className="container max-w-4xl mx-auto px-4 py-16">
       <Link to="/blog" className="inline-flex items-center gap-2 text-warm-accent hover:text-warm-accent/80 mb-8">
         <ArrowLeft className="h-4 w-4" />
         Back to Blog
@@ -1265,6 +1284,7 @@ export default function FreeVsPaidCheckers() {
           </div>
         </div>
       </article>
-    </div>
+      </div>
+    </>
   );
 }

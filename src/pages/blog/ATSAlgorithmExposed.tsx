@@ -1,12 +1,31 @@
-
 import { ArrowLeft, Clock, Target, Brain, Search, CheckCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { SEOHead } from "@/components/SEOHead";
 
 export default function ATSAlgorithmExposed() {
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "The ATS Algorithm Exposed: How Resume Scanners Work in 2025",
+    "description": "Deep dive into how ATS algorithms actually work in 2025. Learn the 5-stage scanning process and advanced strategies to optimize your resume for any ATS.",
+    "author": { "@type": "Organization", "name": "MatchRate" },
+    "publisher": { "@type": "Organization", "name": "MatchRate", "url": "https://www.matchrate.co" },
+    "datePublished": "2025-01-15",
+    "dateModified": "2025-01-15"
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white">
+    <>
+      <SEOHead
+        title="The ATS Algorithm Exposed: How Resume Scanners Work in 2025"
+        description="Deep dive into how ATS algorithms actually work in 2025. Learn the 5-stage scanning process and advanced strategies to optimize your resume for any ATS."
+        keywords="ATS algorithm, resume scanner, how ATS works, ATS parsing, resume optimization algorithm"
+        canonicalUrl="https://www.matchrate.co/blog/ats-algorithm-exposed"
+        structuredData={structuredData}
+      />
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white">
       <div className="container max-w-4xl mx-auto px-4 py-8">
         {/* Navigation */}
         <div className="mb-8">
@@ -423,6 +442,7 @@ export default function ATSAlgorithmExposed() {
           </Card>
         </article>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

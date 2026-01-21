@@ -1,13 +1,32 @@
-
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Footer from "@/components/sections/Footer";
 import Header from "@/components/sections/Header";
+import { SEOHead } from "@/components/SEOHead";
 
 export default function ImproveResume() {
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "How to Instantly Improve Your Resume for Any Job Application",
+    "description": "Learn proven strategies to upgrade your resume today without hiring a career coach. Get actionable tips that hiring managers actually care about.",
+    "author": { "@type": "Organization", "name": "MatchRate" },
+    "publisher": { "@type": "Organization", "name": "MatchRate", "url": "https://www.matchrate.co" },
+    "datePublished": "2025-01-15",
+    "dateModified": "2025-01-15"
+  };
+
   return (
-    <div className="min-h-screen bg-warm-bg font-sans">
+    <>
+      <SEOHead
+        title="How to Instantly Improve Your Resume for Any Job Application"
+        description="Learn proven strategies to upgrade your resume today without hiring a career coach. Get actionable tips that hiring managers actually care about."
+        keywords="improve resume, resume tips, resume upgrade, better resume, resume optimization"
+        canonicalUrl="https://www.matchrate.co/blog/improve-resume"
+        structuredData={structuredData}
+      />
+      <div className="min-h-screen bg-warm-bg font-sans">
       <div className="bg-white/80 backdrop-blur-sm border-b border-slate-100 sticky top-0 z-50">
         <Header />
       </div>
@@ -196,6 +215,7 @@ export default function ImproveResume() {
       </div>
       
       <Footer />
-    </div>
+      </div>
+    </>
   );
 }

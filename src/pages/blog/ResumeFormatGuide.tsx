@@ -1,13 +1,32 @@
-
 import { ArrowLeft, Clock, CheckCircle, XCircle, FileText, Users, TrendingUp } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { SEOHead } from "@/components/SEOHead";
 
 export default function ResumeFormatGuide() {
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Resume Format That Actually Gets Interviews: 2025 ATS-Friendly Templates",
+    "description": "Discover the exact resume format that passes ATS systems and impresses recruiters in 2025. Free ATS-friendly templates and formatting tips included.",
+    "author": { "@type": "Organization", "name": "MatchRate" },
+    "publisher": { "@type": "Organization", "name": "MatchRate", "url": "https://www.matchrate.co" },
+    "datePublished": "2025-01-15",
+    "dateModified": "2025-01-15"
+  };
+
   return (
-    <div className="min-h-screen bg-warm-bg">
-      <div className="container max-w-4xl mx-auto px-4 py-8">
+    <>
+      <SEOHead
+        title="Resume Format Guide 2025: ATS-Friendly Templates That Get Interviews"
+        description="Discover the exact resume format that passes ATS systems and impresses recruiters in 2025. Free ATS-friendly templates and formatting tips included."
+        keywords="resume format, ATS-friendly resume, resume template 2025, resume formatting, best resume format"
+        canonicalUrl="https://www.matchrate.co/blog/resume-format-guide"
+        structuredData={structuredData}
+      />
+      <div className="min-h-screen bg-warm-bg">
+        <div className="container max-w-4xl mx-auto px-4 py-8">
         {/* Back Button */}
         <Link to="/blog" className="inline-flex items-center text-sm text-slate-600 hover:text-slate-900 mb-6">
           <ArrowLeft className="h-4 w-4 mr-2" />
@@ -570,6 +589,7 @@ PROJECTS
           </div>
         </Card>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

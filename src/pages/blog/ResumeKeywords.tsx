@@ -1,12 +1,31 @@
-
 import { ArrowLeft, Target, Search, CheckCircle, AlertCircle, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Link } from "react-router-dom";
+import { SEOHead } from "@/components/SEOHead";
 
 export default function ResumeKeywords() {
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Resume Keywords That Actually Work: Complete Guide 2025",
+    "description": "Master resume keyword optimization with our complete 2025 guide. Learn which keywords get past ATS and impress hiring managers.",
+    "author": { "@type": "Organization", "name": "MatchRate" },
+    "publisher": { "@type": "Organization", "name": "MatchRate", "url": "https://www.matchrate.co" },
+    "datePublished": "2025-01-15",
+    "dateModified": "2025-01-15"
+  };
+
   return (
-    <div className="container max-w-4xl mx-auto px-4 py-16">
+    <>
+      <SEOHead
+        title="Resume Keywords That Actually Work: Complete Guide 2025"
+        description="Master resume keyword optimization with our complete 2025 guide. Learn which keywords get past ATS and impress hiring managers."
+        keywords="resume keywords, ATS keywords, resume optimization, keyword stuffing, resume keyword strategy"
+        canonicalUrl="https://www.matchrate.co/blog/resume-keywords"
+        structuredData={structuredData}
+      />
+      <div className="container max-w-4xl mx-auto px-4 py-16">
       <Link to="/blog" className="inline-flex items-center gap-2 text-warm-accent hover:text-warm-accent/80 mb-8">
         <ArrowLeft className="h-4 w-4" />
         Back to Blog
@@ -514,6 +533,7 @@ export default function ResumeKeywords() {
           </div>
         </div>
       </article>
-    </div>
+      </div>
+    </>
   );
 }

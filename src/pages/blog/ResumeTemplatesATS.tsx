@@ -1,12 +1,31 @@
-
 import { ArrowLeft, FileText, CheckCircle, AlertTriangle, Target, Layout } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { SEOHead } from "@/components/SEOHead";
 
 export default function ResumeTemplatesATS() {
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "ATS-Friendly Resume Templates: Analysis of 5,000+ Formats",
+    "description": "Discover which resume templates actually pass ATS systems based on analysis of 5,000+ formats. Get free ATS-optimized templates and formatting guidelines.",
+    "author": { "@type": "Organization", "name": "MatchRate" },
+    "publisher": { "@type": "Organization", "name": "MatchRate", "url": "https://www.matchrate.co" },
+    "datePublished": "2025-01-15",
+    "dateModified": "2025-01-15"
+  };
+
   return (
-    <div className="container max-w-4xl mx-auto px-4 py-8">
+    <>
+      <SEOHead
+        title="ATS-Friendly Resume Templates: Analysis of 5,000+ Formats"
+        description="Discover which resume templates actually pass ATS systems based on analysis of 5,000+ formats. Get free ATS-optimized templates and formatting guidelines."
+        keywords="ATS resume templates, ATS-friendly resume, resume template, best resume format, ATS compatible resume"
+        canonicalUrl="https://www.matchrate.co/blog/resume-templates-ats"
+        structuredData={structuredData}
+      />
+      <div className="container max-w-4xl mx-auto px-4 py-8">
       <div className="mb-8">
         <Link to="/blog" className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-4">
           <ArrowLeft className="mr-2 h-4 w-4" />
@@ -764,6 +783,7 @@ Regulatory Knowledge: SEC compliance, SOX, Basel III, CFTC regulations`}
           </Button>
         </Card>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

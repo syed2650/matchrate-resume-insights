@@ -1,4 +1,3 @@
-
 import Hero from "@/components/sections/Hero";
 import Features from "@/components/sections/Features";
 import Testimonials from "@/components/sections/Testimonials";
@@ -9,8 +8,21 @@ import DashboardPreview from "@/components/sections/DashboardPreview";
 import { useEffect } from "react";
 import { ArrowUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { SEOHead } from "@/components/SEOHead";
 
 const Index = () => {
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "MatchRate",
+    "url": "https://www.matchrate.co",
+    "description": "AI-powered resume analysis tool that helps job seekers optimize their resumes for ATS systems and land more interviews.",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://www.matchrate.co/review?q={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  };
   useEffect(() => {
     const revealElements = document.querySelectorAll('.scroll-reveal');
     
@@ -54,7 +66,15 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-warm-bg font-sans">
+    <>
+      <SEOHead
+        title="MatchRate - AI Resume Analyzer & ATS Checker"
+        description="Get your resume past ATS systems with MatchRate's AI-powered resume analyzer. Free ATS score check, keyword optimization, and instant feedback to land more interviews."
+        keywords="resume analyzer, ATS checker, resume optimization, AI resume review, job application help, resume score"
+        canonicalUrl="https://www.matchrate.co/"
+        structuredData={structuredData}
+      />
+      <div className="min-h-screen bg-warm-bg font-sans">
       <main>
         <Hero />
         <div className="section-alt bg-lilac-gradient">
@@ -84,7 +104,8 @@ const Index = () => {
       >
         <ArrowUp className="h-5 w-5 text-white" />
       </Button>
-    </div>
+      </div>
+    </>
   );
 };
 
