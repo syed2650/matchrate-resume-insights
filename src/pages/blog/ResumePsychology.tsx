@@ -1,12 +1,31 @@
-
 import { ArrowLeft, Clock, Users, Brain, Eye, Target, TrendingUp, AlertTriangle, CheckCircle, FileText } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { SEOHead } from "@/components/SEOHead";
 
 export default function ResumePsychology() {
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Resume Psychology: What Hiring Managers Actually Think",
+    "description": "Discover the psychological triggers that influence hiring decisions. Learn how to optimize your resume based on what hiring managers actually think and feel.",
+    "author": { "@type": "Organization", "name": "MatchRate" },
+    "publisher": { "@type": "Organization", "name": "MatchRate", "url": "https://www.matchrate.co" },
+    "datePublished": "2025-01-15",
+    "dateModified": "2025-01-15"
+  };
+
   return (
-    <div className="min-h-screen bg-warm-bg">
+    <>
+      <SEOHead
+        title="Resume Psychology: What Hiring Managers Actually Think"
+        description="Discover the psychological triggers that influence hiring decisions. Learn how to optimize your resume based on what hiring managers actually think and feel."
+        keywords="resume psychology, hiring manager psychology, resume tips psychology, what hiring managers want, resume persuasion"
+        canonicalUrl="https://www.matchrate.co/blog/resume-psychology"
+        structuredData={structuredData}
+      />
+      <div className="min-h-screen bg-warm-bg">
       <div className="container max-w-4xl mx-auto px-4 py-8">
         {/* Back Button */}
         <Link to="/blog" className="inline-flex items-center text-sm text-slate-600 hover:text-slate-900 mb-6">
@@ -734,6 +753,7 @@ export default function ResumePsychology() {
           </div>
         </Card>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

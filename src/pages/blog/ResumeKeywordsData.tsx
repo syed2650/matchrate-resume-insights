@@ -1,12 +1,31 @@
-
 import { ArrowLeft, Search, TrendingUp, AlertTriangle, Target, BarChart3 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { SEOHead } from "@/components/SEOHead";
 
 export default function ResumeKeywordsData() {
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Resume Keywords Data: Analysis from 10,000+ ATS Scans",
+    "description": "Data-driven analysis of which resume keywords actually work based on 10,000+ ATS scans. Discover high-performing keywords by industry and role.",
+    "author": { "@type": "Organization", "name": "MatchRate" },
+    "publisher": { "@type": "Organization", "name": "MatchRate", "url": "https://www.matchrate.co" },
+    "datePublished": "2025-01-15",
+    "dateModified": "2025-01-15"
+  };
+
   return (
-    <div className="container max-w-4xl mx-auto px-4 py-8">
+    <>
+      <SEOHead
+        title="Resume Keywords Data: Analysis from 10,000+ ATS Scans"
+        description="Data-driven analysis of which resume keywords actually work based on 10,000+ ATS scans. Discover high-performing keywords by industry and role."
+        keywords="resume keywords data, ATS keywords, best resume keywords, keyword analysis, resume optimization data"
+        canonicalUrl="https://www.matchrate.co/blog/resume-keywords-data"
+        structuredData={structuredData}
+      />
+      <div className="container max-w-4xl mx-auto px-4 py-8">
       <div className="mb-8">
         <Link to="/blog" className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-4">
           <ArrowLeft className="mr-2 h-4 w-4" />
@@ -501,6 +520,7 @@ export default function ResumeKeywordsData() {
           </Button>
         </Card>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

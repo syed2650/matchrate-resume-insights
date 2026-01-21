@@ -1,12 +1,31 @@
-
 import { ArrowLeft, Target, Shield, Zap, CheckCircle, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Link } from "react-router-dom";
+import { SEOHead } from "@/components/SEOHead";
 
 export default function BeatATS() {
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "How to Beat ATS Systems in 2025: Complete Guide to Getting Past Resume Robots",
+    "description": "Master ATS optimization with our complete 2025 guide. Learn how Applicant Tracking Systems work and proven strategies to get your resume past the bots.",
+    "author": { "@type": "Organization", "name": "MatchRate" },
+    "publisher": { "@type": "Organization", "name": "MatchRate", "url": "https://www.matchrate.co" },
+    "datePublished": "2025-01-15",
+    "dateModified": "2025-01-15"
+  };
+
   return (
-    <div className="container max-w-4xl mx-auto px-4 py-16">
+    <>
+      <SEOHead
+        title="How to Beat ATS Systems in 2025: Complete Guide"
+        description="Master ATS optimization with our complete 2025 guide. Learn how Applicant Tracking Systems work and proven strategies to get your resume past the bots."
+        keywords="beat ATS, ATS optimization, applicant tracking system, resume ATS, pass ATS screening"
+        canonicalUrl="https://www.matchrate.co/blog/beat-ats"
+        structuredData={structuredData}
+      />
+      <div className="container max-w-4xl mx-auto px-4 py-16">
       <Link to="/blog" className="inline-flex items-center gap-2 text-warm-accent hover:text-warm-accent/80 mb-8">
         <ArrowLeft className="h-4 w-4" />
         Back to Blog
@@ -570,6 +589,7 @@ export default function BeatATS() {
           </div>
         </div>
       </article>
-    </div>
+      </div>
+    </>
   );
 }

@@ -1,12 +1,31 @@
-
 import { ArrowLeft, Target, TrendingUp, AlertTriangle, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Link } from "react-router-dom";
+import { SEOHead } from "@/components/SEOHead";
 
 export default function ResumeRejection() {
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Why 95% of Resumes Get Rejected (And How to Fix Yours) in 2025",
+    "description": "Learn why most resumes get rejected by ATS systems and hiring managers. Get actionable tips to fix your resume and land more interviews in 2025.",
+    "author": { "@type": "Organization", "name": "MatchRate" },
+    "publisher": { "@type": "Organization", "name": "MatchRate", "url": "https://www.matchrate.co" },
+    "datePublished": "2025-01-15",
+    "dateModified": "2025-01-15"
+  };
+
   return (
-    <div className="container max-w-4xl mx-auto px-4 py-16">
+    <>
+      <SEOHead
+        title="Why 95% of Resumes Get Rejected (And How to Fix Yours) in 2025"
+        description="Learn why most resumes get rejected by ATS systems and hiring managers. Get actionable tips to fix your resume and land more interviews in 2025."
+        keywords="resume rejection, why resumes get rejected, ATS rejection, resume tips 2025, fix resume"
+        canonicalUrl="https://www.matchrate.co/blog/resume-rejection"
+        structuredData={structuredData}
+      />
+      <div className="container max-w-4xl mx-auto px-4 py-16">
       <Link to="/blog" className="inline-flex items-center gap-2 text-warm-accent hover:text-warm-accent/80 mb-8">
         <ArrowLeft className="h-4 w-4" />
         Back to Blog
@@ -546,6 +565,7 @@ export default function ResumeRejection() {
           </div>
         </div>
       </article>
-    </div>
+      </div>
+    </>
   );
 }

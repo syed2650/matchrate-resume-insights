@@ -1,13 +1,32 @@
-
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Footer from "@/components/sections/Footer";
 import Header from "@/components/sections/Header";
+import { SEOHead } from "@/components/SEOHead";
 
 export default function ResumeMistakes() {
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "10 Common Resume Mistakes to Avoid in 2025",
+    "description": "Discover the most common resume mistakes that get candidates rejected and learn how to avoid them with actionable tips from hiring experts.",
+    "author": { "@type": "Organization", "name": "MatchRate" },
+    "publisher": { "@type": "Organization", "name": "MatchRate", "url": "https://www.matchrate.co" },
+    "datePublished": "2025-01-15",
+    "dateModified": "2025-01-15"
+  };
+
   return (
-    <div className="min-h-screen bg-warm-bg font-sans">
+    <>
+      <SEOHead
+        title="10 Common Resume Mistakes to Avoid in 2025"
+        description="Discover the most common resume mistakes that get candidates rejected and learn how to avoid them with actionable tips from hiring experts."
+        keywords="resume mistakes, common resume errors, resume tips, resume mistakes to avoid, resume help"
+        canonicalUrl="https://www.matchrate.co/blog/resume-mistakes"
+        structuredData={structuredData}
+      />
+      <div className="min-h-screen bg-warm-bg font-sans">
       <div className="bg-white/80 backdrop-blur-sm border-b border-slate-100 sticky top-0 z-50">
         <Header />
       </div>
@@ -198,6 +217,7 @@ export default function ResumeMistakes() {
       </div>
       
       <Footer />
-    </div>
+      </div>
+    </>
   );
 }

@@ -1,11 +1,30 @@
-
 import { ArrowLeft, Users, TrendingUp, Search, Target, MessageSquare, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { SEOHead } from "@/components/SEOHead";
 
 export default function LinkedInProfileOptimization() {
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "LinkedIn Profile Optimization: Get Recruiters to Find You",
+    "description": "Data-backed LinkedIn optimization strategies from 8,000+ profiles. Learn how to optimize your LinkedIn profile to attract recruiters and land more opportunities.",
+    "author": { "@type": "Organization", "name": "MatchRate" },
+    "publisher": { "@type": "Organization", "name": "MatchRate", "url": "https://www.matchrate.co" },
+    "datePublished": "2025-01-15",
+    "dateModified": "2025-01-15"
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+    <>
+      <SEOHead
+        title="LinkedIn Profile Optimization: Get Recruiters to Find You"
+        description="Data-backed LinkedIn optimization strategies from 8,000+ profiles. Learn how to optimize your LinkedIn profile to attract recruiters and land more opportunities."
+        keywords="LinkedIn optimization, LinkedIn profile tips, LinkedIn for job search, recruiter visibility, LinkedIn SEO"
+        canonicalUrl="https://www.matchrate.co/blog/linkedin-profile-optimization"
+        structuredData={structuredData}
+      />
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       <div className="container max-w-4xl mx-auto px-4 py-8">
         <Button asChild variant="ghost" className="mb-6">
           <Link to="/blog" className="flex items-center gap-2">
@@ -673,6 +692,7 @@ export default function LinkedInProfileOptimization() {
           </div>
         </article>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

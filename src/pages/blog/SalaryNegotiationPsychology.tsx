@@ -1,6 +1,26 @@
+import { SEOHead } from "@/components/SEOHead";
+
 const SalaryNegotiationPsychology = () => {
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Salary Negotiation Psychology: Get 30%+ More Money",
+    "description": "Master salary negotiation psychology with data from 5,200+ negotiations. Learn proven strategies to increase your compensation by 30% or more.",
+    "author": { "@type": "Organization", "name": "MatchRate" },
+    "publisher": { "@type": "Organization", "name": "MatchRate", "url": "https://www.matchrate.co" },
+    "datePublished": "2025-01-15",
+    "dateModified": "2025-01-15"
+  };
+
   return (
     <>
+      <SEOHead
+        title="Salary Negotiation Psychology: Get 30%+ More Money"
+        description="Master salary negotiation psychology with data from 5,200+ negotiations. Learn proven strategies to increase your compensation by 30% or more."
+        keywords="salary negotiation, salary psychology, negotiate salary, higher salary, compensation negotiation"
+        canonicalUrl="https://www.matchrate.co/blog/salary-negotiation-psychology"
+        structuredData={structuredData}
+      />
       <article className="max-w-4xl mx-auto px-4 py-8">
         <header className="mb-8">
           <h1 className="text-4xl font-bold text-foreground mb-4">

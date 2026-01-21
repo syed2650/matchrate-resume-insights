@@ -1,13 +1,32 @@
-
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Footer from "@/components/sections/Footer";
 import Header from "@/components/sections/Header";
+import { SEOHead } from "@/components/SEOHead";
 
 export default function ResumeRejectionMistakes() {
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "10 Resume Mistakes That Guarantee Rejection in 2025",
+    "description": "Avoid these 10 critical resume mistakes that lead to instant rejection. Learn exactly how to fix each issue with actionable solutions and examples.",
+    "author": { "@type": "Organization", "name": "MatchRate" },
+    "publisher": { "@type": "Organization", "name": "MatchRate", "url": "https://www.matchrate.co" },
+    "datePublished": "2025-01-15",
+    "dateModified": "2025-01-15"
+  };
+
   return (
-    <div className="min-h-screen bg-warm-bg font-sans">
+    <>
+      <SEOHead
+        title="10 Resume Mistakes That Guarantee Rejection in 2025"
+        description="Avoid these 10 critical resume mistakes that lead to instant rejection. Learn exactly how to fix each issue with actionable solutions and examples."
+        keywords="resume rejection mistakes, resume mistakes 2025, resume rejection reasons, fix resume mistakes, common resume errors"
+        canonicalUrl="https://www.matchrate.co/blog/resume-rejection-mistakes"
+        structuredData={structuredData}
+      />
+      <div className="min-h-screen bg-warm-bg font-sans">
       <div className="bg-white/80 backdrop-blur-sm border-b border-slate-100 sticky top-0 z-50">
         <Header />
       </div>
@@ -974,6 +993,7 @@ export default function ResumeRejectionMistakes() {
       </div>
       
       <Footer />
-    </div>
+      </div>
+    </>
   );
 }
