@@ -15,6 +15,7 @@ import ResumeKeywordsData from "@/pages/blog/ResumeKeywordsData";
 import ResumeTemplatesATS from "@/pages/blog/ResumeTemplatesATS";
 import FreeVsPaidCheckers from "@/pages/blog/FreeVsPaidCheckers";
 import ATSAlgorithmExposed from "@/pages/blog/ATSAlgorithmExposed";
+import AIResumeWritersVsATS from "@/pages/blog/AIResumeWritersVsATS";
 import FAQ from "@/pages/FAQ";
 import Privacy from "@/pages/Privacy";
 import Terms from "@/pages/Terms";
@@ -74,6 +75,7 @@ function AppContent() {
         <Route path="/blog/resume-templates-ats" element={<ResumeTemplatesATS />} />
         <Route path="/blog/free-vs-paid-checkers" element={<FreeVsPaidCheckers />} />
         <Route path="/blog/ats-algorithm-exposed" element={<ATSAlgorithmExposed />} />
+        <Route path="/blog/ai-resume-writers-vs-ats" element={<AIResumeWritersVsATS />} />
         <Route path="/blog/linkedin-profile-optimization" element={<LinkedInProfileOptimization />} />
         <Route path="/blog/cover-letters-that-work" element={<CoverLettersThatWork />} />
         <Route path="/blog/salary-negotiation-psychology" element={<SalaryNegotiationPsychology />} />

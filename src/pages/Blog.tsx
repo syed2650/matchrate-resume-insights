@@ -8,6 +8,12 @@ import FloatingOrbs from "@/components/ui/FloatingOrbs";
 
 const blogPosts = [
   {
+    title: "AI Resume Writers vs ATS Systems: Which Tools Actually Pass in 2026 (We Tested 23 Tools)",
+    description: "Everyone's using AI to write resumes now. But most AI-generated resumes fail ATS screening spectacularly. We tested 23 popular AI resume tools against real ATS systems. The results shocked us.",
+    date: "January 2026",
+    link: "/blog/ai-resume-writers-vs-ats"
+  },
+  {
     title: "LinkedIn Profile Optimization: How to Get Recruiters to Find YOU (Data from 8,000+ Profiles)",
     description: "Your resume gets you past ATS systems, but your LinkedIn profile gets recruiters to chase YOU. We analyzed 8,247 LinkedIn profiles across 15 industries to reveal the shocking truth: 93% of professionals have profiles that recruiters will never find.",
     date: "July 2025",
