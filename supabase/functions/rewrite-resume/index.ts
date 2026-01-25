@@ -8,10 +8,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Helper function to wait
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-// Helper function to call OpenAI with retry logic
 async function callOpenAIWithRetry(body: object, maxRetries = 3): Promise<Response> {
   let lastError: Error | null = null;
   
@@ -26,7 +24,6 @@ async function callOpenAIWithRetry(body: object, maxRetries = 3): Promise<Respon
         body: JSON.stringify(body),
       });
 
-      // If rate limited, wait and retry
       if (response.status === 429) {
         const retryAfter = response.headers.get('retry-after');
         const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : (attempt + 1) * 3000;
@@ -52,7 +49,7 @@ serve(async (req) => {
   }
 
   try {
-    const { resumeText } = await req.json();
+    const { resumeText, jobDescription } = await req.json();
 
     if (!resumeText) {
       return new Response(
@@ -61,93 +58,77 @@ serve(async (req) => {
       );
     }
 
-    // Log first 200 chars to debug text quality
     console.log('Resume text preview:', resumeText.substring(0, 200));
-    console.log('Rewriting resume...');
+    console.log('Analyzing resume for improvements...');
 
-    const prompt = `You are the Resume Improvement Agent for MatchRate.co.
+    const prompt = `You are Agent 1: Resume Improvements for MatchRate.
 
-Your job:
-Rewrite ONLY the following sections of the user's resume:
-1. Professional Summary
-2. Bullet points (experience section)
-3. Skills phrasing (optional)
-Do NOT rewrite the entire resume. Do NOT create new sections.
+INPUTS:
+- resume_text: ${resumeText}
+- job_description: ${jobDescription || 'Not provided - give general improvements'}
 
-STRICT RULES:
-- Do NOT invent new experience, certifications, tools, achievements, or outcomes.
-- Do NOT modify job titles, dates, or employment history.
-- Keep every role the same — only rewrite bullet wording.
-- Follow STAR+Impact methodology: Action → Context → Outcome → Metric.
-- All rewrites must be concise, modern, and quantified when possible.
-- Maintain ATS-friendly formatting.
-- Never invent experience, skills, tools, certifications, or dates.
-- Only rewrite or enhance what the user already has.
-- Use short, sharp, resume-appropriate phrasing.
-- Avoid fluff, clichés, exaggeration, and resume padding.
-- Always prioritize clarity, impact, and measurability.
-- Follow modern resume standards (2024–2025).
-- NO markdown formatting. Use plain text only.
+GOAL:
+Improve the resume's clarity, impact, and relevance for the given job.
+The user must clearly know what to fix first.
 
-SUMMARY REWRITE RULES:
-- Do NOT use clichés like "results-driven," "proven track record," "expert in," "skilled in."
-- Focus ONLY on what is unique to the user based on their resume.
-- Include 1–2 quantifiable achievements (accuracy %, cost savings, team collaboration, project size).
-- Keep it under 4 lines.
-- Tone: confident, clear, and ATS-safe.
+STRICT OUTPUT STRUCTURE:
+A) Top 5 Critical Fixes (must-fix)
+B) Nice-to-have Improvements
+C) Optional Enhancements
 
-Output Format (plain text, no markdown):
+RULES:
+- Critical Fixes MUST be exactly 5.
+- Each bullet must include:
+  • Issue (what's wrong)
+  • Why it matters (1 short sentence)
+  • Fix example (rewrite or sample line)
+- No long paragraphs.
+- No generic advice.
+- Do NOT repeat the same issue across sections.
 
-SUMMARY IMPROVEMENT:
-[3–4 line personalized, specific, impactful summary]
+FINAL SECTION:
+"Quick Wins Rewrite Pack"
+- Rewrite exactly 3 weak bullets from the resume.
+- Use format: BEFORE → AFTER
+- Tailor rewrites to the job description.
 
-BULLET IMPROVEMENTS:
-For each bullet:
-Before: [original]
-After: [rewritten version with clarity + action verbs + quantification]
+STYLE:
+- Professional, concise, product-like.
+- UK English.
+- Never say "you should consider".
 
-WEAK PHRASES DETECTED:
-[List generic, vague, passive, filler phrases in user's resume]
+OUTPUT IN TWO PARTS:
 
-IMPACT SUGGESTIONS:
-[List 4–6 ways the user can add measurable impact to their resume]
+PART 1: JSON (wrapped in \`\`\`json code block)
+{
+  "verdict": "1-sentence summary of resume strength for this job",
+  "critical_fixes": [{"issue":"", "why":"", "fix_example":""}],
+  "nice_to_have": [{"issue":"", "why":"", "fix_example":""}],
+  "optional_enhancements": [{"issue":"", "why":"", "fix_example":""}],
+  "quick_wins_rewrite_pack": [{"before":"", "after":""}]
+}
 
-REDUNDANCY FIXES:
-[Detect repeated responsibilities across roles]
+PART 2: Clean Markdown summary
 
-ACTION VERB SUGGESTIONS:
-[List 8–12 strong action verbs tailored to their domain]
-
-GAP ANALYSIS:
-Identify missing elements compared to top candidates in this field:
-- Missing metrics
-- Missing scope indicators (team size, dataset size, budget)
-- Missing tools
-- Missing leadership signals
-- Missing achievements
-
-Original Resume:
-${resumeText}
-
-Provide your improvements in the format specified above. Use plain text only, no markdown.`;
+Now analyse the resume against the job description.`;
 
     const response = await callOpenAIWithRetry({
       model: 'gpt-4o-mini',
       messages: [
         { 
           role: 'system', 
-          content: 'You are a world-class resume analyst and hiring manager with 15+ years experience. Strengthen existing resumes with precision improvements. Output plain text only, no markdown formatting.' 
+          content: 'You are a world-class resume analyst and hiring manager with 15+ years experience. Provide structured, actionable feedback. Output both JSON and markdown as specified.' 
         },
         { role: 'user', content: prompt }
       ],
-      temperature: 0.7,
+      temperature: 0.6,
     });
 
     if (!response.ok) {
       const error = await response.text();
       console.error('OpenAI API error:', error);
       return new Response(
-        JSON.stringify({ error: 'Failed to rewrite resume. Please try again.' }),
+        JSON.stringify({ error: 'Failed to analyse resume. Please try again.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -155,18 +136,26 @@ Provide your improvements in the format specified above. Use plain text only, no
     const data = await response.json();
     const content = data.choices[0].message.content;
 
-    // Return the full content as the "rewritten" text
-    let notes = 'Resume improvements with targeted suggestions for clarity, impact, and action verbs.';
-    
-    const keyChangesSection = content.match(/(?:Key Changes|Summary|Notes)\s*([\s\S]*?)(?:$)/i);
-    if (keyChangesSection) {
-      notes = keyChangesSection[1].trim().substring(0, 200);
+    // Parse JSON from the response
+    let parsedData = null;
+    const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/);
+    if (jsonMatch) {
+      try {
+        parsedData = JSON.parse(jsonMatch[1]);
+      } catch (e) {
+        console.error('Failed to parse JSON:', e);
+      }
     }
+
+    // Extract markdown part (everything after the JSON block)
+    const markdownPart = content.replace(/```json[\s\S]*?```/, '').trim();
 
     return new Response(
       JSON.stringify({
         rewritten: content,
-        notes
+        notes: parsedData?.verdict || 'Resume improvements with targeted suggestions.',
+        structured: parsedData,
+        markdown: markdownPart
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

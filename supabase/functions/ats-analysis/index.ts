@@ -8,10 +8,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Helper function to wait
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-// Helper function to call OpenAI with retry logic
 async function callOpenAIWithRetry(body: object, maxRetries = 3): Promise<Response> {
   let lastError: Error | null = null;
   
@@ -26,7 +24,6 @@ async function callOpenAIWithRetry(body: object, maxRetries = 3): Promise<Respon
         body: JSON.stringify(body),
       });
 
-      // If rate limited, wait and retry
       if (response.status === 429) {
         const retryAfter = response.headers.get('retry-after');
         const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : (attempt + 1) * 3000;
@@ -52,7 +49,7 @@ serve(async (req) => {
   }
 
   try {
-    const { resumeText } = await req.json();
+    const { resumeText, jobDescription } = await req.json();
 
     if (!resumeText) {
       return new Response(
@@ -61,94 +58,73 @@ serve(async (req) => {
       );
     }
 
-    // Log resume text preview for debugging
     console.log('Resume text preview (first 300 chars):', resumeText.substring(0, 300));
-    console.log('Resume text length:', resumeText.length);
-    console.log('Analyzing resume for ATS compatibility...');
+    console.log('Analysing resume for ATS compatibility...');
 
-    const prompt = `You are the "ATS Analysis Agent" for MatchRate.co.
+    const prompt = `You are Agent 2: ATS Analysis for MatchRate.
 
-Your job:
-Perform a deep ATS audit of the user's resume.
+INPUTS:
+- resume_text: ${resumeText}
+- job_description: ${jobDescription || 'Not provided'}
 
-IMPORTANT: Analyze the resume content provided below. Even if the formatting seems unusual or text appears fragmented, do your best to extract and analyze the information. Focus on the actual text content, skills, experience, and structure you can identify.
+GOAL:
+Clearly explain whether an ATS is likely to reject this resume for this job.
+
+YOU MUST ANSWER ONLY:
+1) Will ATS reject this resume?
+   → "No" / "Probably Not" / "Probably" / "Yes"
+
+2) Why? (max 3 bullets)
+
+ALSO INCLUDE:
+- ATS Verdict Badge:
+  ✅ ATS-safe
+  ⚠️ Needs minor fixes
+  ❌ High risk
+- Risk Drivers (choose up to 3):
+  Formatting / Keywords / Structure / Section headings / Dates consistency
+- Fix-first Action (1 clear step)
+- ATS Score (contextualised, e.g., "85/100 – safe range")
 
 RULES:
-- Do NOT rewrite their resume.
-- Do NOT invent keywords they do not have.
-- Extract EXACT data from resume.
-- Compare resume to real ATS parsing logic: Workday, Greenhouse, Lever, Taleo.
-- Never invent experience, skills, tools, certifications, or dates.
-- Use short, sharp, resume-appropriate phrasing.
-- Always prioritize clarity, impact, and measurability.
-- Score fairly based on content quality, structure, and ATS readability.
+- No long explanations.
+- No generic ATS advice.
+- If score is included, it MUST be contextualised (e.g., "85/100 – safe range").
 
-Output Format:
-### ATS Score
-[XX/100]
+OUTPUT IN TWO PARTS:
 
-### Parsing Confidence Score
-High / Medium / Low  
-(Explain why)
+PART 1: JSON (wrapped in \`\`\`json code block)
+{
+  "ats_score": 0,
+  "ats_score_context": "XX/100 – context",
+  "ats_rejection_risk": "No|Probably Not|Probably|Yes",
+  "badge": "✅ ATS-safe|⚠️ Needs minor fixes|❌ High risk",
+  "why": ["", "", ""],
+  "risk_drivers": ["", "", ""],
+  "fix_first": "string"
+}
 
-### Formatting Issues
-List problems affecting ATS scanning:
-- inconsistent dates
-- en-dashes vs hyphens
-- multi-line bullets
-- missing section headers
-- irregular spacing
-- special characters
-- unclear role separations
+PART 2: Clean Markdown summary
 
-### Missing Keywords
-(List ONLY skills relevant to the user's domain AND visible in the job description if provided)
-
-### Recommended Fixes
-Provide 5–10 high-impact fixes:
-- formatting
-- keyword placement
-- section clarity
-- ATS-safe structuring
-
-### ATS Safe Summary (Rewrite Only Summary)
-Rewrite ONLY the resume summary to be ATS-optimized.
-
-### Section Detection Map
-Show how ATS interprets:
-- Name
-- Contact
-- Summary
-- Skills
-- Experience
-- Education
-- Awards
-
-Tone:
-Clear, technical, ATS-focused. Zero fluff.
-
-Resume:
-${resumeText}
-
-Provide your analysis in the format specified above. Be thorough and specific.`;
+Now analyse the resume for ATS compatibility.`;
 
     const response = await callOpenAIWithRetry({
       model: 'gpt-4o-mini',
       messages: [
         { 
           role: 'system', 
-          content: 'You are an ATS scanning engine used by Fortune 500 companies. Evaluate resumes for parsing accuracy through Workday, Taleo, Greenhouse, and iCIMS. Analyze the provided text content fairly and provide constructive feedback.' 
+          content: 'You are an ATS scanning engine used by Fortune 500 companies. Evaluate resumes for parsing accuracy through Workday, Taleo, Greenhouse, and iCIMS. Be direct and reduce anxiety with clear verdicts.' 
         },
         { role: 'user', content: prompt }
       ],
-      temperature: 0.5,
+      temperature: 0.4,
     });
 
     if (!response.ok) {
       const error = await response.text();
       console.error('OpenAI API error:', error);
       return new Response(
-        JSON.stringify({ error: 'Failed to analyze resume. Please try again.' }),
+        JSON.stringify({ error: 'Failed to analyse resume. Please try again.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -156,61 +132,54 @@ Provide your analysis in the format specified above. Be thorough and specific.`;
     const data = await response.json();
     const content = data.choices[0].message.content;
 
-    // Parse the markdown-formatted response - more robust parsing
     console.log('Raw ATS content:', content);
-    
-    // Try multiple patterns for score extraction - handle various formats including [XX/100]
-    let score = 0;
-    const scorePatterns = [
-      /\[(\d+)\/100\]/i,                              // [XX/100] format (from prompt)
-      /\[(\d+)\s*\/\s*100\]/i,                        // [ XX / 100 ] with spaces
-      /Total\s*score[:\s]*(\d+)/i,
-      /##\s*ATS Score[:\s]*\[?(\d+)\]?\s*\/\s*100/i,
-      /##\s*ATS Score[:\s]*(\d+)/i,
-      /ATS Score[:\s]*\[?(\d+)\]?\s*\/\s*100/i,
-      /ATS Score[\s\S]*?\[?(\d+)\]?\s*\/\s*100/i,
-      /(\d+)\s*\/\s*100/,
-      /(\d+)%/
-    ];
-    for (const pattern of scorePatterns) {
-      const match = content.match(pattern);
-      if (match) {
-        score = parseInt(match[1]);
-        console.log(`Matched score ${score} with pattern: ${pattern}`);
-        break;
+
+    // Parse JSON from the response
+    let parsedData = null;
+    const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/);
+    if (jsonMatch) {
+      try {
+        parsedData = JSON.parse(jsonMatch[1]);
+      } catch (e) {
+        console.error('Failed to parse JSON:', e);
       }
     }
 
-    // Extract bullet points from any section - look for lines starting with - or * or numbered
-    const extractBullets = (text: string): string[] => {
-      return text.split('\n')
-        .map(line => line.trim())
-        .filter(line => line.startsWith('-') || line.startsWith('*') || /^\d+\./.test(line))
-        .map(line => line.replace(/^[-*]\s*/, '').replace(/^\d+\.\s*/, '').trim())
-        .filter(line => line.length > 0);
-    };
+    // Fallback score extraction if JSON parsing failed
+    let score = parsedData?.ats_score || 0;
+    if (!score) {
+      const scorePatterns = [
+        /\[(\d+)\/100\]/i,
+        /(\d+)\s*\/\s*100/,
+        /(\d+)%/
+      ];
+      for (const pattern of scorePatterns) {
+        const match = content.match(pattern);
+        if (match) {
+          score = parseInt(match[1]);
+          break;
+        }
+      }
+    }
 
-    const issuesSection = content.match(/##\s*Formatting Issues\s*([\s\S]*?)(?=##|$)/i);
-    const issues = issuesSection ? extractBullets(issuesSection[1]) : [];
-
-    const parsingSection = content.match(/##\s*Parsing Risks\s*([\s\S]*?)(?=##|$)/i);
-    const parsingRisks = parsingSection ? extractBullets(parsingSection[1]) : [];
-
-    const keywordsSection = content.match(/##\s*Missing Keywords\s*([\s\S]*?)(?=##|$)/i);
-    const keywordGaps = keywordsSection ? extractBullets(keywordsSection[1]) : [];
-
-    const fixesSection = content.match(/##\s*Recommended Fixes\s*([\s\S]*?)(?=##|$)/i);
-    const fixes = fixesSection ? extractBullets(fixesSection[1]) : [];
-
-    const allIssues = [...issues, ...parsingRisks];
+    // Extract markdown part
+    const markdownPart = content.replace(/```json[\s\S]*?```/, '').trim();
 
     return new Response(
       JSON.stringify({
         score,
-        issues: allIssues,
-        keywordGaps,
-        fixes,
-        rawContent: content
+        scoreContext: parsedData?.ats_score_context || `${score}/100`,
+        rejectionRisk: parsedData?.ats_rejection_risk || 'Unknown',
+        badge: parsedData?.badge || '⚠️ Needs minor fixes',
+        why: parsedData?.why || [],
+        riskDrivers: parsedData?.risk_drivers || [],
+        fixFirst: parsedData?.fix_first || '',
+        issues: parsedData?.why || [],
+        keywordGaps: [],
+        fixes: [parsedData?.fix_first].filter(Boolean),
+        rawContent: content,
+        structured: parsedData,
+        markdown: markdownPart
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
