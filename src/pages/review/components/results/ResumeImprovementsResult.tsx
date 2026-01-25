@@ -1,35 +1,193 @@
 import { 
-  FileText, 
+  AlertCircle,
   Sparkles, 
-  AlertTriangle, 
   TrendingUp, 
-  RefreshCw, 
   Zap,
-  Search,
-  ArrowRight 
+  ArrowRight,
+  CheckCircle,
+  Lightbulb,
+  Target
 } from "lucide-react";
 import { ResultSectionCard } from "../ui/ResultSectionCard";
 import { DownloadPDFButton } from "../ui/DownloadPDFButton";
 import { CopyButton } from "../ui/CopyButton";
 import { stripMarkdown, stripMarkdownLine } from "../../utils/stripMarkdown";
 
+interface CriticalFix {
+  issue: string;
+  why: string;
+  fix_example: string;
+}
+
+interface QuickWin {
+  before: string;
+  after: string;
+}
+
+interface StructuredData {
+  verdict?: string;
+  critical_fixes?: CriticalFix[];
+  nice_to_have?: CriticalFix[];
+  optional_enhancements?: CriticalFix[];
+  quick_wins_rewrite_pack?: QuickWin[];
+}
+
 interface ResumeImprovementsResultProps {
   content: string;
+  structured?: StructuredData | null;
 }
 
-interface ParsedSection {
-  title: string;
-  content: string;
-  icon: React.ReactNode;
-  gradientFrom: string;
-  gradientTo: string;
-  borderColor: string;
-}
-
-export const ResumeImprovementsResult = ({ content }: ResumeImprovementsResultProps) => {
+export const ResumeImprovementsResult = ({ content, structured }: ResumeImprovementsResultProps) => {
+  const cleanContent = stripMarkdown(content);
   
-  const parseContent = (raw: string): ParsedSection[] => {
-    const sections: ParsedSection[] = [];
+  // If we have structured data, render the new format
+  if (structured && structured.critical_fixes?.length) {
+    return (
+      <div className="space-y-5">
+        <div className="flex flex-wrap gap-2">
+          <CopyButton text={cleanContent} label="Copy All" />
+          <DownloadPDFButton content={cleanContent} filename="resume-improvements" title="Resume Improvements" />
+        </div>
+        
+        {/* Verdict Banner */}
+        {structured.verdict && (
+          <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 rounded-xl p-4 border border-blue-200/60">
+            <div className="flex items-center gap-3">
+              <Target className="h-5 w-5 text-blue-600" />
+              <p className="text-sm font-medium text-foreground">{structured.verdict}</p>
+            </div>
+          </div>
+        )}
+        
+        {/* Critical Fixes - Top 5 */}
+        <ResultSectionCard
+          title="🚨 Top 5 Critical Fixes"
+          icon={<AlertCircle className="h-5 w-5 text-red-600" />}
+          gradientFrom="from-red-50"
+          gradientTo="to-rose-50/50"
+          borderColor="border-red-200/60"
+          copyText={structured.critical_fixes?.map(f => `${f.issue}: ${f.fix_example}`).join('\n') || ''}
+          badge={5}
+        >
+          <div className="space-y-4">
+            {structured.critical_fixes?.slice(0, 5).map((fix, i) => (
+              <div key={i} className="bg-white/80 rounded-lg p-4 border-l-4 border-red-500 shadow-sm">
+                <div className="flex items-start gap-3 mb-2">
+                  <span className="w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center text-xs font-bold shrink-0">
+                    {i + 1}
+                  </span>
+                  <div className="flex-1">
+                    <p className="font-semibold text-foreground">{stripMarkdownLine(fix.issue)}</p>
+                    <p className="text-sm text-muted-foreground mt-1">{stripMarkdownLine(fix.why)}</p>
+                  </div>
+                </div>
+                {fix.fix_example && (
+                  <div className="ml-9 mt-2 bg-emerald-50/80 rounded-lg p-3 border-l-3 border-emerald-500">
+                    <span className="text-xs font-bold text-emerald-700 uppercase tracking-wide">Fix Example</span>
+                    <p className="text-sm text-emerald-900 mt-1">{stripMarkdownLine(fix.fix_example)}</p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </ResultSectionCard>
+        
+        {/* Nice-to-have Improvements */}
+        {structured.nice_to_have && structured.nice_to_have.length > 0 && (
+          <ResultSectionCard
+            title="Nice-to-have Improvements"
+            icon={<TrendingUp className="h-5 w-5 text-amber-600" />}
+            gradientFrom="from-amber-50"
+            gradientTo="to-yellow-50/50"
+            borderColor="border-amber-200/60"
+            copyText={structured.nice_to_have?.map(f => `${f.issue}: ${f.fix_example}`).join('\n') || ''}
+            badge={structured.nice_to_have.length}
+            defaultOpen={false}
+          >
+            <div className="space-y-3">
+              {structured.nice_to_have.map((fix, i) => (
+                <div key={i} className="bg-white/80 rounded-lg p-3 border-l-3 border-amber-400">
+                  <p className="font-medium text-foreground">{stripMarkdownLine(fix.issue)}</p>
+                  <p className="text-sm text-muted-foreground mt-1">{stripMarkdownLine(fix.why)}</p>
+                  {fix.fix_example && (
+                    <p className="text-sm text-amber-800 mt-2 italic">→ {stripMarkdownLine(fix.fix_example)}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </ResultSectionCard>
+        )}
+        
+        {/* Optional Enhancements */}
+        {structured.optional_enhancements && structured.optional_enhancements.length > 0 && (
+          <ResultSectionCard
+            title="Optional Enhancements"
+            icon={<Lightbulb className="h-5 w-5 text-blue-600" />}
+            gradientFrom="from-blue-50"
+            gradientTo="to-sky-50/50"
+            borderColor="border-blue-200/60"
+            copyText={structured.optional_enhancements?.map(f => `${f.issue}: ${f.fix_example}`).join('\n') || ''}
+            badge={structured.optional_enhancements.length}
+            defaultOpen={false}
+          >
+            <div className="space-y-3">
+              {structured.optional_enhancements.map((fix, i) => (
+                <div key={i} className="bg-white/80 rounded-lg p-3 border-l-3 border-blue-300">
+                  <p className="font-medium text-foreground">{stripMarkdownLine(fix.issue)}</p>
+                  <p className="text-sm text-muted-foreground mt-1">{stripMarkdownLine(fix.why)}</p>
+                  {fix.fix_example && (
+                    <p className="text-sm text-blue-700 mt-2 italic">→ {stripMarkdownLine(fix.fix_example)}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </ResultSectionCard>
+        )}
+        
+        {/* Quick Wins Rewrite Pack */}
+        {structured.quick_wins_rewrite_pack && structured.quick_wins_rewrite_pack.length > 0 && (
+          <ResultSectionCard
+            title="⚡ Quick Wins Rewrite Pack"
+            icon={<Zap className="h-5 w-5 text-emerald-600" />}
+            gradientFrom="from-emerald-50"
+            gradientTo="to-teal-50/50"
+            borderColor="border-emerald-200/60"
+            copyText={structured.quick_wins_rewrite_pack?.map(q => `Before: ${q.before}\nAfter: ${q.after}`).join('\n\n') || ''}
+            badge={structured.quick_wins_rewrite_pack.length}
+          >
+            <div className="space-y-4">
+              {structured.quick_wins_rewrite_pack.map((rewrite, i) => (
+                <div key={i} className="bg-white/80 rounded-lg p-4 shadow-sm">
+                  <div className="flex items-start gap-3 mb-3">
+                    <span className="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shrink-0">
+                      {i + 1}
+                    </span>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="bg-slate-50/80 rounded-lg p-3 border-l-3 border-slate-300">
+                      <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">Before</span>
+                      <p className="text-sm text-slate-600 mt-1">{stripMarkdownLine(rewrite.before)}</p>
+                    </div>
+                    <div className="flex justify-center">
+                      <ArrowRight className="h-4 w-4 text-emerald-500" />
+                    </div>
+                    <div className="bg-emerald-50/80 rounded-lg p-3 border-l-3 border-emerald-500">
+                      <span className="text-xs font-bold text-emerald-700 uppercase tracking-wide">After</span>
+                      <p className="text-sm text-emerald-900 font-medium mt-1">{stripMarkdownLine(rewrite.after)}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </ResultSectionCard>
+        )}
+      </div>
+    );
+  }
+  
+  // Fallback to legacy rendering for old format
+  const parseContent = (raw: string) => {
+    const sections: any[] = [];
     const parts = raw.split(/(?=###?\s)/);
     
     parts.forEach(part => {
@@ -39,55 +197,13 @@ export const ResumeImprovementsResult = ({ content }: ResumeImprovementsResultPr
       
       if (!titleLine || !body) return;
       
-      const lowerTitle = titleLine.toLowerCase();
-      
-      let icon = <FileText className="h-5 w-5 text-blue-600" />;
-      let gradientFrom = "from-blue-50";
-      let gradientTo = "to-indigo-50/50";
-      let borderColor = "border-blue-200/60";
-      
-      if (lowerTitle.includes('summary')) {
-        icon = <FileText className="h-5 w-5 text-blue-600" />;
-        gradientFrom = "from-blue-50";
-        gradientTo = "to-sky-50/50";
-        borderColor = "border-blue-200/60";
-      } else if (lowerTitle.includes('bullet')) {
-        icon = <Sparkles className="h-5 w-5 text-emerald-600" />;
-        gradientFrom = "from-emerald-50";
-        gradientTo = "to-teal-50/50";
-        borderColor = "border-emerald-200/60";
-      } else if (lowerTitle.includes('weak') || lowerTitle.includes('filler')) {
-        icon = <AlertTriangle className="h-5 w-5 text-amber-600" />;
-        gradientFrom = "from-amber-50";
-        gradientTo = "to-yellow-50/50";
-        borderColor = "border-amber-200/60";
-      } else if (lowerTitle.includes('impact')) {
-        icon = <TrendingUp className="h-5 w-5 text-violet-600" />;
-        gradientFrom = "from-violet-50";
-        gradientTo = "to-purple-50/50";
-        borderColor = "border-violet-200/60";
-      } else if (lowerTitle.includes('redundancy')) {
-        icon = <RefreshCw className="h-5 w-5 text-rose-600" />;
-        gradientFrom = "from-rose-50";
-        gradientTo = "to-pink-50/50";
-        borderColor = "border-rose-200/60";
-      } else if (lowerTitle.includes('action') || lowerTitle.includes('verb')) {
-        icon = <Zap className="h-5 w-5 text-teal-600" />;
-        gradientFrom = "from-teal-50";
-        gradientTo = "to-cyan-50/50";
-        borderColor = "border-teal-200/60";
-      } else if (lowerTitle.includes('gap')) {
-        icon = <Search className="h-5 w-5 text-slate-600" />;
-        gradientFrom = "from-slate-100";
-        gradientTo = "to-gray-50/50";
-        borderColor = "border-slate-200/60";
-      }
-      
-      sections.push({ title: titleLine, content: body, icon, gradientFrom, gradientTo, borderColor });
+      sections.push({ title: titleLine, content: body });
     });
     
     return sections;
   };
+  
+  const sections = parseContent(content);
   
   const renderContent = (text: string) => {
     const lines = text.split('\n');
@@ -98,7 +214,6 @@ export const ResumeImprovementsResult = ({ content }: ResumeImprovementsResultPr
       
       const cleanLine = stripMarkdownLine(trimmed);
       
-      // Handle Before/After formatting with visual treatment
       if (trimmed.toLowerCase().includes('before:') || trimmed.toLowerCase().includes('after:')) {
         const isAfter = trimmed.toLowerCase().includes('after:');
         const label = isAfter ? 'After' : 'Before';
@@ -118,7 +233,6 @@ export const ResumeImprovementsResult = ({ content }: ResumeImprovementsResultPr
         );
       }
       
-      // Handle bullet points
       if (trimmed.startsWith('-') || trimmed.startsWith('•') || trimmed.startsWith('*')) {
         const bulletText = stripMarkdownLine(trimmed.replace(/^[-•*]\s*/, ''));
         return (
@@ -129,18 +243,9 @@ export const ResumeImprovementsResult = ({ content }: ResumeImprovementsResultPr
         );
       }
       
-      // Handle numbered items
-      if (/^\d+\./.test(trimmed)) {
-        const numberedText = stripMarkdownLine(trimmed);
-        return <p key={idx} className="py-1.5">{numberedText}</p>;
-      }
-      
       return <p key={idx} className="py-1">{cleanLine}</p>;
     });
   };
-  
-  const sections = parseContent(content);
-  const cleanContent = stripMarkdown(content);
   
   if (sections.length === 0) {
     return (
@@ -164,17 +269,13 @@ export const ResumeImprovementsResult = ({ content }: ResumeImprovementsResultPr
       </div>
       
       {sections.map((section, idx) => (
-        <ResultSectionCard
-          key={idx}
-          title={section.title}
-          icon={section.icon}
-          gradientFrom={section.gradientFrom}
-          gradientTo={section.gradientTo}
-          borderColor={section.borderColor}
-          copyText={stripMarkdown(section.content)}
-        >
+        <div key={idx} className="bg-gradient-to-br from-blue-50 to-indigo-50/50 rounded-2xl p-6 shadow-sm border border-blue-200/60">
+          <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-blue-600" />
+            {section.title}
+          </h4>
           <div className="leading-relaxed">{renderContent(section.content)}</div>
-        </ResultSectionCard>
+        </div>
       ))}
     </div>
   );

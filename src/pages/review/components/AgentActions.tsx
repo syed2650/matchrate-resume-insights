@@ -8,6 +8,7 @@ import { ResumeImprovementsResult } from "./results/ResumeImprovementsResult";
 import { ATSAnalysisResult } from "./results/ATSAnalysisResult";
 import { JDMatchResult } from "./results/JDMatchResult";
 import { RoastCardResult } from "./results/RoastCardResult";
+import { AnalysisPriorityToggle, AnalysisPriority } from "./AnalysisPriorityToggle";
 
 interface AgentActionsProps {
   resumeText: string;
@@ -19,21 +20,34 @@ interface AgentActionsProps {
 interface RewriteResult {
   rewritten: string;
   notes: string;
+  structured?: any;
 }
 
 interface ATSResult {
   score: number;
+  scoreContext?: string;
+  rejectionRisk?: string;
+  badge?: string;
+  why?: string[];
+  riskDrivers?: string[];
+  fixFirst?: string;
   issues: string[];
   keywordGaps: string[];
   fixes: string[];
   rawContent?: string;
+  structured?: any;
 }
 
 interface JDMatchResultData {
   matchScore: number;
+  matchVerdict?: string;
+  missing?: any[];
+  resumeLevelFixes?: any[];
+  keywordsToAdd?: string[];
   missingSkills: string[];
   optimizedBullets: string[];
   rawContent?: string;
+  structured?: any;
 }
 
 interface RoastResult {
@@ -109,6 +123,7 @@ export const AgentActions = ({ resumeText, jobDescription, onReset, autoStart = 
   const [loadingAgents, setLoadingAgents] = useState<Record<string, boolean>>({});
   const [hasAnalyzed, setHasAnalyzed] = useState(false);
   const [hasAutoStarted, setHasAutoStarted] = useState(false);
+  const [priority, setPriority] = useState<AnalysisPriority>("interviews");
   
   const [rewriteResult, setRewriteResult] = useState<RewriteResult | null>(null);
   const [atsResult, setATSResult] = useState<ATSResult | null>(null);
@@ -119,7 +134,7 @@ export const AgentActions = ({ resumeText, jobDescription, onReset, autoStart = 
     setLoadingAgents(prev => ({ ...prev, rewrite: true }));
     try {
       const { data, error } = await supabase.functions.invoke('rewrite-resume', {
-        body: { resumeText }
+        body: { resumeText, jobDescription }
       });
 
       if (error) throw error;
@@ -141,7 +156,7 @@ export const AgentActions = ({ resumeText, jobDescription, onReset, autoStart = 
     setLoadingAgents(prev => ({ ...prev, ats: true }));
     try {
       const { data, error } = await supabase.functions.invoke('ats-analysis', {
-        body: { resumeText }
+        body: { resumeText, jobDescription }
       });
 
       if (error) throw error;
@@ -151,7 +166,7 @@ export const AgentActions = ({ resumeText, jobDescription, onReset, autoStart = 
       console.error('ATS error:', error);
       toast({
         title: "ATS Analysis Failed",
-        description: error instanceof Error ? error.message : "Failed to analyze resume",
+        description: error instanceof Error ? error.message : "Failed to analyse resume",
         variant: "destructive"
       });
     } finally {
@@ -239,29 +254,28 @@ export const AgentActions = ({ resumeText, jobDescription, onReset, autoStart = 
 
   const isAnalyzing = Object.values(loadingAgents).some(Boolean);
 
-  return (
-    <div className="space-y-6">
-      {!hasAnalyzed && isAnalyzing && (
-        <Card className="p-8 bg-gradient-to-br from-blue-50 to-purple-50">
-          <div className="flex flex-col items-center justify-center">
-            <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-            <p className="text-lg font-semibold text-foreground">Analyzing your resume...</p>
-            <p className="text-sm text-muted-foreground">Running all 4 AI agents in parallel</p>
-          </div>
-        </Card>
-      )}
+  // Order sections based on priority
+  const getSectionOrder = () => {
+    switch (priority) {
+      case "interviews":
+        return ["jdMatch", "rewrite", "ats", "roast"];
+      case "ats":
+        return ["ats", "jdMatch", "rewrite", "roast"];
+      case "growth":
+        return ["rewrite", "jdMatch", "ats", "roast"];
+      default:
+        return ["rewrite", "ats", "jdMatch", "roast"];
+    }
+  };
 
-      {hasAnalyzed && (
-        <div className="space-y-5">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-foreground">Analysis Results</h2>
-            <Button variant="outline" onClick={onReset}>
-              Start Over
-            </Button>
-          </div>
+  const sectionOrder = getSectionOrder();
 
-          {/* Resume Improvements Section */}
+  const renderSection = (sectionId: string) => {
+    switch (sectionId) {
+      case "rewrite":
+        return (
           <CollapsibleSection
+            key="rewrite"
             title="Resume Improvements"
             icon={<Sparkles className="h-5 w-5" />}
             iconColor="text-blue-600"
@@ -271,19 +285,24 @@ export const AgentActions = ({ resumeText, jobDescription, onReset, autoStart = 
             {loadingAgents.rewrite ? (
               <div className="flex flex-col items-center justify-center py-12">
                 <Loader2 className="h-10 w-10 animate-spin text-blue-500 mb-3" />
-                <p className="text-muted-foreground">Analyzing your resume...</p>
+                <p className="text-muted-foreground">Analysing your resume...</p>
               </div>
             ) : rewriteResult ? (
-              <ResumeImprovementsResult content={rewriteResult.rewritten} />
+              <ResumeImprovementsResult 
+                content={rewriteResult.rewritten} 
+                structured={rewriteResult.structured}
+              />
             ) : (
               <div className="text-center py-12 text-muted-foreground">
                 No improvements generated yet
               </div>
             )}
           </CollapsibleSection>
-
-          {/* ATS Analysis Section */}
+        );
+      case "ats":
+        return (
           <CollapsibleSection
+            key="ats"
             title="ATS Analysis"
             icon={<CheckCircle className="h-5 w-5" />}
             iconColor="text-green-600"
@@ -294,7 +313,7 @@ export const AgentActions = ({ resumeText, jobDescription, onReset, autoStart = 
             {loadingAgents.ats ? (
               <div className="flex flex-col items-center justify-center py-12">
                 <Loader2 className="h-10 w-10 animate-spin text-green-500 mb-3" />
-                <p className="text-muted-foreground">Analyzing ATS compatibility...</p>
+                <p className="text-muted-foreground">Analysing ATS compatibility...</p>
               </div>
             ) : atsResult ? (
               <ATSAnalysisResult result={atsResult} />
@@ -304,9 +323,11 @@ export const AgentActions = ({ resumeText, jobDescription, onReset, autoStart = 
               </div>
             )}
           </CollapsibleSection>
-
-          {/* Job Match Section */}
+        );
+      case "jdMatch":
+        return (
           <CollapsibleSection
+            key="jdMatch"
             title="Job Match"
             icon={<Target className="h-5 w-5" />}
             iconColor="text-purple-600"
@@ -327,9 +348,11 @@ export const AgentActions = ({ resumeText, jobDescription, onReset, autoStart = 
               </div>
             )}
           </CollapsibleSection>
-
-          {/* Roast Card Section */}
+        );
+      case "roast":
+        return (
           <CollapsibleSection
+            key="roast"
             title="🔥 Roast Card"
             icon={<Flame className="h-5 w-5" />}
             iconColor="text-orange-600"
@@ -349,6 +372,38 @@ export const AgentActions = ({ resumeText, jobDescription, onReset, autoStart = 
               </div>
             )}
           </CollapsibleSection>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {!hasAnalyzed && isAnalyzing && (
+        <Card className="p-8 bg-gradient-to-br from-blue-50 to-purple-50">
+          <div className="flex flex-col items-center justify-center">
+            <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+            <p className="text-lg font-semibold text-foreground">Analysing your resume...</p>
+            <p className="text-sm text-muted-foreground">Running all 4 AI agents in parallel</p>
+          </div>
+        </Card>
+      )}
+
+      {hasAnalyzed && (
+        <div className="space-y-5">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-foreground">Analysis Results</h2>
+            <Button variant="outline" onClick={onReset}>
+              Start Over
+            </Button>
+          </div>
+
+          {/* Priority Toggle */}
+          <AnalysisPriorityToggle value={priority} onChange={setPriority} />
+
+          {/* Render sections in priority order */}
+          {sectionOrder.map(sectionId => renderSection(sectionId))}
         </div>
       )}
     </div>
