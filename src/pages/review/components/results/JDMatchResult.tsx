@@ -1,6 +1,5 @@
 import { Target, AlertTriangle, Wrench, Key, CheckCircle, TrendingUp } from "lucide-react";
 import { ResultSectionCard } from "../ui/ResultSectionCard";
-import { ScoreProgressBar } from "../ui/ScoreProgressBar";
 import { DownloadPDFButton } from "../ui/DownloadPDFButton";
 import { CopyButton } from "../ui/CopyButton";
 import { stripMarkdown, stripMarkdownLine } from "../../utils/stripMarkdown";
@@ -54,13 +53,14 @@ export const JDMatchResult = ({ result }: JDMatchResultProps) => {
   } = result;
   
   const cleanRawContent = rawContent ? stripMarkdown(rawContent) : '';
-  const exportContent = cleanRawContent || `Match Score: ${matchScore}/100`;
+  const exportContent = cleanRawContent || `Job Fit: ${matchScore}/100`;
   
   const displayVerdict = structured?.match_verdict || matchVerdict || '';
   const displayMissing = structured?.missing || missing || [];
   const displayFixes = structured?.resume_level_fixes || resumeLevelFixes || [];
   const displayKeywords = structured?.keywords_to_add || keywordsToAdd || [];
   
+  // Verdict info - labels, not numbers
   const getVerdictInfo = () => {
     const verdict = displayVerdict.toLowerCase();
     if (verdict.includes('strong')) {
@@ -68,6 +68,7 @@ export const JDMatchResult = ({ result }: JDMatchResultProps) => {
         color: 'text-emerald-600',
         bgColor: 'bg-emerald-100',
         borderColor: 'border-emerald-300',
+        label: 'Strong Match',
         icon: <CheckCircle className="h-5 w-5 text-emerald-600" />
       };
     }
@@ -76,6 +77,7 @@ export const JDMatchResult = ({ result }: JDMatchResultProps) => {
         color: 'text-red-600',
         bgColor: 'bg-red-100',
         borderColor: 'border-red-300',
+        label: 'Weak Match',
         icon: <AlertTriangle className="h-5 w-5 text-red-600" />
       };
     }
@@ -83,6 +85,7 @@ export const JDMatchResult = ({ result }: JDMatchResultProps) => {
       color: 'text-amber-600',
       bgColor: 'bg-amber-100',
       borderColor: 'border-amber-300',
+      label: 'Medium Match',
       icon: <TrendingUp className="h-5 w-5 text-amber-600" />
     };
   };
@@ -104,12 +107,12 @@ export const JDMatchResult = ({ result }: JDMatchResultProps) => {
         <CopyButton text={exportContent} label="Copy All" />
         <DownloadPDFButton 
           content={exportContent} 
-          filename="jd-match-analysis" 
-          title="Job Match Analysis" 
+          filename="job-fit-analysis" 
+          title="Job Fit Analysis" 
         />
       </div>
       
-      {/* Premium Score Card with Verdict */}
+      {/* Job Fit Verdict Card - Verdict first, score secondary */}
       <div className="relative overflow-hidden bg-gradient-to-br from-purple-50 via-violet-50 to-indigo-50 rounded-2xl p-6 shadow-sm border border-purple-200/60">
         <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-purple-100/40 to-transparent rounded-bl-full" />
         <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-violet-100/40 to-transparent rounded-tr-full" />
@@ -121,35 +124,38 @@ export const JDMatchResult = ({ result }: JDMatchResultProps) => {
                 <Target className="h-6 w-6 text-purple-600" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-foreground">Job Match Analysis</h3>
-                <p className="text-sm text-muted-foreground">How closely your resume aligns with the job</p>
+                <h3 className="text-lg font-bold text-foreground">Job Fit</h3>
+                <p className="text-sm text-muted-foreground">Why might I get rejected for THIS job?</p>
               </div>
             </div>
-            {displayVerdict && (
-              <div className={`px-4 py-2 rounded-full font-semibold ${verdictInfo.bgColor} ${verdictInfo.color} border ${verdictInfo.borderColor} flex items-center gap-2`}>
-                {verdictInfo.icon}
-                {displayVerdict}
-              </div>
-            )}
+            <div className={`px-4 py-2 rounded-full font-semibold ${verdictInfo.bgColor} ${verdictInfo.color} border ${verdictInfo.borderColor} flex items-center gap-2`}>
+              {verdictInfo.icon}
+              {verdictInfo.label}
+            </div>
           </div>
           
-          <ScoreProgressBar score={matchScore} label="Match Score" colorClass="text-purple-600" size="lg" />
+          {/* Small contextual score - secondary */}
+          <div className="p-3 bg-white/60 rounded-lg">
+            <p className="text-xs text-muted-foreground">
+              Match Score: {matchScore}/100 — {matchScore >= 70 ? 'Strong alignment' : matchScore >= 45 ? 'Partial alignment' : 'Needs work'}
+            </p>
+          </div>
         </div>
       </div>
       
-      {/* What's Missing */}
+      {/* What's Missing - 3-5 items, gap types */}
       {displayMissing.length > 0 && (
         <ResultSectionCard
-          title="What's Missing"
+          title="What's Missing for This Job"
           icon={<AlertTriangle className="h-5 w-5 text-amber-600" />}
           gradientFrom="from-amber-50"
           gradientTo="to-orange-50/50"
           borderColor="border-amber-200/60"
           copyText={displayMissing.map(m => `${m.type}: ${m.item} - ${m.why_it_matters}`).join('\n')}
-          badge={displayMissing.length}
+          badge={Math.min(displayMissing.length, 5)}
         >
           <div className="space-y-3">
-            {displayMissing.map((item, i) => (
+            {displayMissing.slice(0, 5).map((item, i) => (
               <div key={i} className="bg-white/80 rounded-lg p-4 border-l-4 border-amber-400 shadow-sm">
                 <div className="flex items-start gap-3 mb-2">
                   <span className={`px-2 py-0.5 rounded text-xs font-semibold border ${getTypeColor(item.type)}`}>
@@ -186,10 +192,10 @@ export const JDMatchResult = ({ result }: JDMatchResultProps) => {
         </ResultSectionCard>
       )}
       
-      {/* How to Fix It */}
+      {/* How to Fix It - Resume-level */}
       {displayFixes.length > 0 && (
         <ResultSectionCard
-          title="How to Fix It"
+          title="How to Fix It (Resume-Level)"
           icon={<Wrench className="h-5 w-5 text-blue-600" />}
           gradientFrom="from-blue-50"
           gradientTo="to-sky-50/50"
@@ -225,7 +231,7 @@ export const JDMatchResult = ({ result }: JDMatchResultProps) => {
         </ResultSectionCard>
       )}
       
-      {/* Keywords to Add */}
+      {/* Keywords to Add - Chips */}
       {displayKeywords.length > 0 && (
         <ResultSectionCard
           title="Keywords to Add"

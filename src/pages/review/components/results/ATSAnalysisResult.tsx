@@ -1,6 +1,5 @@
 import { AlertCircle, CheckCircle, ShieldCheck, AlertTriangle, XCircle, Zap } from "lucide-react";
 import { ResultSectionCard } from "../ui/ResultSectionCard";
-import { ScoreProgressBar } from "../ui/ScoreProgressBar";
 import { DownloadPDFButton } from "../ui/DownloadPDFButton";
 import { CopyButton } from "../ui/CopyButton";
 import { stripMarkdown, stripMarkdownLine } from "../../utils/stripMarkdown";
@@ -49,8 +48,9 @@ export const ATSAnalysisResult = ({ result }: ATSAnalysisResultProps) => {
   } = result;
   
   const cleanRawContent = rawContent ? stripMarkdown(rawContent) : '';
-  const exportContent = cleanRawContent || `ATS Score: ${score}/100`;
+  const exportContent = cleanRawContent || `ATS Safety: ${score}/100`;
   
+  // Badge info - using labels not numbers
   const getBadgeInfo = () => {
     const badgeText = structured?.badge || badge || '';
     if (badgeText.includes('✅') || badgeText.toLowerCase().includes('safe')) {
@@ -59,7 +59,7 @@ export const ATSAnalysisResult = ({ result }: ATSAnalysisResultProps) => {
         bgColor: 'bg-emerald-100',
         textColor: 'text-emerald-800',
         borderColor: 'border-emerald-300',
-        label: 'ATS-safe'
+        label: 'Safe'
       };
     }
     if (badgeText.includes('❌') || badgeText.toLowerCase().includes('high risk')) {
@@ -76,7 +76,7 @@ export const ATSAnalysisResult = ({ result }: ATSAnalysisResultProps) => {
       bgColor: 'bg-amber-100',
       textColor: 'text-amber-800',
       borderColor: 'border-amber-300',
-      label: 'Needs minor fixes'
+      label: 'Minor Risk'
     };
   };
   
@@ -85,7 +85,6 @@ export const ATSAnalysisResult = ({ result }: ATSAnalysisResultProps) => {
   const displayRiskDrivers = structured?.risk_drivers || riskDrivers || [];
   const displayFixFirst = structured?.fix_first || fixFirst || '';
   const displayRejectionRisk = structured?.ats_rejection_risk || rejectionRisk || '';
-  const displayScoreContext = structured?.ats_score_context || scoreContext || `${score}/100`;
 
   return (
     <div className="space-y-5">
@@ -93,26 +92,26 @@ export const ATSAnalysisResult = ({ result }: ATSAnalysisResultProps) => {
         <CopyButton text={exportContent} label="Copy All" />
         <DownloadPDFButton 
           content={exportContent} 
-          filename="ats-analysis" 
-          title="ATS Analysis Report" 
+          filename="ats-safety-analysis" 
+          title="ATS Safety Report" 
         />
       </div>
       
-      {/* Premium ATS Verdict Card */}
+      {/* ATS Safety Verdict Card - NO large numeric score */}
       <div className="relative overflow-hidden bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 rounded-2xl p-6 shadow-sm border border-emerald-200/60">
         <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-emerald-100/40 to-transparent rounded-bl-full" />
         <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-teal-100/40 to-transparent rounded-tr-full" />
         
         <div className="relative">
-          {/* Badge */}
+          {/* Badge - Primary verdict */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="p-3 bg-white rounded-xl shadow-sm">
                 {badgeInfo.icon}
               </div>
               <div>
-                <h3 className="text-lg font-bold text-foreground">ATS Compatibility</h3>
-                <p className="text-sm text-muted-foreground">{displayScoreContext}</p>
+                <h3 className="text-lg font-bold text-foreground">ATS Safety</h3>
+                <p className="text-sm text-muted-foreground">Will ATS accept this resume?</p>
               </div>
             </div>
             <div className={`px-4 py-2 rounded-full font-semibold ${badgeInfo.bgColor} ${badgeInfo.textColor} border ${badgeInfo.borderColor}`}>
@@ -120,13 +119,11 @@ export const ATSAnalysisResult = ({ result }: ATSAnalysisResultProps) => {
             </div>
           </div>
           
-          <ScoreProgressBar score={score} label="ATS Score" colorClass="text-emerald-600" size="lg" />
-          
-          {/* Rejection Risk */}
+          {/* Will ATS reject? - Clear answer */}
           {displayRejectionRisk && (
-            <div className="mt-4 p-3 bg-white/60 rounded-lg">
-              <p className="text-sm">
-                <span className="font-semibold text-foreground">Will ATS reject? </span>
+            <div className="p-4 bg-white/70 rounded-xl border border-white/50">
+              <p className="text-base">
+                <span className="font-semibold text-foreground">Will ATS reject this? </span>
                 <span className={`font-bold ${
                   displayRejectionRisk === 'No' ? 'text-emerald-600' :
                   displayRejectionRisk === 'Probably Not' ? 'text-emerald-500' :
@@ -134,21 +131,25 @@ export const ATSAnalysisResult = ({ result }: ATSAnalysisResultProps) => {
                   'text-red-600'
                 }`}>{displayRejectionRisk}</span>
               </p>
+              {/* Small contextual score */}
+              <p className="text-xs text-muted-foreground mt-2">
+                Score: {score}/100 — {score >= 70 ? 'Safe range' : score >= 45 ? 'Needs attention' : 'Action required'}
+              </p>
             </div>
           )}
         </div>
       </div>
       
-      {/* Why - Rejection Reasons */}
+      {/* Why - Max 3 bullets */}
       {displayWhy.length > 0 && (
         <ResultSectionCard
-          title="Why?"
+          title="Why This Resume Passes/Fails ATS"
           icon={<AlertCircle className="h-5 w-5 text-rose-600" />}
           gradientFrom="from-rose-50"
           gradientTo="to-red-50/50"
           borderColor="border-rose-200/60"
           copyText={displayWhy.join('\n')}
-          badge={displayWhy.length}
+          badge={Math.min(displayWhy.length, 3)}
         >
           <ul className="space-y-2.5">
             {displayWhy.slice(0, 3).map((reason, i) => (
@@ -163,7 +164,7 @@ export const ATSAnalysisResult = ({ result }: ATSAnalysisResultProps) => {
         </ResultSectionCard>
       )}
       
-      {/* Risk Drivers */}
+      {/* Risk Drivers - Tags */}
       {displayRiskDrivers.length > 0 && (
         <ResultSectionCard
           title="Risk Drivers"
@@ -187,7 +188,7 @@ export const ATSAnalysisResult = ({ result }: ATSAnalysisResultProps) => {
         </ResultSectionCard>
       )}
       
-      {/* Fix First Action */}
+      {/* Fix First - Single clear action */}
       {displayFixFirst && (
         <ResultSectionCard
           title="Fix First"

@@ -8,12 +8,16 @@ interface DownloadPDFButtonProps {
   content: string;
   filename: string;
   title?: string;
+  buttonText?: string;
+  variant?: "default" | "outline" | "secondary" | "ghost" | "link" | "destructive";
 }
 
 export const DownloadPDFButton = ({ 
   content, 
   filename,
-  title = "Analysis Report"
+  title = "Analysis Report",
+  buttonText = "Download PDF",
+  variant = "outline"
 }: DownloadPDFButtonProps) => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -70,7 +74,7 @@ export const DownloadPDFButton = ({
 
   return (
     <Button
-      variant="outline"
+      variant={variant}
       size="sm"
       onClick={handleDownload}
       disabled={loading}
@@ -81,7 +85,7 @@ export const DownloadPDFButton = ({
       ) : (
         <Download className="h-3.5 w-3.5" />
       )}
-      Download PDF
+      {buttonText}
     </Button>
   );
 };
