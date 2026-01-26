@@ -3,12 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Sparkles, CheckCircle, Target, Flame, ChevronDown, ChevronUp } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { ResumeImprovementsResult } from "./results/ResumeImprovementsResult";
 import { ATSAnalysisResult } from "./results/ATSAnalysisResult";
 import { JDMatchResult } from "./results/JDMatchResult";
 import { RoastCardResult } from "./results/RoastCardResult";
-import { AnalysisPriorityToggle, AnalysisPriority } from "./AnalysisPriorityToggle";
+import { ExecutiveSummary } from "./results/ExecutiveSummary";
+import { AnalysisTabsNavigation, AnalysisTab } from "./AnalysisTabsNavigation";
 
 interface AgentActionsProps {
   resumeText: string;
@@ -64,66 +65,12 @@ interface RoastResult {
   rawContent?: string;
 }
 
-// Collapsible Section Component
-const CollapsibleSection = ({ 
-  title, 
-  icon, 
-  iconColor,
-  bgColor,
-  score,
-  isLoading, 
-  children,
-  defaultOpen = true
-}: {
-  title: string;
-  icon: React.ReactNode;
-  iconColor: string;
-  bgColor: string;
-  score?: number;
-  isLoading: boolean;
-  children: React.ReactNode;
-  defaultOpen?: boolean;
-}) => {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
-  
-  return (
-    <div className={`${bgColor} rounded-xl shadow-md border border-border/30 overflow-hidden`}>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-5 py-4 flex items-center justify-between hover:bg-black/5 transition-colors"
-      >
-        <div className="flex items-center gap-3">
-          <div className={iconColor}>{icon}</div>
-          <span className="text-lg font-semibold text-foreground">{title}</span>
-          {isLoading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground ml-2" />}
-        </div>
-        <div className="flex items-center gap-3">
-          {score !== undefined && !isLoading && (
-            <span className={`text-2xl font-bold ${iconColor}`}>{score}/100</span>
-          )}
-          {isOpen ? (
-            <ChevronUp className="h-5 w-5 text-muted-foreground" />
-          ) : (
-            <ChevronDown className="h-5 w-5 text-muted-foreground" />
-          )}
-        </div>
-      </button>
-      
-      {isOpen && (
-        <div className="px-5 pb-5 pt-2">
-          {children}
-        </div>
-      )}
-    </div>
-  );
-};
-
 export const AgentActions = ({ resumeText, jobDescription, onReset, autoStart = true }: AgentActionsProps) => {
   const { toast } = useToast();
   const [loadingAgents, setLoadingAgents] = useState<Record<string, boolean>>({});
   const [hasAnalyzed, setHasAnalyzed] = useState(false);
   const [hasAutoStarted, setHasAutoStarted] = useState(false);
-  const [priority, setPriority] = useState<AnalysisPriority>("interviews");
+  const [activeTab, setActiveTab] = useState<AnalysisTab>("summary");
   
   const [rewriteResult, setRewriteResult] = useState<RewriteResult | null>(null);
   const [atsResult, setATSResult] = useState<ATSResult | null>(null);
@@ -254,125 +201,107 @@ export const AgentActions = ({ resumeText, jobDescription, onReset, autoStart = 
 
   const isAnalyzing = Object.values(loadingAgents).some(Boolean);
 
-  // Order sections based on priority
-  const getSectionOrder = () => {
-    switch (priority) {
-      case "interviews":
-        return ["jdMatch", "rewrite", "ats", "roast"];
-      case "ats":
-        return ["ats", "jdMatch", "rewrite", "roast"];
-      case "growth":
-        return ["rewrite", "jdMatch", "ats", "roast"];
-      default:
-        return ["rewrite", "ats", "jdMatch", "roast"];
+  // Calculate completed and loading tabs
+  const completedTabs: AnalysisTab[] = [];
+  const loadingTabs: AnalysisTab[] = [];
+
+  if (rewriteResult) completedTabs.push("resume");
+  if (atsResult) completedTabs.push("ats");
+  if (jdMatchResult) completedTabs.push("jdmatch");
+  if (roastResult) completedTabs.push("roast");
+  if (rewriteResult && atsResult && jdMatchResult && roastResult) completedTabs.push("summary");
+
+  if (loadingAgents.rewrite) loadingTabs.push("resume");
+  if (loadingAgents.ats) loadingTabs.push("ats");
+  if (loadingAgents.jdMatch) loadingTabs.push("jdmatch");
+  if (loadingAgents.roast) loadingTabs.push("roast");
+  if (isAnalyzing) loadingTabs.push("summary");
+
+  // Get top actions from roast or improvements
+  const getTopActions = (): string[] => {
+    const actions: string[] = [];
+    
+    if (rewriteResult?.structured?.critical_fixes) {
+      rewriteResult.structured.critical_fixes.slice(0, 2).forEach((fix: any) => {
+        actions.push(fix.issue);
+      });
     }
+    
+    if (atsResult?.fixFirst) {
+      actions.push(atsResult.fixFirst);
+    }
+    
+    if (jdMatchResult?.resumeLevelFixes?.[0]) {
+      actions.push(jdMatchResult.resumeLevelFixes[0].instruction);
+    }
+    
+    return actions.slice(0, 3);
   };
 
-  const sectionOrder = getSectionOrder();
+  // Calculate resume score from improvements
+  const getResumeScore = () => {
+    if (!rewriteResult) return 0;
+    // Estimate based on critical fixes - fewer fixes = higher score
+    const fixes = rewriteResult.structured?.critical_fixes?.length || 5;
+    return Math.max(30, 100 - (fixes * 12));
+  };
 
-  const renderSection = (sectionId: string) => {
-    switch (sectionId) {
-      case "rewrite":
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case "summary":
         return (
-          <CollapsibleSection
-            key="rewrite"
-            title="Resume Improvements"
-            icon={<Sparkles className="h-5 w-5" />}
-            iconColor="text-blue-600"
-            bgColor="bg-blue-50/50"
-            isLoading={loadingAgents.rewrite}
-          >
-            {loadingAgents.rewrite ? (
-              <div className="flex flex-col items-center justify-center py-12">
-                <Loader2 className="h-10 w-10 animate-spin text-blue-500 mb-3" />
-                <p className="text-muted-foreground">Analysing your resume...</p>
-              </div>
-            ) : rewriteResult ? (
-              <ResumeImprovementsResult 
-                content={rewriteResult.rewritten} 
-                structured={rewriteResult.structured}
-              />
-            ) : (
-              <div className="text-center py-12 text-muted-foreground">
-                No improvements generated yet
-              </div>
-            )}
-          </CollapsibleSection>
+          <ExecutiveSummary
+            resumeScore={getResumeScore()}
+            atsScore={atsResult?.score}
+            atsVerdict={atsResult?.badge}
+            jdMatchScore={jdMatchResult?.matchScore}
+            jdMatchVerdict={jdMatchResult?.matchVerdict}
+            roastPreview={roastResult?.roast?.substring(0, 150)}
+            topActions={getTopActions()}
+            isLoading={isAnalyzing}
+            onNavigate={(tab) => setActiveTab(tab as AnalysisTab)}
+          />
         );
+      
+      case "resume":
+        return loadingAgents.rewrite ? (
+          <LoadingState message="Analysing your resume for improvements..." color="blue" />
+        ) : rewriteResult ? (
+          <ResumeImprovementsResult 
+            content={rewriteResult.rewritten} 
+            structured={rewriteResult.structured}
+          />
+        ) : (
+          <EmptyState message="No improvements generated yet" />
+        );
+      
       case "ats":
-        return (
-          <CollapsibleSection
-            key="ats"
-            title="ATS Analysis"
-            icon={<CheckCircle className="h-5 w-5" />}
-            iconColor="text-green-600"
-            bgColor="bg-green-50/50"
-            score={atsResult?.score}
-            isLoading={loadingAgents.ats}
-          >
-            {loadingAgents.ats ? (
-              <div className="flex flex-col items-center justify-center py-12">
-                <Loader2 className="h-10 w-10 animate-spin text-green-500 mb-3" />
-                <p className="text-muted-foreground">Analysing ATS compatibility...</p>
-              </div>
-            ) : atsResult ? (
-              <ATSAnalysisResult result={atsResult} />
-            ) : (
-              <div className="text-center py-12 text-muted-foreground">
-                No ATS analysis yet
-              </div>
-            )}
-          </CollapsibleSection>
+        return loadingAgents.ats ? (
+          <LoadingState message="Checking ATS compatibility..." color="emerald" />
+        ) : atsResult ? (
+          <ATSAnalysisResult result={atsResult} />
+        ) : (
+          <EmptyState message="No ATS analysis yet" />
         );
-      case "jdMatch":
-        return (
-          <CollapsibleSection
-            key="jdMatch"
-            title="Job Match"
-            icon={<Target className="h-5 w-5" />}
-            iconColor="text-purple-600"
-            bgColor="bg-purple-50/50"
-            score={jdMatchResult?.matchScore}
-            isLoading={loadingAgents.jdMatch}
-          >
-            {loadingAgents.jdMatch ? (
-              <div className="flex flex-col items-center justify-center py-12">
-                <Loader2 className="h-10 w-10 animate-spin text-purple-500 mb-3" />
-                <p className="text-muted-foreground">Matching to job description...</p>
-              </div>
-            ) : jdMatchResult ? (
-              <JDMatchResult result={jdMatchResult} />
-            ) : (
-              <div className="text-center py-12 text-muted-foreground">
-                No job match analysis yet
-              </div>
-            )}
-          </CollapsibleSection>
+      
+      case "jdmatch":
+        return loadingAgents.jdMatch ? (
+          <LoadingState message="Matching to job description..." color="purple" />
+        ) : jdMatchResult ? (
+          <JDMatchResult result={jdMatchResult} />
+        ) : (
+          <EmptyState message="No job match analysis yet" />
         );
+      
       case "roast":
-        return (
-          <CollapsibleSection
-            key="roast"
-            title="🔥 Roast Card"
-            icon={<Flame className="h-5 w-5" />}
-            iconColor="text-orange-600"
-            bgColor="bg-orange-50/50"
-            isLoading={loadingAgents.roast}
-          >
-            {loadingAgents.roast ? (
-              <div className="flex flex-col items-center justify-center py-12">
-                <Loader2 className="h-10 w-10 animate-spin text-orange-500 mb-3" />
-                <p className="text-muted-foreground">Generating roast card...</p>
-              </div>
-            ) : roastResult ? (
-              <RoastCardResult result={roastResult} />
-            ) : (
-              <div className="text-center py-12 text-muted-foreground">
-                No roast generated yet
-              </div>
-            )}
-          </CollapsibleSection>
+        return loadingAgents.roast ? (
+          <LoadingState message="Generating your roast card..." color="orange" />
+        ) : roastResult ? (
+          <RoastCardResult result={roastResult} />
+        ) : (
+          <EmptyState message="No roast generated yet" />
         );
+      
       default:
         return null;
     }
@@ -392,20 +321,41 @@ export const AgentActions = ({ resumeText, jobDescription, onReset, autoStart = 
 
       {hasAnalyzed && (
         <div className="space-y-5">
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex justify-between items-center">
             <h2 className="text-2xl font-bold text-foreground">Analysis Results</h2>
             <Button variant="outline" onClick={onReset}>
               Start Over
             </Button>
           </div>
 
-          {/* Priority Toggle */}
-          <AnalysisPriorityToggle value={priority} onChange={setPriority} />
+          {/* Tab Navigation */}
+          <AnalysisTabsNavigation 
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            completedTabs={completedTabs}
+            loadingTabs={loadingTabs}
+          />
 
-          {/* Render sections in priority order */}
-          {sectionOrder.map(sectionId => renderSection(sectionId))}
+          {/* Tab Content */}
+          <div className="min-h-[400px]">
+            {renderTabContent()}
+          </div>
         </div>
       )}
     </div>
   );
 };
+
+// Helper Components
+const LoadingState = ({ message, color }: { message: string; color: string }) => (
+  <div className="flex flex-col items-center justify-center py-16">
+    <Loader2 className={`h-12 w-12 animate-spin text-${color}-500 mb-4`} />
+    <p className="text-muted-foreground text-lg">{message}</p>
+  </div>
+);
+
+const EmptyState = ({ message }: { message: string }) => (
+  <div className="flex items-center justify-center py-16">
+    <p className="text-muted-foreground">{message}</p>
+  </div>
+);
