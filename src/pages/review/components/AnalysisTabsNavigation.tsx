@@ -30,27 +30,27 @@ const tabs: TabConfig[] = [
   { 
     id: "resume", 
     label: "Resume Strength", 
-    shortLabel: "Resume",
+    shortLabel: "Strength",
     icon: <Sparkles className="h-4 w-4" />,
     color: "text-blue-600"
   },
   { 
     id: "ats", 
-    label: "ATS Compatibility", 
+    label: "ATS Safety", 
     shortLabel: "ATS",
     icon: <Shield className="h-4 w-4" />,
     color: "text-emerald-600"
   },
   { 
     id: "jdmatch", 
-    label: "Job Match", 
-    shortLabel: "Match",
+    label: "Job Fit", 
+    shortLabel: "Job Fit",
     icon: <Target className="h-4 w-4" />,
     color: "text-purple-600"
   },
   { 
     id: "roast", 
-    label: "Roast Card", 
+    label: "Roast Review", 
     shortLabel: "Roast",
     icon: <Flame className="h-4 w-4" />,
     color: "text-orange-600"
