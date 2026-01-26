@@ -68,25 +68,36 @@ INPUTS:
 
 GOAL:
 Evaluate how well the resume matches the job and explain gaps clearly.
+You MUST calculate a match_score from 0-100 based on:
+- Keyword overlap (30%)
+- Skills alignment (30%)
+- Experience relevance (25%)
+- Industry/domain fit (15%)
 
 STRICT OUTPUT STRUCTURE:
 
-1) Match Verdict
+1) Match Score (0-100)
+   - Calculate based on the criteria above
+   - Strong Match: 70-100
+   - Medium Match: 45-69
+   - Weak Match: 0-44
+
+2) Match Verdict
    - Strong Match / Medium Match / Weak Match
 
-2) What's Missing (3–5 items max)
+3) What's Missing (3–5 items max)
    For each item include:
    - Type: Hard Skill Gap | Soft Skill Gap | Wording Gap | Domain Gap
    - What's missing
    - Why it matters for THIS role
 
-3) How to Fix It (Resume-level)
+4) How to Fix It (Resume-level)
    - 3–6 actionable fixes
    - Each fix MUST:
      • Reference a resume section (Summary / Experience / Skills)
      • Be something the user can actually add or rewrite
 
-4) Suggested Keywords to Add
+5) Suggested Keywords to Add
    - 5–12 keywords max
    - Only if present in job_description AND not clearly in resume
 
@@ -94,21 +105,22 @@ RULES:
 - No essays.
 - No generic advice.
 - Do not invent experience.
+- match_score MUST be a number between 0 and 100, never 0 unless truly no match.
 
 OUTPUT IN TWO PARTS:
 
 PART 1: JSON (wrapped in \`\`\`json code block)
 {
-  "match_score": 0,
+  "match_score": <number 0-100>,
   "match_verdict": "Strong Match|Medium Match|Weak Match",
-  "missing": [{"type":"", "item":"", "why_it_matters":""}],
-  "resume_level_fixes": [{"instruction":"", "where_to_add":"", "example_line":""}],
-  "keywords_to_add": [""]
+  "missing": [{"type":"Hard Skill Gap|Soft Skill Gap|Wording Gap|Domain Gap", "item":"specific skill or gap", "why_it_matters":"1-sentence explanation"}],
+  "resume_level_fixes": [{"instruction":"what to do", "where_to_add":"Summary|Experience|Skills", "example_line":"example text to add"}],
+  "keywords_to_add": ["keyword1", "keyword2"]
 }
 
 PART 2: Clean Markdown summary
 
-Now compare the resume with the job description.`;
+Now compare the resume with the job description and calculate the match_score.`;
 
     const response = await callOpenAIWithRetry({
       model: 'gpt-4o-mini',
