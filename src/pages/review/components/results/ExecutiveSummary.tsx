@@ -266,10 +266,10 @@ export const ExecutiveSummary = ({
           variant="outline" 
           size="lg" 
           className="flex-1 gap-2"
-          onClick={() => onNavigate("resume")}
+          onClick={() => onNavigate("jdmatch")}
         >
           <Eye className="h-4 w-4" />
-          Preview Detailed Analysis
+          See Why You Might Get Rejected
         </Button>
       </div>
     </div>
