@@ -125,7 +125,7 @@ export const JDMatchResult = ({ result }: JDMatchResultProps) => {
               </div>
               <div>
                 <h3 className="text-lg font-bold text-foreground">Job Fit</h3>
-                <p className="text-sm text-muted-foreground">Why might I get rejected for THIS job?</p>
+                <p className="text-sm text-muted-foreground">Gaps that reduce your fit for this role</p>
               </div>
             </div>
             <div className={`px-4 py-2 rounded-full font-semibold ${verdictInfo.bgColor} ${verdictInfo.color} border ${verdictInfo.borderColor} flex items-center gap-2`}>
@@ -143,10 +143,10 @@ export const JDMatchResult = ({ result }: JDMatchResultProps) => {
         </div>
       </div>
       
-      {/* What's Missing - 3-5 items, gap types */}
+      {/* What's Missing - Consistent Job Fit language */}
       {displayMissing.length > 0 && (
         <ResultSectionCard
-          title="What's Missing for This Job"
+          title="What's Missing to Improve Job Fit"
           icon={<AlertTriangle className="h-5 w-5 text-amber-600" />}
           gradientFrom="from-amber-50"
           gradientTo="to-orange-50/50"
@@ -154,6 +154,7 @@ export const JDMatchResult = ({ result }: JDMatchResultProps) => {
           copyText={displayMissing.map(m => `${m.type}: ${m.item} - ${m.why_it_matters}`).join('\n')}
           badge={Math.min(displayMissing.length, 5)}
         >
+          <p className="text-xs text-muted-foreground mb-3">These gaps reduce your fit for this specific role.</p>
           <div className="space-y-3">
             {displayMissing.slice(0, 5).map((item, i) => (
               <div key={i} className="bg-white/80 rounded-lg p-4 border-l-4 border-amber-400 shadow-sm">

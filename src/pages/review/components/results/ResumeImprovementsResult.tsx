@@ -84,8 +84,9 @@ export const ResumeImprovementsResult = ({ content, structured }: ResumeImprovem
   if (structured && structured.critical_fixes?.length) {
     return (
       <div className="space-y-5">
+        {/* Single global Copy Fixes button - reduces UI noise */}
         <div className="flex flex-wrap gap-2">
-          <CopyButton text={cleanContent} label="Copy All" />
+          <CopyButton text={cleanContent} label="Copy All Fixes" />
           <DownloadPDFButton content={cleanContent} filename="resume-strength" title="Resume Strength Analysis" />
         </div>
         
@@ -99,14 +100,13 @@ export const ResumeImprovementsResult = ({ content, structured }: ResumeImprovem
           </div>
         )}
         
-        {/* Critical Fixes - Top 5, collapsed examples */}
+        {/* Critical Fixes - Top 5, collapsed examples - NO section copy button */}
         <ResultSectionCard
           title="Top 5 Critical Fixes"
           icon={<AlertCircle className="h-5 w-5 text-red-600" />}
           gradientFrom="from-red-50"
           gradientTo="to-rose-50/50"
           borderColor="border-red-200/60"
-          copyText={structured.critical_fixes?.map(f => `${f.issue}: ${f.fix_example}`).join('\n') || ''}
           badge={5}
         >
           <div className="space-y-4">
@@ -116,7 +116,7 @@ export const ResumeImprovementsResult = ({ content, structured }: ResumeImprovem
           </div>
         </ResultSectionCard>
         
-        {/* Nice-to-have Improvements - Accordion */}
+        {/* Nice-to-have Improvements - Accordion, NO section copy button */}
         {structured.nice_to_have && structured.nice_to_have.length > 0 && (
           <ResultSectionCard
             title="Nice-to-have Improvements"
@@ -124,7 +124,6 @@ export const ResumeImprovementsResult = ({ content, structured }: ResumeImprovem
             gradientFrom="from-amber-50"
             gradientTo="to-yellow-50/50"
             borderColor="border-amber-200/60"
-            copyText={structured.nice_to_have?.map(f => `${f.issue}: ${f.fix_example}`).join('\n') || ''}
             badge={structured.nice_to_have.length}
             defaultOpen={false}
           >
@@ -139,7 +138,7 @@ export const ResumeImprovementsResult = ({ content, structured }: ResumeImprovem
           </ResultSectionCard>
         )}
         
-        {/* Optional Enhancements - Accordion */}
+        {/* Optional Enhancements - Accordion, NO section copy button */}
         {structured.optional_enhancements && structured.optional_enhancements.length > 0 && (
           <ResultSectionCard
             title="Optional Enhancements"
@@ -147,7 +146,6 @@ export const ResumeImprovementsResult = ({ content, structured }: ResumeImprovem
             gradientFrom="from-blue-50"
             gradientTo="to-sky-50/50"
             borderColor="border-blue-200/60"
-            copyText={structured.optional_enhancements?.map(f => `${f.issue}: ${f.fix_example}`).join('\n') || ''}
             badge={structured.optional_enhancements.length}
             defaultOpen={false}
           >
@@ -162,7 +160,7 @@ export const ResumeImprovementsResult = ({ content, structured }: ResumeImprovem
           </ResultSectionCard>
         )}
         
-        {/* Quick Wins Rewrite Pack - Side by side */}
+        {/* Quick Wins Rewrite Pack - Side by side, NO section copy button */}
         {structured.quick_wins_rewrite_pack && structured.quick_wins_rewrite_pack.length > 0 && (
           <ResultSectionCard
             title="Quick Wins Rewrite Pack"
@@ -170,7 +168,6 @@ export const ResumeImprovementsResult = ({ content, structured }: ResumeImprovem
             gradientFrom="from-emerald-50"
             gradientTo="to-teal-50/50"
             borderColor="border-emerald-200/60"
-            copyText={structured.quick_wins_rewrite_pack?.map(q => `Before: ${q.before}\nAfter: ${q.after}`).join('\n\n') || ''}
             badge={structured.quick_wins_rewrite_pack.length}
           >
             <div className="space-y-4">

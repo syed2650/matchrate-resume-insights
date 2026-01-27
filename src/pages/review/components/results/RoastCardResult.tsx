@@ -115,7 +115,7 @@ export const RoastCardResult = ({ result }: RoastCardResultProps) => {
           />
         </div>
         
-        {/* Main Roast - 2-3 lines max, speech bubble */}
+        {/* Main Roast - Cap to ~20 words for mobile (2 lines), speech bubble */}
         <div className="relative">
           <div className="bg-white rounded-2xl p-6 shadow-lg border border-orange-200/60 relative">
             <div className="absolute -top-4 left-6">
@@ -123,8 +123,8 @@ export const RoastCardResult = ({ result }: RoastCardResultProps) => {
                 <Quote className="h-5 w-5 text-white" />
               </div>
             </div>
-            <p className="text-lg font-medium text-foreground italic leading-relaxed pt-2 line-clamp-3">
-              "{cleanRoast}"
+            <p className="text-lg font-medium text-foreground italic leading-relaxed pt-2 line-clamp-2">
+              "{cleanRoast.split(' ').slice(0, 22).join(' ')}{cleanRoast.split(' ').length > 22 ? '…' : ''}"
             </p>
           </div>
           <div className="absolute -bottom-2 left-12 w-4 h-4 bg-white border-r border-b border-orange-200/60 transform rotate-45 shadow-sm"></div>
@@ -228,19 +228,25 @@ export const RoastCardResult = ({ result }: RoastCardResultProps) => {
           </Button>
         </div>
         
-        {/* CTAs */}
-        <div className="flex flex-col sm:flex-row gap-3 pt-2">
-          <Button className="flex-1 gap-2">
-            Apply These Fixes & Recheck Match
-            <ArrowRight className="h-4 w-4" />
-          </Button>
-          <DownloadPDFButton 
-            content={exportContent} 
-            filename="roast-review" 
-            title="Roast Review"
-            buttonText="Download Roast PDF"
-            variant="outline"
-          />
+        {/* CTAs with recheck loop cue */}
+        <div className="flex flex-col gap-3 pt-2">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Button className="flex-1 gap-2">
+              Apply These Fixes & Recheck Match
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+            <DownloadPDFButton 
+              content={exportContent} 
+              filename="roast-review" 
+              title="Roast Review"
+              buttonText="Download Roast PDF"
+              variant="outline"
+            />
+          </div>
+          {/* Recheck loop cue - encourages iteration */}
+          <p className="text-xs text-center text-muted-foreground">
+            Most users improve their score by 10–20 points after one recheck.
+          </p>
         </div>
       </div>
     </div>
