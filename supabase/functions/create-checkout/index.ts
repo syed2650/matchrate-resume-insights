@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 
@@ -7,19 +6,36 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Plan configurations
+// Plan configurations - NEW PRICING MODEL
 const PLANS = {
+  weekly: {
+    name: "Weekly Access",
+    description: "Up to 5 job match checks, full Resume Strength fixes, ATS Safety analysis, Job Fit analysis, Roast Review, recheck after edits. Access valid for 7 days.",
+    amount: 199, // £1.99 in pence
+    currency: "gbp",
+    mode: "subscription" as const,
+    interval: "week" as const,
+  },
+  monthly: {
+    name: "Monthly Access",
+    description: "Up to 25 job match checks/month, everything in Weekly, saved resume & job history, PDF exports, priority usage limits.",
+    amount: 699, // £6.99 in pence
+    currency: "gbp",
+    mode: "subscription" as const,
+    interval: "month" as const,
+  },
+  // Legacy plans for existing customers
   premium: {
-    name: "Premium Monthly",
-    description: "Unlimited resume analyses, ATS & JD matching, full bullet rewrites, personalized summary, roast + real review, PDF export, save history, priority updates",
+    name: "Premium Monthly (Legacy)",
+    description: "Legacy plan - please use Monthly instead",
     amount: 399, // £3.99 in pence
     currency: "gbp",
     mode: "subscription" as const,
     interval: "month" as const,
   },
   lifetime: {
-    name: "Lifetime Access",
-    description: "Everything in Premium forever - no monthly fees, lifetime updates, priority roadmap access. Limited to first 200 buyers.",
+    name: "Lifetime Access (Legacy)",
+    description: "Legacy plan - no longer available",
     amount: 2900, // £29 in pence
     currency: "gbp",
     mode: "payment" as const,
@@ -42,7 +58,7 @@ serve(async (req) => {
     // Validate plan
     const planKey = plan?.toLowerCase();
     if (!planKey || !PLANS[planKey as keyof typeof PLANS]) {
-      throw new Error(`Invalid plan: ${plan}. Valid plans are: premium, lifetime`);
+      throw new Error(`Invalid plan: ${plan}. Valid plans are: weekly, monthly`);
     }
     
     const planConfig = PLANS[planKey as keyof typeof PLANS];
