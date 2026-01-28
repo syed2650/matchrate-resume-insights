@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Check, X, Sparkles } from "lucide-react";
+import { Check, X, Sparkles, Zap, Rocket, Clock } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEffect, useRef, useState } from "react";
 import { getUsageStats } from "@/pages/review/utils";
@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuthUser } from "@/hooks/useAuthUser";
 import { motion } from "framer-motion";
 import FloatingOrbs from "@/components/ui/FloatingOrbs";
+
 interface PlanFeature {
   name: string;
   available: boolean;
@@ -17,63 +18,87 @@ interface PlanFeature {
 
 interface PricingPlan {
   name: string;
+  planKey: string;
   price: string;
   period: string | null;
   description: string;
   features: PlanFeature[];
+  lockedFeatures?: string[];
+  limits?: string[];
   popular?: boolean;
-  lifetime?: boolean;
   badge?: string;
+  ctaText: string;
+  ctaIcon?: React.ReactNode;
+  microCopy: string;
 }
 
 const pricingPlans: PricingPlan[] = [
   {
     name: "Free",
+    planKey: "free",
     price: "0",
     period: null,
-    description: "Perfect for trying MatchRate.",
+    description: "See why your resume isn't getting interviews.",
     features: [
-      { name: "1 resume analysis", available: true },
+      { name: "1 resume upload", available: true },
       { name: "1 job match check", available: true },
-      { name: "Basic ATS Score", available: true },
-      { name: "Basic bullet rewrite", available: true },
-      { name: "Roast card", available: false },
-      { name: "PDF export", available: false },
-      { name: "Save history", available: false },
-    ]
+      { name: "Executive Summary", available: true },
+      { name: "Overall Match Score", available: true },
+      { name: "Top 3 improvement actions", available: true },
+    ],
+    lockedFeatures: [
+      "Resume Strength fixes",
+      "ATS Safety reasoning",
+      "Job Fit gap analysis",
+      "Roast Review",
+      "Recheck after edits",
+      "PDF export & history",
+    ],
+    ctaText: "Run Free Resume Check",
+    ctaIcon: <span className="mr-1">👉</span>,
+    microCopy: "No card required · Takes under 60 seconds",
   },
   {
-    name: "Premium",
-    price: "3.99",
+    name: "Weekly",
+    planKey: "weekly",
+    price: "1.99",
+    period: "week",
+    description: "Perfect for active job applications this week.",
+    features: [
+      { name: "Up to 5 job match checks", available: true },
+      { name: "Full Resume Strength fixes (Top 5 critical issues)", available: true },
+      { name: "ATS Safety analysis (pass / risk clarity)", available: true },
+      { name: "Job Fit analysis (what's missing + how to fix)", available: true },
+      { name: "Full Roast Review", available: true },
+      { name: "Recheck after edits", available: true },
+    ],
+    limits: [
+      "Access valid for 7 days",
+      "History saved for 7 days only",
+    ],
+    popular: true,
+    ctaText: "Unlock Resume Fixes for This Week",
+    ctaIcon: <span className="mr-1">👉</span>,
+    microCopy: "Cancel anytime · No long-term commitment",
+  },
+  {
+    name: "Monthly",
+    planKey: "monthly",
+    price: "6.99",
     period: "month",
-    description: "For serious job seekers wanting full optimization.",
+    description: "Tailor your resume for every job you apply to this month.",
     features: [
-      { name: "Unlimited resume analyses", available: true },
-      { name: "Unlimited ATS & JD matching", available: true },
-      { name: "Full bullet rewrites", available: true },
-      { name: "Personalized summary rewrite", available: true },
-      { name: "Roast + Real Review", available: true },
-      { name: "PDF export", available: true },
-      { name: "Save history", available: true },
-      { name: "Priority updates", available: true },
+      { name: "Up to 25 job match checks / month", available: true },
+      { name: "Everything in Weekly", available: true },
+      { name: "Saved resume & job history", available: true },
+      { name: "PDF exports", available: true },
+      { name: "Priority usage limits", available: true },
     ],
-    popular: true
+    badge: "Best Value",
+    ctaText: "Get Full Access for This Month",
+    ctaIcon: <span className="mr-1">👉</span>,
+    microCopy: "Best value for active job seekers · Cancel anytime",
   },
-  {
-    name: "Lifetime",
-    price: "29",
-    period: null,
-    description: "Limited to first 200 buyers only.",
-    features: [
-      { name: "Unlimited resume analyses", available: true },
-      { name: "Everything in Premium", available: true },
-      { name: "No monthly fees", available: true },
-      { name: "Lifetime updates", available: true },
-      { name: "Priority roadmap access", available: true },
-    ],
-    lifetime: true,
-    badge: "Best Value"
-  }
 ];
 
 const Pricing = () => {
@@ -108,22 +133,18 @@ const Pricing = () => {
     };
   }, []);
 
-  const handleUpgrade = async (planName: string) => {
-    if (planName === "Free") {
-      toast({
-        title: "Free plan activated",
-        description: "You're now on the Free plan with 1 resume review per day."
-      });
+  const handleUpgrade = async (planKey: string) => {
+    if (planKey === "free") {
       navigate("/review");
     } else {
       try {
-        setIsLoading(planName);
+        setIsLoading(planKey);
         
         if (!user) {
           navigate("/auth", { 
             state: { 
               fromPricing: true, 
-              selectedPlan: planName.toLowerCase() 
+              selectedPlan: planKey
             } 
           });
           return;
@@ -135,7 +156,7 @@ const Pricing = () => {
         });
         
         const { data, error } = await supabase.functions.invoke("create-checkout", {
-          body: { plan: planName.toLowerCase() }
+          body: { plan: planKey }
         });
         
         if (error) {
@@ -206,13 +227,13 @@ const Pricing = () => {
             Get the feedback you need to land interviews, with plans designed for every job seeker's budget and goals.
           </motion.p>
           
-          {stats.plan === 'paid' && (
+          {(stats.plan === 'weekly' || stats.plan === 'monthly') && (
             <div className="mt-6 p-4 bg-emerald-50 border border-emerald-200 rounded-lg inline-flex items-center gap-2">
               <div className="bg-emerald-100 p-1 rounded-full">
                 <Check className="h-5 w-5 text-emerald-600" />
               </div>
               <span className="font-medium text-emerald-800">
-                You're currently on a Premium Plan!
+                You're currently on the {stats.plan === 'weekly' ? 'Weekly' : 'Monthly'} Plan!
               </span>
             </div>
           )}
@@ -225,161 +246,119 @@ const Pricing = () => {
           transition={{ duration: 0.6, delay: 0.4 }}
           viewport={{ once: true }}
         >
-          <Tabs defaultValue="plans" className="mb-8">
-            <div className="flex justify-center">
-              <TabsList className="grid w-64 grid-cols-2 mb-12 glassmorphism">
-                <TabsTrigger value="plans">Plans</TabsTrigger>
-                <TabsTrigger value="compare">Compare</TabsTrigger>
-              </TabsList>
-            </div>
-            
-            <TabsContent value="plans" className="mt-0">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {pricingPlans.map((plan, index) => (
-                  <motion.div 
-                    key={index}
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: index * 0.1 }}
-                    viewport={{ once: true }}
-                    whileHover={{ 
-                      y: plan.popular ? -12 : -8, 
-                      scale: 1.02,
-                      transition: { duration: 0.2 }
-                    }}
-                    className={`flex flex-col rounded-2xl glassmorphism transition-all duration-300 hover:shadow-premium-hover px-6 py-8 relative ${
-                      plan.popular ? 'border-warm-accent ring-2 ring-warm-accent/20 translate-y-[-8px]' : ''
-                    } ${plan.lifetime ? 'border-amber-400 ring-2 ring-amber-200/40 bg-gradient-to-br from-amber-50/50 to-orange-50/30' : 'border-slate-100'}
-                    ${stats.plan === plan.name.toLowerCase() ? 'border-emerald-300 ring-2 ring-emerald-100' : ''}`}
-                  >
-                    {plan.popular && (
-                      <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 inline-block px-4 py-1 text-xs font-medium text-white bg-warm-accent rounded-full shadow-md">
-                        Most Popular
-                      </div>
-                    )}
-                    
-                    {plan.badge && !plan.popular && (
-                      <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 inline-flex items-center gap-1 px-4 py-1 text-xs font-medium text-amber-800 bg-gradient-to-r from-amber-200 to-orange-200 rounded-full shadow-md">
-                        <Sparkles className="w-3 h-3" />
-                        {plan.badge}
-                      </div>
-                    )}
-                    
-                    {stats.plan === plan.name.toLowerCase() && (
-                      <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 inline-block px-4 py-1 text-xs font-medium text-white bg-emerald-600 rounded-full shadow-md">
-                        Your Current Plan
-                      </div>
-                    )}
-                    
-                    <h3 className="text-xl font-bold text-warm-text mb-2">{plan.name}</h3>
-                    <div className="flex items-baseline mb-4">
-                      <span className="text-4xl font-bold text-warm-text">£{plan.price}</span>
-                      {plan.period && (
-                        <span className="text-slate-500 ml-1">/{plan.period}</span>
-                      )}
-                      {plan.lifetime && (
-                        <span className="text-amber-600 ml-2 text-sm font-medium">one-time</span>
-                      )}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {pricingPlans.map((plan, index) => (
+              <motion.div 
+                key={index}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                viewport={{ once: true }}
+                whileHover={{ 
+                  y: plan.popular ? -12 : -8, 
+                  scale: 1.02,
+                  transition: { duration: 0.2 }
+                }}
+                className={`flex flex-col rounded-2xl glassmorphism transition-all duration-300 hover:shadow-premium-hover px-6 py-8 relative ${
+                  plan.popular ? 'border-warm-accent ring-2 ring-warm-accent/20 translate-y-[-8px]' : ''
+                } ${plan.badge && !plan.popular ? 'border-emerald-400 ring-2 ring-emerald-200/40 bg-gradient-to-br from-emerald-50/50 to-teal-50/30' : 'border-slate-100'}
+                ${stats.plan === plan.planKey ? 'border-emerald-300 ring-2 ring-emerald-100' : ''}`}
+              >
+                {plan.popular && (
+                  <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 inline-flex items-center gap-1 px-4 py-1 text-xs font-medium text-white bg-warm-accent rounded-full shadow-md">
+                    <Zap className="w-3 h-3" />
+                    High Conversion
+                  </div>
+                )}
+                
+                {plan.badge && !plan.popular && (
+                  <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 inline-flex items-center gap-1 px-4 py-1 text-xs font-medium text-emerald-800 bg-gradient-to-r from-emerald-200 to-teal-200 rounded-full shadow-md">
+                    <Rocket className="w-3 h-3" />
+                    {plan.badge}
+                  </div>
+                )}
+                
+                {stats.plan === plan.planKey && (
+                  <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 inline-block px-4 py-1 text-xs font-medium text-white bg-emerald-600 rounded-full shadow-md">
+                    Your Current Plan
+                  </div>
+                )}
+                
+                <h3 className="text-xl font-bold text-warm-text mb-2">{plan.name}</h3>
+                <div className="flex items-baseline mb-2">
+                  <span className="text-4xl font-bold text-warm-text">£{plan.price}</span>
+                  {plan.period && (
+                    <span className="text-slate-500 ml-1">/{plan.period}</span>
+                  )}
+                </div>
+                <p className="text-slate-600 mb-6 text-sm">{plan.description}</p>
+                
+                <Button 
+                  className={`w-full mb-6 font-semibold px-6 py-3 rounded-xl transition-all duration-200 hover:scale-[1.02] ${
+                    plan.popular 
+                      ? "cta-gradient text-white shadow-md" 
+                      : plan.badge
+                        ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md hover:from-emerald-600 hover:to-teal-600"
+                        : "bg-white text-warm-text border border-slate-200 hover:bg-slate-50"
+                  }`}
+                  variant={plan.popular || plan.badge ? "default" : "outline"}
+                  onClick={() => handleUpgrade(plan.planKey)}
+                  disabled={stats.plan === plan.planKey || isLoading === plan.planKey}
+                  isLoading={isLoading === plan.planKey}
+                >
+                  {stats.plan === plan.planKey ? 'Current Plan' : (
+                    <>
+                      {plan.ctaIcon}
+                      {plan.ctaText}
+                    </>
+                  )}
+                </Button>
+                
+                {/* Micro-copy */}
+                <p className="text-xs text-slate-500 text-center mb-4 -mt-4">{plan.microCopy}</p>
+                
+                {/* What you get */}
+                <div className="space-y-3 mb-4">
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">What you get</p>
+                  {plan.features.map((feature, featureIndex) => (
+                    <div key={featureIndex} className="flex items-start gap-3 text-slate-600">
+                      <Check className="w-5 h-5 text-emerald-500 mt-0.5 shrink-0" />
+                      <span className="text-sm">
+                        {feature.name} 
+                        {feature.note && <span className="text-sm text-slate-400"> {feature.note}</span>}
+                      </span>
                     </div>
-                    <p className="text-slate-600 mb-6 text-sm">{plan.description}</p>
-                    
-                    <Button 
-                      className={`w-full mb-6 font-semibold px-6 py-3 rounded-xl transition-all duration-200 hover:scale-[1.02] ${
-                        plan.lifetime 
-                          ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md hover:from-amber-600 hover:to-orange-600"
-                          : plan.popular 
-                            ? "cta-gradient text-white shadow-md" 
-                            : "bg-white text-warm-text border border-slate-200 hover:bg-slate-50"
-                      }`}
-                      variant={plan.popular || plan.lifetime ? "default" : "outline"}
-                      onClick={() => handleUpgrade(plan.name)}
-                      disabled={stats.plan === plan.name.toLowerCase() || isLoading === plan.name}
-                      isLoading={isLoading === plan.name}
-                    >
-                      {stats.plan === plan.name.toLowerCase() ? 'Current Plan' : 
-                        plan.name === "Free" ? "Try Now" : 
-                        plan.lifetime ? "Get Lifetime Access" : "Get Premium"}
-                    </Button>
-                    
-                    <div className="space-y-3">
-                      {plan.features.map((feature, featureIndex) => (
-                        <div key={featureIndex} className="flex items-start gap-3 text-slate-600">
-                          {feature.available ? (
-                            <Check className="w-5 h-5 text-emerald-500 mt-0.5 shrink-0" />
-                          ) : (
-                            <X className="w-5 h-5 text-slate-300 mt-0.5 shrink-0" />
-                          )}
-                          <span className="text-sm">
-                            {feature.name} 
-                            {feature.note && <span className="text-sm text-slate-400"> {feature.note}</span>}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="compare">
-              <div className="glassmorphism rounded-xl overflow-hidden overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-slate-100">
-                      <th className="text-left p-4 font-medium text-slate-500">Feature</th>
-                      {pricingPlans.map((plan, i) => (
-                        <th key={i} className="p-4 font-medium text-slate-800">{plan.name}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {[
-                      "Resume analyses",
-                      "ATS & JD matching",
-                      "Bullet rewrites",
-                      "Summary rewrite",
-                      "Roast + Real Review",
-                      "PDF export",
-                      "Save history",
-                      "Priority updates",
-                    ].map((feature, i) => (
-                      <tr key={i} className="border-b border-slate-100 last:border-0">
-                        <td className="p-4 text-sm text-slate-700">{feature}</td>
-                        {pricingPlans.map((plan, planIndex) => {
-                          const planFeature = plan.features.find(f => f.name.toLowerCase().includes(feature.toLowerCase().split(' ')[0]));
-                          const isLifetimeAll = plan.lifetime && i > 0;
-                          return (
-                            <td key={planIndex} className="p-4 text-center">
-                              {planFeature?.available || isLifetimeAll ? (
-                                <>
-                                  <Check className="w-5 h-5 text-emerald-500 mx-auto" />
-                                  {planFeature?.note && (
-                                    <div className="text-xs text-slate-500 mt-1">{planFeature.note}</div>
-                                  )}
-                                </>
-                              ) : (
-                                <X className="w-5 h-5 text-slate-300 mx-auto" />
-                              )}
-                            </td>
-                          );
-                        })}
-                      </tr>
+                  ))}
+                </div>
+                
+                {/* What's locked (Free plan only) */}
+                {plan.lockedFeatures && plan.lockedFeatures.length > 0 && (
+                  <div className="space-y-2 mb-4 pt-3 border-t border-slate-100">
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">What's locked</p>
+                    {plan.lockedFeatures.map((feature, featureIndex) => (
+                      <div key={featureIndex} className="flex items-start gap-3 text-slate-400">
+                        <X className="w-4 h-4 mt-0.5 shrink-0" />
+                        <span className="text-sm">{feature}</span>
+                      </div>
                     ))}
-                    <tr className="bg-slate-50">
-                      <td className="p-4 text-sm font-medium text-slate-800">Pricing</td>
-                      {pricingPlans.map((plan, i) => (
-                        <td key={i} className="p-4 text-center">
-                          <div className="font-bold text-warm-text">£{plan.price}</div>
-                          {plan.period && <div className="text-xs text-slate-500">/{plan.period}</div>}
-                          {plan.lifetime && <div className="text-xs text-amber-600 font-medium">one-time</div>}
-                        </td>
-                      ))}
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </TabsContent>
-          </Tabs>
+                  </div>
+                )}
+                
+                {/* Limits (Weekly plan) */}
+                {plan.limits && plan.limits.length > 0 && (
+                  <div className="space-y-2 pt-3 border-t border-slate-100">
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Limits</p>
+                    {plan.limits.map((limit, limitIndex) => (
+                      <div key={limitIndex} className="flex items-start gap-2 text-slate-500">
+                        <Clock className="w-4 h-4 mt-0.5 shrink-0" />
+                        <span className="text-xs">{limit}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </motion.div>
+            ))}
+          </div>
           
           <motion.div 
             className="mt-12 text-center"
