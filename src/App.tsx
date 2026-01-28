@@ -29,7 +29,7 @@ import FreeATSCheck from "@/pages/FreeATSCheck";
 import ResumeFeedback from "@/pages/ResumeFeedback";
 import UTMDashboard from "@/pages/UTMDashboard";
 import NavBar from "@/components/NavBar";
-import BetaAnnouncementBanner from "@/components/BetaAnnouncementBanner";
+// Beta banner removed
 import { ExitIntentPopup } from "@/components/ExitIntentPopup";
 import { UTMTracker } from "@/components/UTMTracker";
 import { useExitIntent } from "@/hooks/useExitIntent";
@@ -51,7 +51,7 @@ function AppContent() {
   return (
     <>
       <UTMTracker />
-      <BetaAnnouncementBanner />
+      
       <NavBar />
       <Routes>
         <Route path="/" element={<Index />} />

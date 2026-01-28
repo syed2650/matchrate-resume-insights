@@ -1,25 +1,29 @@
-
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthUser } from "@/hooks/useAuthUser";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import { 
   ChevronRight, 
-  Download, 
   FileText, 
-  Settings, 
-  User,
   History,
-  Lock
+  Lock,
+  Zap,
+  Crown,
+  Target,
+  TrendingUp,
+  Calendar,
+  ArrowRight,
+  Sparkles,
+  BarChart3,
+  CheckCircle2,
+  Clock
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import UpgradeBanner from "@/pages/review/components/UpgradeBanner";
-import { getUsageStats, resetUsageStats } from "@/pages/review/utils";
+import { getUsageStats } from "@/pages/review/utils";
+import FloatingOrbs from "@/components/ui/FloatingOrbs";
 
 type Submission = {
   id: string;
@@ -29,32 +33,25 @@ type Submission = {
   feedback_results: any;
 };
 
-type UsageCount = {
-  used: number;
-  total: number | string;
-  remaining: number | string;
-};
-
 type UsageStats = {
-  plan: string;
-  feedbacks: UsageCount;
-  rewrites: UsageCount;
+  plan: 'free' | 'weekly' | 'monthly';
+  checksUsed: number;
+  checksTotal: number;
+  daysRemaining?: number;
 };
 
 export default function Dashboard() {
   const { user, loading } = useAuthUser();
   const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
   const [fetching, setFetching] = useState(false);
   const [usageStats, setUsageStats] = useState<UsageStats>({
     plan: 'free',
-    feedbacks: { used: 0, total: 1, remaining: 1 },
-    rewrites: { used: 0, total: 0, remaining: 0 }
+    checksUsed: 0,
+    checksTotal: 1
   });
   const [isLifetimePremium, setIsLifetimePremium] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const isPaid = usageStats.plan === 'paid';
 
   useEffect(() => {
     if (!loading && !user) navigate("/auth");
@@ -77,31 +74,15 @@ export default function Dashboard() {
       
       checkLifetimePremium().catch(console.error);
       
-      // For free plan: 1 feedback per day, 0 rewrites
-      // For paid plan: 30 feedback per month, 15 rewrites per month
-      const feedbackTotal = stats.plan === 'paid' ? 30 : 1;
-      const rewriteTotal = stats.plan === 'paid' ? 15 : 0;
-      
-      // Calculate used amounts
-      const feedbackUsed = stats.plan === 'paid' ? stats.monthly.feedbacks : stats.daily.count;
-      const rewritesUsed = stats.plan === 'paid' ? stats.monthly.rewrites : 0;
-      
-      // Calculate remaining
-      const feedbackRemaining = isLifetimePremium ? "∞" : Math.max(0, feedbackTotal - feedbackUsed);
-      const rewriteRemaining = isLifetimePremium ? "∞" : Math.max(0, rewriteTotal - rewritesUsed);
+      // Map to new check-based model
+      const checksTotal = stats.plan === 'monthly' ? 25 : stats.plan === 'weekly' ? 5 : 1;
+      const checksUsed = stats.plan === 'free' ? stats.daily.count : stats.monthly.feedbacks;
       
       setUsageStats({
-        plan: stats.plan,
-        feedbacks: { 
-          used: feedbackUsed, 
-          total: isLifetimePremium ? "∞" : feedbackTotal,
-          remaining: feedbackRemaining
-        },
-        rewrites: { 
-          used: rewritesUsed, 
-          total: isLifetimePremium ? "∞" : rewriteTotal,
-          remaining: rewriteRemaining
-        }
+        plan: stats.plan as 'free' | 'weekly' | 'monthly',
+        checksUsed,
+        checksTotal,
+        daysRemaining: stats.plan === 'weekly' ? 7 : undefined
       });
     }
   }, [user, loading, navigate, isLifetimePremium]);
@@ -116,10 +97,7 @@ export default function Dashboard() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      if (data) {
-        setSubmissions(data as Submission[]);
-        if (data.length > 0) setSelectedSubmission(data[0]);
-      }
+      if (data) setSubmissions(data as Submission[]);
     } catch (error) {
       console.error("Error fetching submissions:", error);
       toast({
@@ -132,397 +110,350 @@ export default function Dashboard() {
     }
   };
 
-  const handleViewSubmission = (submission: Submission) => {
-    setSelectedSubmission(submission);
-  };
-
-  const handleDownloadReport = () => {
-    if (!selectedSubmission) return;
-    
-    if (!isPaid) {
-      toast({
-        title: "Premium Feature",
-        description: "Upgrade to our premium plan to download reports",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    toast({
-      title: "Downloading report",
-      description: "Your report is being prepared for download"
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-GB', { 
+      day: 'numeric', 
+      month: 'short',
+      year: 'numeric'
     });
-    
-    setTimeout(() => {
-      toast({
-        title: "Report downloaded",
-        description: "Your report has been downloaded"
-      });
-    }, 1500);
   };
 
-  const handleNewAnalysis = () => {
-    navigate("/review");
-  };
-
-  const handleUpgrade = async () => {
-    try {
-      toast({
-        title: "Preparing checkout...",
-        description: "You'll be redirected to the payment page shortly."
-      });
-      
-      const { data, error } = await supabase.functions.invoke("create-checkout", {
-        body: { plan: "premium" }
-      });
-      
-      if (error) {
-        console.error("Checkout error:", error);
-        throw new Error(`Checkout error: ${error.message}`);
-      }
-      
-      if (data?.url) {
-        // Add delay to ensure toast is seen
-        setTimeout(() => {
-          window.location.href = data.url;
-        }, 300);
-      } else {
-        throw new Error("No checkout URL returned from server");
-      }
-    } catch (error) {
-      console.error("Error creating checkout session:", error);
-      toast({
-        title: "Payment Error",
-        description: error instanceof Error 
-          ? `Could not initiate checkout: ${error.message}` 
-          : "Could not initiate checkout. Please try again later.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const getSubmissionDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString() + ' ' + 
-           new Date(dateString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
-
-  const generateSuggestion = () => {
-    if (!submissions || submissions.length === 0) return null;
-
-    // Analyze submission patterns to generate helpful suggestions
-    const roles = submissions.map(s => s.selected_role).filter(Boolean);
-    const mostCommonRole = roles.length > 0 
-      ? roles.sort((a, b) => 
-          roles.filter(r => r === a).length - roles.filter(r => r === b).length
-        ).pop() 
-      : null;
-
-    const latestScore = submissions[0]?.feedback_results?.score || 0;
-
+  const getPlanInfo = () => {
     if (isLifetimePremium) {
-      return "You have Lifetime Premium Access — thank you for being an early supporter!";
-    } else if (!isPaid) {
-      return "Upgrade to Premium to unlock 30 resume reviews and 15 resume rewrites per month, plus additional features like report downloads.";
-    } else if (mostCommonRole && submissions.length >= 3) {
-      return `Based on your ${submissions.length} submissions, you seem focused on ${mostCommonRole} roles. Consider optimizing your resume specifically for this career path.`;
-    } else if (latestScore < 70 && submissions.length > 0) {
-      return "Your latest resume received a score below 70. Consider implementing the feedback suggestions to improve your match rate.";
-    } else if (submissions.length === 0) {
-      return "Get started by submitting your resume for analysis on the Resume Review page.";
+      return {
+        label: 'Lifetime Access',
+        icon: <Crown className="w-4 h-4" />,
+        color: 'from-amber-500 to-orange-500',
+        bgColor: 'bg-gradient-to-r from-amber-50 to-orange-50',
+        borderColor: 'border-amber-200',
+        textColor: 'text-amber-700'
+      };
     }
-    
-    return "Keep submitting your resume for different job descriptions to optimize your applications.";
+    switch (usageStats.plan) {
+      case 'monthly':
+        return {
+          label: 'Monthly Plan',
+          icon: <Crown className="w-4 h-4" />,
+          color: 'from-emerald-500 to-teal-500',
+          bgColor: 'bg-gradient-to-r from-emerald-50 to-teal-50',
+          borderColor: 'border-emerald-200',
+          textColor: 'text-emerald-700'
+        };
+      case 'weekly':
+        return {
+          label: 'Weekly Plan',
+          icon: <Zap className="w-4 h-4" />,
+          color: 'from-amber-500 to-orange-500',
+          bgColor: 'bg-gradient-to-r from-amber-50 to-orange-50',
+          borderColor: 'border-amber-200',
+          textColor: 'text-amber-700'
+        };
+      default:
+        return {
+          label: 'Free Plan',
+          icon: <Target className="w-4 h-4" />,
+          color: 'from-slate-400 to-slate-500',
+          bgColor: 'bg-slate-50',
+          borderColor: 'border-slate-200',
+          textColor: 'text-slate-600'
+        };
+    }
   };
 
-  const renderUsageStats = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <Card className="p-6">
-        <div className="flex justify-between items-center mb-2">
-          <h3 className="text-lg font-medium">Resume Feedback</h3>
-          <span className="text-sm text-muted-foreground">
-            {usageStats.feedbacks.used} / {usageStats.feedbacks.total}
-          </span>
-        </div>
-        <Progress 
-          value={isLifetimePremium ? 0 : typeof usageStats.feedbacks.used === 'number' && typeof usageStats.feedbacks.total === 'number' 
-            ? (usageStats.feedbacks.used / usageStats.feedbacks.total) * 100 
-            : 0} 
-          className="h-2 mb-2" 
-        />
-        <p className="text-sm text-muted-foreground">
-          {isLifetimePremium ? (
-            "Unlimited feedback analyses — lifetime premium access"
-          ) : (
-            `${usageStats.feedbacks.remaining} feedback analyses remaining ${isPaid ? 'this month' : ''}`
-          )}
-        </p>
-        {!isPaid && !isLifetimePremium && (
-          <Button 
-            onClick={handleUpgrade}
-            variant="outline" 
-            size="sm" 
-            className="mt-3"
-          >
-            Upgrade to Premium
-          </Button>
-        )}
-      </Card>
+  const planInfo = getPlanInfo();
+  const usagePercentage = isLifetimePremium ? 0 : (usageStats.checksUsed / usageStats.checksTotal) * 100;
+  const checksRemaining = isLifetimePremium ? '∞' : usageStats.checksTotal - usageStats.checksUsed;
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50/50">
+      <FloatingOrbs variant="hero" />
       
-      <Card className="p-6">
-        <div className="flex justify-between items-center mb-2">
-          <h3 className="text-lg font-medium">Resume Rewrites</h3>
-          <span className="text-sm text-muted-foreground">
-            {usageStats.rewrites.used} / {usageStats.rewrites.total}
-          </span>
-        </div>
-        <Progress 
-          value={isLifetimePremium ? 0 : typeof usageStats.rewrites.used === 'number' && typeof usageStats.rewrites.total === 'number' 
-            ? (usageStats.rewrites.used / usageStats.rewrites.total) * 100
-            : 0} 
-          className="h-2 mb-2" 
-        />
-        {isPaid || isLifetimePremium ? (
-          <p className="text-sm text-muted-foreground">
-            {isLifetimePremium ? (
-              "Unlimited rewrites — lifetime premium access"
-            ) : (
-              `${usageStats.rewrites.remaining} rewrites remaining this month`
-            )}
-          </p>
-        ) : (
-          <>
-            <p className="text-sm text-muted-foreground flex items-center gap-1">
-              <Lock className="h-3 w-3" /> Upgrade to unlock resume rewrites
+      <div className="container max-w-6xl mx-auto px-4 py-8 md:py-12 relative z-10">
+        {/* Header */}
+        <motion.div 
+          className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold text-warm-text">
+              My Dashboard
+            </h1>
+            <p className="text-slate-500 mt-1">
+              Track your resume analyses and job match checks
             </p>
+          </div>
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <Button 
-              onClick={handleUpgrade}
-              variant="outline" 
-              size="sm" 
-              className="mt-3"
+              onClick={() => navigate("/review")}
+              className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg shadow-amber-200/50 rounded-xl px-6 py-6 font-semibold"
             >
-              Upgrade to Premium
+              <Sparkles className="w-4 h-4 mr-2" />
+              New Analysis
             </Button>
-          </>
-        )}
-      </Card>
-    </div>
-  );
+          </motion.div>
+        </motion.div>
 
-  const renderSubmissionHistory = () => (
-    <Card className="mt-8 overflow-hidden">
-      <div className="p-4 border-b bg-muted/50">
-        <h3 className="text-lg font-medium flex items-center gap-2">
-          <History className="h-5 w-5" />
-          Submission History
-        </h3>
-      </div>
-      <div className="overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Date</TableHead>
-              <TableHead>Job</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Score</TableHead>
-              <TableHead>Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {fetching ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center py-4">Loading submissions...</TableCell>
-              </TableRow>
-            ) : submissions.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center py-4">No submissions yet</TableCell>
-              </TableRow>
-            ) : (
-              submissions.map((submission) => (
-                <TableRow key={submission.id} className={selectedSubmission?.id === submission.id ? "bg-muted/50" : ""}>
-                  <TableCell>{getSubmissionDate(submission.created_at)}</TableCell>
-                  <TableCell className="max-w-[150px] truncate">{submission.job_description.slice(0, 30)}...</TableCell>
-                  <TableCell>{submission.selected_role || "-"}</TableCell>
-                  <TableCell>{submission.feedback_results?.score || "-"}</TableCell>
-                  <TableCell>
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      onClick={() => handleViewSubmission(submission)}
-                    >
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
-    </Card>
-  );
-
-  const renderSelectedSubmission = () => {
-    if (!selectedSubmission) return (
-      <Card className="p-6 mt-8">
-        <p className="text-center text-muted-foreground">Select a submission to view details</p>
-      </Card>
-    );
-
-    const feedbackResults = selectedSubmission.feedback_results || {};
-    const hasRewrittenResume = !!feedbackResults.rewrittenResume;
-
-    return (
-      <Card className="mt-8">
-        <div className="p-4 border-b bg-muted/50 flex justify-between items-center">
-          <h3 className="text-lg font-medium flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Submission Details
-          </h3>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleDownloadReport}
-            disabled={!isPaid}
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          {/* Plan Status Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className={`rounded-2xl border-2 ${planInfo.borderColor} ${planInfo.bgColor} p-6 relative overflow-hidden`}
           >
-            {!isPaid && <Lock className="h-3 w-3 mr-1" />}
-            <Download className="h-4 w-4 mr-2" />
-            Download Report
-          </Button>
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white/40 to-transparent rounded-full -translate-y-1/2 translate-x-1/2" />
+            
+            <div className="relative">
+              <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r ${planInfo.color} text-white text-sm font-medium mb-4`}>
+                {planInfo.icon}
+                {planInfo.label}
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-end justify-between">
+                  <div>
+                    <p className="text-sm text-slate-500">Job Match Checks</p>
+                    <p className="text-3xl font-bold text-warm-text">
+                      {isLifetimePremium ? '∞' : `${usageStats.checksUsed}/${usageStats.checksTotal}`}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-slate-500">Remaining</p>
+                    <p className={`text-2xl font-bold ${planInfo.textColor}`}>{checksRemaining}</p>
+                  </div>
+                </div>
+                
+                {!isLifetimePremium && (
+                  <div className="space-y-1">
+                    <Progress value={usagePercentage} className="h-2" />
+                    {usageStats.plan === 'weekly' && (
+                      <p className="text-xs text-slate-500 flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        Resets in {usageStats.daysRemaining} days
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Quick Stats Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="rounded-2xl border-2 border-slate-200 bg-white p-6"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 rounded-xl bg-blue-50">
+                <BarChart3 className="w-5 h-5 text-blue-600" />
+              </div>
+              <h3 className="font-semibold text-warm-text">Quick Stats</h3>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-2xl font-bold text-warm-text">{submissions.length}</p>
+                <p className="text-sm text-slate-500">Total Analyses</p>
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-warm-text">
+                  {submissions.length > 0 
+                    ? Math.round(submissions.reduce((acc, s) => acc + (s.feedback_results?.score || 0), 0) / submissions.length)
+                    : 0}
+                </p>
+                <p className="text-sm text-slate-500">Avg. Score</p>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Upgrade Card (for non-premium users) */}
+          {usageStats.plan === 'free' && !isLifetimePremium && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="rounded-2xl border-2 border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-6 relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-amber-200/30 to-transparent rounded-full -translate-y-1/2 translate-x-1/2" />
+              
+              <div className="relative">
+                <div className="flex items-center gap-2 mb-3">
+                  <TrendingUp className="w-5 h-5 text-amber-600" />
+                  <h3 className="font-semibold text-warm-text">Upgrade to Unlock</h3>
+                </div>
+                <p className="text-sm text-slate-600 mb-4">
+                  Get up to 25 job match checks, full analysis, and rechecks after edits.
+                </p>
+                <Button 
+                  asChild
+                  className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl font-medium"
+                >
+                  <Link to="/#pricing">
+                    View Plans
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Link>
+                </Button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Lifetime Premium Message */}
+          {isLifetimePremium && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="rounded-2xl border-2 border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-6 relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-amber-200/30 to-transparent rounded-full -translate-y-1/2 translate-x-1/2" />
+              
+              <div className="relative">
+                <div className="flex items-center gap-2 mb-3">
+                  <Crown className="w-5 h-5 text-amber-600" />
+                  <h3 className="font-semibold text-warm-text">Early Supporter</h3>
+                </div>
+                <p className="text-sm text-slate-600">
+                  Thank you for being an early supporter! You have unlimited lifetime access to all features.
+                </p>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Weekly/Monthly Plan Status */}
+          {(usageStats.plan === 'weekly' || usageStats.plan === 'monthly') && !isLifetimePremium && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="rounded-2xl border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50 p-6 relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-emerald-200/30 to-transparent rounded-full -translate-y-1/2 translate-x-1/2" />
+              
+              <div className="relative">
+                <div className="flex items-center gap-2 mb-3">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                  <h3 className="font-semibold text-warm-text">Active Subscription</h3>
+                </div>
+                <p className="text-sm text-slate-600 mb-2">
+                  {usageStats.plan === 'weekly' 
+                    ? 'Your weekly plan is active. Keep optimizing!'
+                    : 'Your monthly plan gives you full access to all features.'
+                  }
+                </p>
+                <div className="flex items-center gap-2 text-sm text-emerald-700">
+                  <Calendar className="w-4 h-4" />
+                  {usageStats.plan === 'weekly' ? 'Renews weekly' : 'Renews monthly'}
+                </div>
+              </div>
+            </motion.div>
+          )}
         </div>
-        
-        <div className="p-6">
-          <div className="mb-6">
-            <p className="text-sm text-muted-foreground">Submitted on {getSubmissionDate(selectedSubmission.created_at)}</p>
-            {selectedSubmission.selected_role && (
-              <p className="text-sm font-medium mt-1">Role: {selectedSubmission.selected_role}</p>
+
+        {/* Submission History */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className="rounded-2xl border-2 border-slate-200 bg-white overflow-hidden"
+        >
+          <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-slate-100">
+                <History className="w-5 h-5 text-slate-600" />
+              </div>
+              <div>
+                <h2 className="font-semibold text-warm-text">Recent Analyses</h2>
+                <p className="text-sm text-slate-500">Your job match check history</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="divide-y divide-slate-100">
+            {fetching ? (
+              <div className="p-12 text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500 mx-auto mb-4" />
+                <p className="text-slate-500">Loading your analyses...</p>
+              </div>
+            ) : submissions.length === 0 ? (
+              <div className="p-12 text-center">
+                <div className="w-16 h-16 rounded-full bg-slate-100 mx-auto mb-4 flex items-center justify-center">
+                  <FileText className="w-8 h-8 text-slate-400" />
+                </div>
+                <h3 className="font-medium text-warm-text mb-2">No analyses yet</h3>
+                <p className="text-slate-500 mb-6 max-w-sm mx-auto">
+                  Upload your resume and a job description to get your first analysis.
+                </p>
+                <Button 
+                  onClick={() => navigate("/review")}
+                  className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl"
+                >
+                  Start Your First Analysis
+                </Button>
+              </div>
+            ) : (
+              submissions.slice(0, 10).map((submission, index) => (
+                <motion.div
+                  key={submission.id}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                  className="p-4 hover:bg-slate-50/50 transition-colors cursor-pointer group"
+                  onClick={() => navigate("/review")}
+                >
+                  <div className="flex items-center gap-4">
+                    {/* Score Circle */}
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-white shrink-0
+                      ${(submission.feedback_results?.score || 0) >= 80 
+                        ? 'bg-gradient-to-br from-emerald-500 to-teal-500'
+                        : (submission.feedback_results?.score || 0) >= 60
+                          ? 'bg-gradient-to-br from-amber-500 to-orange-500'
+                          : 'bg-gradient-to-br from-rose-500 to-pink-500'
+                      }`}
+                    >
+                      {submission.feedback_results?.score || '-'}
+                    </div>
+                    
+                    {/* Details */}
+                    <div className="flex-grow min-w-0">
+                      <h4 className="font-medium text-warm-text truncate">
+                        {submission.job_description?.slice(0, 60) || 'Job Analysis'}...
+                      </h4>
+                      <div className="flex items-center gap-3 mt-1">
+                        <span className="text-sm text-slate-500 flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />
+                          {formatDate(submission.created_at)}
+                        </span>
+                        {submission.selected_role && (
+                          <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full">
+                            {submission.selected_role}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Arrow */}
+                    <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-slate-500 group-hover:translate-x-1 transition-all shrink-0" />
+                  </div>
+                </motion.div>
+              ))
             )}
           </div>
           
-          <Tabs defaultValue="feedback">
-            <TabsList className="mb-4">
-              <TabsTrigger value="feedback">Feedback Report</TabsTrigger>
-              {hasRewrittenResume && <TabsTrigger value="rewrite" disabled={!isPaid}>
-                {!isPaid && <Lock className="h-3 w-3 mr-1" />}
-                Rewritten Resume
-              </TabsTrigger>}
-            </TabsList>
-            
-            <TabsContent value="feedback" className="space-y-4">
-              <div className="mb-4">
-                <h4 className="font-semibold mb-2">Resume Score</h4>
-                <div className="flex items-center">
-                  <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-white text-sm font-bold">
-                    {feedbackResults.score || 0}
-                  </div>
-                  <span className="ml-2 text-sm text-muted-foreground">Match Score</span>
-                </div>
-              </div>
-              
-              {feedbackResults.missingKeywords?.length > 0 && (
-                <div className="mb-4">
-                  <h4 className="font-semibold mb-2">Missing Keywords</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {feedbackResults.missingKeywords.map((keyword: string, index: number) => (
-                      <span key={index} className="bg-muted px-2 py-1 rounded text-xs">
-                        {keyword}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              {feedbackResults.sectionFeedback && (
-                <div className="mb-4">
-                  <h4 className="font-semibold mb-2">Section Feedback</h4>
-                  <div className="space-y-4">
-                    {Object.entries(feedbackResults.sectionFeedback).map(([section, feedback]) => (
-                      <div key={section} className="rounded border p-3">
-                        <h5 className="font-medium text-sm">{section}</h5>
-                        <p className="text-sm mt-1">{String(feedback)}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              {feedbackResults.wouldInterview && (
-                <div className="mt-4 p-4 rounded bg-muted">
-                  <h4 className="font-semibold">Interview Verdict</h4>
-                  <p className="text-sm mt-1">{feedbackResults.wouldInterview}</p>
-                </div>
-              )}
-            </TabsContent>
-            
-            {hasRewrittenResume && (
-              <TabsContent value="rewrite">
-                {isPaid ? (
-                  <div className="whitespace-pre-wrap border rounded p-4 bg-muted/30 text-sm max-h-[500px] overflow-y-auto">
-                    {feedbackResults.rewrittenResume}
-                  </div>
-                ) : (
-                  <UpgradeBanner
-                    feature="Resume Rewrite"
-                    limit="access to AI-powered resume rewrites"
-                  />
-                )}
-              </TabsContent>
-            )}
-          </Tabs>
-        </div>
-      </Card>
-    );
-  };
-
-  const renderAiSuggestion = () => {
-    const suggestion = generateSuggestion();
-    if (!suggestion) return null;
-    
-    return (
-      <Card className={`mt-8 p-6 border-l-4 ${isLifetimePremium ? 'border-l-green-500' : !isPaid ? 'border-l-amber-500' : 'border-l-blue-500'}`}>
-        <h3 className="text-lg font-medium mb-2 flex items-center gap-2">
-          <User className="h-5 w-5" />
-          {isLifetimePremium ? "Lifetime Premium" : "AI Suggestion"}
-        </h3>
-        <p className="text-muted-foreground">{suggestion}</p>
-        {!isPaid && !isLifetimePremium && (
-          <Button 
-            onClick={handleUpgrade}
-            className="mt-4 cta-gradient"
-          >
-            Upgrade to Premium
-          </Button>
-        )}
-      </Card>
-    );
-  };
-
-  return (
-    <div className="container mx-auto py-8 px-4 max-w-6xl">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">My Dashboard</h1>
-          <p className="text-muted-foreground">
-            {isPaid 
-              ? "Manage your premium resume analyses and track your usage" 
-              : "You're on the Free Plan. Upgrade to unlock premium features."}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          {!isPaid && (
-            <Button onClick={handleUpgrade} className="cta-gradient">
-              Upgrade to Premium
-            </Button>
+          {submissions.length > 10 && (
+            <div className="p-4 border-t border-slate-100 text-center">
+              <Button variant="ghost" className="text-slate-600">
+                View All {submissions.length} Analyses
+              </Button>
+            </div>
           )}
-          <Button onClick={handleNewAnalysis} variant={isPaid ? "default" : "outline"}>
-            New Analysis
-          </Button>
-        </div>
+        </motion.div>
       </div>
-
-      {renderUsageStats()}
-      {renderAiSuggestion()}
-      {renderSubmissionHistory()}
-      {renderSelectedSubmission()}
     </div>
   );
 }
