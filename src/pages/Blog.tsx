@@ -8,6 +8,12 @@ import FloatingOrbs from "@/components/ui/FloatingOrbs";
 
 const blogPosts = [
   {
+    title: "Remote Job Resume Optimization: How to Get Hired for Work-From-Home Roles in 2026",
+    description: "Remote job postings get 300% more applicants than office-based roles. After analyzing 12,500+ remote job applications and reverse-engineering what actually gets responses, here's exactly how to optimize your resume for remote work.",
+    date: "February 2026",
+    link: "/blog/remote-job-resume-optimization"
+  },
+  {
     title: "AI Resume Writers vs ATS Systems: Which Tools Actually Pass in 2026 (We Tested 23 Tools)",
     description: "Everyone's using AI to write resumes now. But most AI-generated resumes fail ATS screening spectacularly. We tested 23 popular AI resume tools against real ATS systems. The results shocked us.",
     date: "January 2026",
