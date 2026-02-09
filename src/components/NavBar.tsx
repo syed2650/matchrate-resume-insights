@@ -13,6 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import matchrateLogo from "@/assets/matchrate-logo.png";
 
 export default function NavBar() {
   const { user } = useAuthUser();
@@ -40,7 +41,9 @@ export default function NavBar() {
   return (
     <div className="bg-background py-4 shadow-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 flex items-center justify-between">
-        <Link to="/" className="font-bold text-xl">Matchrate.co</Link>
+        <Link to="/" className="flex items-center">
+          <img src={matchrateLogo} alt="Matchrate" className="h-8" />
+        </Link>
           
         <div className="flex flex-1 justify-end items-center">
           <nav className="flex items-center gap-4 sm:gap-6">
@@ -152,7 +155,9 @@ export default function NavBar() {
           <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
             <div className="fixed inset-y-0 right-0 w-full max-w-sm bg-background shadow-lg p-6">
               <div className="flex items-center justify-between">
-                <Link to="/" className="font-bold text-xl">Matchrate.co</Link>
+                <Link to="/" className="flex items-center">
+                  <img src={matchrateLogo} alt="Matchrate" className="h-8" />
+                </Link>
                 <button
                   onClick={() => setShowMobileMenu(false)}
                   className="p-2 rounded-md hover:bg-muted"

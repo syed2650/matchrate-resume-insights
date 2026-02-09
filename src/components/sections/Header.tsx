@@ -1,6 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import matchrateLogo from "@/assets/matchrate-logo.png";
 import { useState, useEffect } from "react";
 import { useAuthUser } from "@/hooks/useAuthUser";
 import { supabase } from "@/integrations/supabase/client";
@@ -47,9 +48,9 @@ const Header = () => {
     <header className={`py-4 transition-all duration-300 ${isScrolled ? 'header-scrolled' : ''}`}>
       <div className="container max-w-screen-xl mx-auto px-4">
         <nav className="flex items-center justify-between">
-          <div className="font-medium text-xl text-slate-700 tracking-tight">
-            Matchrate.co
-          </div>
+          <a href="/" className="flex items-center">
+            <img src={matchrateLogo} alt="Matchrate" className="h-8" />
+          </a>
           <div className="flex items-center gap-4 md:gap-6 lg:gap-8">
             <a href="/" className="text-slate-600 hover:text-slate-800 transition-colors duration-200 hidden md:inline-block">Home</a>
             <a href="#testimonials" className="text-slate-600 hover:text-slate-800 transition-colors duration-200 hidden md:inline-block">Testimonials</a>
