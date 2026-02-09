@@ -198,4 +198,18 @@
   <priority>0.7</priority>
 </url>
 
+<url>
+  <loc>https://www.matchrate.co/blog/remote-job-resume-optimization</loc>
+  <lastmod>2026-02-01</lastmod>
+  <changefreq>monthly</changefreq>
+  <priority>0.7</priority>
+</url>
+
+<url>
+  <loc>https://www.matchrate.co/blog/ai-resume-writers-vs-ats</loc>
+  <lastmod>2026-01-15</lastmod>
+  <changefreq>monthly</changefreq>
+  <priority>0.7</priority>
+</url>
+
 </urlset>
