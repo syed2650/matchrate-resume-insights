@@ -45,7 +45,7 @@ export default function NavBar() {
           <img 
             src={matchrateLogo} 
             alt="Matchrate" 
-            className="w-[180px] md:w-[200px] h-auto object-contain" 
+            className="w-[160px] md:w-[180px] h-auto object-contain max-h-[45px]"  
           />
         </Link>
           
@@ -163,7 +163,7 @@ export default function NavBar() {
                   <img 
                     src={matchrateLogo} 
                     alt="Matchrate" 
-                    className="w-[140px] h-auto object-contain" 
+                    className="w-[120px] h-auto object-contain max-h-[40px]"
                   />
                 </Link>
                 <button
