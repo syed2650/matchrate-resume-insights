@@ -42,12 +42,13 @@ export default function NavBar() {
     <div className="bg-background py-4 shadow-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 flex items-center justify-between">
         <Link to="/" className="flex items-center">
-          <img 
-            src={matchrateLogo} 
-            alt="Matchrate" 
-            className="h-14 md:h-[56px] h-[44px] w-auto object-contain" 
-            style={{ mixBlendMode: 'darken', backgroundColor: 'transparent' }}
-          />
+          <div className="logo-wrapper">
+            <img 
+              src={matchrateLogo} 
+              alt="Matchrate" 
+              className="h-14 md:h-[56px] h-[44px] w-auto object-contain" 
+            />
+          </div>
         </Link>
           
         <div className="flex flex-1 justify-end items-center">
@@ -161,12 +162,13 @@ export default function NavBar() {
             <div className="fixed inset-y-0 right-0 w-full max-w-sm bg-background shadow-lg p-6">
               <div className="flex items-center justify-between">
                 <Link to="/" className="flex items-center">
-                  <img 
-                    src={matchrateLogo} 
-                    alt="Matchrate" 
-                    className="h-[44px] w-auto object-contain" 
-                    style={{ mixBlendMode: 'darken', backgroundColor: 'transparent' }}
-                  />
+                  <div className="logo-wrapper">
+                    <img 
+                      src={matchrateLogo} 
+                      alt="Matchrate" 
+                      className="h-[44px] w-auto object-contain" 
+                    />
+                  </div>
                 </Link>
                 <button
                   onClick={() => setShowMobileMenu(false)}

@@ -115,3 +115,15 @@ html {
   background: rgba(255, 255, 255, 0.8);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 }
+
+/* Logo with transparent background - removes white background */
+.logo-wrapper {
+  display: inline-block;
+  background: transparent;
+}
+
+.logo-wrapper img {
+  mix-blend-mode: multiply;
+  filter: contrast(1.1) brightness(1.05);
+  image-rendering: -webkit-optimize-contrast;
+}
