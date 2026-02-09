@@ -49,13 +49,11 @@ const Header = () => {
       <div className="container max-w-screen-xl mx-auto px-4">
         <nav className="flex items-center justify-between">
           <a href="/" className="flex items-center">
-            <div className="logo-wrapper">
-              <img 
-                src={matchrateLogo} 
-                alt="Matchrate" 
-                className="md:h-[56px] h-[44px] w-auto object-contain" 
-              />
-            </div>
+            <img 
+              src={matchrateLogo} 
+              alt="Matchrate" 
+              className="md:h-[56px] h-[44px] w-auto object-contain" 
+            />
           </a>
           <div className="flex items-center gap-4 md:gap-6 lg:gap-8">
             <a href="/" className="text-slate-600 hover:text-slate-800 transition-colors duration-200 hidden md:inline-block">Home</a>
