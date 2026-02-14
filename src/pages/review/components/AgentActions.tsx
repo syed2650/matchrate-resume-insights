@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { track } from "@/lib/mixpanel";
+import { gtagEvent } from "@/lib/gtag";
 import { Loader2 } from "lucide-react";
 import { ResumeImprovementsResult } from "./results/ResumeImprovementsResult";
 import { ATSAnalysisResult } from "./results/ATSAnalysisResult";
@@ -187,6 +188,7 @@ export const AgentActions = ({ resumeText, jobDescription, onReset, autoStart = 
     ]);
 
     track("Scan Completed");
+    gtagEvent("scan_completed");
     toast({ 
       title: "Analysis Complete!",
       description: "All agents have finished processing. Check each section for results."

@@ -3,6 +3,7 @@ import { useDropzone } from "react-dropzone";
 import { Card } from "@/components/ui/card";
 import { Loader2, File, X, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { gtagEvent } from "@/lib/gtag";
 import { ResumeFile } from "../types";
 import { bytesToSize } from "../utils";
 import Tesseract from 'tesseract.js';
@@ -122,6 +123,12 @@ const ResumeUploadSection: React.FC<ResumeUploadSectionProps> = ({
     maxFiles: 1,
   });
 
+  const rootProps = getRootProps();
+  const handleUploadAreaClick = (e: React.MouseEvent) => {
+    rootProps.onClick?.(e);
+    gtagEvent("resume_upload_clicked");
+  };
+
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setResumeText(e.target.value);
     onTextChange(e);
@@ -135,7 +142,8 @@ const ResumeUploadSection: React.FC<ResumeUploadSectionProps> = ({
 
       {!resumeFile && (
         <div
-          {...getRootProps()}
+          {...rootProps}
+          onClick={handleUploadAreaClick}
           className={`border-2 border-dashed p-8 rounded-lg text-center cursor-pointer transition-colors mb-4 ${
             isDragActive
               ? "border-blue-500 bg-blue-50"

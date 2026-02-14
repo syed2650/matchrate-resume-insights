@@ -5,6 +5,7 @@ import { getUsageStats } from "@/pages/review/utils";
 import { Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { track } from "@/lib/mixpanel";
+import { gtagEvent } from "@/lib/gtag";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthUser } from "@/hooks/useAuthUser";
 import { motion } from "framer-motion";
@@ -117,11 +118,16 @@ const Pricing = () => {
   const { user } = useAuthUser();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    gtagEvent("pricing_view");
+  }, []);
+
   const handleUpgrade = async (planKey: string) => {
     if (planKey === "free") {
       navigate("/review");
     } else {
       track("Checkout Started", { plan: planKey });
+      gtagEvent("checkout_started");
       try {
         setIsLoading(planKey);
         

@@ -7,6 +7,7 @@ import Footer from "@/components/sections/Footer";
 import DashboardPreview from "@/components/sections/DashboardPreview";
 import { useEffect } from "react";
 import { ArrowUp } from "lucide-react";
+import { gtagEvent } from "@/lib/gtag";
 import { Button } from "@/components/ui/button";
 import { SEOHead } from "@/components/SEOHead";
 
@@ -23,6 +24,10 @@ const Index = () => {
       "query-input": "required name=search_term_string"
     }
   };
+  useEffect(() => {
+    gtagEvent("landing_view", { page: window.location.pathname });
+  }, []);
+
   useEffect(() => {
     const revealElements = document.querySelectorAll('.scroll-reveal');
     
