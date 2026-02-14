@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { getUsageStats } from "@/pages/review/utils";
 import { Link, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { track } from "@/lib/mixpanel";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthUser } from "@/hooks/useAuthUser";
 import { motion } from "framer-motion";
@@ -120,6 +121,7 @@ const Pricing = () => {
     if (planKey === "free") {
       navigate("/review");
     } else {
+      track("Checkout Started", { plan: planKey });
       try {
         setIsLoading(planKey);
         

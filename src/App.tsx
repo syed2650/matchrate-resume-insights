@@ -36,7 +36,9 @@ import { UTMTracker } from "@/components/UTMTracker";
 import { useExitIntent } from "@/hooks/useExitIntent";
 import { AuthProvider } from "@/hooks/useAuthUser";
 import { Toaster } from "@/components/ui/toaster";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+import { useEffect } from "react";
+import { track } from "@/lib/mixpanel";
 
 import LinkedInProfileOptimization from "@/pages/blog/LinkedInProfileOptimization";
 import CoverLettersThatWork from "@/pages/blog/CoverLettersThatWork";
@@ -46,13 +48,21 @@ import LovableJobsResult from "@/pages/lovable-jobs/Result";
 import PublicProfile from "@/pages/PublicProfile";
 import Lovable from "@/pages/Lovable";
 
+function PageViewTracker() {
+  const location = useLocation();
+  useEffect(() => {
+    track("Page Viewed", { page: location.pathname });
+  }, [location.pathname]);
+  return null;
+}
+
 function AppContent() {
   const { showPopup, closePopup } = useExitIntent();
 
   return (
     <>
       <UTMTracker />
-      
+      <PageViewTracker />
       <NavBar />
       <Routes>
         <Route path="/" element={<Index />} />

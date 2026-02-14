@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { track } from "@/lib/mixpanel";
 import { Loader2 } from "lucide-react";
 import { ResumeImprovementsResult } from "./results/ResumeImprovementsResult";
 import { ATSAnalysisResult } from "./results/ATSAnalysisResult";
@@ -185,6 +186,7 @@ export const AgentActions = ({ resumeText, jobDescription, onReset, autoStart = 
       handleGenerateRoast()
     ]);
 
+    track("Scan Completed");
     toast({ 
       title: "Analysis Complete!",
       description: "All agents have finished processing. Check each section for results."

@@ -1,6 +1,7 @@
 
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { track } from "@/lib/mixpanel";
 import { ResumeFile } from "../types";
 import mammoth from "mammoth";
 import * as pdfjs from 'pdfjs-dist';
@@ -128,6 +129,7 @@ export const useResumeUpload = () => {
         title: `Resume ${fileTypeLabel} processed successfully`,
         description: `Extracted content from ${file.name}`,
       });
+      track("Resume Uploaded");
     } catch (error) {
       setHasParsingError(true);
       console.error("Error parsing file:", error);
