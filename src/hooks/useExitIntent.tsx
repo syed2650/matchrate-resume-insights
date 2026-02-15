@@ -1,6 +1,10 @@
 
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { track } from '@/lib/mixpanel';
+
+const EXIT_INTENT_KEY = 'exitIntentLastShown';
+const COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 export const useExitIntent = () => {
   const [showPopup, setShowPopup] = useState(false);
@@ -8,25 +12,21 @@ export const useExitIntent = () => {
   const location = useLocation();
 
   useEffect(() => {
-    // Don't show on ATS checker page or if already captured
-    if (location.pathname === '/free-ats-check' || 
-        sessionStorage.getItem('emailCaptured') ||
-        sessionStorage.getItem('exitIntentShown')) {
-      return;
-    }
+    if (location.pathname === '/free-ats-check') return;
 
-    // Track time on page
+    // Check 7-day localStorage cooldown
+    const lastShown = localStorage.getItem(EXIT_INTENT_KEY);
+    if (lastShown && Date.now() - Number(lastShown) < COOLDOWN_MS) return;
+
     const timeInterval = setInterval(() => {
       setTimeOnPage(prev => prev + 1000);
     }, 1000);
 
-    // Exit intent detection
     const handleMouseLeave = (e: MouseEvent) => {
-      if (e.clientY <= 0 && timeOnPage >= 30000 && !showPopup) {
+      if (e.clientY <= 0 && timeOnPage >= 15000 && !showPopup) {
         setShowPopup(true);
-        sessionStorage.setItem('exitIntentShown', 'true');
-        
-        // Track event if gtag is available
+        localStorage.setItem(EXIT_INTENT_KEY, String(Date.now()));
+        track("Exit Intent Shown");
         if (typeof window !== 'undefined' && (window as any).gtag) {
           (window as any).gtag('event', 'exit_intent_popup_shown');
         }
@@ -43,11 +43,6 @@ export const useExitIntent = () => {
 
   const closePopup = () => {
     setShowPopup(false);
-    
-    // Track event if gtag is available
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-      (window as any).gtag('event', 'exit_intent_popup_closed');
-    }
   };
 
   return { showPopup, closePopup };

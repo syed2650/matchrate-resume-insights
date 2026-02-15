@@ -1,9 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Sparkles, FileSearch, Target, Flame, Zap } from "lucide-react";
+import { ArrowRight, Sparkles, FileSearch, Target, Flame, Zap, ShieldCheck } from "lucide-react";
 import { motion } from "framer-motion";
 import FloatingOrbs from "@/components/ui/FloatingOrbs";
 import AnimatedCard from "@/components/ui/AnimatedCard";
+import { track } from "@/lib/mixpanel";
 
 const Hero = () => {
   const navigate = useNavigate();
@@ -100,22 +101,29 @@ const Hero = () => {
           variants={itemVariants}
           className="mb-6 text-4xl md:text-6xl font-bold text-warm-text leading-tight tracking-tight max-w-4xl"
         >
-          Is Your Resume Strong Enough to <br className="hidden md:block" />
-          <span className="gradient-text-animated">Get Interviews?</span>
+          Get Your Resume Past ATS <br className="hidden md:block" />
+          <span className="gradient-text-animated">in Under 3 Minutes</span>
         </motion.h1>
         
         <motion.p 
           variants={itemVariants}
-          className="text-lg md:text-xl text-slate-600 max-w-3xl mb-8 font-medium"
+          className="text-lg md:text-xl text-slate-600 max-w-3xl mb-4 font-medium"
         >
-          Upload your resume — get instant AI-powered improvements, ATS fixes, JD match scoring & a viral roast.
-          <br />No signup needed.
+          Join 10,000+ job seekers who landed interviews with our AI-powered resume optimizer.
+        </motion.p>
+
+        <motion.p
+          variants={itemVariants}
+          className="text-sm text-slate-500 mb-8 flex items-center gap-2"
+        >
+          <ShieldCheck className="w-4 h-4 text-emerald-500" />
+          No credit card required for free scan
         </motion.p>
         
         {/* Animated CTA button */}
         <motion.div 
           variants={itemVariants}
-          className="flex flex-col sm:flex-row gap-4 mb-6 w-full md:w-auto"
+          className="flex flex-col sm:flex-row gap-4 mb-4 w-full md:w-auto"
         >
           <motion.div
             whileHover={{ scale: 1.05 }}
@@ -123,21 +131,32 @@ const Hero = () => {
           >
             <Button 
               size="lg"
-              className="cta-gradient hover:shadow-[0_0_40px_rgba(251,107,90,0.5)] transition-all duration-300 text-white px-9 py-7 text-lg rounded-xl shadow-cta font-semibold ripple glow-on-hover"
-              onClick={() => navigate("/review")}
+              className="bg-emerald-600 hover:bg-emerald-700 hover:shadow-[0_0_40px_rgba(16,185,129,0.4)] transition-all duration-300 text-white px-10 py-8 text-lg rounded-xl shadow-lg font-bold ripple glow-on-hover"
+              onClick={() => {
+                track("CTA Clicked", { location: "hero", label: "Scan My Resume Free" });
+                navigate("/review");
+              }}
             >
-              Analyze My Resume Free
+              Scan My Resume Free
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </motion.div>
         </motion.div>
-        
-        <motion.p 
+
+        {/* Trust signal */}
+        <motion.div
           variants={itemVariants}
-          className="text-sm text-slate-500 mb-16"
+          className="flex items-center gap-4 text-xs text-slate-400 mb-16"
         >
-          PDF, DOCX, or Text — instant parsing included.
-        </motion.p>
+          <span className="flex items-center gap-1">
+            <ShieldCheck className="w-3.5 h-3.5" />
+            256-bit SSL Encryption
+          </span>
+          <span>•</span>
+          <span>Your data is private</span>
+          <span>•</span>
+          <span>PDF, DOCX, or Text</span>
+        </motion.div>
 
         {/* Choose Your AI Tools Section */}
         <motion.div 
@@ -194,22 +213,22 @@ const Hero = () => {
                 image: "/lovable-uploads/41e02388-22a6-400b-9409-977ae2d23cc8.png",
                 alt: "Upload your resume",
                 step: "STEP 1",
-                title: "Upload Your Resume",
-                description: "Upload your PDF, DOCX, or text resume. No signup required — our AI parses it instantly.",
+                title: "Upload Resume",
+                description: "One-click upload — supports PDF, DOCX, or paste text. No signup required.",
               },
               {
                 image: "/lovable-uploads/daaf6c67-e6aa-4d91-bb27-57e463c4f421.png",
-                alt: "AI analyzes your resume",
+                alt: "Get your instant ATS score",
                 step: "STEP 2",
-                title: "Get Instant AI Analysis",
-                description: "Choose your tool: Resume Improvements, ATS Fixes, JD Match, or Roast Card. Outputs are fast, actionable & colour-coded.",
+                title: "Get Instant Score",
+                description: "See your ATS compatibility score immediately with keyword analysis and formatting checks.",
               },
               {
                 image: "/lovable-uploads/076ae941-c3a2-462d-a9a1-c74272f1cbdf.png",
-                alt: "Improve your resume",
+                alt: "Fix and download your resume",
                 step: "STEP 3",
-                title: "Improve & Get More Interviews",
-                description: "Use optimized bullets, ATS fixes, summary rewrites & insights to upgrade your resume immediately. Download results as PDF anytime.",
+                title: "Fix & Download",
+                description: "Get specific improvements to optimize your resume. Download results as PDF anytime.",
               },
             ].map((step, index) => (
               <AnimatedCard

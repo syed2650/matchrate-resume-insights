@@ -124,7 +124,7 @@ const ResumeUploadSection: React.FC<ResumeUploadSectionProps> = ({
   });
 
   const rootProps = getRootProps();
-  const handleUploadAreaClick = (e: React.MouseEvent) => {
+  const handleUploadAreaClick = (e: React.MouseEvent<HTMLElement>) => {
     rootProps.onClick?.(e);
     gtagEvent("resume_upload_clicked");
   };
