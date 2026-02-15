@@ -1,5 +1,6 @@
 import Hero from "@/components/sections/Hero";
 import Features from "@/components/sections/Features";
+import SocialProof from "@/components/sections/SocialProof";
 import Testimonials from "@/components/sections/Testimonials";
 import Pricing from "@/components/sections/Pricing";
 import CallToAction from "@/components/sections/CallToAction";
@@ -82,6 +83,7 @@ const Index = () => {
       <div className="min-h-screen bg-warm-bg font-sans">
       <main>
         <Hero />
+        <SocialProof />
         <div className="section-alt bg-lilac-gradient">
           <div className="container-content">
             <Features />

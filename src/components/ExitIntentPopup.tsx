@@ -1,11 +1,8 @@
 
-import React, { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, Tag, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { addUTMToFormData } from '@/components/UTMTracker';
+import { track } from '@/lib/mixpanel';
 
 interface ExitIntentPopupProps {
   isVisible: boolean;
@@ -13,132 +10,66 @@ interface ExitIntentPopupProps {
 }
 
 export const ExitIntentPopup = ({ isVisible, onClose }: ExitIntentPopupProps) => {
-  const [email, setEmail] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast();
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email) return;
-
-    setIsSubmitting(true);
-
-    try {
-      // Add UTM data to the submission
-      const formDataWithUTM = addUTMToFormData({
-        email,
-        source: 'exit_intent_popup'
-      });
-
-      const { data, error } = await supabase.functions.invoke('exit-intent-signup', {
-        body: formDataWithUTM
-      });
-
-      if (error) throw error;
-
-      // Mark as captured in session
-      sessionStorage.setItem('emailCaptured', 'true');
-      
-      toast({
-        title: "Thank you!",
-        description: "Check your email for your free resume analysis guide.",
-      });
-
-      onClose();
-      
-      // Track conversion event with UTM data
-      if (typeof window !== 'undefined' && (window as any).gtag) {
-        const utmData = JSON.parse(sessionStorage.getItem('utmData') || '{}');
-        (window as any).gtag('event', 'exit_intent_conversion', {
-          utm_source: utmData.utm_source,
-          utm_medium: utmData.utm_medium,
-          utm_campaign: utmData.utm_campaign
-        });
-      }
-      
-      // Redirect to thank you page
-      window.location.href = '/free-ats-check';
-    } catch (error) {
-      console.error('Exit intent signup error:', error);
-      toast({
-        title: "Error",
-        description: "Something went wrong. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
+  const handleClaim = () => {
+    track("Exit Intent Claimed", { code: "FIRST20" });
+    if (typeof window !== 'undefined' && (window as any).gtag) {
+      (window as any).gtag('event', 'exit_intent_conversion', { offer: 'FIRST20' });
     }
+    onClose();
+    window.location.href = '/#pricing';
+  };
+
+  const handleClose = () => {
+    track("Exit Intent Dismissed");
+    onClose();
   };
 
   if (!isVisible) return null;
 
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center p-4 animate-in fade-in duration-300"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
+      className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 animate-in fade-in duration-300"
+      onClick={(e) => e.target === e.currentTarget && handleClose()}
     >
-      <div className="bg-white rounded-3xl max-w-lg w-full p-8 relative animate-in zoom-in duration-300">
+      <div className="bg-white rounded-3xl max-w-md w-full p-8 relative animate-in zoom-in duration-300">
         <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+          onClick={handleClose}
+          className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors"
         >
           <X size={24} />
         </button>
 
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            🚨 Wait! Don't Leave Without Your FREE Resume Analysis
+          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center mx-auto mb-4">
+            <Tag className="w-7 h-7 text-amber-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-warm-text mb-2">
+            Wait! Get 20% Off Your First Month
           </h2>
-          <p className="text-gray-600">
-            Is your resume getting lost in the ATS black hole?
+          <p className="text-slate-500 text-sm">
+            One-time offer — don't miss out on smarter job applications.
           </p>
         </div>
 
-        <div className="text-left mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-3 text-center">
-            Get Your FREE ATS Compatibility Report:
-          </h3>
-          <ul className="space-y-2 text-sm text-gray-700">
-            <li className="flex items-center">
-              <span className="text-green-500 mr-2">✅</span>
-              Instant ATS compatibility score
-            </li>
-            <li className="flex items-center">
-              <span className="text-green-500 mr-2">✅</span>
-              Keyword optimization tips
-            </li>
-            <li className="flex items-center">
-              <span className="text-green-500 mr-2">✅</span>
-              Formatting recommendations
-            </li>
-            <li className="flex items-center">
-              <span className="text-green-500 mr-2">✅</span>
-              Industry-specific advice
-            </li>
-          </ul>
+        <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/60 rounded-xl p-5 text-center mb-6">
+          <p className="text-xs uppercase tracking-wider text-amber-600 font-medium mb-1">Use code at checkout</p>
+          <p className="text-3xl font-bold text-warm-text tracking-widest">FIRST20</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Input
-            type="email"
-            placeholder="Enter your email address"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="w-full text-base py-3"
-          />
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-3 text-base transition-transform hover:scale-[1.02]"
-          >
-            {isSubmitting ? 'Getting Your Analysis...' : 'Get My FREE Analysis'}
-          </Button>
-        </form>
+        <Button
+          onClick={handleClaim}
+          className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold py-6 text-base rounded-xl transition-transform hover:scale-[1.02]"
+        >
+          <Sparkles className="w-4 h-4 mr-2" />
+          Claim My 20% Discount
+        </Button>
 
-        <p className="text-center text-xs text-gray-500 mt-4">
-          Takes 30 seconds • No spam, ever • Join 10,000+ job seekers
-        </p>
+        <button 
+          onClick={handleClose}
+          className="w-full text-center text-xs text-slate-400 mt-4 hover:text-slate-600 transition-colors"
+        >
+          No thanks, I'll pay full price
+        </button>
       </div>
     </div>
   );
