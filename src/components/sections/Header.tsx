@@ -52,8 +52,7 @@ const Header = () => {
             <img 
               src={matchrateLogo} 
               alt="Matchrate" 
-              className="h-10 md:h-12 w-auto object-contain" 
-              style={{ minWidth: '180px' }}
+              className="h-10 md:h-12 w-auto object-contain"
             />
           </a>
           <div className="flex items-center gap-4 md:gap-6 lg:gap-8">

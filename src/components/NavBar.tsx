@@ -39,13 +39,13 @@ export default function NavBar() {
   };
 
   return (
-    <div className="bg-background py-2 shadow-sm sticky top-0 z-50">
+    <div className="bg-background py-1.5 shadow-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 flex items-center justify-between">
-        <Link to="/" className="flex items-center">
+        <Link to="/" className="flex items-center py-1">
           <img 
             src={matchrateLogo} 
             alt="Matchrate" 
-            className="w-[160px] md:w-[180px] h-auto object-contain"   
+            className="h-[44px] md:h-[56px] w-auto object-contain"
           />
         </Link>
           
