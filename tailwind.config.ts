@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -63,13 +62,20 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// New custom colors with updated coral/peach gradient scheme
+				brand: {
+					coral: 'hsl(var(--brand-coral))',
+					violet: 'hsl(var(--brand-violet))',
+					cyan: 'hsl(var(--brand-cyan))',
+					navy: 'hsl(var(--brand-navy))',
+					indigo: 'hsl(var(--brand-indigo))',
+				},
+				// Keep warm tokens for backward compat
 				warm: {
-					bg: '#FDFCFA', // Lighter background
-					text: '#111111',
-					accent: '#FB6B5A', // Coral accent
-					section: '#F7F7F7',
-					muted: '#F1F5F9',
+					bg: 'hsl(var(--background))',
+					text: 'hsl(var(--foreground))',
+					accent: 'hsl(var(--brand-coral))',
+					section: 'hsl(var(--secondary))',
+					muted: 'hsl(var(--muted))',
 				},
 			},
 			borderRadius: {
@@ -177,19 +183,24 @@ export default {
 				'morph': 'morph 8s ease-in-out infinite',
 			},
 			boxShadow: {
-				'premium': '0 4px 20px rgba(0, 0, 0, 0.05)',
-				'premium-hover': '0 8px 30px rgba(0, 0, 0, 0.08)',
-				'card': '0 2px 10px rgba(0, 0, 0, 0.05)',
-				'cta': '0 10px 25px -5px rgba(251, 107, 90, 0.4)',
-				'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.05)',
+				'premium': '0 4px 20px hsl(var(--brand-violet) / 0.08)',
+				'premium-hover': '0 8px 30px hsl(var(--brand-violet) / 0.12)',
+				'card': '0 2px 10px hsl(var(--foreground) / 0.04)',
+				'cta': '0 10px 25px -5px hsl(var(--brand-violet) / 0.35)',
+				'glass': '0 8px 32px 0 hsl(var(--brand-violet) / 0.05)',
+				'glow-violet': '0 0 40px hsl(var(--brand-violet) / 0.3)',
+				'glow-cyan': '0 0 40px hsl(var(--brand-cyan) / 0.3)',
+				'glow-coral': '0 0 40px hsl(var(--brand-coral) / 0.3)',
 			},
 			backgroundImage: {
-				'peach-gradient': 'linear-gradient(to bottom, #FFF1F0, #FFE4D6)',
-				'coral-gradient': 'linear-gradient(to right, #FB6B5A, #F87171)',
-				'blue-gradient': 'linear-gradient(to right, #6366F1, #3B82F6)',
-				'neutral-gradient': 'linear-gradient(to bottom, #FAFAFA, #F5F5F5)',
-				'lilac-gradient': 'linear-gradient(to bottom, #F5F3FF, #EDE9FE)',
+				'peach-gradient': 'linear-gradient(135deg, hsl(var(--brand-coral) / 0.1), hsl(var(--brand-violet) / 0.1))',
+				'coral-gradient': 'linear-gradient(135deg, hsl(var(--brand-coral)), hsl(8 85% 55%))',
+				'blue-gradient': 'linear-gradient(135deg, hsl(var(--brand-indigo)), hsl(var(--brand-violet)))',
+				'neutral-gradient': 'linear-gradient(to bottom, hsl(var(--secondary)), hsl(var(--muted)))',
+				'lilac-gradient': 'linear-gradient(135deg, hsl(var(--brand-violet) / 0.06), hsl(var(--brand-cyan) / 0.08))',
 				'glass-gradient': 'linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.1))',
+				'brand-gradient': 'linear-gradient(135deg, hsl(var(--brand-violet)), hsl(var(--brand-cyan)))',
+				'hero-mesh': 'linear-gradient(135deg, hsl(var(--brand-violet) / 0.08) 0%, hsl(var(--brand-cyan) / 0.06) 50%, hsl(var(--brand-coral) / 0.05) 100%)',
 			}
 		}
 	},

@@ -1,30 +1,37 @@
 import { Link } from "react-router-dom";
 
 const Footer = () => {
+  const links = [
+    { label: "Product", items: [{ to: "/review", text: "Resume Analyzer" }, { to: "/lovable", text: "Resume Roast" }, { to: "/resume-feedback", text: "Health Check" }, { to: "/#pricing", text: "Pricing" }] },
+    { label: "Company", items: [{ to: "/about", text: "About" }, { to: "/blog", text: "Blog" }, { to: "/contact", text: "Contact" }] },
+    { label: "Legal", items: [{ to: "/terms", text: "Terms" }, { to: "/privacy", text: "Privacy" }, { to: "/cookie-policy", text: "Cookies" }] },
+  ];
+
   return (
-    <footer className="py-16 bg-warm-section border-t border-slate-200">
-      <div className="container max-w-screen-xl mx-auto px-4">
-        <div className="text-center mb-10">
-          <h3 className="text-xl font-bold text-warm-text mb-3">
-            MatchRate.co
-          </h3>
-          <p className="text-slate-600 text-base max-w-md mx-auto">
-            AI-powered resume analysis & optimization.
-          </p>
-          <p className="text-slate-500 text-sm mt-2">
-            Built with GPT-4o, Claude, Supabase & Lovable.
-          </p>
+    <footer className="py-16 hero-dark border-t border-white/5">
+      <div className="container max-w-6xl mx-auto px-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+          <div className="col-span-2 md:col-span-1">
+            <h3 className="text-lg font-bold text-white mb-3">MatchRate.co</h3>
+            <p className="text-white/40 text-sm leading-relaxed">AI-powered resume analysis & optimization.</p>
+            <p className="text-white/30 text-xs mt-3">Built with GPT-4o, Claude, Supabase & Lovable.</p>
+          </div>
+          
+          {links.map((section) => (
+            <div key={section.label}>
+              <h4 className="text-xs font-semibold text-white/60 uppercase tracking-wider mb-4">{section.label}</h4>
+              <div className="flex flex-col gap-2.5">
+                {section.items.map((item) => (
+                  <Link key={item.to} to={item.to} className="text-sm text-white/40 hover:text-white transition-colors">
+                    {item.text}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
         
-        <div className="flex flex-wrap justify-center gap-6 mb-10">
-          <Link to="/" className="text-slate-600 hover:text-warm-accent transition-colors duration-200">Home</Link>
-          <a href="/#features" className="text-slate-600 hover:text-warm-accent transition-colors duration-200">Features</a>
-          <a href="/#pricing" className="text-slate-600 hover:text-warm-accent transition-colors duration-200">Pricing</a>
-          <Link to="/terms" className="text-slate-600 hover:text-warm-accent transition-colors duration-200">Terms</Link>
-          <Link to="/privacy" className="text-slate-600 hover:text-warm-accent transition-colors duration-200">Privacy</Link>
-        </div>
-        
-        <div className="border-t border-slate-200 pt-8 text-center text-slate-500 text-sm">
+        <div className="border-t border-white/5 pt-8 text-center text-white/30 text-sm">
           <p>© {new Date().getFullYear()} MatchRate.co. All rights reserved.</p>
         </div>
       </div>

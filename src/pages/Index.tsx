@@ -25,51 +25,37 @@ const Index = () => {
       "query-input": "required name=search_term_string"
     }
   };
+
   useEffect(() => {
     gtagEvent("landing_view", { page: window.location.pathname });
   }, []);
 
   useEffect(() => {
     const revealElements = document.querySelectorAll('.scroll-reveal');
-    
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-        }
+        if (entry.isIntersecting) entry.target.classList.add('visible');
       });
     }, { threshold: 0.1 });
-    
     revealElements.forEach(element => observer.observe(element));
-    
-    // Handle hash navigation (e.g., #features) when the page loads
+
     const handleHashNavigation = () => {
       const { hash } = window.location;
       if (hash) {
         const element = document.querySelector(hash);
-        if (element) {
-          // Add a slight delay to ensure the page is fully loaded
-          setTimeout(() => {
-            element.scrollIntoView({ behavior: 'smooth' });
-          }, 100);
-        }
+        if (element) setTimeout(() => element.scrollIntoView({ behavior: 'smooth' }), 100);
       }
     };
-
     handleHashNavigation();
-
-    // Add event listener for popstate to handle browser back/forward navigation
     window.addEventListener('popstate', handleHashNavigation);
-    
+
     return () => {
       revealElements.forEach(element => observer.unobserve(element));
       window.removeEventListener('popstate', handleHashNavigation);
     };
   }, []);
 
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
   return (
     <>
@@ -80,37 +66,37 @@ const Index = () => {
         canonicalUrl="https://www.matchrate.co/"
         structuredData={structuredData}
       />
-      <div className="min-h-screen bg-warm-bg font-sans">
-      <main>
-        <Hero />
-        <SocialProof />
-        <div className="section-alt bg-lilac-gradient">
-          <div className="container-content">
-            <Features />
+      <div className="min-h-screen bg-background font-sans">
+        <main>
+          <Hero />
+          <SocialProof />
+          <div className="bg-lilac-gradient">
+            <div className="container-content">
+              <Features />
+            </div>
           </div>
-        </div>
-        <DashboardPreview />
-        <div className="bg-white">
-          <div className="container-content">
-            <Testimonials />
+          <DashboardPreview />
+          <div className="bg-secondary">
+            <div className="container-content">
+              <Testimonials />
+            </div>
           </div>
-        </div>
-        <div className="bg-lilac-gradient" id="pricing">
-          <div className="container-content">
-            <Pricing />
+          <div className="bg-lilac-gradient" id="pricing">
+            <div className="container-content">
+              <Pricing />
+            </div>
           </div>
-        </div>
-        <CallToAction />
-      </main>
-      <Footer />
-      
-      <Button 
-        className="sticky-cta cta-gradient w-12 h-12 p-0 fixed bottom-8 right-8 z-50 rounded-full shadow-lg"
-        onClick={scrollToTop}
-        aria-label="Scroll to top"
-      >
-        <ArrowUp className="h-5 w-5 text-white" />
-      </Button>
+          <CallToAction />
+        </main>
+        <Footer />
+        
+        <Button 
+          className="sticky-cta cta-gradient w-12 h-12 p-0 fixed bottom-8 right-8 z-50 rounded-full shadow-cta"
+          onClick={scrollToTop}
+          aria-label="Scroll to top"
+        >
+          <ArrowUp className="h-5 w-5 text-white" />
+        </Button>
       </div>
     </>
   );
