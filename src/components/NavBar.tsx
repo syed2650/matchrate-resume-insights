@@ -59,7 +59,7 @@ export default function NavBar() {
                     key={link.to}
                     to={link.to}
                     className={`text-sm font-medium px-3 py-2 rounded-lg transition-colors ${
-                      isHome ? 'text-foreground/70 hover:text-foreground hover:bg-foreground/10' : 
+                      isHome ? 'text-white/80 hover:text-white hover:bg-white/10' : 
                       location.pathname === link.to ? 'text-foreground bg-secondary' : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
                     }`}
                   >
