@@ -42,8 +42,7 @@ export default function NavBar() {
           <img 
             src={matchrateLogo} 
             alt="Matchrate" 
-            className="h-10 md:h-12 w-auto object-contain brightness-0 invert"
-            style={!isHome ? { filter: 'none' } : undefined}
+            className="h-10 md:h-12 w-auto object-contain"
           />
         </Link>
           
