@@ -107,7 +107,7 @@ export default function NavBar() {
                 Sign Out
               </Button>
             ) : (
-              <Button variant="outline" size="sm" className={`rounded-lg ${isHome ? 'border-white/20 text-white hover:bg-white/10' : ''}`} onClick={() => navigate("/auth")}>
+              <Button variant="outline" size="sm" className={`rounded-lg ${isHome ? 'border-foreground/20 text-foreground hover:bg-foreground/10' : ''}`} onClick={() => navigate("/auth")}>
                 Sign In
               </Button>
             )}
