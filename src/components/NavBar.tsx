@@ -36,7 +36,7 @@ export default function NavBar() {
   const isHome = location.pathname === "/";
 
   return (
-    <div className={`py-2 sticky top-0 z-50 transition-colors duration-300 ${isHome ? 'bg-transparent backdrop-blur-md border-b border-white/5' : 'bg-background border-b border-border shadow-sm'}`}>
+    <div className={`py-2 sticky top-0 z-50 transition-colors duration-300 ${isHome ? 'bg-black/40 backdrop-blur-md border-b border-white/10' : 'bg-background border-b border-border shadow-sm'}`}>
       <div className="container max-w-6xl mx-auto px-4 flex items-center justify-between">
         <Link to="/" className="flex items-center py-1">
           <img 
@@ -59,7 +59,7 @@ export default function NavBar() {
                     key={link.to}
                     to={link.to}
                     className={`text-sm font-medium px-3 py-2 rounded-lg transition-colors ${
-                      isHome ? 'text-foreground/70 hover:text-foreground hover:bg-foreground/10' : 
+                      isHome ? 'text-white/80 hover:text-white hover:bg-white/10' : 
                       location.pathname === link.to ? 'text-foreground bg-secondary' : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
                     }`}
                   >
@@ -69,7 +69,7 @@ export default function NavBar() {
                 
                 <DropdownMenu>
                   <DropdownMenuTrigger className={`flex items-center gap-1 text-sm font-medium px-3 py-2 rounded-lg transition-colors cursor-pointer ${
-                    isHome ? 'text-foreground/70 hover:text-foreground hover:bg-foreground/10' : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                    isHome ? 'text-white/80 hover:text-white hover:bg-white/10' : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
                   }`}>
                     Resources
                     <ChevronDown className="h-3.5 w-3.5" />
@@ -91,7 +91,7 @@ export default function NavBar() {
                   <Link
                     to="/dashboard"
                     className={`text-sm font-medium px-3 py-2 rounded-lg transition-colors ${
-                      isHome ? 'text-foreground/70 hover:text-foreground hover:bg-foreground/10' : 
+                      isHome ? 'text-white/80 hover:text-white hover:bg-white/10' : 
                       location.pathname === "/dashboard" ? 'text-foreground bg-secondary' : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
                     }`}
                   >
@@ -102,11 +102,11 @@ export default function NavBar() {
             )}
             
             {user ? (
-              <Button variant="outline" size="sm" className={`rounded-lg ${isHome ? 'border-foreground/20 text-foreground hover:bg-foreground/10' : ''}`} onClick={handleSignOut}>
+              <Button variant="outline" size="sm" className={`rounded-lg ${isHome ? 'border-white/30 text-white hover:bg-white/10' : ''}`} onClick={handleSignOut}>
                 Sign Out
               </Button>
             ) : (
-              <Button variant="outline" size="sm" className={`rounded-lg ${isHome ? 'border-foreground/20 text-foreground hover:bg-foreground/10' : ''}`} onClick={() => navigate("/auth")}>
+              <Button variant="outline" size="sm" className={`rounded-lg ${isHome ? 'border-white/30 text-white hover:bg-white/10' : ''}`} onClick={() => navigate("/auth")}>
                 Sign In
               </Button>
             )}
@@ -119,7 +119,7 @@ export default function NavBar() {
             </Button>
 
             {isMobile && (
-              <Button variant="ghost" size="icon" className={`ml-1 ${isHome ? 'text-foreground hover:bg-foreground/10' : ''}`} onClick={() => setShowMobileMenu(true)}>
+              <Button variant="ghost" size="icon" className={`ml-1 ${isHome ? 'text-white hover:bg-white/10' : ''}`} onClick={() => setShowMobileMenu(true)}>
                 <Menu className="h-5 w-5" />
               </Button>
             )}
