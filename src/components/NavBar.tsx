@@ -115,7 +115,7 @@ export default function NavBar() {
             </Button>
 
             {isMobile && (
-              <Button variant="ghost" size="icon" className={`ml-1 ${isHome ? 'text-white hover:bg-white/10' : ''}`} onClick={() => setShowMobileMenu(true)}>
+              <Button variant="ghost" size="icon" className="ml-1" onClick={() => setShowMobileMenu(true)}>
                 <Menu className="h-5 w-5" />
               </Button>
             )}
