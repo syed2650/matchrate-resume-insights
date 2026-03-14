@@ -98,11 +98,11 @@ export default function NavBar() {
             )}
             
             {user ? (
-              <Button variant="outline" size="sm" className={`rounded-lg ${isHome ? 'border-white/30 text-white hover:bg-white/10' : ''}`} onClick={handleSignOut}>
+              <Button variant="outline" size="sm" className="rounded-lg" onClick={handleSignOut}>
                 Sign Out
               </Button>
             ) : (
-              <Button variant="outline" size="sm" className={`rounded-lg ${isHome ? 'border-white/30 text-white hover:bg-white/10' : ''}`} onClick={() => navigate("/auth")}>
+              <Button variant="outline" size="sm" className="rounded-lg" onClick={() => navigate("/auth")}>
                 Sign In
               </Button>
             )}
