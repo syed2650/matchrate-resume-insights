@@ -67,9 +67,7 @@ export default function NavBar() {
                 ))}
                 
                 <DropdownMenu>
-                  <DropdownMenuTrigger className={`flex items-center gap-1 text-sm font-medium px-3 py-2 rounded-lg transition-colors cursor-pointer ${
-                    isHome ? 'text-white/80 hover:text-white hover:bg-white/10' : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
-                  }`}>
+                  <DropdownMenuTrigger className={`flex items-center gap-1 text-sm font-medium px-3 py-2 rounded-lg transition-colors cursor-pointer text-muted-foreground hover:text-foreground hover:bg-secondary`}>
                     Resources
                     <ChevronDown className="h-3.5 w-3.5" />
                   </DropdownMenuTrigger>
