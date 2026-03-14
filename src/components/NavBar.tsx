@@ -36,7 +36,7 @@ export default function NavBar() {
   const isHome = location.pathname === "/";
 
   return (
-    <div className={`py-2 sticky top-0 z-50 transition-colors duration-300 ${isHome ? 'bg-black/40 backdrop-blur-md border-b border-white/10' : 'bg-background border-b border-border shadow-sm'}`}>
+    <div className={`py-2 sticky top-0 z-50 transition-colors duration-300 ${isHome ? 'bg-background/95 backdrop-blur-md border-b border-border/50' : 'bg-background border-b border-border shadow-sm'}`}>
       <div className="container max-w-6xl mx-auto px-4 flex items-center justify-between">
         <Link to="/" className="flex items-center py-1">
           <img 
