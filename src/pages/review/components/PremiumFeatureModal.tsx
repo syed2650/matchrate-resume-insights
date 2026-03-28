@@ -71,7 +71,7 @@ const PremiumFeatureModal: React.FC<PremiumFeatureModalProps> = ({
           >
             <Link to="/#pricing" onClick={onClose}>
               <Rocket className="w-4 h-4 mr-2" />
-              {isRecheck ? "Upgrade to Monthly — £6.99" : "Get Monthly Access — £6.99"}
+              {isRecheck ? "Upgrade to Monthly — $6.99" : "Get Monthly Access — $6.99"}
             </Link>
           </Button>
         </div>

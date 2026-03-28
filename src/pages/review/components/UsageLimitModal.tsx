@@ -112,7 +112,7 @@ const UsageLimitModal: React.FC<UsageLimitModalProps> = ({ isOpen, onClose }) =>
             >
               <Link to="/#pricing" onClick={onClose}>
                 <Rocket className="w-4 h-4 mr-2" />
-                Upgrade to Monthly — £6.99
+                Upgrade to Monthly — $6.99
               </Link>
             </Button>
           )}

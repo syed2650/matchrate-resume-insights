@@ -11,16 +11,16 @@ const PLANS = {
   weekly: {
     name: "Weekly Access",
     description: "Up to 5 job match checks, full Resume Strength fixes, ATS Safety analysis, Job Fit analysis, Roast Review, recheck after edits. Access valid for 7 days.",
-    amount: 199, // £1.99 in pence
-    currency: "gbp",
+    amount: 199, // $1.99 in cents
+    currency: "usd",
     mode: "subscription" as const,
     interval: "week" as const,
   },
   monthly: {
     name: "Monthly Access",
     description: "Up to 25 job match checks/month, everything in Weekly, saved resume & job history, PDF exports, priority usage limits.",
-    amount: 699, // £6.99 in pence
-    currency: "gbp",
+    amount: 699, // $6.99 in cents
+    currency: "usd",
     mode: "subscription" as const,
     interval: "month" as const,
   },
@@ -28,16 +28,16 @@ const PLANS = {
   premium: {
     name: "Premium Monthly (Legacy)",
     description: "Legacy plan - please use Monthly instead",
-    amount: 399, // £3.99 in pence
-    currency: "gbp",
+    amount: 399, // $3.99 in cents
+    currency: "usd",
     mode: "subscription" as const,
     interval: "month" as const,
   },
   lifetime: {
     name: "Lifetime Access (Legacy)",
     description: "Legacy plan - no longer available",
-    amount: 2900, // £29 in pence
-    currency: "gbp",
+    amount: 2900, // $29 in cents
+    currency: "usd",
     mode: "payment" as const,
     interval: null,
   },

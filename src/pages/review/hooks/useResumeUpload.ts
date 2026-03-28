@@ -64,20 +64,62 @@ export const useResumeUpload = () => {
           for (let i = 1; i <= pdf.numPages; i++) {
             const page = await pdf.getPage(i);
             const textContent = await page.getTextContent();
-            const pageText = textContent.items
-              .map((item: any) => item.str)
-              .join(' ');
-            fullText += pageText + '\n';
+            const items = textContent.items as any[];
+            
+            if (!items || items.length === 0) continue;
+            
+            // Sort items by vertical position (top to bottom), then horizontal (left to right)
+            const sortedItems = items
+              .filter((item: any) => item.str && item.str.trim().length > 0)
+              .sort((a: any, b: any) => {
+                const yDiff = b.transform[5] - a.transform[5]; // PDF y-axis is bottom-up
+                if (Math.abs(yDiff) > 5) return yDiff; // Different lines (5pt threshold)
+                return a.transform[4] - b.transform[4]; // Same line, sort left to right
+              });
+            
+            let lastY: number | null = null;
+            let lineText = '';
+            
+            for (const item of sortedItems) {
+              const currentY = Math.round(item.transform[5]);
+              
+              if (lastY !== null && Math.abs(currentY - lastY) > 5) {
+                // New line - flush previous line
+                fullText += lineText.trim() + '\n';
+                lineText = '';
+              }
+              
+              // Add space between words on the same line if needed
+              if (lineText.length > 0 && !lineText.endsWith(' ') && !item.str.startsWith(' ')) {
+                lineText += ' ';
+              }
+              lineText += item.str;
+              lastY = currentY;
+            }
+            
+            // Flush last line
+            if (lineText.trim()) {
+              fullText += lineText.trim() + '\n';
+            }
+            fullText += '\n'; // Page break
           }
           extractedText = fullText;
           
+          // Check if we got raw PDF binary instead of actual text
+          if (extractedText.includes('%PDF-') || extractedText.includes('endobj') || extractedText.includes('/Producer')) {
+            throw new Error("PDF_BINARY_DETECTED");
+          }
+          
           // Verify extracted content
           if (!extractedText || extractedText.trim().length < 50) {
-            throw new Error("Could not extract sufficient text from PDF. The PDF may be scanned or contain images of text.");
+            throw new Error("Could not extract sufficient text from PDF. The PDF may be scanned or contain images of text. Try uploading a screenshot/image instead — we'll use OCR to read it.");
           }
-        } catch (pdfError) {
+        } catch (pdfError: any) {
           setHasParsingError(true);
-          throw new Error("Could not parse this PDF file. Please upload a text-based PDF or try using Word (.docx) format instead.");
+          if (pdfError?.message === "PDF_BINARY_DETECTED") {
+            throw new Error("This PDF appears to be image-based or encrypted. Please try: (1) Upload a screenshot/photo of your resume instead — we'll extract text via OCR, or (2) Copy-paste your resume text directly.");
+          }
+          throw new Error("Could not parse this PDF file. Please try uploading a Word (.docx) file, a screenshot/image, or paste your resume text directly.");
         }
       } else if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
         // Handle DOCX files
