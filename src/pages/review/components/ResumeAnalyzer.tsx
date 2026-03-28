@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Sparkles } from "lucide-react";
 import ResumeUploadSection from "./ResumeUploadSection";
+import { useResumeUpload } from "../hooks/useResumeUpload";
 
 interface ResumeAnalyzerProps {
   onResumeChange: (resume: string) => void;
@@ -20,32 +21,33 @@ const ResumeAnalyzer = ({
   resumeText,
   jobDescription 
 }: ResumeAnalyzerProps) => {
-  const [resumeFile, setResumeFile] = useState<File | null>(null);
-  const [isParsingResume, setIsParsingResume] = useState(false);
+  const {
+    resume,
+    setResume,
+    resumeFile,
+    isParsingResume,
+    handleFileUpload,
+    clearResume,
+  } = useResumeUpload();
 
-  const handleFileUpload = (file: File) => {
-    setResumeFile(file);
-    // File parsing logic would go here
-    // For now, just set the resume text
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const text = e.target?.result as string;
-      onResumeChange(text);
-    };
-    reader.readAsText(file);
-  };
+  useEffect(() => {
+    if (resume !== resumeText) {
+      onResumeChange(resume);
+    }
+  }, [resume, resumeText, onResumeChange]);
 
-  const clearResume = () => {
-    setResumeFile(null);
-    onResumeChange("");
-  };
+  useEffect(() => {
+    if (resumeText && resumeText !== resume) {
+      setResume(resumeText);
+    }
+  }, [resumeText, resume, setResume]);
 
   return (
     <Card className="p-6">
       <div className="space-y-8">
         <ResumeUploadSection
-          resumeText={resumeText}
-          setResumeText={onResumeChange}
+          resumeText={resume}
+          setResumeText={setResume}
           onFileUpload={handleFileUpload}
           onTextChange={() => {}}
           isParsingResume={isParsingResume}
@@ -67,7 +69,7 @@ const ResumeAnalyzer = ({
 
         <Button
           onClick={onAnalyze}
-          disabled={!resumeText || !jobDescription}
+          disabled={!resume.trim() || !jobDescription.trim()}
           className="w-full h-auto py-6 flex flex-col items-center gap-2"
           size="lg"
         >
