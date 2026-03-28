@@ -87,7 +87,7 @@ const UsageLimitModal: React.FC<UsageLimitModalProps> = ({ isOpen, onClose }) =>
               >
                 <Link to="/#pricing" onClick={onClose}>
                   <Zap className="w-4 h-4 mr-2" />
-                  Get Weekly Access — £1.99
+                  Get Weekly Access — $1.99
                 </Link>
               </Button>
               
@@ -99,7 +99,7 @@ const UsageLimitModal: React.FC<UsageLimitModalProps> = ({ isOpen, onClose }) =>
               >
                 <Link to="/#pricing" onClick={onClose}>
                   <Rocket className="w-4 h-4 mr-2" />
-                  Get Monthly Access — £6.99
+                  Get Monthly Access — $6.99
                 </Link>
               </Button>
             </>
@@ -112,7 +112,7 @@ const UsageLimitModal: React.FC<UsageLimitModalProps> = ({ isOpen, onClose }) =>
             >
               <Link to="/#pricing" onClick={onClose}>
                 <Rocket className="w-4 h-4 mr-2" />
-                Upgrade to Monthly — £6.99
+                Upgrade to Monthly — $6.99
               </Link>
             </Button>
           )}

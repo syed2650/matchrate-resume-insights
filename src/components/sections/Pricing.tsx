@@ -183,7 +183,7 @@ const Pricing = () => {
                   <div className="mb-6">
                     <h3 className="text-xl font-bold text-foreground mb-3">{plan.name}</h3>
                     <div className="flex items-baseline gap-1">
-                      <span className="text-4xl font-bold text-foreground">£{plan.price}</span>
+                      <span className="text-4xl font-bold text-foreground">${plan.price}</span>
                       {plan.period && <span className="text-muted-foreground font-medium">/{plan.period}</span>}
                     </div>
                     <p className="text-muted-foreground mt-3 text-sm">{plan.description}</p>
