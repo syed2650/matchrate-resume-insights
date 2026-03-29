@@ -5,9 +5,181 @@ import { track } from "@/lib/mixpanel";
 import { ResumeFile } from "../types";
 import mammoth from "mammoth";
 import * as pdfjs from 'pdfjs-dist';
+import Tesseract from "tesseract.js";
 
 // Initialize PDF.js worker
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
+const MIN_RESUME_TEXT_LENGTH = 100;
+const OCR_RENDER_SCALE = 2;
+
+const normalizeExtractedText = (text: string) =>
+  text
+    .replace(/\r\n/g, "\n")
+    .replace(/[^\S\n]+/g, " ")
+    .replace(/ *\n */g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+
+const countMatches = (text: string, pattern: RegExp) => (text.match(pattern) || []).length;
+
+const looksLikePdfBinary = (text: string) =>
+  /%PDF-|endobj|stream|xref|trailer|\/Producer|\/Type\s*\/Page/i.test(text);
+
+const hasMeaningfulResumeText = (text: string, minLength = MIN_RESUME_TEXT_LENGTH) => {
+  const normalized = normalizeExtractedText(text);
+
+  if (normalized.length < minLength) return false;
+
+  const wordCount = normalized.split(/\s+/).filter(Boolean).length;
+  const letterCount = countMatches(normalized, /[A-Za-z]/g);
+  const unusualCharacterCount = countMatches(normalized, /[^A-Za-z0-9\s@&/.,\-+()#:;%•]/g);
+  const unusualCharacterRatio = normalized.length > 0 ? unusualCharacterCount / normalized.length : 1;
+
+  return wordCount >= 20 && letterCount >= 80 && unusualCharacterRatio < 0.35;
+};
+
+const extractTextFromPdfPage = async (page: any) => {
+  const textContent = await page.getTextContent({
+    normalizeWhitespace: true,
+    disableCombineTextItems: false,
+  });
+
+  const items = (textContent.items || []).filter(
+    (item: any) => typeof item?.str === "string" && item.str.trim().length > 0
+  );
+
+  if (!items.length) return "";
+
+  const lineBuckets = new Map<number, Array<{ x: number; text: string }>>();
+
+  for (const item of items) {
+    const x = item.transform?.[4] ?? 0;
+    const y = item.transform?.[5] ?? 0;
+    const bucketY = Math.round(y / 3) * 3;
+    const existingLine = lineBuckets.get(bucketY) || [];
+
+    existingLine.push({ x, text: item.str });
+    lineBuckets.set(bucketY, existingLine);
+  }
+
+  return [...lineBuckets.entries()]
+    .sort((a, b) => b[0] - a[0])
+    .map(([, lineItems]) =>
+      lineItems
+        .sort((a, b) => a.x - b.x)
+        .map(({ text }) => text.trim())
+        .filter(Boolean)
+        .join(" ")
+    )
+    .join("\n");
+};
+
+const renderPdfPageToCanvas = async (page: any) => {
+  const viewport = page.getViewport({ scale: OCR_RENDER_SCALE });
+  const canvas = document.createElement("canvas");
+  const context = canvas.getContext("2d", { willReadFrequently: true });
+
+  if (!context) {
+    throw new Error("Canvas context unavailable for OCR.");
+  }
+
+  canvas.width = Math.ceil(viewport.width);
+  canvas.height = Math.ceil(viewport.height);
+
+  await page.render({
+    canvasContext: context,
+    viewport,
+  }).promise;
+
+  return canvas;
+};
+
+const extractTextFromPdfWithOcr = async (pdf: any) => {
+  const pages: string[] = [];
+
+  for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
+    try {
+      const page = await pdf.getPage(pageNumber);
+      const canvas = await renderPdfPageToCanvas(page);
+
+      try {
+        const result = await Tesseract.recognize(canvas, "eng");
+        const pageText = normalizeExtractedText(result.data.text || "");
+
+        if (pageText) {
+          pages.push(pageText);
+        }
+      } finally {
+        canvas.width = 0;
+        canvas.height = 0;
+      }
+    } catch (error) {
+      console.error(`OCR failed on PDF page ${pageNumber}:`, error);
+    }
+  }
+
+  return normalizeExtractedText(pages.join("\n\n"));
+};
+
+const extractTextFromPdf = async (file: File) => {
+  let pdf: any;
+
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    pdf = await pdfjs.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
+
+    const nativePages: string[] = [];
+
+    for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
+      try {
+        const page = await pdf.getPage(pageNumber);
+        const pageText = await extractTextFromPdfPage(page);
+
+        if (pageText) {
+          nativePages.push(pageText);
+        }
+      } catch (error) {
+        console.error(`Native extraction failed on PDF page ${pageNumber}:`, error);
+      }
+    }
+
+    const nativeText = normalizeExtractedText(nativePages.join("\n\n"));
+
+    if (!looksLikePdfBinary(nativeText) && hasMeaningfulResumeText(nativeText)) {
+      return nativeText;
+    }
+
+    const ocrText = await extractTextFromPdfWithOcr(pdf);
+
+    if (hasMeaningfulResumeText(ocrText)) {
+      return ocrText;
+    }
+
+    const bestEffortText = ocrText.length > nativeText.length ? ocrText : nativeText;
+
+    if (hasMeaningfulResumeText(bestEffortText, 60)) {
+      return bestEffortText;
+    }
+
+    throw new Error(
+      "We tried both PDF parsing and OCR but still couldn't extract enough readable text. Please upload a Word (.docx) file, a clear screenshot/image, or paste your resume text directly."
+    );
+  } catch (error) {
+    if (error instanceof Error) {
+      throw error;
+    }
+
+    throw new Error(
+      "Could not parse this PDF file. Please try uploading a Word (.docx) file, a screenshot/image, or paste your resume text directly."
+    );
+  } finally {
+    if (pdf) {
+      await pdf.destroy();
+    }
+  }
+};
 
 export const useResumeUpload = () => {
   const [resume, setResume] = useState("");
@@ -15,9 +187,6 @@ export const useResumeUpload = () => {
   const [isParsingResume, setIsParsingResume] = useState(false);
   const [hasParsingError, setHasParsingError] = useState(false);
   const { toast } = useToast();
-
-  // Maximum file size: 5MB
-  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB in bytes
 
   const handleFileUpload = async (file: File) => {
     setIsParsingResume(true);
@@ -55,71 +224,13 @@ export const useResumeUpload = () => {
       }
       // Process based on file type for documents
       else if (file.type === "application/pdf") {
-        // Handle PDF files using pdfjs which works in browsers
         try {
-          const arrayBuffer = await file.arrayBuffer();
-          const pdf = await pdfjs.getDocument(new Uint8Array(arrayBuffer)).promise;
-          
-          let fullText = '';
-          for (let i = 1; i <= pdf.numPages; i++) {
-            const page = await pdf.getPage(i);
-            const textContent = await page.getTextContent();
-            const items = textContent.items as any[];
-            
-            if (!items || items.length === 0) continue;
-            
-            // Sort items by vertical position (top to bottom), then horizontal (left to right)
-            const sortedItems = items
-              .filter((item: any) => item.str && item.str.trim().length > 0)
-              .sort((a: any, b: any) => {
-                const yDiff = b.transform[5] - a.transform[5]; // PDF y-axis is bottom-up
-                if (Math.abs(yDiff) > 5) return yDiff; // Different lines (5pt threshold)
-                return a.transform[4] - b.transform[4]; // Same line, sort left to right
-              });
-            
-            let lastY: number | null = null;
-            let lineText = '';
-            
-            for (const item of sortedItems) {
-              const currentY = Math.round(item.transform[5]);
-              
-              if (lastY !== null && Math.abs(currentY - lastY) > 5) {
-                // New line - flush previous line
-                fullText += lineText.trim() + '\n';
-                lineText = '';
-              }
-              
-              // Add space between words on the same line if needed
-              if (lineText.length > 0 && !lineText.endsWith(' ') && !item.str.startsWith(' ')) {
-                lineText += ' ';
-              }
-              lineText += item.str;
-              lastY = currentY;
-            }
-            
-            // Flush last line
-            if (lineText.trim()) {
-              fullText += lineText.trim() + '\n';
-            }
-            fullText += '\n'; // Page break
-          }
-          extractedText = fullText;
-          
-          // Check if we got raw PDF binary instead of actual text
-          if (extractedText.includes('%PDF-') || extractedText.includes('endobj') || extractedText.includes('/Producer')) {
-            throw new Error("PDF_BINARY_DETECTED");
-          }
-          
-          // Verify extracted content
-          if (!extractedText || extractedText.trim().length < 50) {
-            throw new Error("Could not extract sufficient text from PDF. The PDF may be scanned or contain images of text. Try uploading a screenshot/image instead — we'll use OCR to read it.");
-          }
-        } catch (pdfError: any) {
+          extractedText = await extractTextFromPdf(file);
+        } catch (pdfError) {
           setHasParsingError(true);
-          if (pdfError?.message === "PDF_BINARY_DETECTED") {
-            throw new Error("This PDF appears to be image-based or encrypted. Please try: (1) Upload a screenshot/photo of your resume instead — we'll extract text via OCR, or (2) Copy-paste your resume text directly.");
-          }
-          throw new Error("Could not parse this PDF file. Please try uploading a Word (.docx) file, a screenshot/image, or paste your resume text directly.");
+          throw pdfError instanceof Error
+            ? pdfError
+            : new Error("Could not parse this PDF file. Please try uploading a Word (.docx) file, a screenshot/image, or paste your resume text directly.");
         }
       } else if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
         // Handle DOCX files
@@ -153,13 +264,10 @@ export const useResumeUpload = () => {
       }
       
       // Clean up text (remove excessive whitespace, etc.)
-      const cleanText = extractedText
-        .replace(/\r\n/g, "\n")
-        .replace(/\n{3,}/g, "\n\n")
-        .trim();
+      const cleanText = normalizeExtractedText(extractedText);
       
       // Final check to make sure we have enough content
-      if (cleanText.length < 100) {
+      if (cleanText.length < MIN_RESUME_TEXT_LENGTH) {
         setHasParsingError(true);
         throw new Error("We couldn't extract enough text from your file. The file might be an image-based PDF or contain too little text. Please try uploading a different format or copy-paste your resume text directly.");
       }
