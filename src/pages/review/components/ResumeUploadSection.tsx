@@ -95,15 +95,14 @@ const ResumeUploadSection: React.FC<ResumeUploadSectionProps> = ({
         if (file.type.startsWith('image/')) {
           handleImageUpload(file);
         }
-        // Check if file is PDF, DOCX, or TXT
+        // Check if file is DOCX or TXT
         else if (
-          file.type === "application/pdf" ||
           file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
           file.type === "text/plain"
         ) {
           onFileUpload(file);
         } else {
-          setUploadError("Unsupported file type. Please upload a PDF, DOCX, TXT file, or an image (JPG, PNG, WebP).");
+          setUploadError("PDF uploads are temporarily disabled. Please upload a DOCX, TXT, or image file (JPG, PNG, WebP), or paste your resume text.");
         }
       }
     },
@@ -113,7 +112,6 @@ const ResumeUploadSection: React.FC<ResumeUploadSectionProps> = ({
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      "application/pdf": [".pdf"],
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
       "text/plain": [".txt"],
       "image/jpeg": [".jpg", ".jpeg"],
@@ -163,10 +161,13 @@ const ResumeUploadSection: React.FC<ResumeUploadSectionProps> = ({
                 Drag & drop your resume file or image here, or click to browse
               </p>
               <p className="text-xs text-gray-500 mb-2">
-                <strong>Documents:</strong> PDF, DOCX, TXT (max 5MB)
+                <strong>Documents:</strong> DOCX, TXT (max 5MB)
               </p>
               <p className="text-xs text-gray-500">
                 <strong>Images:</strong> JPG, PNG, WebP (max 5MB) - We'll extract text using OCR
+              </p>
+              <p className="text-xs text-amber-600 mt-2">
+                PDF uploads are temporarily disabled while we fix parsing reliability.
               </p>
             </div>
           )}
@@ -264,8 +265,8 @@ const ResumeUploadSection: React.FC<ResumeUploadSectionProps> = ({
       {!resumeText && !isProcessing && !resumeFile && (
         <div className="mt-2 space-y-2">
           <p className="text-sm text-amber-600">
-            <span className="font-semibold">Pro tip:</span> For best results, upload a text-based PDF
-            or DOCX file to ensure all formatting is correctly captured.
+            <span className="font-semibold">Pro tip:</span> For best results, upload a DOCX file
+            or paste your resume text directly for the cleanest analysis.
           </p>
           <p className="text-sm text-blue-600">
             <span className="font-semibold">New!</span> You can now upload images (photos/screenshots) 
