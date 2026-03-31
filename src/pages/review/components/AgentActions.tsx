@@ -264,6 +264,25 @@ export const AgentActions = ({ resumeText, jobDescription, onReset, autoStart = 
             topActions={getTopActions()}
             isLoading={isAnalyzing}
             onNavigate={(tab) => setActiveTab(tab as AnalysisTab)}
+            missingKeywords={jdMatchResult?.missingSkills || jdMatchResult?.keywordsToAdd || []}
+            matchedSkills={[]}
+            weakBullets={rewriteResult?.structured?.critical_fixes?.map((f: any) => ({
+              original: f.issue || f.original || "",
+              improved: f.fix || f.improved || "",
+            })) || []}
+            atsIssues={atsResult?.issues || []}
+            roastLines={roastResult?.rawContent
+              ? roastResult.rawContent
+                  .split("\n")
+                  .filter((l: string) => l.trim().startsWith("-") || l.trim().startsWith("•"))
+                  .slice(0, 5)
+                  .map((l: string) => l.replace(/^[-•]\s*/, "").trim())
+              : roastResult?.roast
+                ? [roastResult.roast]
+                : []
+            }
+            onRegenerateRoast={handleGenerateRoast}
+            isRegenerating={loadingAgents.roast}
           />
         );
       
