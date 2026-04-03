@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Flame, RefreshCw, Share2, Twitter, Linkedin, Copy, Check } from "lucide-react";
+import { Flame, RefreshCw, Twitter, Linkedin, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { track } from "@/lib/mixpanel";
@@ -11,11 +11,11 @@ interface ResumeRoastLinesProps {
 }
 
 const FALLBACK_ROASTS = [
-  "Your resume says 'hardworking'… so does everyone else bro 💀",
-  "This resume has more buzzwords than actual impact",
-  "Recruiters read this and feel nothing",
+  "This bullet point says a lot… without saying anything 💀",
+  "Recruiters read this and move on in seconds",
+  "This sounds impressive, but lacks real impact",
+  "Your resume has more buzzwords than actual results",
   "You managed a team… of what? Vibes?",
-  "This bullet point means nothing and you know it",
 ];
 
 export const ResumeRoastLines = ({ roastLines, onRegenerate, isRegenerating }: ResumeRoastLinesProps) => {
@@ -31,7 +31,7 @@ export const ResumeRoastLines = ({ roastLines, onRegenerate, isRegenerating }: R
   };
 
   const shareText = encodeURIComponent(
-    `My resume just got roasted 🔥\n\n"${lines[0]}"\n\nGet yours roasted at matchrate.co`
+    `Got roasted by AI. Fair enough. 🔥\n\n"${lines[0]}"\n\nGet yours roasted at matchrate.co`
   );
 
   return (
@@ -45,7 +45,7 @@ export const ResumeRoastLines = ({ roastLines, onRegenerate, isRegenerating }: R
             </div>
             <div>
               <h3 className="text-2xl font-black tracking-tight">Resume Roast</h3>
-              <p className="text-white/70 text-sm">Brutally honest. Painfully accurate.</p>
+              <p className="text-white/80 text-sm font-medium">Brutally honest. Painfully accurate.</p>
             </div>
           </div>
           {onRegenerate && (
@@ -63,7 +63,7 @@ export const ResumeRoastLines = ({ roastLines, onRegenerate, isRegenerating }: R
         </div>
       </div>
 
-      {/* Roast Lines - Meme Style */}
+      {/* Roast Lines */}
       <div className="bg-gradient-to-b from-slate-950 to-slate-900 p-6 space-y-4">
         {lines.map((line, i) => (
           <div
