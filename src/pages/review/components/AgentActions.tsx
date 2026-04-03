@@ -264,6 +264,7 @@ export const AgentActions = ({ resumeText, jobDescription, onReset, autoStart = 
             topActions={getTopActions()}
             isLoading={isAnalyzing}
             onNavigate={(tab) => setActiveTab(tab as AnalysisTab)}
+            onRecheck={onReset}
             missingKeywords={jdMatchResult?.missingSkills || jdMatchResult?.keywordsToAdd || []}
             matchedSkills={[]}
             weakBullets={rewriteResult?.structured?.critical_fixes?.map((f: any) => ({
