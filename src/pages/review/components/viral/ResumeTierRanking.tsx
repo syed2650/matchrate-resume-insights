@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { Crown, Star, TrendingUp, User, Download, Twitter, Linkedin, Share2 } from "lucide-react";
+import { Crown, Star, TrendingUp, User, Download, Twitter, Linkedin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { track } from "@/lib/mixpanel";
@@ -23,50 +22,50 @@ interface TierInfo {
 
 const tiers: Record<string, TierInfo> = {
   elite: {
-    name: "Elite Candidate",
+    name: "Top 10% Candidate",
     emoji: "🟪",
     color: "from-violet-600 to-purple-700",
     textColor: "text-violet-400",
     borderColor: "border-violet-500/50",
     gradientBg: "from-violet-950 via-purple-950 to-slate-950",
     icon: Crown,
-    description: "Your resume is in the top 10% and highly competitive. Recruiters will fight over you.",
+    description: "Recruiters will fight over this resume. You're in the elite tier — but staying here requires constant optimization.",
     percentile: "Top 10%",
     badgeBg: "bg-gradient-to-r from-violet-500 to-purple-600",
   },
   strong: {
-    name: "Strong Contender",
+    name: "Competitive Candidate",
     emoji: "🟩",
     color: "from-emerald-500 to-teal-600",
     textColor: "text-emerald-400",
     borderColor: "border-emerald-500/50",
     gradientBg: "from-emerald-950 via-teal-950 to-slate-950",
     icon: Star,
-    description: "Solid resume that will get interviews. A few tweaks could push you to elite status.",
+    description: "You'll get interviews, but you're not winning them all. A few targeted fixes could push you into the elite tier.",
     percentile: "Top 30%",
     badgeBg: "bg-gradient-to-r from-emerald-500 to-teal-600",
   },
   average: {
-    name: "Average Applicant",
+    name: "Blending Into The Crowd",
     emoji: "🟧",
     color: "from-amber-500 to-orange-600",
     textColor: "text-amber-400",
     borderColor: "border-amber-500/50",
     gradientBg: "from-amber-950 via-orange-950 to-slate-950",
     icon: TrendingUp,
-    description: "You blend in with the crowd. Most recruiters will skim past this in 6 seconds.",
+    description: "Recruiters won't remember this resume. You look like every other applicant — and that's the problem.",
     percentile: "Middle 40%",
     badgeBg: "bg-gradient-to-r from-amber-500 to-orange-600",
   },
   beginner: {
-    name: "Beginner Resume",
+    name: "Invisible Candidate",
     emoji: "🟥",
     color: "from-red-500 to-rose-600",
     textColor: "text-red-400",
     borderColor: "border-red-500/50",
     gradientBg: "from-red-950 via-rose-950 to-slate-950",
     icon: User,
-    description: "This resume needs serious work. It's likely getting auto-rejected by ATS systems.",
+    description: "This resume is invisible to ATS and recruiters. It's getting auto-rejected before anyone reads it.",
     percentile: "Bottom 50%",
     badgeBg: "bg-gradient-to-r from-red-500 to-rose-600",
   },
@@ -95,11 +94,9 @@ export const ResumeTierRanking = ({ score }: ResumeTierRankingProps) => {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Background
     ctx.fillStyle = "#0a0a14";
     ctx.fillRect(0, 0, 800, 800);
 
-    // Tier glow
     const glow = ctx.createRadialGradient(400, 350, 50, 400, 350, 350);
     const glowColor = score >= 85 ? "#7c3aed" : score >= 70 ? "#10b981" : score >= 50 ? "#f59e0b" : "#ef4444";
     glow.addColorStop(0, glowColor + "40");
@@ -107,7 +104,6 @@ export const ResumeTierRanking = ({ score }: ResumeTierRankingProps) => {
     ctx.fillStyle = glow;
     ctx.fillRect(0, 0, 800, 800);
 
-    // Badge circle
     ctx.beginPath();
     ctx.arc(400, 300, 120, 0, Math.PI * 2);
     ctx.fillStyle = glowColor + "30";
@@ -116,25 +112,21 @@ export const ResumeTierRanking = ({ score }: ResumeTierRankingProps) => {
     ctx.lineWidth = 4;
     ctx.stroke();
 
-    // Score in badge
     ctx.fillStyle = glowColor;
-    ctx.font = "bold 80px 'Space Grotesk', sans-serif";
+    ctx.font = "bold 80px sans-serif";
     ctx.textAlign = "center";
     ctx.fillText(`${score}`, 400, 325);
 
-    // Tier name
     ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 44px 'Space Grotesk', sans-serif";
+    ctx.font = "bold 44px sans-serif";
     ctx.fillText(tier.name, 400, 510);
 
-    // Percentile
     ctx.fillStyle = "#94a3b8";
-    ctx.font = "28px 'Satoshi', sans-serif";
+    ctx.font = "28px sans-serif";
     ctx.fillText(tier.percentile, 400, 565);
 
-    // Description
     ctx.fillStyle = "#64748b";
-    ctx.font = "20px 'Satoshi', sans-serif";
+    ctx.font = "20px sans-serif";
     const words = tier.description.split(" ");
     let line = "";
     let y = 630;
@@ -150,49 +142,46 @@ export const ResumeTierRanking = ({ score }: ResumeTierRankingProps) => {
     });
     ctx.fillText(line.trim(), 400, y);
 
-    // Branding
     ctx.fillStyle = "#7c3aed";
-    ctx.font = "bold 24px 'Space Grotesk', sans-serif";
+    ctx.font = "bold 24px sans-serif";
     ctx.fillText("matchrate.co", 400, 760);
 
     const link = document.createElement("a");
-    link.download = `resume-tier-${tier.name.toLowerCase().replace(" ", "-")}.png`;
+    link.download = `resume-tier-${tier.name.toLowerCase().replace(/ /g, "-")}.png`;
     link.href = canvas.toDataURL("image/png");
     link.click();
   };
 
   return (
     <div className="space-y-4">
-      {/* Tier Card */}
       <div className={cn(
         "relative overflow-hidden rounded-2xl border shadow-2xl",
         tier.borderColor,
         `bg-gradient-to-br ${tier.gradientBg}`
       )}>
-        {/* Decorative elements */}
         <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-bl from-white/5 to-transparent rounded-bl-full" />
 
-        <div className="relative p-8 text-center space-y-6">
+        <div className="relative p-8 text-center space-y-5">
           {/* Badge */}
-          <div className={cn("inline-flex items-center justify-center w-24 h-24 rounded-full shadow-lg", tier.badgeBg)}>
-            <TierIcon className="h-12 w-12 text-white" />
+          <div className={cn("inline-flex items-center justify-center w-20 h-20 rounded-full shadow-lg", tier.badgeBg)}>
+            <TierIcon className="h-10 w-10 text-white" />
           </div>
 
           {/* Tier Name */}
           <div>
-            <h3 className={cn("text-3xl font-black tracking-tight", tier.textColor)}>
+            <h3 className={cn("text-2xl sm:text-3xl font-black tracking-tight", tier.textColor)}>
               {tier.name}
             </h3>
-            <p className="text-slate-400 text-lg font-medium mt-1">{tier.percentile}</p>
+            <p className="text-slate-400 text-base font-medium mt-1">{tier.percentile}</p>
           </div>
 
           {/* Description */}
-          <p className="text-slate-300 text-base max-w-md mx-auto leading-relaxed">
+          <p className="text-slate-300 text-sm sm:text-base max-w-md mx-auto leading-relaxed">
             {tier.description}
           </p>
 
           {/* All tiers preview */}
-          <div className="flex justify-center gap-3 pt-2">
+          <div className="flex justify-center gap-3 pt-1">
             {Object.entries(tiers).map(([key, t]) => (
               <div
                 key={key}
@@ -207,44 +196,44 @@ export const ResumeTierRanking = ({ score }: ResumeTierRankingProps) => {
               />
             ))}
           </div>
-        </div>
-      </div>
 
-      {/* Actions */}
-      <div className="flex flex-wrap gap-3">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleDownloadBadge}
-          className="gap-2"
-        >
-          <Download className="h-4 w-4" />
-          Download Badge
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            track("Tier Shared", { platform: "twitter", tier: tier.name });
-            window.open(`https://twitter.com/intent/tweet?text=${shareText}`, "_blank");
-          }}
-          className="gap-2 border-sky-400/50 text-sky-600 hover:bg-sky-50"
-        >
-          <Twitter className="h-4 w-4" />
-          Share Tier
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            track("Tier Shared", { platform: "linkedin", tier: tier.name });
-            window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent("https://matchrate.co")}`, "_blank");
-          }}
-          className="gap-2 border-blue-400/50 text-blue-600 hover:bg-blue-50"
-        >
-          <Linkedin className="h-4 w-4" />
-          LinkedIn
-        </Button>
+          {/* Share buttons inside the card */}
+          <div className="flex flex-wrap justify-center gap-3 pt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDownloadBadge}
+              className="gap-2 border-slate-600 text-slate-300 hover:bg-slate-800"
+            >
+              <Download className="h-4 w-4" />
+              Download Badge
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                track("Tier Shared", { platform: "twitter", tier: tier.name });
+                window.open(`https://twitter.com/intent/tweet?text=${shareText}`, "_blank");
+              }}
+              className="gap-2 border-sky-700 text-sky-400 hover:bg-sky-950"
+            >
+              <Twitter className="h-4 w-4" />
+              Share Tier
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                track("Tier Shared", { platform: "linkedin", tier: tier.name });
+                window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent("https://matchrate.co")}`, "_blank");
+              }}
+              className="gap-2 border-blue-700 text-blue-400 hover:bg-blue-950"
+            >
+              <Linkedin className="h-4 w-4" />
+              LinkedIn
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );

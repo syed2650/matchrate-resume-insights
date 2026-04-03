@@ -1,13 +1,9 @@
+import { useState } from "react";
 import { 
-  TrendingUp, 
-  Shield, 
-  Target, 
-  Lock,
-  ArrowRight,
-  Sparkles,
-  Eye
+  TrendingUp, Shield, Target, Lock, ArrowRight, Sparkles, Eye, ChevronDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { ResumeScoreCard } from "../viral/ResumeScoreCard";
 import { ResumeTierRanking } from "../viral/ResumeTierRanking";
 import { RejectionInsightReport } from "../viral/RejectionInsightReport";
@@ -38,6 +34,41 @@ interface ExecutiveSummaryProps {
   roleLabel?: string;
 }
 
+// Accordion section wrapper
+const CollapsibleSection = ({ 
+  title, 
+  icon: Icon, 
+  defaultOpen = false, 
+  children 
+}: { 
+  title: string; 
+  icon: typeof TrendingUp; 
+  defaultOpen?: boolean; 
+  children: React.ReactNode;
+}) => {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+  
+  return (
+    <div className="border border-border/50 rounded-2xl overflow-hidden shadow-sm">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between p-5 bg-card hover:bg-secondary/30 transition-colors text-left"
+      >
+        <div className="flex items-center gap-3">
+          <Icon className="h-5 w-5 text-primary" />
+          <span className="font-semibold text-foreground text-lg">{title}</span>
+        </div>
+        <ChevronDown className={cn("h-5 w-5 text-muted-foreground transition-transform", isOpen && "rotate-180")} />
+      </button>
+      {isOpen && (
+        <div className="border-t border-border/30">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+};
+
 export const ExecutiveSummary = ({
   resumeScore,
   atsScore,
@@ -65,8 +96,10 @@ export const ExecutiveSummary = ({
   );
   
   return (
-    <div className="space-y-8">
-      {/* 🔥 SECTION 1: VIRAL HOOK — Above the fold */}
+    <div className="space-y-6">
+      {/* ═══════════════════════════════════════════════════════
+          SECTION 1: ABOVE THE FOLD — Score + Emotion + Share
+         ═══════════════════════════════════════════════════════ */}
       <ResumeScoreCard 
         score={isLoading ? 0 : overallScore} 
         atsScore={atsScore} 
@@ -74,15 +107,82 @@ export const ExecutiveSummary = ({
         roleLabel={roleLabel}
       />
 
-      {/* 🔥 SECTION 2: SOCIAL PROOF + TIER — Reinforce emotion */}
+      {/* ═══════════════════════════════════════════════════════
+          SECTION 2: TIER IDENTITY — Emotional reinforcement
+         ═══════════════════════════════════════════════════════ */}
       <ResumeTierRanking score={isLoading ? 0 : overallScore} />
 
-      {/* 🔥 CHALLENGE LOOP — Drive re-engagement */}
+      {/* ═══════════════════════════════════════════════════════
+          SECTION 3: CHALLENGE LOOP — Drive re-engagement  
+         ═══════════════════════════════════════════════════════ */}
       {!isLoading && onRecheck && (
         <ChallengeLoop score={overallScore} onRecheck={onRecheck} />
       )}
 
-      {/* 🔽 SECTION 3+: DETAILS — Scroll zone */}
+      {/* ═══════════════════════════════════════════════════════
+          SECTION 4+: DETAILED SECTIONS — Collapsed by default
+         ═══════════════════════════════════════════════════════ */}
+
+      {/* Rejection Insight Report */}
+      <CollapsibleSection title="Why You're Not Getting Interviews" icon={Target}>
+        <RejectionInsightReport
+          missingKeywords={missingKeywords}
+          atsScore={atsScore}
+          jdMatchScore={jdMatchScore}
+          weakBullets={weakBullets}
+          issues={atsIssues}
+          onNavigate={onNavigate}
+        />
+      </CollapsibleSection>
+
+      {/* Job Match */}
+      {jdMatchScore !== undefined && (
+        <CollapsibleSection title="Resume vs Job Match" icon={Target}>
+          <JobMatchCard
+            matchScore={jdMatchScore}
+            missingSkills={missingKeywords}
+            matchedSkills={matchedSkills}
+            onFixResume={() => onNavigate("resume")}
+          />
+        </CollapsibleSection>
+      )}
+
+      {/* Before vs After */}
+      {weakBullets.length > 0 && (
+        <CollapsibleSection title="Before vs After Transformation" icon={TrendingUp}>
+          <BeforeAfterComparison
+            bullets={weakBullets}
+            onOptimize={() => onNavigate("resume")}
+          />
+        </CollapsibleSection>
+      )}
+
+      {/* Roast */}
+      {(roastLines.length > 0 || roastPreview) && (
+        <CollapsibleSection title="Resume Roast 🔥" icon={Sparkles}>
+          <ResumeRoastLines
+            roastLines={roastLines}
+            onRegenerate={onRegenerateRoast}
+            isRegenerating={isRegenerating}
+          />
+        </CollapsibleSection>
+      )}
+
+      {/* Top 3 Actions */}
+      {topActions.length > 0 && (
+        <CollapsibleSection title="Top 3 Actions to Improve" icon={TrendingUp}>
+          <div className="p-6 space-y-3">
+            {topActions.slice(0, 3).map((action, i) => (
+              <div key={i} className="flex items-start gap-3 p-3 bg-secondary/50 rounded-lg">
+                <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold shrink-0">
+                  {i + 1}
+                </span>
+                <p className="text-foreground">{action}</p>
+              </div>
+            ))}
+          </div>
+        </CollapsibleSection>
+      )}
 
       {/* Verdict Cards Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -120,63 +220,6 @@ export const ExecutiveSummary = ({
           onClick={() => onNavigate("jdmatch")}
         />
       </div>
-
-      {/* Rejection Insight Report */}
-      <RejectionInsightReport
-        missingKeywords={missingKeywords}
-        atsScore={atsScore}
-        jdMatchScore={jdMatchScore}
-        weakBullets={weakBullets}
-        issues={atsIssues}
-        onNavigate={onNavigate}
-      />
-
-      {/* Job Match Card */}
-      {jdMatchScore !== undefined && (
-        <JobMatchCard
-          matchScore={jdMatchScore}
-          missingSkills={missingKeywords}
-          matchedSkills={matchedSkills}
-          onFixResume={() => onNavigate("resume")}
-        />
-      )}
-
-      {/* Before vs After */}
-      {weakBullets.length > 0 && (
-        <BeforeAfterComparison
-          bullets={weakBullets}
-          onOptimize={() => onNavigate("resume")}
-        />
-      )}
-
-      {/* Roast Card */}
-      {(roastLines.length > 0 || roastPreview) && (
-        <ResumeRoastLines
-          roastLines={roastLines}
-          onRegenerate={onRegenerateRoast}
-          isRegenerating={isRegenerating}
-        />
-      )}
-
-      {/* Top 3 Actions */}
-      {topActions.length > 0 && (
-        <div className="bg-card rounded-xl p-6 border border-border/50 shadow-sm">
-          <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
-            <TrendingUp className="h-5 w-5 text-primary" />
-            Top 3 Actions to Improve Your Chances
-          </h3>
-          <div className="space-y-3">
-            {topActions.slice(0, 3).map((action, i) => (
-              <div key={i} className="flex items-start gap-3 p-3 bg-secondary/50 rounded-lg">
-                <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold shrink-0">
-                  {i + 1}
-                </span>
-                <p className="text-foreground">{action}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
       
       {/* CTAs */}
       <div className="flex flex-col sm:flex-row gap-3 pt-2">

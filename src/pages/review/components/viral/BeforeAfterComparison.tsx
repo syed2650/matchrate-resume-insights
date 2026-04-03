@@ -1,4 +1,4 @@
-import { ArrowRight, Sparkles, TrendingUp } from "lucide-react";
+import { ArrowRight, Sparkles, TrendingUp, Linkedin, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { track } from "@/lib/mixpanel";
@@ -6,7 +6,7 @@ import { track } from "@/lib/mixpanel";
 interface BulletTransform {
   original: string;
   improved: string;
-  highlights?: string[]; // keywords added
+  highlights?: string[];
 }
 
 interface BeforeAfterComparisonProps {
@@ -28,8 +28,8 @@ export const BeforeAfterComparison = ({ bullets, onOptimize }: BeforeAfterCompar
             <TrendingUp className="h-6 w-6" />
           </div>
           <div>
-            <h3 className="text-xl font-bold">Before vs After</h3>
-            <p className="text-white/70 text-sm">See your resume's glow-up</p>
+            <h3 className="text-xl font-bold">This is how top candidates write their resumes</h3>
+            <p className="text-white/80 text-sm font-medium">Small changes = big impact</p>
           </div>
         </div>
       </div>
@@ -86,22 +86,34 @@ export const BeforeAfterComparison = ({ bullets, onOptimize }: BeforeAfterCompar
         ))}
 
         {/* CTA */}
-        {onOptimize && (
-          <div className="pt-2">
+        <div className="flex flex-wrap gap-3 pt-2">
+          {onOptimize && (
             <Button
               onClick={() => {
                 track("Before After CTA Clicked");
                 onOptimize();
               }}
-              className="w-full gap-2"
+              className="flex-1 gap-2"
               size="lg"
             >
               <Sparkles className="h-4 w-4" />
               Your resume can look like this
               <ArrowRight className="h-4 w-4" />
             </Button>
-          </div>
-        )}
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              track("Before After Shared");
+              window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent("https://matchrate.co")}`, "_blank");
+            }}
+            className="gap-2"
+          >
+            <Linkedin className="h-4 w-4" />
+            Share
+          </Button>
+        </div>
       </div>
     </div>
   );

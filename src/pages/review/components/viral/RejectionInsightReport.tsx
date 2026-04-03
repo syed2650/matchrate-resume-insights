@@ -1,4 +1,4 @@
-import { AlertTriangle, XCircle, AlertCircle, Zap, ChevronRight } from "lucide-react";
+import { AlertTriangle, XCircle, AlertCircle, Zap, ChevronRight, Linkedin, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { track } from "@/lib/mixpanel";
@@ -57,7 +57,6 @@ export const RejectionInsightReport = ({
   onFix,
   onNavigate,
 }: RejectionInsightReportProps) => {
-  // Build rejection reasons dynamically from actual data
   const reasons: RejectionReason[] = [];
 
   if (missingKeywords.length >= 5) {
@@ -77,13 +76,13 @@ export const RejectionInsightReport = ({
   if (atsScore < 50) {
     reasons.push({
       reason: "Your resume is invisible to ATS systems",
-      detail: "ATS software will likely reject this before a recruiter sees it. Critical formatting or keyword issues detected.",
+      detail: "ATS software will auto-reject this before any recruiter sees it.",
       severity: "high",
     });
   } else if (atsScore < 70) {
     reasons.push({
       reason: "ATS compatibility needs improvement",
-      detail: "Some ATS systems may struggle to parse your resume correctly, reducing your chances.",
+      detail: "Some ATS systems may struggle to parse your resume, reducing your chances.",
       severity: "medium",
     });
   }
@@ -91,7 +90,7 @@ export const RejectionInsightReport = ({
   if (weakBullets.length >= 3) {
     reasons.push({
       reason: `Weak impact: ${weakBullets.length} bullets lack measurable achievements`,
-      detail: "Recruiters scan for numbers and results. Your bullets read like job descriptions, not accomplishments.",
+      detail: "Your bullets read like job descriptions, not accomplishments. Recruiters scan for numbers and results.",
       severity: "high",
     });
   } else if (weakBullets.length > 0) {
@@ -105,7 +104,7 @@ export const RejectionInsightReport = ({
   if (jdMatchScore < 50) {
     reasons.push({
       reason: "Poor alignment with job requirements",
-      detail: "Your experience doesn't clearly map to what this role needs. Restructure to highlight relevant skills.",
+      detail: "Your experience doesn't clearly map to what this role needs.",
       severity: "high",
     });
   } else if (jdMatchScore < 70) {
@@ -124,7 +123,6 @@ export const RejectionInsightReport = ({
     });
   });
 
-  // Cap at 5 and sort by severity
   const sortedReasons = reasons
     .slice(0, 5)
     .sort((a, b) => {
@@ -133,6 +131,10 @@ export const RejectionInsightReport = ({
     });
 
   const highCount = sortedReasons.filter((r) => r.severity === "high").length;
+
+  const shareText = encodeURIComponent(
+    `My resume has ${highCount} critical issues holding me back 😭\n\nFind out why you're not getting interviews → matchrate.co`
+  );
 
   return (
     <div className="rounded-2xl border border-border/60 overflow-hidden shadow-lg">
@@ -143,11 +145,9 @@ export const RejectionInsightReport = ({
             <XCircle className="h-6 w-6" />
           </div>
           <div>
-            <h3 className="text-xl font-bold">Why You're Getting Rejected</h3>
-            <p className="text-white/70 text-sm">
-              {highCount > 0
-                ? `${highCount} critical issue${highCount > 1 ? "s" : ""} found`
-                : "Areas to address for better results"}
+            <h3 className="text-xl font-bold">Why You're Not Getting Interviews</h3>
+            <p className="text-white/80 text-sm font-medium">
+              These issues are actively hurting your chances.
             </p>
           </div>
         </div>
@@ -193,7 +193,7 @@ export const RejectionInsightReport = ({
                       }}
                       className="shrink-0 gap-1 text-xs"
                     >
-                      Fix <ChevronRight className="h-3 w-3" />
+                      Fix this <ChevronRight className="h-3 w-3" />
                     </Button>
                   )}
                 </div>
@@ -203,19 +203,33 @@ export const RejectionInsightReport = ({
         )}
       </div>
 
-      {/* CTA */}
-      {sortedReasons.length > 0 && onNavigate && (
-        <div className="bg-card px-6 py-4 border-t border-border/40">
+      {/* Footer */}
+      {sortedReasons.length > 0 && (
+        <div className="bg-card px-6 py-4 border-t border-border/40 flex flex-wrap gap-3">
+          {onNavigate && (
+            <Button
+              onClick={() => {
+                track("Fix All Rejections Clicked");
+                onNavigate("resume");
+              }}
+              className="gap-2 flex-1"
+              size="lg"
+            >
+              <Zap className="h-4 w-4" />
+              Fix All Issues
+            </Button>
+          )}
           <Button
+            variant="outline"
+            size="sm"
             onClick={() => {
-              track("Fix All Rejections Clicked");
-              onNavigate("resume");
+              track("Rejection Report Shared", { platform: "linkedin" });
+              window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent("https://matchrate.co")}`, "_blank");
             }}
-            className="w-full gap-2"
-            size="lg"
+            className="gap-2"
           >
-            <Zap className="h-4 w-4" />
-            Fix All Issues & Recheck
+            <Linkedin className="h-4 w-4" />
+            Share
           </Button>
         </div>
       )}
