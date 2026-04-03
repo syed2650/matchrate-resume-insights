@@ -8,49 +8,57 @@ interface ResumeScoreCardProps {
   score: number;
   atsScore?: number;
   jdMatchScore?: number;
+  roleLabel?: string;
 }
 
 const getPercentile = (score: number) => {
-  if (score >= 90) return { rank: "Top 5%", isTop: true };
-  if (score >= 80) return { rank: "Top 20%", isTop: true };
-  if (score >= 70) return { rank: "Top 35%", isTop: true };
-  if (score >= 60) return { rank: "Bottom 40%", isTop: false };
-  if (score >= 50) return { rank: "Bottom 50%", isTop: false };
-  return { rank: "Bottom 63%", isTop: false };
+  if (score >= 90) return { rank: "Top 5%", worse: 95, isTop: true };
+  if (score >= 80) return { rank: "Top 20%", worse: 80, isTop: true };
+  if (score >= 70) return { rank: "Top 35%", worse: 65, isTop: true };
+  if (score >= 60) return { rank: "Bottom 40%", worse: 60, isTop: false };
+  if (score >= 50) return { rank: "Bottom 50%", worse: 50, isTop: false };
+  return { rank: "Bottom 63%", worse: 37, isTop: false };
 };
 
 const getBrutalInsight = (score: number) => {
   if (score < 40) return {
-    text: "This resume will get auto-rejected before a human ever sees it.",
+    text: "Recruiters will likely ignore this resume.",
+    subtext: "Top candidates score 82+ — you're far behind.",
     icon: Skull,
     gradient: "from-red-600 to-rose-700",
     bg: "from-red-950 to-slate-950",
   };
   if (score < 60) return {
     text: "This resume will likely get rejected before a human sees it.",
+    subtext: "Top candidates score 82+ — you need serious optimization.",
     icon: TrendingDown,
     gradient: "from-red-500 to-orange-600",
     bg: "from-red-950 to-slate-950",
   };
   if (score < 80) return {
     text: "Decent, but you're losing interviews due to weak optimization.",
+    subtext: "You're close — a few fixes could push you into the top tier.",
     icon: TrendingUp,
     gradient: "from-amber-500 to-orange-500",
     bg: "from-amber-950 to-slate-950",
   };
   return {
     text: "Strong resume, but still missing competitive edge against top applicants.",
+    subtext: "You're ahead of most — fine-tune to dominate.",
     icon: Trophy,
     gradient: "from-emerald-500 to-teal-500",
     bg: "from-emerald-950 to-slate-950",
   };
 };
 
-export const ResumeScoreCard = ({ score, atsScore, jdMatchScore }: ResumeScoreCardProps) => {
-  const [showShareCard, setShowShareCard] = useState(false);
+export const ResumeScoreCard = ({ score, atsScore, jdMatchScore, roleLabel }: ResumeScoreCardProps) => {
   const percentile = getPercentile(score);
   const insight = getBrutalInsight(score);
   const InsightIcon = insight.icon;
+
+  const comparisonText = percentile.isTop
+    ? `You're better than ${percentile.worse}% of applicants`
+    : `You are worse than ${percentile.worse}% of applicants`;
 
   const shareText = encodeURIComponent(
     `I thought my resume was good… I was wrong. 💀\nMy resume score: ${score}/100 (${percentile.rank})\n\nCheck yours at matchrate.co`
@@ -67,18 +75,15 @@ export const ResumeScoreCard = ({ score, atsScore, jdMatchScore }: ResumeScoreCa
 
   const handleDownload = async () => {
     track("Score Card Downloaded", { score });
-    // Create a canvas-based image for download
     const canvas = document.createElement("canvas");
     canvas.width = 1080;
     canvas.height = 1080;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Dark background
     ctx.fillStyle = "#0a0a0f";
     ctx.fillRect(0, 0, 1080, 1080);
 
-    // Gradient accent
     const grad = ctx.createLinearGradient(0, 0, 1080, 1080);
     grad.addColorStop(0, score >= 80 ? "#10b981" : score >= 60 ? "#f59e0b" : "#ef4444");
     grad.addColorStop(1, "#1e1b4b");
@@ -87,28 +92,23 @@ export const ResumeScoreCard = ({ score, atsScore, jdMatchScore }: ResumeScoreCa
     ctx.fillRect(0, 0, 1080, 1080);
     ctx.globalAlpha = 1;
 
-    // Score
     ctx.fillStyle = score >= 80 ? "#10b981" : score >= 60 ? "#f59e0b" : "#ef4444";
     ctx.font = "bold 220px 'Space Grotesk', sans-serif";
     ctx.textAlign = "center";
     ctx.fillText(`${score}`, 540, 440);
 
-    // /100
     ctx.fillStyle = "#64748b";
     ctx.font = "bold 48px 'Space Grotesk', sans-serif";
     ctx.fillText("/100", 540, 510);
 
-    // Percentile
     ctx.fillStyle = "#e2e8f0";
     ctx.font = "bold 36px 'Satoshi', sans-serif";
-    ctx.fillText(percentile.rank + " of applicants", 540, 600);
+    ctx.fillText(comparisonText, 540, 600);
 
-    // Tagline
     ctx.fillStyle = "#94a3b8";
     ctx.font = "24px 'Satoshi', sans-serif";
     ctx.fillText("I thought my resume was good… I was wrong.", 540, 700);
 
-    // Branding
     ctx.fillStyle = "#7c3aed";
     ctx.font = "bold 28px 'Space Grotesk', sans-serif";
     ctx.fillText("matchrate.co", 540, 1020);
@@ -126,12 +126,18 @@ export const ResumeScoreCard = ({ score, atsScore, jdMatchScore }: ResumeScoreCa
         "relative overflow-hidden rounded-2xl p-8 shadow-2xl border border-white/10",
         `bg-gradient-to-br ${insight.bg}`
       )}>
-        {/* Decorative circles */}
         <div className="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-gradient-to-br from-white/5 to-transparent" />
         <div className="absolute -bottom-16 -left-16 w-48 h-48 rounded-full bg-gradient-to-tr from-white/5 to-transparent" />
 
         <div className="relative z-10 text-center space-y-6">
-          {/* Badge */}
+          {/* Role label */}
+          {roleLabel && (
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold bg-white/10 text-slate-300 border border-white/10">
+              {roleLabel} Resume Score
+            </div>
+          )}
+
+          {/* Comparison badge */}
           <div className={cn(
             "inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold",
             percentile.isTop
@@ -139,7 +145,7 @@ export const ResumeScoreCard = ({ score, atsScore, jdMatchScore }: ResumeScoreCa
               : "bg-red-500/20 text-red-400 border border-red-500/30"
           )}>
             <InsightIcon className="h-4 w-4" />
-            {percentile.rank} of applicants
+            {comparisonText}
           </div>
 
           {/* Giant Score */}
@@ -156,6 +162,9 @@ export const ResumeScoreCard = ({ score, atsScore, jdMatchScore }: ResumeScoreCa
           {/* Brutal insight */}
           <p className="text-lg text-slate-300 max-w-md mx-auto font-medium">
             {insight.text}
+          </p>
+          <p className="text-sm text-slate-500 max-w-sm mx-auto">
+            {insight.subtext}
           </p>
 
           {/* Mini stats */}
@@ -182,7 +191,7 @@ export const ResumeScoreCard = ({ score, atsScore, jdMatchScore }: ResumeScoreCa
         </div>
       </div>
 
-      {/* Share Actions */}
+      {/* Share + Improve Actions */}
       <div className="flex flex-wrap gap-3">
         <Button
           variant="outline"
