@@ -2,12 +2,8 @@ import {
   TrendingUp, 
   Shield, 
   Target, 
-  Flame,
   Lock,
   ArrowRight,
-  CheckCircle,
-  AlertTriangle,
-  XCircle,
   Sparkles,
   Eye
 } from "lucide-react";
@@ -18,6 +14,7 @@ import { RejectionInsightReport } from "../viral/RejectionInsightReport";
 import { JobMatchCard } from "../viral/JobMatchCard";
 import { BeforeAfterComparison } from "../viral/BeforeAfterComparison";
 import { ResumeRoastLines } from "../viral/ResumeRoastLines";
+import { ChallengeLoop } from "../viral/ChallengeLoop";
 
 interface ExecutiveSummaryProps {
   resumeScore?: number;
@@ -30,7 +27,7 @@ interface ExecutiveSummaryProps {
   isLoading?: boolean;
   onUnlock?: () => void;
   onNavigate: (tab: string) => void;
-  // New props for viral components
+  onRecheck?: () => void;
   missingKeywords?: string[];
   matchedSkills?: string[];
   weakBullets?: { original: string; improved: string }[];
@@ -38,6 +35,7 @@ interface ExecutiveSummaryProps {
   roastLines?: string[];
   onRegenerateRoast?: () => void;
   isRegenerating?: boolean;
+  roleLabel?: string;
 }
 
 export const ExecutiveSummary = ({
@@ -51,6 +49,7 @@ export const ExecutiveSummary = ({
   isLoading,
   onUnlock,
   onNavigate,
+  onRecheck,
   missingKeywords = [],
   matchedSkills = [],
   weakBullets = [],
@@ -58,6 +57,7 @@ export const ExecutiveSummary = ({
   roastLines = [],
   onRegenerateRoast,
   isRegenerating,
+  roleLabel,
 }: ExecutiveSummaryProps) => {
   
   const overallScore = Math.round(
@@ -66,17 +66,25 @@ export const ExecutiveSummary = ({
   
   return (
     <div className="space-y-8">
-      {/* 1. Brutal Score Card */}
+      {/* 🔥 SECTION 1: VIRAL HOOK — Above the fold */}
       <ResumeScoreCard 
         score={isLoading ? 0 : overallScore} 
         atsScore={atsScore} 
-        jdMatchScore={jdMatchScore} 
+        jdMatchScore={jdMatchScore}
+        roleLabel={roleLabel}
       />
 
-      {/* 5. Tier Ranking */}
+      {/* 🔥 SECTION 2: SOCIAL PROOF + TIER — Reinforce emotion */}
       <ResumeTierRanking score={isLoading ? 0 : overallScore} />
 
-      {/* 3. Verdict Cards Row */}
+      {/* 🔥 CHALLENGE LOOP — Drive re-engagement */}
+      {!isLoading && onRecheck && (
+        <ChallengeLoop score={overallScore} onRecheck={onRecheck} />
+      )}
+
+      {/* 🔽 SECTION 3+: DETAILS — Scroll zone */}
+
+      {/* Verdict Cards Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <VerdictCard
           icon={Sparkles}
@@ -113,7 +121,7 @@ export const ExecutiveSummary = ({
         />
       </div>
 
-      {/* 3. Rejection Insight Report */}
+      {/* Rejection Insight Report */}
       <RejectionInsightReport
         missingKeywords={missingKeywords}
         atsScore={atsScore}
@@ -123,7 +131,7 @@ export const ExecutiveSummary = ({
         onNavigate={onNavigate}
       />
 
-      {/* 4. Job Match Card */}
+      {/* Job Match Card */}
       {jdMatchScore !== undefined && (
         <JobMatchCard
           matchScore={jdMatchScore}
@@ -133,7 +141,7 @@ export const ExecutiveSummary = ({
         />
       )}
 
-      {/* 6. Before vs After */}
+      {/* Before vs After */}
       {weakBullets.length > 0 && (
         <BeforeAfterComparison
           bullets={weakBullets}
@@ -141,7 +149,7 @@ export const ExecutiveSummary = ({
         />
       )}
 
-      {/* 2. Roast Card */}
+      {/* Roast Card */}
       {(roastLines.length > 0 || roastPreview) && (
         <ResumeRoastLines
           roastLines={roastLines}
@@ -185,7 +193,7 @@ export const ExecutiveSummary = ({
   );
 };
 
-// Helper components
+// Helper functions
 const getResumeVerdict = (score?: number) => {
   if (!score) return { label: "Pending", color: "bg-slate-100 text-slate-600" };
   if (score >= 70) return { label: "Strong", color: "bg-emerald-100 text-emerald-700" };
