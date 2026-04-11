@@ -47,6 +47,7 @@ import LovableJobsIndex from "@/pages/lovable-jobs/Index";
 import LovableJobsResult from "@/pages/lovable-jobs/Result";
 import PublicProfile from "@/pages/PublicProfile";
 import Lovable from "@/pages/Lovable";
+import JobRolePage from "@/pages/resume/JobRolePage";
 
 function PageViewTracker() {
   const location = useLocation();
@@ -72,6 +73,7 @@ function AppContent() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/free-ats-check" element={<FreeATSCheck />} />
         <Route path="/resume-feedback" element={<ResumeFeedback />} />
+        <Route path="/resume/:slug" element={<JobRolePage />} />
         <Route path="/utm-dashboard" element={<UTMDashboard />} />
         <Route path="/blog/resume-psychology" element={<ResumePsychology />} />
         <Route path="/blog/improve-resume" element={<ImproveResume />} />

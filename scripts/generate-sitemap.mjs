@@ -2,7 +2,7 @@
  * Writes public/sitemap.xml from the canonical list of indexable routes.
  * Run via: npm run generate:sitemap (also runs before production build).
  */
-import { writeFileSync } from "node:fs";
+import { writeFileSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
@@ -11,6 +11,18 @@ const root = join(__dirname, "..");
 const outPath = join(root, "public", "sitemap.xml");
 
 const SITE = "https://www.matchrate.co";
+
+/** Slugs from src/data/jobRoles.ts — programmatic /resume/:slug SEO pages */
+function getJobRoleResumePaths() {
+  const file = join(root, "src", "data", "jobRoles.ts");
+  const text = readFileSync(file, "utf8");
+  const matches = [...text.matchAll(/^\s*slug:\s*"([^"]+)"/gm)];
+  return matches.map((m) => ({
+    path: `/resume/${m[1]}`,
+    priority: "0.8",
+    changefreq: "weekly",
+  }));
+}
 
 /** Paths to include (static marketing + blog). No /dashboard, /auth, etc. */
 const PATHS = [
@@ -47,9 +59,11 @@ const PATHS = [
   { path: "/blog/ai-resume-writers-vs-ats", priority: "0.7", changefreq: "monthly" },
 ];
 
+const PATHS_ALL = [...PATHS, ...getJobRoleResumePaths()];
+
 const lastmod = new Date().toISOString().slice(0, 10);
 
-const urlEntries = PATHS.map(
+const urlEntries = PATHS_ALL.map(
   ({ path, priority, changefreq }) => `
 <url>
   <loc>${SITE}${path === "/" ? "/" : path}</loc>
@@ -66,4 +80,6 @@ ${urlEntries}
 `;
 
 writeFileSync(outPath, xml.trim() + "\n", "utf8");
-console.log(`Wrote ${PATHS.length} URLs to public/sitemap.xml (lastmod ${lastmod})`);
+console.log(
+  `Wrote ${PATHS_ALL.length} URLs to public/sitemap.xml (${PATHS.length} static + ${PATHS_ALL.length - PATHS.length} job-role resume pages, lastmod ${lastmod})`
+);
