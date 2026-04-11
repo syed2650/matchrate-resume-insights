@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Upload, FileText, CheckCircle, AlertCircle, TrendingUp, Download, Star, Loader2, X, MessageSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Footer from "@/components/sections/Footer";
+import { SEOHead } from "@/components/SEOHead";
 import Tesseract from 'tesseract.js';
 import mammoth from 'mammoth';
 import * as pdfjs from 'pdfjs-dist';
@@ -304,6 +305,13 @@ const ResumeFeedback = () => {
   };
 
   return (
+    <>
+      <SEOHead
+        title="Free Resume Health Check — AI Feedback in 30 Seconds"
+        description="Upload your resume for a free AI health check: content quality, ATS compatibility, and formatting tips — no signup required."
+        keywords="resume health check, free resume feedback, ATS compatibility, resume review"
+        canonicalUrl="https://www.matchrate.co/resume-feedback"
+      />
     <div className="min-h-screen bg-warm-bg">
       {/* Header section */}
       <section className="w-full hero-gradient pt-32 md:pt-40 pb-20 md:pb-32 relative overflow-hidden">
@@ -583,6 +591,7 @@ Ask anything you'd normally ask on Reddit about your resume - our AI will give y
 
       <Footer />
     </div>
+    </>
   );
 };
 

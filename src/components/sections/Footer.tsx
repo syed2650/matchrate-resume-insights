@@ -2,8 +2,26 @@ import { Link } from "react-router-dom";
 
 const Footer = () => {
   const links = [
-    { label: "Product", items: [{ to: "/review", text: "Resume Analyzer" }, { to: "/lovable", text: "Resume Roast" }, { to: "/resume-feedback", text: "Health Check" }, { to: "/#pricing", text: "Pricing" }] },
-    { label: "Company", items: [{ to: "/about", text: "About" }, { to: "/blog", text: "Blog" }, { to: "/contact", text: "Contact" }] },
+    {
+      label: "Product",
+      items: [
+        { to: "/", text: "Home" },
+        { to: "/review", text: "Resume Analyzer" },
+        { to: "/free-ats-check", text: "Free ATS Check" },
+        { to: "/lovable", text: "Resume Roast" },
+        { to: "/resume-feedback", text: "Health Check" },
+        { to: "/#pricing", text: "Pricing" },
+      ],
+    },
+    {
+      label: "Company",
+      items: [
+        { to: "/about", text: "About" },
+        { to: "/blog", text: "Blog" },
+        { to: "/faq", text: "FAQ" },
+        { to: "/contact", text: "Contact" },
+      ],
+    },
     { label: "Legal", items: [{ to: "/terms", text: "Terms" }, { to: "/privacy", text: "Privacy" }, { to: "/cookie-policy", text: "Cookies" }] },
   ];
 

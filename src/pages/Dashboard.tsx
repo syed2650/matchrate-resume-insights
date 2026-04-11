@@ -24,6 +24,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { getUsageStats } from "@/pages/review/utils";
 import FloatingOrbs from "@/components/ui/FloatingOrbs";
+import { SEOHead } from "@/components/SEOHead";
 
 type Submission = {
   id: string;
@@ -166,6 +167,13 @@ export default function Dashboard() {
   const checksRemaining = isLifetimePremium ? '∞' : usageStats.checksTotal - usageStats.checksUsed;
 
   return (
+    <>
+      <SEOHead
+        title="Dashboard — Your Resume Analyses"
+        description="Your private MatchRate dashboard: usage limits, past analyses, and quick access to new resume reviews."
+        canonicalUrl="https://www.matchrate.co/dashboard"
+        noindex
+      />
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50/50">
       <FloatingOrbs variant="hero" />
       
@@ -455,5 +463,6 @@ export default function Dashboard() {
         </motion.div>
       </div>
     </div>
+    </>
   );
 }

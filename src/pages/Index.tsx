@@ -15,15 +15,38 @@ import { SEOHead } from "@/components/SEOHead";
 const Index = () => {
   const structuredData = {
     "@context": "https://schema.org",
-    "@type": "WebSite",
-    "name": "MatchRate",
-    "url": "https://www.matchrate.co",
-    "description": "AI-powered resume analysis tool that helps job seekers optimize their resumes for ATS systems and land more interviews.",
-    "potentialAction": {
-      "@type": "SearchAction",
-      "target": "https://www.matchrate.co/review?q={search_term_string}",
-      "query-input": "required name=search_term_string"
-    }
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://www.matchrate.co/#organization",
+        name: "MatchRate",
+        url: "https://www.matchrate.co",
+        logo: {
+          "@type": "ImageObject",
+          url: "https://www.matchrate.co/lovable-uploads/1995df7f-73f3-4583-9980-04dc5569cd1d.png",
+        },
+        description:
+          "AI-powered resume analysis and optimization to help job seekers pass ATS and land interviews.",
+        sameAs: [
+          "https://twitter.com/matchrate_ai",
+          "https://www.linkedin.com/company/matchrate",
+        ],
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://www.matchrate.co/#website",
+        name: "MatchRate",
+        url: "https://www.matchrate.co",
+        publisher: { "@id": "https://www.matchrate.co/#organization" },
+        description:
+          "AI-powered resume analysis tool that helps job seekers optimize their resumes for ATS systems and land more interviews.",
+        potentialAction: {
+          "@type": "SearchAction",
+          target: "https://www.matchrate.co/review?q={search_term_string}",
+          "query-input": "required name=search_term_string",
+        },
+      },
+    ],
   };
 
   useEffect(() => {

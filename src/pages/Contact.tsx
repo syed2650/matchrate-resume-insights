@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import FloatingOrbs from "@/components/ui/FloatingOrbs";
 import { Mail, Clock, Send, MessageSquare } from "lucide-react";
+import { SEOHead } from "@/components/SEOHead";
 
 const Contact = () => {
   const [name, setName] = useState("");
@@ -31,6 +32,13 @@ const Contact = () => {
   };
 
   return (
+    <>
+      <SEOHead
+        title="Contact MatchRate — Support & Partnerships"
+        description="Contact the MatchRate team for product questions, billing help, or partnerships. We typically respond within 24 hours."
+        keywords="contact MatchRate, resume analyzer support, help"
+        canonicalUrl="https://www.matchrate.co/contact"
+      />
     <div className="min-h-screen bg-warm-bg font-sans relative overflow-hidden">
       <FloatingOrbs variant="hero" />
       
@@ -198,6 +206,7 @@ const Contact = () => {
         </div>
       </main>
     </div>
+    </>
   );
 };
 

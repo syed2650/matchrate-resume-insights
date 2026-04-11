@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { UTMLinkGenerator } from '@/components/UTMLinkGenerator';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { SEOHead } from '@/components/SEOHead';
 
 interface AnalyticsData {
   traffic_by_source: any[];
@@ -50,13 +51,28 @@ const UTMDashboard = () => {
 
   if (loading) {
     return (
+      <>
+        <SEOHead
+          title="UTM Analytics — MatchRate"
+          description="Internal UTM traffic and conversion analytics for MatchRate."
+          canonicalUrl="https://www.matchrate.co/utm-dashboard"
+          noindex
+        />
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">Loading analytics data...</div>
       </div>
+      </>
     );
   }
 
   return (
+    <>
+      <SEOHead
+        title="UTM Analytics Dashboard — MatchRate"
+        description="Traffic sources, conversion funnel, and campaign performance for MatchRate marketing."
+        canonicalUrl="https://www.matchrate.co/utm-dashboard"
+        noindex
+      />
     <div className="container mx-auto px-4 py-8 space-y-8">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">UTM Analytics Dashboard</h1>
@@ -166,6 +182,7 @@ const UTMDashboard = () => {
       {/* UTM Link Generator */}
       <UTMLinkGenerator />
     </div>
+    </>
   );
 };
 

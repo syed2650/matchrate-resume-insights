@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, Circle, ChevronDown, ChevronUp, Target, TrendingUp, Clock } from "lucide-react";
+import { SEOHead } from "@/components/SEOHead";
 
 interface ChecklistItem {
   id: string;
@@ -340,6 +341,13 @@ const FreeATSCheck = () => {
   const scorePercentage = (totalScore / maxScore) * 100;
 
   return (
+    <>
+      <SEOHead
+        title="Free Interactive ATS Resume Checker"
+        description="Score your resume against 20 ATS factors with MatchRate's free interactive checklist. Improve formatting, keywords, and structure before you apply."
+        keywords="ATS resume checker, free ATS compatibility, resume score, ATS resume test"
+        canonicalUrl="https://www.matchrate.co/free-ats-check"
+      />
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Header */}
@@ -572,6 +580,7 @@ const FreeATSCheck = () => {
         </Card>
       </div>
     </div>
+    </>
   );
 };
 

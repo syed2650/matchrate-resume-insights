@@ -1,8 +1,16 @@
 
 import { Scale } from "lucide-react";
+import { SEOHead } from "@/components/SEOHead";
 
 export default function Terms() {
   return (
+    <>
+      <SEOHead
+        title="Terms of Service — MatchRate.co"
+        description="Terms governing use of MatchRate resume analysis, optimization, and AI-powered services. Read eligibility, acceptable use, and limitations."
+        keywords="terms of service, MatchRate terms, legal"
+        canonicalUrl="https://www.matchrate.co/terms"
+      />
     <div className="container max-w-screen-xl mx-auto px-4 py-16">
       <h1 className="text-3xl font-bold mb-8 flex items-center gap-2">
         <Scale className="h-8 w-8" />
@@ -114,5 +122,6 @@ These Terms shall be governed by and construed in accordance with the laws of th
         </p>
       </div>
     </div>
+    </>
   );
 }

@@ -53,7 +53,10 @@ export default function NavBar() {
                 {[
                   { to: "/", label: "Home" },
                   { to: "/about", label: "About" },
+                  { to: "/review", label: "Analyzer" },
                   { to: "/#features", label: "Features" },
+                  { to: "/faq", label: "FAQ" },
+                  { to: "/contact", label: "Contact" },
                 ].map((link) => (
                   <Link
                     key={link.to}
@@ -80,6 +83,9 @@ export default function NavBar() {
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link to="/blog" className="cursor-pointer">Blog</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/free-ats-check" className="cursor-pointer">Free ATS Check</Link>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -137,7 +143,10 @@ export default function NavBar() {
                 {[
                   { to: "/", label: "Home" },
                   { to: "/about", label: "About" },
+                  { to: "/review", label: "Analyzer" },
                   { to: "/#features", label: "Features" },
+                  { to: "/faq", label: "FAQ" },
+                  { to: "/contact", label: "Contact" },
                   { to: "/blog", label: "Blog" },
                 ].map((link) => (
                   <Link

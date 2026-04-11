@@ -3,6 +3,7 @@ import { useLocation, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Home, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { SEOHead } from "@/components/SEOHead";
 
 const NotFound = () => {
   const location = useLocation();
@@ -63,6 +64,13 @@ const NotFound = () => {
   const suggestions = getSuggestions();
 
   return (
+    <>
+      <SEOHead
+        title="Page Not Found — MatchRate"
+        description="The page you requested could not be found. Return to MatchRate home or try our resume analyzer."
+        canonicalUrl="https://www.matchrate.co/"
+        noindex
+      />
     <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
       <div className="w-full max-w-md text-center bg-white p-8 rounded-lg shadow-md">
         <div className="mb-6">
@@ -123,6 +131,7 @@ const NotFound = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

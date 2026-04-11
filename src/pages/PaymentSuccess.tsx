@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Check, ArrowRight } from "lucide-react";
 import { setUserPlan } from "@/pages/review/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { SEOHead } from "@/components/SEOHead";
 
 const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
@@ -49,12 +50,19 @@ const PaymentSuccess = () => {
   }, [sessionId, isLifetimePremium]);
 
   return (
+    <>
+      <SEOHead
+        title="Payment Status — MatchRate"
+        description="Confirming your MatchRate subscription or payment. Redirecting to your account shortly."
+        canonicalUrl="https://www.matchrate.co/payment-success"
+        noindex
+      />
     <div className="container mx-auto px-4 py-16 max-w-3xl">
       <Card className="p-8 md:p-12 flex flex-col items-center text-center">
         {isProcessing ? (
           <div className="flex flex-col items-center space-y-4">
             <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
-            <h1 className="text-3xl font-bold mt-2">Processing your payment...</h1>
+            <p className="text-3xl font-bold mt-2" role="status">Processing your payment...</p>
             <p className="text-gray-500">This will just take a moment.</p>
           </div>
         ) : (
@@ -113,6 +121,7 @@ const PaymentSuccess = () => {
         )}
       </Card>
     </div>
+    </>
   );
 };
 

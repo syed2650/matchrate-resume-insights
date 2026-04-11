@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Share2, Twitter } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { SEOHead } from "@/components/SEOHead";
 
 interface Profile {
   id: string;
@@ -82,16 +83,33 @@ export default function PublicProfile() {
     );
   };
 
+  const profileCanonical = slug ? `https://www.matchrate.co/u/${slug}` : "https://www.matchrate.co/u/";
+
   if (loading) {
     return (
+      <>
+        <SEOHead
+          title="Shared Profile — MatchRate"
+          description="Loading a shared MatchRate AI resume roast or love note."
+          canonicalUrl={slug ? `https://www.matchrate.co/u/${slug}` : "https://www.matchrate.co/u/"}
+          noindex
+        />
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-muted-foreground">Loading...</div>
       </div>
+      </>
     );
   }
 
   if (!profile) {
     return (
+      <>
+        <SEOHead
+          title="Profile Not Found — MatchRate"
+          description="This shared profile does not exist or was removed."
+          canonicalUrl="https://www.matchrate.co/"
+          noindex
+        />
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
           <h1 className="text-2xl font-bold">Profile Not Found</h1>
@@ -100,17 +118,24 @@ export default function PublicProfile() {
           </Link>
         </div>
       </div>
+      </>
     );
   }
 
   return (
+    <>
+      <SEOHead
+        title={`Shared ${profile.mode === "love" ? "Love Note" : "Roast"} — MatchRate`}
+        description="A shared AI-generated resume roast or love note from MatchRate. View feedback and share with friends."
+        canonicalUrl={profileCanonical}
+      />
     <div className="min-h-screen bg-background py-12 px-4">
       <div className="max-w-2xl mx-auto space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-center text-3xl">
+            <h1 className="text-center text-3xl font-semibold tracking-tight">
               {profile.mode === "love" ? "Love Note ❤️" : "Roast 🔥"}
-            </CardTitle>
+            </h1>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="text-center space-y-4">
@@ -145,5 +170,6 @@ export default function PublicProfile() {
         </Card>
       </div>
     </div>
+    </>
   );
 }

@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Copy, Share2, Download, Award, Flame, Heart, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import FloatingOrbs from "@/components/ui/FloatingOrbs";
+import { SEOHead } from "@/components/SEOHead";
 
 type Mode = "roast" | "love";
 
@@ -165,6 +166,13 @@ export default function Lovable() {
   };
 
   return (
+    <>
+      <SEOHead
+        title="Resume Roast & Love Note — AI Feedback"
+        description="Get a playful AI roast or encouraging love note for your resume, plus actionable feedback you can use to improve."
+        keywords="resume roast, AI resume feedback, resume humor, resume review"
+        canonicalUrl="https://www.matchrate.co/lovable"
+      />
     <div className="min-h-screen bg-warm-bg py-12 px-4 relative overflow-hidden">
       <FloatingOrbs variant="hero" />
       
@@ -497,5 +505,6 @@ export default function Lovable() {
         )}
       </div>
     </div>
+    </>
   );
 }

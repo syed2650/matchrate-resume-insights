@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
+import { SEOHead } from "@/components/SEOHead";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -134,11 +135,18 @@ const Auth = () => {
   }
 
   return (
+    <>
+      <SEOHead
+        title="Sign In or Sign Up — MatchRate"
+        description="Access your MatchRate account to manage resume reviews, premium features, and checkout."
+        canonicalUrl="https://www.matchrate.co/auth"
+        noindex
+      />
     <div className="flex items-center justify-center min-h-[calc(100vh-70px)] bg-slate-50 py-10">
       <Card className="p-8 max-w-md w-full">
-        <h2 className="text-2xl font-bold mb-6 text-center">
+        <h1 className="text-2xl font-bold mb-6 text-center">
           {isLogin ? "Sign In to Matchrate.ai" : "Sign Up for Matchrate.ai"}
-        </h2>
+        </h1>
         <form className="space-y-4" onSubmit={handleAuth}>
           <Input
             type="email"
@@ -185,6 +193,7 @@ const Auth = () => {
         </div>
       </Card>
     </div>
+    </>
   );
 };
 

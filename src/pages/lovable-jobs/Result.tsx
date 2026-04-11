@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { SEOHead } from "@/components/SEOHead";
 
 interface RoastData {
   resume: string;
@@ -59,13 +60,20 @@ export default function Result() {
   if (!data) return null;
 
   return (
+    <>
+      <SEOHead
+        title="Your AI Resume — Roast or Love Note"
+        description="Your personalized AI resume feedback. Share your profile or start a new roast or love note."
+        canonicalUrl="https://www.matchrate.co/lovable-jobs/result"
+        noindex
+      />
     <div className="min-h-screen bg-background py-12 px-4">
       <div className="max-w-2xl mx-auto space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-center text-2xl">
+            <h1 className="text-center text-2xl font-semibold tracking-tight">
               Your AI {data.mode === "love" ? "Love Note ❤️" : "Roast 🔥"}
-            </CardTitle>
+            </h1>
           </CardHeader>
           <CardContent>
             <div className="whitespace-pre-line text-foreground">
@@ -92,5 +100,6 @@ export default function Result() {
         </Button>
       </div>
     </div>
+    </>
   );
 }

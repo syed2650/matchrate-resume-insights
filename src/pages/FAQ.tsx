@@ -1,6 +1,7 @@
-import { HelpCircle, ChevronDown } from "lucide-react";
+import { HelpCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import FloatingOrbs from "@/components/ui/FloatingOrbs";
+import { SEOHead } from "@/components/SEOHead";
 import {
   Accordion,
   AccordionContent,
@@ -53,6 +54,13 @@ const faqs = [
 
 export default function FAQ() {
   return (
+    <>
+      <SEOHead
+        title="FAQ — MatchRate Resume Analyzer & Pricing"
+        description="Answers about how MatchRate works, ATS scores, privacy, pricing, refunds, and support — so you can optimize your resume with confidence."
+        keywords="MatchRate FAQ, resume analyzer help, ATS questions, pricing, support"
+        canonicalUrl="https://www.matchrate.co/faq"
+      />
     <div className="min-h-screen bg-warm-bg relative overflow-hidden">
       <FloatingOrbs variant="section" />
       
@@ -129,5 +137,6 @@ export default function FAQ() {
         </motion.div>
       </div>
     </div>
+    </>
   );
 }

@@ -7,7 +7,7 @@ interface SEOHeadProps {
   canonicalUrl?: string;
   ogImage?: string;
   ogType?: string;
-  structuredData?: object;
+  structuredData?: object | object[];
   noindex?: boolean;
 }
 
@@ -54,11 +54,16 @@ export function SEOHead({
       <meta name="twitter:site" content="@matchrate_ai" />
       
       {/* Structured Data */}
-      {structuredData && (
-        <script type="application/ld+json">
-          {JSON.stringify(structuredData)}
-        </script>
-      )}
+      {structuredData &&
+        (Array.isArray(structuredData) ? (
+          structuredData.map((data, i) => (
+            <script key={i} type="application/ld+json">
+              {JSON.stringify(data)}
+            </script>
+          ))
+        ) : (
+          <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
+        ))}
     </Helmet>
   );
 }

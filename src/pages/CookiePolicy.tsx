@@ -1,8 +1,16 @@
 
 import { Cookie } from "lucide-react";
+import { SEOHead } from "@/components/SEOHead";
 
 export default function CookiePolicy() {
   return (
+    <>
+      <SEOHead
+        title="Cookie Policy — MatchRate.co"
+        description="How MatchRate uses cookies and similar technologies for authentication, analytics, and a better experience on matchrate.co."
+        keywords="cookie policy, cookies, MatchRate privacy"
+        canonicalUrl="https://www.matchrate.co/cookie-policy"
+      />
     <div className="container max-w-screen-xl mx-auto px-4 py-16">
       <h1 className="text-3xl font-bold mb-8 flex items-center gap-2">
         <Cookie className="h-8 w-8" />
@@ -72,5 +80,6 @@ Note: Disabling cookies may affect the functionality of certain parts of the Web
         </p>
       </div>
     </div>
+    </>
   );
 }

@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { SEOHead } from "@/components/SEOHead";
 
 export default function LovableJobsIndex() {
   const [resume, setResume] = useState("");
@@ -55,6 +56,12 @@ export default function LovableJobsIndex() {
   };
 
   return (
+    <>
+      <SEOHead
+        title="Lovable for Jobs — Resume Roast or Love Note"
+        description="Paste your resume for a quick AI roast or supportive love note — built for job seekers who want honest, shareable feedback."
+        canonicalUrl="https://www.matchrate.co/lovable-jobs"
+      />
     <div className="min-h-screen bg-background py-12 px-4">
       <div className="max-w-2xl mx-auto space-y-6">
         <div className="text-center space-y-2">
@@ -98,5 +105,6 @@ export default function LovableJobsIndex() {
         </Button>
       </div>
     </div>
+    </>
   );
 }
