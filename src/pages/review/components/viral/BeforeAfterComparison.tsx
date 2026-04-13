@@ -29,7 +29,7 @@ export const BeforeAfterComparison = ({ bullets, onOptimize }: BeforeAfterCompar
           </div>
           <div>
             <h3 className="text-xl font-bold">This is how top candidates write their resumes</h3>
-            <p className="text-white/80 text-sm font-medium">Small changes = big impact</p>
+            <p className="text-white/80 text-sm font-medium">Same experience. Better positioning. More interviews.</p>
           </div>
         </div>
       </div>

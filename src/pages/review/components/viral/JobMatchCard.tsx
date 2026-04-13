@@ -30,7 +30,7 @@ export const JobMatchCard = ({
 
   const getVerdict = (s: number) => {
     if (s >= 80) return "Strong fit — you're competitive for this role.";
-    if (s >= 60) return "You're missing critical skills recruiters expect.";
+    if (s >= 60) return "You're missing what recruiters are actually hiring for.";
     if (s >= 40) return "Significant gaps — this is why you're getting filtered out.";
     return "Poor fit — this resume won't make the cut for this role.";
   };
@@ -48,8 +48,8 @@ export const JobMatchCard = ({
             <Target className="h-6 w-6" />
           </div>
           <div>
-            <h3 className="text-xl font-bold">Resume vs Job Match</h3>
-            <p className="text-white/70 text-sm">How well your resume fits this role</p>
+            <h3 className="text-xl font-bold">You're missing what recruiters are actually hiring for.</h3>
+            <p className="text-white/70 text-sm">This is why you're getting filtered out.</p>
           </div>
         </div>
       </div>

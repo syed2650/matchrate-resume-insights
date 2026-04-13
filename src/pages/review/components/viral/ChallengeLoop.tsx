@@ -26,7 +26,7 @@ export const ChallengeLoop = ({ score, onRecheck }: ChallengeLoopProps) => {
             Can you beat {targetScore}?
           </h3>
           <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto">
-            Only 12% of users reach 85+. Most improve by 10–20 points after one optimization.
+            Only 12% of users reach 85+. Most stay stuck where you are.
           </p>
         </div>
 
@@ -39,7 +39,7 @@ export const ChallengeLoop = ({ score, onRecheck }: ChallengeLoopProps) => {
           size="lg"
         >
           <RefreshCw className="h-4 w-4" />
-          Improve My Resume
+          Fix My Resume Now
         </Button>
       </div>
     </div>
