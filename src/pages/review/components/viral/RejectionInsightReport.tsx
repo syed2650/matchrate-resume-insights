@@ -61,14 +61,14 @@ export const RejectionInsightReport = ({
 
   if (missingKeywords.length >= 5) {
     reasons.push({
-      reason: `Keyword mismatch: Missing ${missingKeywords.length} critical terms`,
-      detail: `Your resume is missing: ${missingKeywords.slice(0, 5).join(", ")}${missingKeywords.length > 5 ? "…" : ""}`,
+      reason: `You're missing ${missingKeywords.length} keywords recruiters are filtering for`,
+      detail: `Your resume never shows up because it's missing: ${missingKeywords.slice(0, 5).join(", ")}${missingKeywords.length > 5 ? "…" : ""}`,
       severity: "high",
     });
   } else if (missingKeywords.length > 0) {
     reasons.push({
-      reason: `Missing ${missingKeywords.length} keywords from job description`,
-      detail: `Add these terms: ${missingKeywords.join(", ")}`,
+      reason: `Missing ${missingKeywords.length} keywords recruiters are filtering for`,
+      detail: `Your resume won't show up without these: ${missingKeywords.join(", ")}`,
       severity: "medium",
     });
   }
@@ -76,41 +76,41 @@ export const RejectionInsightReport = ({
   if (atsScore < 50) {
     reasons.push({
       reason: "Your resume is invisible to ATS systems",
-      detail: "ATS software will auto-reject this before any recruiter sees it.",
+      detail: "ATS software will auto-reject this before any recruiter sees it. You're applying into a black hole.",
       severity: "high",
     });
   } else if (atsScore < 70) {
     reasons.push({
-      reason: "ATS compatibility needs improvement",
-      detail: "Some ATS systems may struggle to parse your resume, reducing your chances.",
+      reason: "ATS compatibility is hurting your chances",
+      detail: "Some ATS systems will struggle to parse your resume — meaning fewer humans will ever read it.",
       severity: "medium",
     });
   }
 
   if (weakBullets.length >= 3) {
     reasons.push({
-      reason: `Weak impact: ${weakBullets.length} bullets lack measurable achievements`,
-      detail: "Your bullets read like job descriptions, not accomplishments. Recruiters scan for numbers and results.",
+      reason: `Your bullets sound busy — not impactful`,
+      detail: "Recruiters want results, not responsibilities. Your bullets read like a job description, not proof of what you achieved.",
       severity: "high",
     });
   } else if (weakBullets.length > 0) {
     reasons.push({
-      reason: `${weakBullets.length} bullet points need stronger impact`,
-      detail: "Add metrics, outcomes, or specific results to make these stand out.",
+      reason: `${weakBullets.length} bullet points lack real impact`,
+      detail: "Add metrics, outcomes, or specific results. Without proof, recruiters won't believe the claims.",
       severity: "medium",
     });
   }
 
   if (jdMatchScore < 50) {
     reasons.push({
-      reason: "Poor alignment with job requirements",
-      detail: "Your experience doesn't clearly map to what this role needs.",
+      reason: "Your resume doesn't match what this role needs",
+      detail: "Your experience doesn't clearly map to the job requirements. This is why you're getting filtered out.",
       severity: "high",
     });
   } else if (jdMatchScore < 70) {
     reasons.push({
-      reason: "Partial job fit — gaps in key areas",
-      detail: "You match some requirements but miss others. Targeted adjustments can close the gap.",
+      reason: "Partial job fit — you're close but not close enough",
+      detail: "You match some requirements but miss others. Recruiters pick the candidates who tick every box.",
       severity: "medium",
     });
   }
@@ -118,7 +118,7 @@ export const RejectionInsightReport = ({
   issues.slice(0, 2).forEach((issue) => {
     reasons.push({
       reason: issue,
-      detail: "Detected during ATS analysis. Fix this to improve your pass rate.",
+      detail: "Detected during ATS analysis. This is actively reducing your pass rate.",
       severity: "medium",
     });
   });
@@ -133,7 +133,7 @@ export const RejectionInsightReport = ({
   const highCount = sortedReasons.filter((r) => r.severity === "high").length;
 
   const shareText = encodeURIComponent(
-    `My resume has ${highCount} critical issues holding me back 😭\n\nFind out why you're not getting interviews → matchrate.co`
+    `My resume has ${highCount} critical issues holding me back 😭\n\nAI just roasted my resume. Fair enough.\n\nFind out why you're not getting interviews → matchrate.co`
   );
 
   return (

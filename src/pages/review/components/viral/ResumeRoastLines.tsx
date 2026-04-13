@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Flame, RefreshCw, Twitter, Linkedin, Copy, Check } from "lucide-react";
+import { Flame, RefreshCw, Twitter, Linkedin, Copy, Check, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { track } from "@/lib/mixpanel";
@@ -11,11 +11,11 @@ interface ResumeRoastLinesProps {
 }
 
 const FALLBACK_ROASTS = [
-  "This bullet point says a lot… without saying anything 💀",
-  "Recruiters read this and move on in seconds",
-  "This sounds impressive, but lacks real impact",
-  "Your resume has more buzzwords than actual results",
-  "You managed a team… of what? Vibes?",
+  "This bullet point says a lot… without saying anything.",
+  "You wrote this like a job description, not an achievement.",
+  "Recruiters read this and feel nothing.",
+  "Sounds impressive… until you realize there's no proof.",
+  "If everything is important, nothing is.",
 ];
 
 export const ResumeRoastLines = ({ roastLines, onRegenerate, isRegenerating }: ResumeRoastLinesProps) => {
@@ -31,7 +31,7 @@ export const ResumeRoastLines = ({ roastLines, onRegenerate, isRegenerating }: R
   };
 
   const shareText = encodeURIComponent(
-    `Got roasted by AI. Fair enough. 🔥\n\n"${lines[0]}"\n\nGet yours roasted at matchrate.co`
+    `AI just roasted my resume. Fair enough. 🔥\n\n💀 "${lines[0]}"\n\nGet yours roasted at matchrate.co`
   );
 
   return (
@@ -45,7 +45,7 @@ export const ResumeRoastLines = ({ roastLines, onRegenerate, isRegenerating }: R
             </div>
             <div>
               <h3 className="text-2xl font-black tracking-tight">Resume Roast</h3>
-              <p className="text-white/80 text-sm font-medium">Brutally honest. Painfully accurate.</p>
+              <p className="text-white/80 text-sm font-medium">Brutally honest. Slightly painful. 100% accurate.</p>
             </div>
           </div>
           {onRegenerate && (
@@ -57,7 +57,7 @@ export const ResumeRoastLines = ({ roastLines, onRegenerate, isRegenerating }: R
               className="text-white hover:bg-white/20 gap-2"
             >
               <RefreshCw className={cn("h-4 w-4", isRegenerating && "animate-spin")} />
-              New Roast
+              Roast Me Again 🔥
             </Button>
           )}
         </div>
@@ -101,8 +101,8 @@ export const ResumeRoastLines = ({ roastLines, onRegenerate, isRegenerating }: R
           }}
           className="gap-2 border-sky-800 text-sky-400 hover:bg-sky-950"
         >
-          <Twitter className="h-4 w-4" />
-          Share Roast
+          <Share2 className="h-4 w-4" />
+          Share This Roast 😭
         </Button>
         <Button
           variant="outline"

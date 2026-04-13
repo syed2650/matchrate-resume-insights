@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Download, Linkedin, Twitter, TrendingDown, TrendingUp, Skull, Trophy, Share2 } from "lucide-react";
+import { Download, Linkedin, Twitter, TrendingDown, TrendingUp, Skull, Trophy, Share2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { track } from "@/lib/mixpanel";
@@ -9,6 +9,7 @@ interface ResumeScoreCardProps {
   atsScore?: number;
   jdMatchScore?: number;
   roleLabel?: string;
+  isLoading?: boolean;
 }
 
 const getPercentile = (score: number) => {
@@ -17,13 +18,13 @@ const getPercentile = (score: number) => {
   if (score >= 70) return { rank: "Top 35%", worse: 65, isTop: true };
   if (score >= 60) return { rank: "Bottom 40%", worse: 60, isTop: false };
   if (score >= 50) return { rank: "Bottom 50%", worse: 50, isTop: false };
-  return { rank: "Bottom 63%", worse: 37, isTop: false };
+  return { rank: "Bottom 63%", worse: 63, isTop: false };
 };
 
 const getEmotionalHeadline = (score: number) => {
-  if (score < 60) return "This resume is getting filtered out before recruiters even see it.";
-  if (score <= 80) return "You're losing interviews due to weak optimization.";
-  return "Strong resume — but top candidates still outperform you.";
+  if (score < 60) return "This resume is getting rejected before a human even sees it.";
+  if (score <= 80) return "This resume is costing you interviews.";
+  return "Good… but top candidates are still beating you.";
 };
 
 const getInsight = (score: number) => {
@@ -53,7 +54,7 @@ const getInsight = (score: number) => {
   };
 };
 
-export const ResumeScoreCard = ({ score, atsScore, jdMatchScore, roleLabel }: ResumeScoreCardProps) => {
+export const ResumeScoreCard = ({ score, atsScore, jdMatchScore, roleLabel, isLoading }: ResumeScoreCardProps) => {
   const percentile = getPercentile(score);
   const headline = getEmotionalHeadline(score);
   const insight = getInsight(score);
@@ -61,7 +62,7 @@ export const ResumeScoreCard = ({ score, atsScore, jdMatchScore, roleLabel }: Re
 
   const comparisonText = percentile.isTop
     ? `You're better than ${percentile.worse}% of applicants`
-    : `You are behind ${percentile.worse}% of applicants`;
+    : `You're worse than ${percentile.worse}% of applicants.`;
 
   const topCandidateText = score < 80
     ? `Top candidates score 80+ — you're not there yet.`
@@ -70,7 +71,7 @@ export const ResumeScoreCard = ({ score, atsScore, jdMatchScore, roleLabel }: Re
   const shareCaption = score < 60
     ? `Only ${score}% ATS score… no wonder I get rejected 😭`
     : score < 80
-    ? `I thought my resume was good… turns out I was wrong 😭`
+    ? `I thought my resume was good… I was wrong 😭\n\nTurns out my resume is worse than ${percentile.worse}% of applicants… explains a lot.`
     : `My resume scored ${score}/100! 💪 Check yours →`;
 
   const shareText = encodeURIComponent(
@@ -137,7 +138,9 @@ export const ResumeScoreCard = ({ score, atsScore, jdMatchScore, roleLabel }: Re
       {/* Main Score Card — Spotify Wrapped style */}
       <div className={cn(
         "relative overflow-hidden rounded-2xl shadow-2xl border border-white/10",
-        `bg-gradient-to-br ${insight.bg}`
+        isLoading
+          ? "bg-gradient-to-br from-[#0a0a14] via-[#0f0f1a] to-[#0a0a14]"
+          : `bg-gradient-to-br ${insight.bg}`
       )}>
         {/* Decorative glows */}
         <div className="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-gradient-to-br from-white/5 to-transparent" />
@@ -151,93 +154,114 @@ export const ResumeScoreCard = ({ score, atsScore, jdMatchScore, roleLabel }: Re
             </div>
           )}
 
-          {/* Giant Score */}
-          <div>
-            <span className={cn(
-              "text-[9rem] sm:text-[10rem] leading-none font-black tracking-tight bg-gradient-to-b bg-clip-text text-transparent",
-              `${insight.gradient}`
-            )}>
-              {score}
-            </span>
-            <span className="text-4xl sm:text-5xl text-slate-500 font-bold">/100</span>
-          </div>
-
-          {/* Emotional headline */}
-          <p className="text-xl sm:text-2xl text-white font-bold max-w-lg mx-auto leading-snug">
-            {headline}
-          </p>
-
-          {/* Comparison badge */}
-          <div className={cn(
-            "inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold",
-            percentile.isTop
-              ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-              : "bg-red-500/20 text-red-400 border border-red-500/30"
-          )}>
-            <InsightIcon className="h-4 w-4" />
-            {comparisonText}
-          </div>
-
-          {/* Top candidate comparison */}
-          <p className="text-sm text-slate-400 font-medium">
-            {topCandidateText}
-          </p>
-
-          {/* 6-second line */}
-          <p className="text-xs text-slate-500 italic">
-            Most recruiters spend less than 6 seconds on a resume.
-          </p>
-
-          {/* Mini stats */}
-          {(atsScore !== undefined || jdMatchScore !== undefined) && (
-            <div className="flex justify-center gap-8 pt-2">
-              {atsScore !== undefined && (
-                <div className="text-center">
-                  <div className={cn("text-2xl font-bold", atsScore >= 70 ? "text-emerald-400" : atsScore >= 45 ? "text-amber-400" : "text-red-400")}>
-                    {atsScore}%
-                  </div>
-                  <div className="text-xs text-slate-500">ATS Safe</div>
-                </div>
-              )}
-              {jdMatchScore !== undefined && (
-                <div className="text-center">
-                  <div className={cn("text-2xl font-bold", jdMatchScore >= 70 ? "text-emerald-400" : jdMatchScore >= 45 ? "text-amber-400" : "text-red-400")}>
-                    {jdMatchScore}%
-                  </div>
-                  <div className="text-xs text-slate-500">Job Fit</div>
-                </div>
-              )}
+          {/* Giant Score or Loading State */}
+          {isLoading ? (
+            <div className="space-y-4 py-6">
+              <div className="flex items-center justify-center">
+                <Loader2 className="h-16 w-16 text-primary animate-spin" />
+              </div>
+              <p className="text-2xl sm:text-3xl text-white font-bold animate-pulse">
+                Analyzing your resume...
+              </p>
+              <p className="text-sm text-slate-400">
+                Our AI is scanning for weaknesses recruiters will notice.
+              </p>
             </div>
-          )}
+          ) : (
+            <>
+              <div>
+                <span className={cn(
+                  "text-[9rem] sm:text-[10rem] leading-none font-black tracking-tight bg-gradient-to-b bg-clip-text text-transparent",
+                  `${insight.gradient}`
+                )}>
+                  {score}
+                </span>
+                <span className="text-4xl sm:text-5xl text-slate-500 font-bold">/100</span>
+              </div>
 
-          {/* PROMINENT Share Buttons */}
-          <div className="flex flex-wrap justify-center gap-3 pt-4">
-            <Button
-              onClick={() => handleShare("linkedin")}
-              className="gap-2 bg-blue-600 hover:bg-blue-700 text-white"
-              size="lg"
-            >
-              <Linkedin className="h-4 w-4" />
-              Share on LinkedIn
-            </Button>
-            <Button
-              onClick={() => handleShare("twitter")}
-              className="gap-2 bg-sky-500 hover:bg-sky-600 text-white"
-              size="lg"
-            >
-              <Twitter className="h-4 w-4" />
-              Share on Twitter
-            </Button>
-            <Button
-              variant="outline"
-              onClick={handleDownload}
-              className="gap-2 border-slate-600 text-slate-300 hover:bg-slate-800"
-              size="lg"
-            >
-              <Download className="h-4 w-4" />
-              Download Image
-            </Button>
-          </div>
+              {/* Emotional headline */}
+              <p className="text-xl sm:text-2xl text-white font-bold max-w-lg mx-auto leading-snug">
+                {headline}
+              </p>
+
+              {/* WHY line */}
+              <p className="text-base text-slate-300 font-semibold">
+                This score explains why you're not getting interviews.
+              </p>
+
+              {/* Comparison badge */}
+              <div className={cn(
+                "inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold",
+                percentile.isTop
+                  ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                  : "bg-red-500/20 text-red-400 border border-red-500/30"
+              )}>
+                <InsightIcon className="h-4 w-4" />
+                {comparisonText}
+              </div>
+
+              {/* Top candidate comparison */}
+              <p className="text-sm text-slate-400 font-medium">
+                {topCandidateText}
+              </p>
+
+              {/* 6-second line */}
+              <p className="text-xs text-slate-500 italic">
+                Most recruiters spend less than 6 seconds on a resume.
+              </p>
+
+              {/* Mini stats */}
+              {(atsScore !== undefined || jdMatchScore !== undefined) && (
+                <div className="flex justify-center gap-8 pt-2">
+                  {atsScore !== undefined && (
+                    <div className="text-center">
+                      <div className={cn("text-2xl font-bold", atsScore >= 70 ? "text-emerald-400" : atsScore >= 45 ? "text-amber-400" : "text-red-400")}>
+                        {atsScore}%
+                      </div>
+                      <div className="text-xs text-slate-500">ATS Safe</div>
+                    </div>
+                  )}
+                  {jdMatchScore !== undefined && (
+                    <div className="text-center">
+                      <div className={cn("text-2xl font-bold", jdMatchScore >= 70 ? "text-emerald-400" : jdMatchScore >= 45 ? "text-amber-400" : "text-red-400")}>
+                        {jdMatchScore}%
+                      </div>
+                      <div className="text-xs text-slate-500">Job Fit</div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* PROMINENT Share Buttons — Emotional Labels */}
+              <div className="flex flex-wrap justify-center gap-3 pt-4">
+                <Button
+                  onClick={() => handleShare("linkedin")}
+                  className="gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+                  size="lg"
+                >
+                  <Linkedin className="h-4 w-4" />
+                  Post This on LinkedIn
+                </Button>
+                <Button
+                  onClick={() => handleShare("twitter")}
+                  className="gap-2 bg-sky-500 hover:bg-sky-600 text-white"
+                  size="lg"
+                >
+                  <Share2 className="h-4 w-4" />
+                  Expose My Resume 😭
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleDownload}
+                  className="gap-2 border-slate-600 text-slate-300 hover:bg-slate-800"
+                  size="lg"
+                >
+                  <Download className="h-4 w-4" />
+                  Share My Score
+                </Button>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

@@ -97,31 +97,24 @@ export const ExecutiveSummary = ({
   
   return (
     <div className="space-y-6">
-      {/* ═══════════════════════════════════════════════════════
-          SECTION 1: ABOVE THE FOLD — Score + Emotion + Share
-         ═══════════════════════════════════════════════════════ */}
+      {/* SECTION 1: ABOVE THE FOLD — Score + Emotion + Share */}
       <ResumeScoreCard 
         score={isLoading ? 0 : overallScore} 
         atsScore={atsScore} 
         jdMatchScore={jdMatchScore}
         roleLabel={roleLabel}
+        isLoading={isLoading}
       />
 
-      {/* ═══════════════════════════════════════════════════════
-          SECTION 2: TIER IDENTITY — Emotional reinforcement
-         ═══════════════════════════════════════════════════════ */}
-      <ResumeTierRanking score={isLoading ? 0 : overallScore} />
+      {/* SECTION 2: TIER IDENTITY */}
+      {!isLoading && <ResumeTierRanking score={overallScore} />}
 
-      {/* ═══════════════════════════════════════════════════════
-          SECTION 3: CHALLENGE LOOP — Drive re-engagement  
-         ═══════════════════════════════════════════════════════ */}
+      {/* SECTION 3: CHALLENGE LOOP */}
       {!isLoading && onRecheck && (
         <ChallengeLoop score={overallScore} onRecheck={onRecheck} />
       )}
 
-      {/* ═══════════════════════════════════════════════════════
-          SECTION 4+: DETAILED SECTIONS — Collapsed by default
-         ═══════════════════════════════════════════════════════ */}
+      {/* SECTION 4+: DETAILED SECTIONS — Collapsed by default */}
 
       {/* Rejection Insight Report */}
       <CollapsibleSection title="Why You're Not Getting Interviews" icon={Target}>
@@ -170,7 +163,7 @@ export const ExecutiveSummary = ({
 
       {/* Top 3 Actions */}
       {topActions.length > 0 && (
-        <CollapsibleSection title="Top 3 Actions to Improve" icon={TrendingUp}>
+        <CollapsibleSection title="Fix these first or keep getting ignored." icon={TrendingUp}>
           <div className="p-6 space-y-3">
             {topActions.slice(0, 3).map((action, i) => (
               <div key={i} className="flex items-start gap-3 p-3 bg-secondary/50 rounded-lg">
@@ -225,7 +218,7 @@ export const ExecutiveSummary = ({
       <div className="flex flex-col sm:flex-row gap-3 pt-2">
         <Button size="lg" className="flex-1 gap-2" onClick={onUnlock}>
           <Lock className="h-4 w-4" />
-          Unlock Resume Fixes for This Job
+          Fix My Resume Before My Next Rejection
         </Button>
         <Button variant="outline" size="lg" className="flex-1 gap-2" onClick={() => onNavigate("jdmatch")}>
           <Eye className="h-4 w-4" />
