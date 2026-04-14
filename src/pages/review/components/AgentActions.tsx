@@ -10,7 +10,7 @@ import { ResumeImprovementsResult } from "./results/ResumeImprovementsResult";
 import { ATSAnalysisResult } from "./results/ATSAnalysisResult";
 import { JDMatchResult } from "./results/JDMatchResult";
 import { RoastCardResult } from "./results/RoastCardResult";
-import { ExecutiveSummary } from "./results/ExecutiveSummary";
+import { GuidedAnalysisFlow } from "./results/GuidedAnalysisFlow";
 import { AnalysisTabsNavigation, AnalysisTab } from "./AnalysisTabsNavigation";
 
 interface AgentActionsProps {
@@ -254,7 +254,7 @@ export const AgentActions = ({ resumeText, jobDescription, onReset, autoStart = 
     switch (activeTab) {
       case "summary":
         return (
-          <ExecutiveSummary
+          <GuidedAnalysisFlow
             resumeScore={getResumeScore()}
             atsScore={atsResult?.score}
             atsVerdict={atsResult?.badge}
