@@ -254,7 +254,7 @@ export const AgentActions = ({ resumeText, jobDescription, onReset, autoStart = 
     switch (activeTab) {
       case "summary":
         return (
-          <ExecutiveSummary
+          <GuidedAnalysisFlow
             resumeScore={getResumeScore()}
             atsScore={atsResult?.score}
             atsVerdict={atsResult?.badge}
