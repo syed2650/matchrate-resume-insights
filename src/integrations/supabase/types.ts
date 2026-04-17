@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      analyzer_sessions: {
+        Row: {
+          analysis: Json | null
+          ats_score: number | null
+          created_at: string
+          id: string
+          job_description: string
+          job_fit_score: number | null
+          match_score: number | null
+          payment_status: string
+          resume_text: string
+          rewritten_resume_html: string | null
+          stripe_session_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          analysis?: Json | null
+          ats_score?: number | null
+          created_at?: string
+          id?: string
+          job_description: string
+          job_fit_score?: number | null
+          match_score?: number | null
+          payment_status?: string
+          resume_text: string
+          rewritten_resume_html?: string | null
+          stripe_session_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          analysis?: Json | null
+          ats_score?: number | null
+          created_at?: string
+          id?: string
+          job_description?: string
+          job_fit_score?: number | null
+          match_score?: number | null
+          payment_status?: string
+          resume_text?: string
+          rewritten_resume_html?: string | null
+          stripe_session_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       ats_submissions: {
         Row: {
           completed_items: Json
