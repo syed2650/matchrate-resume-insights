@@ -90,7 +90,7 @@ const Header = () => {
             <Button 
               variant="default"
               className="cta-gradient text-white px-6"
-              onClick={() => navigate("/review")}
+              onClick={() => navigate("/analyzer")}
             >
               Try it free
             </Button>
