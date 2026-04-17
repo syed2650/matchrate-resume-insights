@@ -53,7 +53,7 @@ export default function NavBar() {
                 {[
                   { to: "/", label: "Home" },
                   { to: "/about", label: "About" },
-                  { to: "/review", label: "Analyzer" },
+                  { to: "/analyzer", label: "Analyzer" },
                   { to: "/#features", label: "Features" },
                   { to: "/faq", label: "FAQ" },
                   { to: "/contact", label: "Contact" },
@@ -115,9 +115,9 @@ export default function NavBar() {
             
             <Button 
               className="cta-gradient text-white px-5 rounded-xl font-semibold shadow-cta hover:shadow-glow-violet transition-all"
-              onClick={() => navigate("/review")}
+              onClick={() => navigate("/analyzer")}
             >
-              Start Matching
+              Analyse My Resume
             </Button>
 
             {isMobile && (
@@ -143,7 +143,7 @@ export default function NavBar() {
                 {[
                   { to: "/", label: "Home" },
                   { to: "/about", label: "About" },
-                  { to: "/review", label: "Analyzer" },
+                  { to: "/analyzer", label: "Analyzer" },
                   { to: "/#features", label: "Features" },
                   { to: "/faq", label: "FAQ" },
                   { to: "/contact", label: "Contact" },
