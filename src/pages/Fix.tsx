@@ -322,7 +322,7 @@ const Fix = () => {
               </Button>
             </div>
 
-            <Card className="p-0 overflow-hidden shadow-xl bg-slate-100 dark:bg-slate-900">
+            <Card className="p-0 overflow-hidden shadow-xl bg-muted">
               <div className="bg-muted/40 px-4 py-2 border-b border-border flex items-center gap-2 text-xs text-muted-foreground">
                 <Sparkles className="h-3.5 w-3.5" />
                 Live preview — single A4 page, exactly what you'll download
