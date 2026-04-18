@@ -9,12 +9,68 @@ import {
   CheckCircle2,
   ArrowLeft,
   Sparkles,
+  RefreshCw,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthUser } from "@/hooks/useAuthUser";
 import { supabase } from "@/integrations/supabase/client";
 import { SEOHead } from "@/components/SEOHead";
 import { track } from "@/lib/mixpanel";
+
+const RESUME_STYLES = `
+@import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Source+Sans+3:wght@400;600;700&display=swap');
+
+.resume-page {
+  width: 210mm;
+  min-height: 297mm;
+  max-height: 297mm;
+  overflow: hidden;
+  padding: 18mm 16mm 14mm;
+  font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 10pt;
+  line-height: 1.3;
+  color: #1a1a1a;
+  background: white;
+  box-sizing: border-box;
+  margin: 0 auto;
+}
+.resume-page * { box-sizing: border-box; }
+
+.r-header { margin-bottom: 14px; }
+.r-name { font-family: 'Libre Baskerville', Georgia, serif; font-size: 22pt; font-weight: 700; color: #0f172a; margin: 0 0 3px; line-height: 1.1; }
+.r-title { font-size: 11pt; color: #2563eb; font-weight: 600; margin: 0 0 5px; }
+.r-contact { font-size: 8.5pt; color: #475569; display: flex; gap: 14px; flex-wrap: wrap; }
+.r-contact span { display: inline-flex; align-items: center; }
+.r-contact span::before { content: "•"; margin-right: 5px; color: #94a3b8; }
+.r-contact span:first-child::before { content: ""; margin: 0; }
+
+.r-divider { border: none; border-top: 1.5px solid #0f172a; margin: 10px 0; }
+
+.r-section { margin-bottom: 12px; }
+.r-section-title { font-size: 8pt; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #2563eb; border-bottom: 1px solid #dbeafe; padding-bottom: 2px; margin: 0 0 8px; }
+
+.r-role { margin-bottom: 9px; }
+.r-role-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.r-company { font-weight: 700; font-size: 10pt; color: #0f172a; }
+.r-dates { font-size: 8.5pt; color: #64748b; font-weight: 600; white-space: nowrap; }
+.r-position { font-size: 9.5pt; color: #374151; font-style: italic; margin: 1px 0 3px; }
+.r-bullets { margin: 0; padding-left: 14px; }
+.r-bullets li { font-size: 9pt; margin-bottom: 2px; line-height: 1.35; }
+
+.r-summary { font-size: 9.5pt; line-height: 1.45; color: #374151; margin: 0; }
+
+.r-skills { display: flex; flex-wrap: wrap; gap: 5px; }
+.r-skill { background: #eff6ff; border: 1px solid #bfdbfe; padding: 2px 8px; border-radius: 3px; font-size: 8.5pt; color: #1d4ed8; }
+
+.r-edu-title { font-weight: 700; font-size: 9.5pt; margin: 0; }
+.r-edu-sub { font-size: 9pt; color: #475569; margin: 1px 0 0; }
+
+@media print {
+  @page { size: A4; margin: 0; }
+  html, body { margin: 0; padding: 0; background: white; }
+  .resume-page { box-shadow: none; margin: 0; max-height: none; }
+}
+`;
 
 const Fix = () => {
   const { toast } = useToast();
@@ -31,8 +87,25 @@ const Fix = () => {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [resumeHtml, setResumeHtml] = useState<string | null>(null);
   const [summaryOfChanges, setSummaryOfChanges] = useState<string[]>([]);
+  const [autoScale, setAutoScale] = useState<number>(1);
   const previewRef = useRef<HTMLDivElement>(null);
   const ranOnce = useRef(false);
+
+  const runRewrite = async (force = false) => {
+    setStatus("rewriting");
+    const { data: rewriteData, error: rewriteError } =
+      await supabase.functions.invoke("rewrite-with-claude", {
+        body: { session_id: sessionId, force },
+      });
+    if (rewriteError) throw rewriteError;
+    if (rewriteData?.error) throw new Error(rewriteData.error);
+    if (!rewriteData?.html) throw new Error("No resume returned");
+
+    setResumeHtml(rewriteData.html);
+    setSummaryOfChanges(rewriteData.summary_of_changes ?? []);
+    setStatus("ready");
+    track("Resume Rewritten");
+  };
 
   useEffect(() => {
     if (authLoading) return;
@@ -55,7 +128,6 @@ const Fix = () => {
 
     (async () => {
       try {
-        // Step 1: verify payment if we just came back from Stripe
         if (stripeSessionId) {
           setStatus("verifying");
           const { data, error } = await supabase.functions.invoke(
@@ -72,22 +144,7 @@ const Fix = () => {
           track("Fix Payment Verified");
         }
 
-        // Step 2: trigger rewrite
-        setStatus("rewriting");
-        const { data: rewriteData, error: rewriteError } =
-          await supabase.functions.invoke("rewrite-with-claude", {
-            body: { session_id: sessionId },
-          });
-        if (rewriteError) throw rewriteError;
-        if (rewriteData?.error) throw new Error(rewriteData.error);
-        if (!rewriteData?.html) throw new Error("No resume returned");
-
-        setResumeHtml(rewriteData.html);
-        setSummaryOfChanges(rewriteData.summary_of_changes ?? []);
-        setStatus("ready");
-        track("Resume Rewritten");
-
-        // Clear sessionStorage now that we have the persistent version
+        await runRewrite(false);
         sessionStorage.removeItem("matchrate_pending_analysis");
       } catch (err: any) {
         console.error(err);
@@ -95,14 +152,26 @@ const Fix = () => {
         setErrorMsg(err?.message ?? "Something went wrong.");
       }
     })();
-  }, [authLoading, user, sessionId, stripeSessionId, navigate, toast]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading, user, sessionId, stripeSessionId]);
+
+  // Auto-scale preview to viewport width (A4 = 210mm ≈ 794px @ 96dpi)
+  useEffect(() => {
+    const calc = () => {
+      const container = previewRef.current?.parentElement;
+      if (!container) return;
+      const containerWidth = container.clientWidth - 16;
+      const A4_PX = 794;
+      setAutoScale(Math.min(1, containerWidth / A4_PX));
+    };
+    calc();
+    window.addEventListener("resize", calc);
+    return () => window.removeEventListener("resize", calc);
+  }, [resumeHtml]);
 
   const handleDownloadPdf = () => {
-    if (!previewRef.current) return;
+    if (!resumeHtml) return;
     track("PDF Downloaded");
-    // Use browser print to PDF — clean, dependency-free, professional
-    const styles = document.getElementById("resume-styles")?.innerHTML ?? "";
-    const html = previewRef.current.innerHTML;
     const win = window.open("", "_blank");
     if (!win) {
       toast({
@@ -112,18 +181,16 @@ const Fix = () => {
       });
       return;
     }
-    win.document.write(`<!doctype html><html><head><title>Resume</title><style>${styles}@page{margin:0.5in;size:letter;}body{margin:0;}</style></head><body>${html}<script>window.onload=()=>{window.print();}</script></body></html>`);
+    win.document.write(`<!doctype html><html><head><title>Resume</title><meta charset="utf-8"><style>${RESUME_STYLES}</style></head><body>${resumeHtml}<script>window.onload=()=>{setTimeout(()=>window.print(),300);}<\/script></body></html>`);
     win.document.close();
   };
 
   const handleDownloadDocx = async () => {
     if (!resumeHtml) return;
     track("DOCX Downloaded");
-    // Lightweight HTML→DOCX trick: produce a Word-readable .doc file from HTML
-    const styles = document.getElementById("resume-styles")?.innerHTML ?? "";
     const blob = new Blob(
       [
-        `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><style>${styles}</style></head><body>${resumeHtml}</body></html>`,
+        `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><style>${RESUME_STYLES}</style></head><body>${resumeHtml}</body></html>`,
       ],
       { type: "application/msword" },
     );
@@ -135,6 +202,19 @@ const Fix = () => {
     URL.revokeObjectURL(url);
   };
 
+  const handleRegenerate = async () => {
+    try {
+      await runRewrite(true);
+    } catch (err: any) {
+      console.error(err);
+      toast({
+        title: "Regeneration failed",
+        description: err?.message ?? "Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <>
       <SEOHead
@@ -144,41 +224,7 @@ const Fix = () => {
         noindex
       />
 
-      {/* Resume styles — used in both preview and PDF print */}
-      <style id="resume-styles">{`
-        .resume {
-          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          color: #1a1a1a;
-          line-height: 1.5;
-          max-width: 8.5in;
-          margin: 0 auto;
-          padding: 0.6in 0.7in;
-          background: white;
-          font-size: 10.5pt;
-        }
-        .resume * { box-sizing: border-box; }
-        .resume-header { text-align: center; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 2px solid #1a1a1a; }
-        .resume-header .name, .resume .name { font-size: 22pt; font-weight: 800; letter-spacing: -0.5px; margin: 0 0 4px; color: #0f172a; }
-        .resume-header .title, .resume .title { font-size: 11pt; color: #475569; font-weight: 500; margin: 0 0 6px; }
-        .resume-header .contact, .resume .contact { font-size: 9.5pt; color: #475569; }
-        .resume-header .contact span, .resume .contact span { margin: 0 6px; }
-        .resume .section { margin-top: 16px; }
-        .resume .section-title, .resume h2 { font-size: 11pt; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; color: #0f172a; border-bottom: 1px solid #cbd5e1; padding-bottom: 3px; margin: 0 0 10px; }
-        .resume .role { margin-bottom: 12px; }
-        .resume .role-header, .resume h3 { display: flex; justify-content: space-between; align-items: baseline; margin: 0 0 2px; font-size: 10.5pt; font-weight: 700; color: #0f172a; }
-        .resume .company { font-style: italic; color: #475569; font-size: 10pt; margin: 0 0 4px; }
-        .resume .role-title { font-weight: 700; }
-        .resume .role-dates { font-weight: 500; color: #64748b; font-size: 9.5pt; }
-        .resume .bullets, .resume ul { margin: 4px 0 0; padding-left: 18px; }
-        .resume .bullets li, .resume ul li { margin-bottom: 3px; font-size: 10pt; }
-        .resume .skills-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
-        .resume .skill { background: #f1f5f9; padding: 3px 9px; border-radius: 3px; font-size: 9.5pt; color: #334155; }
-        .resume p { margin: 0 0 6px; font-size: 10pt; }
-        .resume .education-item { margin-bottom: 8px; }
-        @media print {
-          .resume { padding: 0; max-width: none; }
-        }
-      `}</style>
+      <style id="resume-styles">{RESUME_STYLES}</style>
 
       <div className="container mx-auto px-4 py-10 max-w-5xl">
         <Button
@@ -196,12 +242,12 @@ const Fix = () => {
             <h2 className="text-xl font-semibold mb-2">
               {status === "verifying"
                 ? "Confirming your payment…"
-                : "Claude Opus is rewriting your resume…"}
+                : "Claude is rewriting your resume…"}
             </h2>
             <p className="text-muted-foreground text-sm">
               {status === "verifying"
                 ? "This takes a few seconds."
-                : "Crafting an ATS-optimised, recruiter-ready resume. About 30 seconds."}
+                : "Crafting an ATS-optimised, single-page resume. About 30 seconds."}
             </p>
           </Card>
         )}
@@ -229,7 +275,7 @@ const Fix = () => {
                   </h2>
                   <p className="text-sm text-green-800/90 dark:text-green-400/90">
                     Tailored to your target job, ATS-friendly formatting, and
-                    keyword-rich. Download below.
+                    keyword-rich. Single A4 page. Download below.
                   </p>
                   {summaryOfChanges.length > 0 && (
                     <details className="mt-3 text-sm text-green-900/90 dark:text-green-300/90">
@@ -265,20 +311,37 @@ const Fix = () => {
                 <FileText className="h-5 w-5 mr-2" />
                 Download as DOCX
               </Button>
+              <Button
+                size="lg"
+                variant="ghost"
+                onClick={handleRegenerate}
+                title="Generate a fresh version"
+              >
+                <RefreshCw className="h-5 w-5 mr-2" />
+                Regenerate
+              </Button>
             </div>
 
-            <Card className="p-0 overflow-hidden shadow-xl">
+            <Card className="p-0 overflow-hidden shadow-xl bg-slate-100 dark:bg-slate-900">
               <div className="bg-muted/40 px-4 py-2 border-b border-border flex items-center gap-2 text-xs text-muted-foreground">
                 <Sparkles className="h-3.5 w-3.5" />
-                Live preview — exactly what you'll download
+                Live preview — single A4 page, exactly what you'll download
               </div>
-              <div
-                ref={previewRef}
-                className="bg-white"
-                dangerouslySetInnerHTML={{
-                  __html: `<div class="resume">${resumeHtml}</div>`,
-                }}
-              />
+              <div className="p-4 flex justify-center overflow-hidden">
+                <div
+                  style={{
+                    transform: `scale(${autoScale})`,
+                    transformOrigin: "top center",
+                    width: "210mm",
+                    height: autoScale < 1 ? `${297 * autoScale}mm` : "297mm",
+                  }}
+                >
+                  <div
+                    ref={previewRef}
+                    dangerouslySetInnerHTML={{ __html: resumeHtml }}
+                  />
+                </div>
+              </div>
             </Card>
           </div>
         )}
