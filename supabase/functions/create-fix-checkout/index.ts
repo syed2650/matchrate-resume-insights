@@ -80,6 +80,21 @@ serve(async (req) => {
       });
     }
 
+    // Test bypass: specific emails skip Stripe entirely
+    const TEST_BYPASS_EMAILS = ["contactbloggertrial@gmail.com"];
+    if (user.email && TEST_BYPASS_EMAILS.includes(user.email.toLowerCase())) {
+      await supabase
+        .from("analyzer_sessions")
+        .update({ payment_status: "paid" })
+        .eq("id", session_id);
+
+      const origin = req.headers.get("origin") ?? "https://www.matchrate.co";
+      const bypassUrl = `${origin}/fix?session_id=${session_id}&bypass=1`;
+      return new Response(JSON.stringify({ url: bypassUrl, bypassed: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: "2023-10-16" });
 
     // Get or create product
