@@ -12,110 +12,221 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const CLAUDE_MODEL = "claude-sonnet-4-6";
 
-type CandidateInfo = {
+type Experience = {
+  company: string;
+  title: string;
+  location: string;
+  startDate: string;
+  endDate: string;
+  bullets: string[];
+};
+
+type Education = {
+  degree: string;
+  school: string;
+  location: string;
+  startYear: string;
+  endYear: string;
+};
+
+type StructuredResume = {
   fullName: string;
   email: string;
   phone: string;
   linkedin: string;
   location: string;
-  currentTitle: string;
+  summary: string;
+  experience: Experience[];
+  skills: string[];
+  education: Education[];
 };
 
-const EMPTY_CANDIDATE: CandidateInfo = {
-  fullName: "",
-  email: "",
-  phone: "",
-  linkedin: "",
-  location: "",
-  currentTitle: "",
-};
+type FinalResume = StructuredResume & { targetTitle: string };
 
-function escapeHtml(s: string) {
-  return String(s ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+function stripFences(s: string): string {
+  return s
+    .trim()
+    .replace(/^```json\s*/i, "")
+    .replace(/^```\s*/i, "")
+    .replace(/```$/g, "")
+    .trim();
 }
 
-// ---------- Step 1: Separate Claude call to extract candidate details ----------
-async function extractCandidateInfo(resumeText: string): Promise<CandidateInfo> {
-  const extractionResponse = await fetch(
-    "https://api.anthropic.com/v1/messages",
-    {
-      method: "POST",
-      headers: {
-        "x-api-key": ANTHROPIC_API_KEY!,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        model: CLAUDE_MODEL,
-        max_tokens: 500,
-        messages: [
-          {
-            role: "user",
-            content: `Extract the following fields from this resume text. Return ONLY a valid JSON object. No markdown. No explanation. No backticks.
-
-Fields to extract:
-{
-  "fullName": "",
-  "email": "",
-  "phone": "",
-  "linkedin": "",
-  "location": "",
-  "currentTitle": ""
-}
-
-If a field is not found, return an empty string "".
-
-Resume text:
-${resumeText}`,
-          },
-        ],
-      }),
-    },
-  );
-
-  if (!extractionResponse.ok) {
-    const errText = await extractionResponse.text();
-    console.error("Extraction API error:", extractionResponse.status, errText);
-    return { ...EMPTY_CANDIDATE };
-  }
-
-  const extractData = await extractionResponse.json();
-  const rawText: string = extractData?.content?.[0]?.text ?? "{}";
-
+function safeParseJson<T>(raw: string): T | null {
   try {
-    const cleaned = rawText.trim().replace(/^```json\s*/i, "").replace(/```$/g, "").trim();
-    const parsed = JSON.parse(cleaned);
-    return { ...EMPTY_CANDIDATE, ...parsed };
+    return JSON.parse(stripFences(raw)) as T;
   } catch {
-    const match = rawText.match(/\{[\s\S]*\}/);
-    if (match) {
+    const m = raw.match(/\{[\s\S]*\}/);
+    if (m) {
       try {
-        return { ...EMPTY_CANDIDATE, ...JSON.parse(match[0]) };
-      } catch (e) {
-        console.error("Extraction parse failed", e);
+        return JSON.parse(m[0]) as T;
+      } catch {
+        return null;
       }
     }
-    return { ...EMPTY_CANDIDATE };
+    return null;
   }
 }
 
-function buildHeaderHTML(info: CandidateInfo, jobTitle: string) {
-  const contactSpans = [info.email, info.phone, info.linkedin, info.location]
-    .filter(Boolean)
-    .map((v) => `<span>${escapeHtml(v)}</span>`)
-    .join("");
+async function callClaude(prompt: string, maxTokens: number): Promise<string> {
+  const resp = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "x-api-key": ANTHROPIC_API_KEY!,
+      "anthropic-version": "2023-06-01",
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({
+      model: CLAUDE_MODEL,
+      max_tokens: maxTokens,
+      messages: [{ role: "user", content: prompt }],
+    }),
+  });
+  if (!resp.ok) {
+    const errText = await resp.text();
+    throw new Error(`Claude API ${resp.status}: ${errText.slice(0, 300)}`);
+  }
+  const data = await resp.json();
+  return data?.content?.[0]?.text ?? "";
+}
 
-  const title = jobTitle?.trim() || info.currentTitle || "";
+// ---------- STEP 1: Parse resume into structured JSON ----------
+async function parseResume(resumeText: string): Promise<StructuredResume> {
+  const prompt = `Parse this resume into structured JSON. Return ONLY valid JSON, no markdown, no explanation, no code fences.
 
-  return `<div class="r-header">
-  <h1 class="r-name">${escapeHtml(info.fullName)}</h1>
-  <p class="r-title">${escapeHtml(title)}</p>
-  <div class="r-contact">${contactSpans}</div>
-</div>`;
+Schema:
+{
+  "fullName": "string",
+  "email": "string",
+  "phone": "string",
+  "linkedin": "string",
+  "location": "string",
+  "summary": "string (professional summary paragraph)",
+  "experience": [
+    {
+      "company": "string",
+      "title": "string",
+      "location": "string",
+      "startDate": "MM/YYYY",
+      "endDate": "MM/YYYY or Present",
+      "bullets": ["string", "string", "string"]
+    }
+  ],
+  "skills": ["string", "string"],
+  "education": [
+    {
+      "degree": "string",
+      "school": "string",
+      "location": "string",
+      "startYear": "YYYY",
+      "endYear": "YYYY"
+    }
+  ]
+}
+
+Rules:
+- If a field is missing, use an empty string "" or empty array []
+- Extract the name from the top of the resume — it is NEVER a job title
+- Phone numbers, emails, and LinkedIn URLs are usually near the top
+- Include ALL experience entries, even older ones
+- Preserve original bullet text exactly — do not rewrite yet
+
+Resume text:
+${resumeText}`;
+
+  const raw = await callClaude(prompt, 2000);
+  const parsed = safeParseJson<StructuredResume>(raw);
+  if (!parsed) {
+    console.error("Parse failed. Raw:", raw.slice(0, 500));
+    throw new Error("Could not parse resume into structured JSON");
+  }
+
+  // Defensive defaults
+  const safe: StructuredResume = {
+    fullName: parsed.fullName ?? "",
+    email: parsed.email ?? "",
+    phone: parsed.phone ?? "",
+    linkedin: parsed.linkedin ?? "",
+    location: parsed.location ?? "",
+    summary: parsed.summary ?? "",
+    experience: Array.isArray(parsed.experience) ? parsed.experience : [],
+    skills: Array.isArray(parsed.skills) ? parsed.skills : [],
+    education: Array.isArray(parsed.education) ? parsed.education : [],
+  };
+
+  if (!safe.fullName || safe.fullName.trim().length < 2) {
+    throw new Error(
+      "Could not read your name from the resume. Please check the uploaded file.",
+    );
+  }
+  return safe;
+}
+
+// ---------- STEP 2: Rewrite content for the target job ----------
+async function rewriteContent(
+  structured: StructuredResume,
+  jobTitle: string,
+  jobDescription: string,
+  missingKeywords: string[],
+): Promise<{
+  summary: string;
+  experience: Experience[];
+  skills: string[];
+}> {
+  const prompt = `You are optimising a resume for a specific job. Rewrite ONLY the content fields. Keep all names, companies, dates, and contact info exactly as provided.
+
+TARGET JOB: ${jobTitle}
+JOB DESCRIPTION: ${jobDescription}
+MISSING KEYWORDS TO INCORPORATE: ${missingKeywords.join(", ") || "(none)"}
+
+CURRENT RESUME DATA:
+${JSON.stringify(structured, null, 2)}
+
+Return ONLY valid JSON in this exact schema. No markdown, no explanation:
+{
+  "summary": "string (max 3 sentences, optimised for the target role)",
+  "experience": [
+    {
+      "company": "EXACT original company name",
+      "title": "EXACT original title",
+      "location": "EXACT original location",
+      "startDate": "EXACT original",
+      "endDate": "EXACT original",
+      "bullets": ["rewritten bullet 1", "rewritten bullet 2", "rewritten bullet 3"]
+    }
+  ],
+  "skills": ["skill1", "skill2"]
+}
+
+Rules:
+- Maximum 3 bullets per role, each 1-2 lines
+- If the resume has more than 5 roles, keep only the 4 most recent
+- Bullets must start with strong action verbs and include metrics where present in the original
+- Naturally incorporate missing keywords — do not stuff them
+- Skills list: 12-16 skills, reordered with most job-relevant first
+- DO NOT invent experience, metrics, or skills that aren't in the original
+- DO NOT change company names, titles, or dates
+- Use UK English spelling`;
+
+  const raw = await callClaude(prompt, 2500);
+  const parsed = safeParseJson<{
+    summary: string;
+    experience: Experience[];
+    skills: string[];
+  }>(raw);
+
+  if (!parsed) {
+    console.error("Rewrite parse failed. Raw:", raw.slice(0, 500));
+    throw new Error("Could not rewrite resume content");
+  }
+
+  return {
+    summary: parsed.summary ?? structured.summary,
+    experience: Array.isArray(parsed.experience)
+      ? parsed.experience
+      : structured.experience,
+    skills: Array.isArray(parsed.skills) ? parsed.skills : structured.skills,
+  };
 }
 
 serve(async (req) => {
@@ -124,9 +235,11 @@ serve(async (req) => {
   }
 
   try {
-    if (!ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is not configured");
+    if (!ANTHROPIC_API_KEY) {
+      throw new Error("ANTHROPIC_API_KEY is not configured");
+    }
 
-    const { session_id, force, retry_compact } = await req.json();
+    const { session_id, force } = await req.json();
     if (!session_id) {
       return new Response(JSON.stringify({ error: "session_id required" }), {
         status: 400,
@@ -159,136 +272,63 @@ serve(async (req) => {
       );
     }
 
-    if (session.rewritten_resume_html && !force && !retry_compact) {
-      return new Response(
-        JSON.stringify({ html: session.rewritten_resume_html, cached: true }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
+    // Cached path: rewritten_resume_html column now stores the JSON of finalResume
+    if (session.rewritten_resume_html && !force) {
+      const cached = safeParseJson<FinalResume>(session.rewritten_resume_html);
+      if (cached && cached.fullName) {
+        return new Response(
+          JSON.stringify({ resume: cached, cached: true }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+      // If old HTML cache exists, ignore and regenerate.
     }
-
-    // ---------- STEP 1: Extract candidate info via separate Claude call ----------
-    console.log("Step 1: Extracting candidate info via Claude…");
-    const candidateInfo = await extractCandidateInfo(session.resume_text ?? "");
-    console.log("Extracted candidateInfo:", candidateInfo);
 
     const analysis = session.analysis ?? {};
     const missingKeywords: string[] = analysis?.missing_keywords ?? [];
     const jobTitle: string =
-      analysis?.target_job_title ||
-      analysis?.job_title ||
-      candidateInfo.currentTitle ||
-      "";
+      analysis?.target_job_title || analysis?.job_title || "";
 
-    // ---------- STEP 2: Pre-build header HTML in code ----------
-    const headerHTML = buildHeaderHTML(candidateInfo, jobTitle);
+    console.log("Step 1: Parsing resume into JSON…");
+    const structured = await parseResume(session.resume_text ?? "");
+    console.log("Parsed candidate:", structured.fullName);
 
-    // ---------- STEP 3: Rewrite prompt uses pre-built header verbatim ----------
-    const compactInstruction = retry_compact
-      ? `\n\nIMPORTANT RETRY INSTRUCTION: The previous output was too long. Reduce bullets to 2 per role and shorten the summary to 2 sentences. Drop the oldest or least relevant role if needed.`
-      : "";
+    console.log("Step 2: Rewriting content for target role…");
+    const rewritten = await rewriteContent(
+      structured,
+      jobTitle,
+      session.job_description ?? "",
+      missingKeywords,
+    );
 
-    const rewritePrompt = `You are rewriting a resume to optimise it for a specific job.
-
-CANDIDATE DETAILS (already extracted — do not modify):
-- Full Name: ${candidateInfo.fullName}
-- Email: ${candidateInfo.email}
-- Phone: ${candidateInfo.phone}
-- LinkedIn: ${candidateInfo.linkedin}
-- Location: ${candidateInfo.location}
-- Current Title: ${candidateInfo.currentTitle}
-
-TARGET ROLE: ${jobTitle}
-
-JOB DESCRIPTION:
-${session.job_description}
-
-ORIGINAL RESUME:
-${session.resume_text}
-
-OUTPUT REQUIREMENTS:
-- Return ONLY raw HTML starting with <div class="resume-page"> and ending with </div>
-- No markdown, no code fences, no explanation
-- The FIRST child inside <div class="resume-page"> must be exactly this header block (use it verbatim, do not modify):
-
-${headerHTML}
-
-- After the header, add an <hr class="r-divider"> and then the resume sections in this order:
-  1. Professional Summary (max 3 sentences) — wrap in <section class="r-section"><h2 class="r-section-title">Professional Summary</h2><p class="r-summary">…</p></section>
-  2. Experience (roles using r-role structure: <div class="r-role"><div class="r-role-top"><span class="r-company">Company</span><span class="r-dates">Dates</span></div><p class="r-position">Title</p><ul class="r-bullets"><li>…</li></ul></div>)
-  3. Skills (using <div class="r-skills"><span class="r-skill">…</span></div>)
-  4. Education (<p class="r-edu-title">Degree</p><p class="r-edu-sub">Institution · Year</p>)
-
-CONTENT RULES:
-- Maximum 3 bullet points per role
-- Every bullet starts with a strong action verb. Quantify only where the original suggests it. Do NOT invent metrics.
-- Keep all dates, companies, and job titles accurate — do not invent anything
-- UK English spelling. Professional, concise tone.
-- Naturally incorporate these keywords where truthful: ${missingKeywords.join(", ") || "(none)"}
-
-A4 CONSTRAINT (CRITICAL — one page only):
-- If candidate has more than 5 roles, include only the 4 most recent/relevant
-- If content still looks long, reduce bullets to 2 per role
-- If still too long, shorten summary to 2 sentences
-- Drop older or less relevant roles first
-- Content must fit within 277mm height${compactInstruction}
-
-Return the raw HTML now.`;
-
-    console.log("Step 2: Calling Claude for rewrite…");
-    const claudeResponse = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "x-api-key": ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        model: CLAUDE_MODEL,
-        max_tokens: 4000,
-        messages: [{ role: "user", content: rewritePrompt }],
-      }),
-    });
-
-    if (!claudeResponse.ok) {
-      const errText = await claudeResponse.text();
-      console.error("Claude API error:", claudeResponse.status, errText);
-      return new Response(
-        JSON.stringify({
-          error: `Claude API error (${claudeResponse.status}): ${errText.slice(0, 200)}`,
-        }),
-        {
-          status: 502,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+    // Validate we have at least one valid experience entry
+    const validExperience = rewritten.experience.filter(
+      (e) => e?.company && e?.title,
+    );
+    if (validExperience.length === 0) {
+      throw new Error("No valid work experience entries found in your resume");
     }
 
-    const claudeData = await claudeResponse.json();
-    const rawText: string = claudeData?.content?.[0]?.text ?? "";
-
-    let html = rawText.trim();
-    // Strip any accidental markdown fences
-    html = html.replace(/^```html\s*/i, "").replace(/^```\s*/i, "").replace(/```$/g, "").trim();
-
-    // Safety: if the model didn't include the header verbatim, inject it.
-    if (!html.includes('class="r-header"') && candidateInfo.fullName) {
-      html = html.replace(
-        /<div class="resume-page">/,
-        `<div class="resume-page">\n${headerHTML}\n<hr class="r-divider">`,
-      );
-    }
+    const finalResume: FinalResume = {
+      fullName: structured.fullName,
+      email: structured.email,
+      phone: structured.phone,
+      linkedin: structured.linkedin,
+      location: structured.location,
+      targetTitle: jobTitle,
+      summary: rewritten.summary,
+      experience: validExperience,
+      skills: rewritten.skills,
+      education: structured.education,
+    };
 
     await supabase
       .from("analyzer_sessions")
-      .update({ rewritten_resume_html: html })
+      .update({ rewritten_resume_html: JSON.stringify(finalResume) })
       .eq("id", session_id);
 
     return new Response(
-      JSON.stringify({
-        html,
-        candidateInfo,
-        retry_compact: !!retry_compact,
-      }),
+      JSON.stringify({ resume: finalResume }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (error) {
