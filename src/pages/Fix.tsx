@@ -175,6 +175,27 @@ const Fix = () => {
     return () => window.removeEventListener("resize", calc);
   }, [resumeHtml]);
 
+  // Post-render overflow check: if resume exceeds ~277mm (1050px @ 96dpi),
+  // automatically retry once with a "compact" instruction.
+  useEffect(() => {
+    if (!resumeHtml || status !== "ready" || retriedCompact.current) return;
+    const t = window.setTimeout(() => {
+      const page = previewRef.current?.querySelector(
+        ".resume-page",
+      ) as HTMLElement | null;
+      if (!page) return;
+      if (page.offsetHeight > 1050) {
+        retriedCompact.current = true;
+        console.log(
+          `Resume overflowed (${page.offsetHeight}px > 1050px). Retrying compact…`,
+        );
+        runRewrite(true, true).catch((err) => {
+          console.error("Compact retry failed", err);
+        });
+      }
+    }, 250);
+    return () => window.clearTimeout(t);
+
   const handleDownloadPdf = () => {
     if (!resumeHtml) return;
     track("PDF Downloaded");
