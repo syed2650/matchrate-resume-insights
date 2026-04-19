@@ -195,6 +195,7 @@ const Fix = () => {
       }
     }, 250);
     return () => window.clearTimeout(t);
+  }, [resumeHtml, status]);
 
   const handleDownloadPdf = () => {
     if (!resumeHtml) return;
