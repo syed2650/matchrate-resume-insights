@@ -20,23 +20,27 @@ import { track } from "@/lib/mixpanel";
 const RESUME_STYLES = `
 @import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Source+Sans+3:wght@400;600;700&display=swap');
 
+* { box-sizing: border-box; }
+
 .resume-page {
   width: 210mm;
-  min-height: 297mm;
-  max-height: 297mm;
-  overflow: hidden;
-  padding: 18mm 16mm 14mm;
+  max-height: 277mm;
+  padding: 15mm 14mm;
   font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 10pt;
+  font-size: 9.5pt;
   line-height: 1.3;
   color: #1a1a1a;
   background: white;
   box-sizing: border-box;
   margin: 0 auto;
 }
-.resume-page * { box-sizing: border-box; }
+.resume-page h1,
+.resume-page h2,
+.resume-page h3,
+.resume-page p { margin: 0; }
+.resume-page ul { margin: 4px 0; padding-left: 16px; }
 
-.r-header { margin-bottom: 14px; }
+.r-header { margin-bottom: 12px; }
 .r-name { font-family: 'Libre Baskerville', Georgia, serif; font-size: 22pt; font-weight: 700; color: #0f172a; margin: 0 0 3px; line-height: 1.1; }
 .r-title { font-size: 11pt; color: #2563eb; font-weight: 600; margin: 0 0 5px; }
 .r-contact { font-size: 8.5pt; color: #475569; display: flex; gap: 14px; flex-wrap: wrap; }
@@ -44,17 +48,17 @@ const RESUME_STYLES = `
 .r-contact span::before { content: "•"; margin-right: 5px; color: #94a3b8; }
 .r-contact span:first-child::before { content: ""; margin: 0; }
 
-.r-divider { border: none; border-top: 1.5px solid #0f172a; margin: 10px 0; }
+.r-divider { border: none; border-top: 1.5px solid #0f172a; margin: 8px 0; }
 
-.r-section { margin-bottom: 12px; }
-.r-section-title { font-size: 8pt; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #2563eb; border-bottom: 1px solid #dbeafe; padding-bottom: 2px; margin: 0 0 8px; }
+.r-section { margin-bottom: 10px; }
+.r-section-title { font-size: 8pt; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #2563eb; border-bottom: 1px solid #dbeafe; padding-bottom: 2px; margin: 0 0 6px; }
 
-.r-role { margin-bottom: 9px; }
+.r-role { margin-bottom: 8px; }
 .r-role-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
 .r-company { font-weight: 700; font-size: 10pt; color: #0f172a; }
 .r-dates { font-size: 8.5pt; color: #64748b; font-weight: 600; white-space: nowrap; }
 .r-position { font-size: 9.5pt; color: #374151; font-style: italic; margin: 1px 0 3px; }
-.r-bullets { margin: 0; padding-left: 14px; }
+.r-bullets { margin: 4px 0; padding-left: 16px; }
 .r-bullets li { font-size: 9pt; margin-bottom: 2px; line-height: 1.35; }
 
 .r-summary { font-size: 9.5pt; line-height: 1.45; color: #374151; margin: 0; }
@@ -91,11 +95,13 @@ const Fix = () => {
   const previewRef = useRef<HTMLDivElement>(null);
   const ranOnce = useRef(false);
 
-  const runRewrite = async (force = false) => {
+  const retriedCompact = useRef(false);
+
+  const runRewrite = async (force = false, retryCompact = false) => {
     setStatus("rewriting");
     const { data: rewriteData, error: rewriteError } =
       await supabase.functions.invoke("rewrite-with-claude", {
-        body: { session_id: sessionId, force },
+        body: { session_id: sessionId, force, retry_compact: retryCompact },
       });
     if (rewriteError) throw rewriteError;
     if (rewriteData?.error) throw new Error(rewriteData.error);
@@ -168,6 +174,28 @@ const Fix = () => {
     window.addEventListener("resize", calc);
     return () => window.removeEventListener("resize", calc);
   }, [resumeHtml]);
+
+  // Post-render overflow check: if resume exceeds ~277mm (1050px @ 96dpi),
+  // automatically retry once with a "compact" instruction.
+  useEffect(() => {
+    if (!resumeHtml || status !== "ready" || retriedCompact.current) return;
+    const t = window.setTimeout(() => {
+      const page = previewRef.current?.querySelector(
+        ".resume-page",
+      ) as HTMLElement | null;
+      if (!page) return;
+      if (page.offsetHeight > 1050) {
+        retriedCompact.current = true;
+        console.log(
+          `Resume overflowed (${page.offsetHeight}px > 1050px). Retrying compact…`,
+        );
+        runRewrite(true, true).catch((err) => {
+          console.error("Compact retry failed", err);
+        });
+      }
+    }, 250);
+    return () => window.clearTimeout(t);
+  }, [resumeHtml, status]);
 
   const handleDownloadPdf = () => {
     if (!resumeHtml) return;

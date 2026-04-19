@@ -10,120 +10,113 @@ const corsHeaders = {
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const CLAUDE_MODEL = "claude-sonnet-4-6";
 
-// ---------- Candidate detail extraction ----------
-function extractCandidateDetails(resumeText: string) {
-  const text = resumeText.replace(/\r/g, "");
-  const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+type CandidateInfo = {
+  fullName: string;
+  email: string;
+  phone: string;
+  linkedin: string;
+  location: string;
+  currentTitle: string;
+};
 
-  const emailMatch = text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
-  const email = emailMatch ? emailMatch[0] : "";
+const EMPTY_CANDIDATE: CandidateInfo = {
+  fullName: "",
+  email: "",
+  phone: "",
+  linkedin: "",
+  location: "",
+  currentTitle: "",
+};
 
-  const phoneMatch = text.match(
-    /(\+?\d{1,3}[\s.-]?)?\(?\d{2,4}\)?[\s.-]?\d{3,4}[\s.-]?\d{3,4}/,
-  );
-  const phone = phoneMatch ? phoneMatch[0].trim() : "";
-
-  const linkedinMatch = text.match(
-    /(https?:\/\/)?(www\.)?linkedin\.com\/in\/[A-Za-z0-9\-_%]+\/?/i,
-  );
-  const linkedin = linkedinMatch ? linkedinMatch[0] : "";
-
-  // Name: first non-empty line that isn't email/phone/linkedin and looks like a name
-  let name = "";
-  for (const line of lines.slice(0, 6)) {
-    if (
-      !/@|linkedin|http|\d{3}/i.test(line) &&
-      line.length < 60 &&
-      /^[A-Za-z][A-Za-z .'\-]+$/.test(line) &&
-      line.split(/\s+/).length <= 5 &&
-      line.split(/\s+/).length >= 2
-    ) {
-      name = line;
-      break;
-    }
-  }
-
-  // Location: look for "City, ST" or "City, Country" pattern in first ~10 lines
-  let location = "";
-  for (const line of lines.slice(0, 10)) {
-    const m = line.match(
-      /([A-Z][a-zA-Z .'-]+,\s*[A-Z][a-zA-Z .'-]+(?:,\s*[A-Z]{2,})?)/,
-    );
-    if (m && !/@|http|linkedin/i.test(m[0]) && m[0].length < 60) {
-      location = m[0];
-      break;
-    }
-  }
-
-  return { name, email, phone, linkedin, location };
+function escapeHtml(s: string) {
+  return String(s ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
-const REWRITE_SYSTEM = `You are Claude acting as a senior career coach and professional resume writer. Produce a complete, ATS-optimised, SINGLE-PAGE resume in clean semantic HTML.
+// ---------- Step 1: Separate Claude call to extract candidate details ----------
+async function extractCandidateInfo(resumeText: string): Promise<CandidateInfo> {
+  const extractionResponse = await fetch(
+    "https://api.anthropic.com/v1/messages",
+    {
+      method: "POST",
+      headers: {
+        "x-api-key": ANTHROPIC_API_KEY!,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        model: CLAUDE_MODEL,
+        max_tokens: 500,
+        messages: [
+          {
+            role: "user",
+            content: `Extract the following fields from this resume text. Return ONLY a valid JSON object. No markdown. No explanation. No backticks.
 
-CRITICAL RULES:
-- You MUST use the candidate's actual name, email, phone, location, and LinkedIn URL exactly as provided in the user message. Never invent or use placeholders like "CANDIDATE NAME" or "contact@email.com".
-- Keep the resume to ONE A4 page. Maximum 3 bullet points per role. Summary maximum 3 sentences. Maximum 12 skills.
-- Reverse-chronological format.
-- Every bullet starts with a strong action verb. Quantify impact only where the original suggests it. Do NOT invent metrics.
-- Naturally weave the missing keywords into Skills, Summary, and Experience bullets where they truthfully apply.
-- UK English spelling. Professional, concise tone. No "team player", "results-driven", or buzzword soup.
-- Return ONLY the HTML body content (no <html>, <head>, <body>, no markdown fences, no commentary).
-
-REQUIRED HTML STRUCTURE (use these exact class names):
-<div class="resume-page">
-  <header class="r-header">
-    <h1 class="r-name">[ACTUAL NAME]</h1>
-    <p class="r-title">[Target Job Title]</p>
-    <div class="r-contact">
-      <span>[email]</span>
-      <span>[phone]</span>
-      <span>[linkedin]</span>
-      <span>[location]</span>
-    </div>
-  </header>
-  <hr class="r-divider" />
-
-  <section class="r-section">
-    <h2 class="r-section-title">Professional Summary</h2>
-    <p class="r-summary">...</p>
-  </section>
-
-  <section class="r-section">
-    <h2 class="r-section-title">Experience</h2>
-    <div class="r-role">
-      <div class="r-role-top">
-        <span class="r-company">[Company]</span>
-        <span class="r-dates">[Dates]</span>
-      </div>
-      <p class="r-position">[Job Title]</p>
-      <ul class="r-bullets">
-        <li>...</li>
-      </ul>
-    </div>
-  </section>
-
-  <section class="r-section">
-    <h2 class="r-section-title">Skills</h2>
-    <div class="r-skills">
-      <span class="r-skill">[skill]</span>
-    </div>
-  </section>
-
-  <section class="r-section">
-    <h2 class="r-section-title">Education</h2>
-    <div>
-      <p class="r-edu-title">[Degree]</p>
-      <p class="r-edu-sub">[Institution] · [Year]</p>
-    </div>
-  </section>
-</div>
-
-Return STRICT JSON only:
+Fields to extract:
 {
-  "html": "<the full <div class='resume-page'>...</div> markup>",
-  "summary_of_changes": ["change 1", "change 2", "change 3"]
-}`;
+  "fullName": "",
+  "email": "",
+  "phone": "",
+  "linkedin": "",
+  "location": "",
+  "currentTitle": ""
+}
+
+If a field is not found, return an empty string "".
+
+Resume text:
+${resumeText}`,
+          },
+        ],
+      }),
+    },
+  );
+
+  if (!extractionResponse.ok) {
+    const errText = await extractionResponse.text();
+    console.error("Extraction API error:", extractionResponse.status, errText);
+    return { ...EMPTY_CANDIDATE };
+  }
+
+  const extractData = await extractionResponse.json();
+  const rawText: string = extractData?.content?.[0]?.text ?? "{}";
+
+  try {
+    const cleaned = rawText.trim().replace(/^```json\s*/i, "").replace(/```$/g, "").trim();
+    const parsed = JSON.parse(cleaned);
+    return { ...EMPTY_CANDIDATE, ...parsed };
+  } catch {
+    const match = rawText.match(/\{[\s\S]*\}/);
+    if (match) {
+      try {
+        return { ...EMPTY_CANDIDATE, ...JSON.parse(match[0]) };
+      } catch (e) {
+        console.error("Extraction parse failed", e);
+      }
+    }
+    return { ...EMPTY_CANDIDATE };
+  }
+}
+
+function buildHeaderHTML(info: CandidateInfo, jobTitle: string) {
+  const contactSpans = [info.email, info.phone, info.linkedin, info.location]
+    .filter(Boolean)
+    .map((v) => `<span>${escapeHtml(v)}</span>`)
+    .join("");
+
+  const title = jobTitle?.trim() || info.currentTitle || "";
+
+  return `<div class="r-header">
+  <h1 class="r-name">${escapeHtml(info.fullName)}</h1>
+  <p class="r-title">${escapeHtml(title)}</p>
+  <div class="r-contact">${contactSpans}</div>
+</div>`;
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -133,7 +126,7 @@ serve(async (req) => {
   try {
     if (!ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is not configured");
 
-    const { session_id, force } = await req.json();
+    const { session_id, force, retry_compact } = await req.json();
     if (!session_id) {
       return new Response(JSON.stringify({ error: "session_id required" }), {
         status: 400,
@@ -166,40 +159,82 @@ serve(async (req) => {
       );
     }
 
-    if (session.rewritten_resume_html && !force) {
+    if (session.rewritten_resume_html && !force && !retry_compact) {
       return new Response(
         JSON.stringify({ html: session.rewritten_resume_html, cached: true }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
-    const candidate = extractCandidateDetails(session.resume_text ?? "");
-    const missingKeywords: string[] =
-      session.analysis?.missing_keywords ?? [];
+    // ---------- STEP 1: Extract candidate info via separate Claude call ----------
+    console.log("Step 1: Extracting candidate info via Claude…");
+    const candidateInfo = await extractCandidateInfo(session.resume_text ?? "");
+    console.log("Extracted candidateInfo:", candidateInfo);
 
-    console.log("Calling Claude Sonnet 4.5 for rewrite. Candidate:", candidate);
+    const analysis = session.analysis ?? {};
+    const missingKeywords: string[] = analysis?.missing_keywords ?? [];
+    const jobTitle: string =
+      analysis?.target_job_title ||
+      analysis?.job_title ||
+      candidateInfo.currentTitle ||
+      "";
 
-    const userMessage = `CANDIDATE DETAILS (use these EXACTLY in the header — do not invent or use placeholders):
-- Name: ${candidate.name || "(not detected — use the name from the resume below)"}
-- Email: ${candidate.email || "(not detected — use the email from the resume below)"}
-- Phone: ${candidate.phone || "(not detected — omit if missing)"}
-- LinkedIn: ${candidate.linkedin || "(not detected — omit if missing)"}
-- Location: ${candidate.location || "(not detected — omit if missing)"}
+    // ---------- STEP 2: Pre-build header HTML in code ----------
+    const headerHTML = buildHeaderHTML(candidateInfo, jobTitle);
 
-MISSING KEYWORDS to weave in naturally where truthful:
-${missingKeywords.join(", ") || "(none)"}
+    // ---------- STEP 3: Rewrite prompt uses pre-built header verbatim ----------
+    const compactInstruction = retry_compact
+      ? `\n\nIMPORTANT RETRY INSTRUCTION: The previous output was too long. Reduce bullets to 2 per role and shorten the summary to 2 sentences. Drop the oldest or least relevant role if needed.`
+      : "";
+
+    const rewritePrompt = `You are rewriting a resume to optimise it for a specific job.
+
+CANDIDATE DETAILS (already extracted — do not modify):
+- Full Name: ${candidateInfo.fullName}
+- Email: ${candidateInfo.email}
+- Phone: ${candidateInfo.phone}
+- LinkedIn: ${candidateInfo.linkedin}
+- Location: ${candidateInfo.location}
+- Current Title: ${candidateInfo.currentTitle}
+
+TARGET ROLE: ${jobTitle}
+
+JOB DESCRIPTION:
+${session.job_description}
 
 ORIGINAL RESUME:
 ${session.resume_text}
 
-TARGET JOB DESCRIPTION:
-${session.job_description}
+OUTPUT REQUIREMENTS:
+- Return ONLY raw HTML starting with <div class="resume-page"> and ending with </div>
+- No markdown, no code fences, no explanation
+- The FIRST child inside <div class="resume-page"> must be exactly this header block (use it verbatim, do not modify):
 
-ANALYSIS JSON (use skill_gaps + quick_wins):
-${JSON.stringify(session.analysis, null, 2)}
+${headerHTML}
 
-Return the rewritten resume JSON now. Remember: ONE PAGE, max 3 bullets per role, summary max 3 sentences, real candidate details only.`;
+- After the header, add an <hr class="r-divider"> and then the resume sections in this order:
+  1. Professional Summary (max 3 sentences) — wrap in <section class="r-section"><h2 class="r-section-title">Professional Summary</h2><p class="r-summary">…</p></section>
+  2. Experience (roles using r-role structure: <div class="r-role"><div class="r-role-top"><span class="r-company">Company</span><span class="r-dates">Dates</span></div><p class="r-position">Title</p><ul class="r-bullets"><li>…</li></ul></div>)
+  3. Skills (using <div class="r-skills"><span class="r-skill">…</span></div>)
+  4. Education (<p class="r-edu-title">Degree</p><p class="r-edu-sub">Institution · Year</p>)
 
+CONTENT RULES:
+- Maximum 3 bullet points per role
+- Every bullet starts with a strong action verb. Quantify only where the original suggests it. Do NOT invent metrics.
+- Keep all dates, companies, and job titles accurate — do not invent anything
+- UK English spelling. Professional, concise tone.
+- Naturally incorporate these keywords where truthful: ${missingKeywords.join(", ") || "(none)"}
+
+A4 CONSTRAINT (CRITICAL — one page only):
+- If candidate has more than 5 roles, include only the 4 most recent/relevant
+- If content still looks long, reduce bullets to 2 per role
+- If still too long, shorten summary to 2 sentences
+- Drop older or less relevant roles first
+- Content must fit within 277mm height${compactInstruction}
+
+Return the raw HTML now.`;
+
+    console.log("Step 2: Calling Claude for rewrite…");
     const claudeResponse = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -208,10 +243,9 @@ Return the rewritten resume JSON now. Remember: ONE PAGE, max 3 bullets per role
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-5",
+        model: CLAUDE_MODEL,
         max_tokens: 4000,
-        system: REWRITE_SYSTEM,
-        messages: [{ role: "user", content: userMessage }],
+        messages: [{ role: "user", content: rewritePrompt }],
       }),
     });
 
@@ -232,24 +266,17 @@ Return the rewritten resume JSON now. Remember: ONE PAGE, max 3 bullets per role
     const claudeData = await claudeResponse.json();
     const rawText: string = claudeData?.content?.[0]?.text ?? "";
 
-    let parsed: any = null;
-    try {
-      parsed = JSON.parse(rawText);
-    } catch {
-      const match = rawText.match(/\{[\s\S]*\}/);
-      if (match) {
-        try {
-          parsed = JSON.parse(match[0]);
-        } catch (e) {
-          console.error("Re-parse failed:", e);
-        }
-      }
+    let html = rawText.trim();
+    // Strip any accidental markdown fences
+    html = html.replace(/^```html\s*/i, "").replace(/^```\s*/i, "").replace(/```$/g, "").trim();
+
+    // Safety: if the model didn't include the header verbatim, inject it.
+    if (!html.includes('class="r-header"') && candidateInfo.fullName) {
+      html = html.replace(
+        /<div class="resume-page">/,
+        `<div class="resume-page">\n${headerHTML}\n<hr class="r-divider">`,
+      );
     }
-
-    let html: string = parsed?.html ?? rawText;
-
-    // Safety: strip code fences if any
-    html = html.replace(/^```html\s*/i, "").replace(/```$/g, "").trim();
 
     await supabase
       .from("analyzer_sessions")
@@ -259,8 +286,8 @@ Return the rewritten resume JSON now. Remember: ONE PAGE, max 3 bullets per role
     return new Response(
       JSON.stringify({
         html,
-        summary_of_changes: parsed?.summary_of_changes ?? [],
-        candidate,
+        candidateInfo,
+        retry_compact: !!retry_compact,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
