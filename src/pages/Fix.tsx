@@ -95,11 +95,13 @@ const Fix = () => {
   const previewRef = useRef<HTMLDivElement>(null);
   const ranOnce = useRef(false);
 
-  const runRewrite = async (force = false) => {
+  const retriedCompact = useRef(false);
+
+  const runRewrite = async (force = false, retryCompact = false) => {
     setStatus("rewriting");
     const { data: rewriteData, error: rewriteError } =
       await supabase.functions.invoke("rewrite-with-claude", {
-        body: { session_id: sessionId, force },
+        body: { session_id: sessionId, force, retry_compact: retryCompact },
       });
     if (rewriteError) throw rewriteError;
     if (rewriteData?.error) throw new Error(rewriteData.error);
